@@ -7,6 +7,7 @@ public interface AccountService {
 
     ResponseEntity createAccount(AccountPojo accountPojo);
     ResponseEntity getUserAccountList(long userId);
+    ResponseEntity getAllAccount();
     ResponseEntity getAccountInfo(String accountNo);
     ResponseEntity editAccountName(String newName, String accountNo);
 

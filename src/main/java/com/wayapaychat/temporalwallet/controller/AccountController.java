@@ -41,4 +41,10 @@ public class AccountController {
         return accountService.getUserAccountList(user_id);
     }
 
+    @ApiOperation(value = "Get All Wallets", hidden = false)
+    @GetMapping(path = "/all-wallets}")
+    public ResponseEntity getAllAccounts() {
+        return accountService.getAllAccount();
+    }
+
 }

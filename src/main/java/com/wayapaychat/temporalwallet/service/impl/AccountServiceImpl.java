@@ -65,6 +65,12 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    public ResponseEntity getAllAccount() {
+        List<Account> accountList = accountRepository.findAll();
+        return new ResponseEntity<>(new SuccessResponse("Success.", accountList), HttpStatus.OK);
+    }
+
+    @Override
     public ResponseEntity getAccountInfo(String accountNo) {
         Account account = accountRepository.findByAccountNo(accountNo);
         return new ResponseEntity<>(new SuccessResponse("Success.", account), HttpStatus.OK);
