@@ -20,7 +20,7 @@ pipeline {
 		 stage('Checkout') {
             		steps {
 				cleanWs()
-				checkout([$class: 'GitSCM', branches: [[name: '*/dev']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'odenigbo-github-credentials', url: 'https://github.com/WAYA-MULTI-LINK/WAYA-PAY-CHAT-2.0-AUTH-SERVICE.git']]])
+				checkout([$class: 'GitSCM', branches: [[name: '*/dev']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'odenigbo-github-credentials', url: 'https://github.com/WAYA-MULTI-LINK/WAYA-PAY-CHAT-2.0-TEMPORAL-WALLET-USE.git']]])
 				sh "git branch"
                 		sh "ls -lart ./*"
             		}
