@@ -1,7 +1,7 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
 import com.wayapaychat.temporalwallet.entity.Account;
-import com.wayapaychat.temporalwallet.entity.User;
+import com.wayapaychat.temporalwallet.entity.Users;
 import com.wayapaychat.temporalwallet.enumm.AccountType;
 import com.wayapaychat.temporalwallet.pojo.AccountPojo;
 import com.wayapaychat.temporalwallet.repository.AccountRepository;
@@ -34,7 +34,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ResponseEntity createAccount(AccountPojo accountPojo) {
-        User user = userRepository.findById(accountPojo.getUserId()).orElse(null);
+        Users user = userRepository.findById(accountPojo.getUserId()).orElse(null);
         if (user == null) {
             return new ResponseEntity<>(new ErrorResponse(), HttpStatus.BAD_REQUEST);
         }
@@ -48,6 +48,7 @@ public class AccountServiceImpl implements AccountService {
             accountRepository.save(account);
             List<Account> userAccount = user.getAccounts();
             userAccount.add(account);
+            user.setAccounts(userAccount);
             userRepository.save(user);
             return new ResponseEntity<>(new SuccessResponse("Account Created Successfully.", account), HttpStatus.CREATED);
         } catch (Exception e) {
@@ -57,7 +58,7 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ResponseEntity getUserAccountList(long userId) {
-        User user = userRepository.findById(userId).orElse(null);
+        Users user = userRepository.findById(userId).orElse(null);
         if (user == null) {
             return new ResponseEntity<>(new ErrorResponse(), HttpStatus.BAD_REQUEST);
         }

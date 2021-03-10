@@ -35,7 +35,7 @@ public class Account {
 
     @JsonIgnore
     @ManyToOne
-    private User user;
+    private Users user;
 
     @JsonIgnore
     @OneToMany

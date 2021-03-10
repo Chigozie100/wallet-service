@@ -1,13 +1,14 @@
 package com.wayapaychat.temporalwallet;
 
 import com.wayapaychat.temporalwallet.entity.Account;
-import com.wayapaychat.temporalwallet.entity.User;
+import com.wayapaychat.temporalwallet.entity.Users;
 import com.wayapaychat.temporalwallet.enumm.AccountType;
 import com.wayapaychat.temporalwallet.repository.AccountRepository;
 import com.wayapaychat.temporalwallet.repository.UserRepository;
 import com.wayapaychat.temporalwallet.util.RandomGenerators;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ import java.util.List;
 import static com.wayapaychat.temporalwallet.util.Constant.WAYA_COMMISSION_ACCOUNT_NO;
 import static com.wayapaychat.temporalwallet.util.Constant.WAYA_SETTLEMENT_ACCOUNT_NO;
 
+//@Configuration
 public class InitialDataLoader implements ApplicationListener<ContextRefreshedEvent> {
 
     @Autowired
@@ -33,8 +35,9 @@ public class InitialDataLoader implements ApplicationListener<ContextRefreshedEv
 
 
         // Settlement Account
-        User user = new User();
-        user.setUserId(987678L);
+        Users user = new Users();
+        user.setUserId(786567886789L);
+        System.out.println(user.getUserId());
         userRepository.save(user);
 
         Account account = new Account();
@@ -46,7 +49,7 @@ public class InitialDataLoader implements ApplicationListener<ContextRefreshedEv
         accountRepository.save(account);
 
         // Commission Account
-        user.setUserId(987679L);
+        user.setUserId(786567886784L);
         userRepository.save(user);
 
         Account account2 = new Account();
@@ -60,7 +63,8 @@ public class InitialDataLoader implements ApplicationListener<ContextRefreshedEv
         List<Account> accountList = user.getAccounts();
         accountList.add(account);
         accountList.add(account2);
-        accountRepository.save(account);
+        user.setAccounts(accountList);
+        userRepository.save(user);
 
     }
 }

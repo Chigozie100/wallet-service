@@ -2,7 +2,6 @@ package com.wayapaychat.temporalwallet.service.impl;
 
 import com.wayapaychat.temporalwallet.entity.Account;
 import com.wayapaychat.temporalwallet.entity.Transaction;
-import com.wayapaychat.temporalwallet.entity.User;
 import com.wayapaychat.temporalwallet.enumm.TransactionType;
 import com.wayapaychat.temporalwallet.pojo.TransactionPojo;
 import com.wayapaychat.temporalwallet.pojo.TransactionTransferPojo;
