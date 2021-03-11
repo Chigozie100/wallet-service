@@ -1,7 +1,7 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
-import com.wayapaychat.temporalwallet.entity.Account;
-import com.wayapaychat.temporalwallet.entity.Transaction;
+import com.wayapaychat.temporalwallet.entity.Accounts;
+import com.wayapaychat.temporalwallet.entity.Transactions;
 import com.wayapaychat.temporalwallet.enumm.TransactionType;
 import com.wayapaychat.temporalwallet.pojo.TransactionPojo;
 import com.wayapaychat.temporalwallet.pojo.TransactionTransferPojo;
@@ -41,8 +41,8 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public ResponseEntity transactAmount(TransactionPojo transactionPojo) {
-        Account account = accountRepository.findByAccountNo(transactionPojo.getAccountNo());
-        Account wayaAccount = accountRepository.findByAccountNo(WAYA_SETTLEMENT_ACCOUNT_NO);
+        Accounts account = accountRepository.findByAccountNo(transactionPojo.getAccountNo());
+        Accounts wayaAccount = accountRepository.findByAccountNo(WAYA_SETTLEMENT_ACCOUNT_NO);
         if (account == null) {
             return new ResponseEntity<>(new ErrorResponse("Invalid Account"), HttpStatus.BAD_REQUEST);
         }
@@ -55,7 +55,7 @@ public class TransactionServiceImpl implements TransactionService {
         if (transactionPojo.getTransactionType() == TransactionType.CREDIT){
 
             // Handle Credit User Account
-            Transaction transaction = new Transaction();
+            Transactions transaction = new Transactions();
             transaction.setTransactionType(transactionPojo.getTransactionType());
             transaction.setAccount(account);
             transaction.setAmount(transactionPojo.getAmount());
@@ -63,12 +63,12 @@ public class TransactionServiceImpl implements TransactionService {
 
             transactionRepository.save(transaction);
             account.setBalance(account.getBalance() + transactionPojo.getAmount());
-            List<Transaction> transactionList = account.getTransactions();
+            List<Transactions> transactionList = account.getTransactions();
             transactionList.add(transaction);
             accountRepository.save(account);
 
             // Handle Debit Waya Account
-            Transaction transaction2 = new Transaction();
+            Transactions transaction2 = new Transactions();
             transaction2.setTransactionType(TransactionType.DEBIT);
             transaction2.setAccount(wayaAccount);
             transaction2.setAmount(transactionPojo.getAmount());
@@ -76,7 +76,7 @@ public class TransactionServiceImpl implements TransactionService {
 
             transactionRepository.save(transaction2);
             wayaAccount.setBalance(wayaAccount.getBalance() - transactionPojo.getAmount());
-            List<Transaction> transactionList2 = wayaAccount.getTransactions();
+            List<Transactions> transactionList2 = wayaAccount.getTransactions();
             transactionList2.add(transaction2);
         }
         else {
@@ -86,7 +86,7 @@ public class TransactionServiceImpl implements TransactionService {
             }
 
             // Handle Debit User Account
-            Transaction transaction = new Transaction();
+            Transactions transaction = new Transactions();
             transaction.setTransactionType(TransactionType.DEBIT);
             transaction.setAccount(account);
             transaction.setAmount(transactionPojo.getAmount());
@@ -94,12 +94,12 @@ public class TransactionServiceImpl implements TransactionService {
 
             transactionRepository.save(transaction);
             account.setBalance(account.getBalance() - transactionPojo.getAmount());
-            List<Transaction> transactionList = account.getTransactions();
+            List<Transactions> transactionList = account.getTransactions();
             transactionList.add(transaction);
             accountRepository.save(account);
 
             // Handle Debit Waya Account
-            Transaction transaction2 = new Transaction();
+            Transactions transaction2 = new Transactions();
             transaction2.setTransactionType(TransactionType.CREDIT);
             transaction2.setAccount(wayaAccount);
             transaction2.setAmount(transactionPojo.getAmount());
@@ -107,7 +107,7 @@ public class TransactionServiceImpl implements TransactionService {
 
             transactionRepository.save(transaction2);
             wayaAccount.setBalance(wayaAccount.getBalance() + transactionPojo.getAmount());
-            List<Transaction> transactionList2 = wayaAccount.getTransactions();
+            List<Transactions> transactionList2 = wayaAccount.getTransactions();
             transactionList2.add(transaction2);
             accountRepository.save(wayaAccount);
         }
@@ -117,8 +117,8 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public ResponseEntity transferTransaction(TransactionTransferPojo transactionTransferPojo) {
 
-        Account fromAccount = accountRepository.findByAccountNo(transactionTransferPojo.getFromAccount());
-        Account toAccount = accountRepository.findByAccountNo(transactionTransferPojo.getToAccount());
+        Accounts fromAccount = accountRepository.findByAccountNo(transactionTransferPojo.getFromAccount());
+        Accounts toAccount = accountRepository.findByAccountNo(transactionTransferPojo.getToAccount());
         String ref = randomGenerators.generateAlphanumeric(12);
         if (fromAccount == null || toAccount == null) {
             return new ResponseEntity<>(new ErrorResponse("Possible Invalid Account"), HttpStatus.BAD_REQUEST);
@@ -131,7 +131,7 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         // Handle Debit User Account
-        Transaction transaction = new Transaction();
+        Transactions transaction = new Transactions();
         transaction.setTransactionType(TransactionType.DEBIT);
         transaction.setAccount(fromAccount);
         transaction.setAmount(transactionTransferPojo.getAmount());
@@ -139,12 +139,12 @@ public class TransactionServiceImpl implements TransactionService {
 
         transactionRepository.save(transaction);
         fromAccount.setBalance(fromAccount.getBalance() - transactionTransferPojo.getAmount());
-        List<Transaction> transactionList = fromAccount.getTransactions();
+        List<Transactions> transactionList = fromAccount.getTransactions();
         transactionList.add(transaction);
         accountRepository.save(fromAccount);
 
         // Handle Debit Waya Account
-        Transaction transaction2 = new Transaction();
+        Transactions transaction2 = new Transactions();
         transaction2.setTransactionType(TransactionType.CREDIT);
         transaction2.setAccount(toAccount);
         transaction2.setAmount(transactionTransferPojo.getAmount());
@@ -152,7 +152,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         transactionRepository.save(transaction2);
         toAccount.setBalance(toAccount.getBalance() + transactionTransferPojo.getAmount());
-        List<Transaction> transactionList2 = toAccount.getTransactions();
+        List<Transactions> transactionList2 = toAccount.getTransactions();
         transactionList2.add(transaction2);
         accountRepository.save(toAccount);
 

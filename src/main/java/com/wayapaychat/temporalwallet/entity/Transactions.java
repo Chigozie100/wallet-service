@@ -12,7 +12,7 @@ import java.util.Date;
 @Entity
 @Data
 @NoArgsConstructor
-public class Transaction {
+public class Transactions {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -28,7 +28,7 @@ public class Transaction {
     private TransactionType transactionType;
 
     @ManyToOne
-    Account account;
+    Accounts account;
 
     double amount;
 

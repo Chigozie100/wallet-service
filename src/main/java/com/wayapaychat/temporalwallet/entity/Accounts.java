@@ -14,7 +14,7 @@ import java.util.List;
 @Entity
 @Data
 @NoArgsConstructor
-public class Account {
+public class Accounts {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -39,7 +39,7 @@ public class Account {
 
     @JsonIgnore
     @OneToMany
-    private List<Transaction> transactions;
+    private List<Transactions> transactions;
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)

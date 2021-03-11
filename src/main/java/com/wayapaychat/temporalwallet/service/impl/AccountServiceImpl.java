@@ -1,6 +1,6 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
-import com.wayapaychat.temporalwallet.entity.Account;
+import com.wayapaychat.temporalwallet.entity.Accounts;
 import com.wayapaychat.temporalwallet.entity.Users;
 import com.wayapaychat.temporalwallet.enumm.AccountType;
 import com.wayapaychat.temporalwallet.pojo.AccountPojo;
@@ -38,7 +38,7 @@ public class AccountServiceImpl implements AccountService {
         if (user == null) {
             return new ResponseEntity<>(new ErrorResponse(), HttpStatus.BAD_REQUEST);
         }
-        Account account = new ModelMapper().map(accountPojo, Account.class);
+        Accounts account = new ModelMapper().map(accountPojo, Accounts.class);
         account.setUser(user);
         account.setAccountName(user.getUserId()+randomGenerators.generateAlphabet(7));
         account.setAccountType(AccountType.SAVINGS);
@@ -46,9 +46,8 @@ public class AccountServiceImpl implements AccountService {
         try {
             userRepository.save(user);
             accountRepository.save(account);
-            List<Account> userAccount = user.getAccounts();
+            List<Accounts> userAccount = user.getAccounts();
             userAccount.add(account);
-            user.setAccounts(userAccount);
             userRepository.save(user);
             return new ResponseEntity<>(new SuccessResponse("Account Created Successfully.", account), HttpStatus.CREATED);
         } catch (Exception e) {
@@ -67,19 +66,19 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ResponseEntity getAllAccount() {
-        List<Account> accountList = accountRepository.findAll();
+        List<Accounts> accountList = accountRepository.findAll();
         return new ResponseEntity<>(new SuccessResponse("Success.", accountList), HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity getAccountInfo(String accountNo) {
-        Account account = accountRepository.findByAccountNo(accountNo);
+        Accounts account = accountRepository.findByAccountNo(accountNo);
         return new ResponseEntity<>(new SuccessResponse("Success.", account), HttpStatus.OK);
     }
 
     @Override
     public ResponseEntity editAccountName(String newName, String accountNo) {
-        Account account = accountRepository.findByAccountNo(accountNo);
+        Accounts account = accountRepository.findByAccountNo(accountNo);
         account.setAccountName(newName);
         try {
             accountRepository.save(account);
