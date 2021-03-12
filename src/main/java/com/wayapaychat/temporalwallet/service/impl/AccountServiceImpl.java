@@ -35,9 +35,9 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ResponseEntity createAccount(AccountPojo2 accountPojo) {
-        Users user = userRepository.findById(accountPojo.getUserId()).orElse(null);
+        Users user = userRepository.findByUserId(accountPojo.getUserId());
         if (user == null) {
-            return new ResponseEntity<>(new ErrorResponse(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ErrorResponse("Invalid User"), HttpStatus.BAD_REQUEST);
         }
         Accounts account = new ModelMapper().map(accountPojo, Accounts.class);
         account.setUser(user);
@@ -52,15 +52,15 @@ public class AccountServiceImpl implements AccountService {
             userRepository.save(user);
             return new ResponseEntity<>(new SuccessResponse("Account Created Successfully.", account), HttpStatus.CREATED);
         } catch (Exception e) {
-            return new ResponseEntity<>(new ErrorResponse(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
     }
 
     @Override
     public ResponseEntity getUserAccountList(long userId) {
-        Users user = userRepository.findById(userId).orElse(null);
+        Users user = userRepository.findByUserId(userId);
         if (user == null) {
-            return new ResponseEntity<>(new ErrorResponse(), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ErrorResponse("Invalid User"), HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(new SuccessResponse("Success.", user.getAccounts()), HttpStatus.OK);
     }

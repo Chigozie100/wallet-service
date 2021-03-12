@@ -33,13 +33,33 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public ResponseEntity createUser(UserPojo userRequest) {
-        Users user = new ModelMapper().map(userRequest, Users.class);
+    public ResponseEntity createUser(UserPojo userPojo) {
+        Users user = new ModelMapper().map(userPojo, Users.class);
         try {
-           Users u =  userRepository.save(user);
+            userRepository.save(user);
+            Users u = userRepository.findByUserId(user.getUserId());
             // Create Account
-            createAccount(u, userRequest.isCorporate());
-            return new ResponseEntity<>(new SuccessResponse("Account created successfully.", null), HttpStatus.CREATED);
+//            createAccount(u, userRequest.isCorporate());
+            Accounts account = new Accounts();
+            account.setUser(u);
+            account.setAccountNo(randomGenerators.generateAlphanumeric(10));
+            account.setAccountName("Default Wallet");
+            account.setAccountType(AccountType.SAVINGS);
+            accountRepository.save(account);
+
+            if (userPojo.isCorporate()){
+                Accounts caccount = new Accounts();
+                caccount.setUser(u);
+                caccount.setAccountNo(randomGenerators.generateAlphanumeric(10));
+                caccount.setAccountName("Commission Wallet");
+                caccount.setAccountType(AccountType.COMMISSION);
+                accountRepository.save(caccount);
+            }
+
+
+
+
+            return new ResponseEntity<>(new SuccessResponse("Account created successfully."+ user.getUserId(), null), HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }

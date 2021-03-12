@@ -6,6 +6,6 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 public class AccountPojo2 {
-    private long userId;
+    private Long userId;
 
 }

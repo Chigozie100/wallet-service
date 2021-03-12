@@ -25,7 +25,7 @@ public class Accounts {
     private String accountNo;
 
 
-    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String accountName;
 
     private double balance = 0.00;
