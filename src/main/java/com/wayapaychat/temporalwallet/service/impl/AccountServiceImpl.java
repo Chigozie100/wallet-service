@@ -4,6 +4,7 @@ import com.wayapaychat.temporalwallet.entity.Accounts;
 import com.wayapaychat.temporalwallet.entity.Users;
 import com.wayapaychat.temporalwallet.enumm.AccountType;
 import com.wayapaychat.temporalwallet.pojo.AccountPojo;
+import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
 import com.wayapaychat.temporalwallet.repository.AccountRepository;
 import com.wayapaychat.temporalwallet.repository.UserRepository;
 import com.wayapaychat.temporalwallet.service.AccountService;
@@ -33,7 +34,7 @@ public class AccountServiceImpl implements AccountService {
 
 
     @Override
-    public ResponseEntity createAccount(AccountPojo accountPojo) {
+    public ResponseEntity createAccount(AccountPojo2 accountPojo) {
         Users user = userRepository.findById(accountPojo.getUserId()).orElse(null);
         if (user == null) {
             return new ResponseEntity<>(new ErrorResponse(), HttpStatus.BAD_REQUEST);

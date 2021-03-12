@@ -1,6 +1,7 @@
 package com.wayapaychat.temporalwallet.controller;
 
 import com.wayapaychat.temporalwallet.pojo.AccountPojo;
+import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
 import com.wayapaychat.temporalwallet.pojo.UserPojo;
 import com.wayapaychat.temporalwallet.service.AccountService;
 import com.wayapaychat.temporalwallet.service.UserService;
@@ -19,7 +20,7 @@ public class AccountController {
 
     @ApiOperation(value = "Create a Wallet", hidden = false)
     @PostMapping(path = "/create-wallet")
-    public ResponseEntity creteAccount(@RequestBody AccountPojo accountPojo) {
+    public ResponseEntity creteAccount(@RequestBody AccountPojo2 accountPojo) {
         return accountService.createAccount(accountPojo);
     }
 
