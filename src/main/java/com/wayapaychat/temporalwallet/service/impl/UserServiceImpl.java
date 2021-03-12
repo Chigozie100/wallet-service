@@ -46,6 +46,7 @@ public class UserServiceImpl implements UserService {
             account.setAccountName("Default Wallet");
             account.setAccountType(AccountType.SAVINGS);
             accountRepository.save(account);
+            user.getAccounts().add(account);
 
             if (userPojo.isCorporate()){
                 Accounts caccount = new Accounts();
@@ -54,8 +55,10 @@ public class UserServiceImpl implements UserService {
                 caccount.setAccountName("Commission Wallet");
                 caccount.setAccountType(AccountType.COMMISSION);
                 accountRepository.save(caccount);
+                user.getAccounts().add(caccount);
             }
 
+            userRepository.save(user);
 
 
 
