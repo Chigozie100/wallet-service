@@ -74,6 +74,7 @@
 		<dependency>
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-commons</artifactId>
+			<version>3.0.0-RC1</version>
 		</dependency>
 
 
