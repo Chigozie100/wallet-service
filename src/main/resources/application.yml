@@ -23,6 +23,7 @@ spring:
     initialize=false:
 
 
+
 eureka:
   client:
     serviceUrl:
