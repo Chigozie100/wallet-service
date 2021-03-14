@@ -34,19 +34,20 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity createUser(UserPojo userPojo) {
+        Users existingUser = userRepository.findByUserId(userPojo.getUserId());
+        if (existingUser != null) {
+            return new ResponseEntity<>(new ErrorResponse("User already exists"), HttpStatus.BAD_REQUEST);
+        }
         Users user = new ModelMapper().map(userPojo, Users.class);
         try {
             userRepository.save(user);
             Users u = userRepository.findByUserId(user.getUserId());
-            // Create Account
-//            createAccount(u, userRequest.isCorporate());
             Accounts account = new Accounts();
             account.setUser(u);
             account.setAccountNo(randomGenerators.generateAlphanumeric(10));
             account.setAccountName("Default Wallet");
             account.setAccountType(AccountType.SAVINGS);
             accountRepository.save(account);
-            user.getAccounts().add(account);
 
             if (userPojo.isCorporate()){
                 Accounts caccount = new Accounts();
@@ -55,14 +56,9 @@ public class UserServiceImpl implements UserService {
                 caccount.setAccountName("Commission Wallet");
                 caccount.setAccountType(AccountType.COMMISSION);
                 accountRepository.save(caccount);
-                user.getAccounts().add(caccount);
             }
 
-            userRepository.save(user);
-
-
-
-            return new ResponseEntity<>(new SuccessResponse("Account created successfully."+ user.getUserId(), null), HttpStatus.CREATED);
+            return new ResponseEntity<>(new SuccessResponse("Account created successfully.", null), HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }

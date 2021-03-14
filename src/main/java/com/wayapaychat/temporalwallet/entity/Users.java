@@ -20,6 +20,8 @@ public class Users {
     @Column(unique = true, nullable = false)
     private Long id;
 
+
+    @Column(unique = true, nullable = false)
     private Long userId;
 
     @JsonIgnore

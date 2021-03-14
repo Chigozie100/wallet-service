@@ -36,7 +36,7 @@ public class AccountController {
         return accountService.getAccountInfo(accountNo);
     }
 
-    @ApiOperation(value = "Get Wallet Info", hidden = false)
+    @ApiOperation(value = "Get User list of wallets", hidden = false)
     @GetMapping(path = "/accounts/{user_id}")
     public ResponseEntity getAccounts(@PathVariable long user_id) {
         return accountService.getUserAccountList(user_id);
