@@ -14,9 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
-import static com.wayapaychat.temporalwallet.util.Constant.WAYA_COMMISSION_ACCOUNT_NO;
-import static com.wayapaychat.temporalwallet.util.Constant.WAYA_SETTLEMENT_ACCOUNT_NO;
+import static com.wayapaychat.temporalwallet.util.Constant.*;
 
+@Configuration
 public class InitialDataLoader implements ApplicationListener<ContextRefreshedEvent> {
 
     @Autowired
@@ -34,26 +34,30 @@ public class InitialDataLoader implements ApplicationListener<ContextRefreshedEv
 
 
         // Settlement Account
-        Users user = new Users();
-        user.setUserId(786567886789L);
-        userRepository.save(user);
+        Users user = userRepository.findByUserId(WAYA_USER_ID);
+        if (user == null) {
+            user = new Users();
+            user.setUserId(WAYA_USER_ID);
+            userRepository.save(user);
 
-        Accounts account = new Accounts();
-        account.setAccountNo(WAYA_SETTLEMENT_ACCOUNT_NO);
-        account.setAccountType(AccountType.SAVINGS);
-        account.setUser(user);
-        account.setBalance(1000000);
-        account.setAccountName("Waya Settlement");
-        accountRepository.save(account);
+            Accounts account = new Accounts();
+            account.setAccountNo(WAYA_SETTLEMENT_ACCOUNT_NO);
+            account.setAccountType(AccountType.SAVINGS);
+            account.setUser(user);
+            account.setBalance(1000000);
+            account.setAccountName("Waya Settlement");
+            accountRepository.save(account);
 
-        // Commission Account
-        Accounts account2 = new Accounts();
-        account2.setAccountNo(WAYA_COMMISSION_ACCOUNT_NO);
-        account2.setAccountType(AccountType.COMMISSION);
-        account2.setUser(user);
-        account2.setBalance(1000000);
-        account2.setAccountName("Waya Commissions");
-        accountRepository.save(account2);
+            // Commission Account
+            Accounts account2 = new Accounts();
+            account2.setAccountNo(WAYA_COMMISSION_ACCOUNT_NO);
+            account2.setAccountType(AccountType.COMMISSION);
+            account2.setUser(user);
+            account2.setBalance(1000000);
+            account2.setAccountName("Waya Commissions");
+            accountRepository.save(account2);
+        }
+
 
 //        List<Accounts> accountList = user.getAccounts();
 //
