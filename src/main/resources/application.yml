@@ -1,33 +1,33 @@
-server:
-  port: 9009
-
-spring:
-  application:
-    name: temp-wallet-service
-  jpa:
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-    hibernate:
-      ddl-auto: update
-    open-in-view: false #this config disables database queries which  may be performed during view rendering
-  datasource:
-    url: jdbc:postgresql://db-postgresql-sfo2-54806-do-user-4419539-0.b.db.ondigitalocean.com:25060/WayaPayChatTemporalWalletDB
-    username: WayaPayChat2020
-    password: gh9shfit2m53g4xz
-    initialization-mode: always
-    driverClassName: org.postgresql.Driver
-    continue-on-error: true
-    hikari:
-      initialization-fail-timeout: 60000
-    initialize=false:
-
-
-
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://46.101.41.187:8761/eureka
-  instance:
-    preferIpAddress: true
-    hostname: localhost
+#server:
+#  port: 9009
+#
+#spring:
+#  application:
+#    name: temporal-wallet-service
+#  jpa:
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.PostgreSQLDialect
+#    hibernate:
+#      ddl-auto: update
+#    open-in-view: false #this config disables database queries which  may be performed during view rendering
+#  datasource:
+#    url: jdbc:postgresql://db-postgresql-sfo2-54806-do-user-4419539-0.b.db.ondigitalocean.com:25060/WayaPayChatTemporalWalletDB
+#    username: WayaPayChat2020
+#    password: gh9shfit2m53g4xz
+#    initialization-mode: always
+#    driverClassName: org.postgresql.Driver
+#    continue-on-error: true
+#    hikari:
+#      initialization-fail-timeout: 60000
+#    initialize=false:
+#
+#
+#
+#eureka:
+#  client:
+#    serviceUrl:
+#      defaultZone: http://46.101.41.187:8761/eureka
+#  instance:
+#    preferIpAddress: true
+#    hostname: localhost

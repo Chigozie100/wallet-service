@@ -62,7 +62,8 @@ public class AccountServiceImpl implements AccountService {
         if (user == null) {
             return new ResponseEntity<>(new ErrorResponse("Invalid User"), HttpStatus.BAD_REQUEST);
         }
-        return new ResponseEntity<>(new SuccessResponse("Success.", user.getAccounts()), HttpStatus.OK);
+        List<Accounts> accounts = accountRepository.findByUser(user);
+        return new ResponseEntity<>(new SuccessResponse("Success.", accounts), HttpStatus.OK);
     }
 
     @Override
