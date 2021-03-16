@@ -8,7 +8,10 @@ public interface AccountService {
 
     ResponseEntity createAccount(AccountPojo2 accountPojo);
     ResponseEntity getUserAccountList(long userId);
+    ResponseEntity getUserCommissionList(long userId);
     ResponseEntity getAllAccount();
+    ResponseEntity getDefaultWallet(long userId);
+    ResponseEntity makeDefaultWallet(long userId, String accountNo);
     ResponseEntity getAccountInfo(String accountNo);
     ResponseEntity editAccountName(String newName, String accountNo);
 

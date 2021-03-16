@@ -67,9 +67,55 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
+    public ResponseEntity getUserCommissionList(long userId) {
+        Users user = userRepository.findByUserId(userId);
+        if (user == null) {
+            return new ResponseEntity<>(new ErrorResponse("Invalid User"), HttpStatus.BAD_REQUEST);
+        }
+        List<Accounts> accounts = accountRepository.findByUserAndAccountType(user, AccountType.COMMISSION);
+        return new ResponseEntity<>(new SuccessResponse("Success.", accounts), HttpStatus.OK);
+    }
+
+    @Override
     public ResponseEntity getAllAccount() {
         List<Accounts> accountList = accountRepository.findAll();
         return new ResponseEntity<>(new SuccessResponse("Success.", accountList), HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity getDefaultWallet(long userId) {
+        Users user = userRepository.findByUserId(userId);
+        if (user == null) {
+            return new ResponseEntity<>(new ErrorResponse("Invalid User"), HttpStatus.BAD_REQUEST);
+        }
+        Accounts account = accountRepository.findByIsDefault(true);
+        return new ResponseEntity<>(new SuccessResponse("Default Wallet", account), HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity makeDefaultWallet(long userId, String accountNo) {
+        Users user = userRepository.findByUserId(userId);
+        if (user == null) {
+            return new ResponseEntity<>(new ErrorResponse("Invalid User"), HttpStatus.BAD_REQUEST);
+        }
+        Accounts account = accountRepository.findByAccountNo(accountNo);
+        if (account ==  null) {
+            return new ResponseEntity<>(new ErrorResponse("Invalid Account No"), HttpStatus.BAD_REQUEST);
+        }
+        // Check if account belongs to user
+        if (account.getUser() != user){
+            return new ResponseEntity<>(new ErrorResponse("Invalid Account Access"), HttpStatus.BAD_REQUEST);
+        }
+        // Get Default Wallet
+        Accounts defAccount = accountRepository.findByIsDefault(true);
+        if (defAccount != null){
+            defAccount.setDefault(false);
+            accountRepository.save(defAccount);
+        }
+        account.setDefault(true);
+        accountRepository.save(account);
+        return new ResponseEntity<>(new SuccessResponse("Default wallet set", account), HttpStatus.OK);
+
     }
 
     @Override

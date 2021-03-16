@@ -24,11 +24,12 @@ public class Accounts {
     @Column(unique = true, nullable = false)
     private String accountNo;
 
-
     @Column(nullable = false)
     private String accountName;
 
     private double balance = 0.00;
+
+    private boolean isDefault = false;
 
     @Enumerated(EnumType.ORDINAL)
     private AccountType accountType = AccountType.SAVINGS;

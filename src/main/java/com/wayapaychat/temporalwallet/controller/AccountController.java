@@ -42,6 +42,25 @@ public class AccountController {
         return accountService.getUserAccountList(user_id);
     }
 
+
+    @ApiOperation(value = "Get User Commission wallets", hidden = false)
+    @GetMapping(path = "/commission-accounts/{user_id}")
+    public ResponseEntity getCommissionAccounts(@PathVariable long user_id) {
+        return accountService.getUserCommissionList(user_id);
+    }
+
+    @ApiOperation(value = "Get Default Wallet Commission wallets")
+    @GetMapping(path = "/default-account/{user_id}")
+    public ResponseEntity getDefaultWallet(@PathVariable long user_id) {
+        return accountService.getDefaultWallet(user_id);
+    }
+
+    @ApiOperation(value = "Get Default Wallet Commission wallets")
+    @GetMapping(path = "/set-default-account/{user_id}/{accountNo}")
+    public ResponseEntity setDefaultWallet(@PathVariable long user_id, @PathVariable String accountNo) {
+        return accountService.makeDefaultWallet(user_id, accountNo);
+    }
+
     @ApiOperation(value = "Get All Wallets - (Admin COnsumption Only)", hidden = false)
     @GetMapping(path = "/all-wallets")
     public ResponseEntity getAllAccounts() {
