@@ -47,6 +47,7 @@ public class UserServiceImpl implements UserService {
             account.setAccountNo(randomGenerators.generateAlphanumeric(10));
             account.setAccountName("Default Wallet");
             account.setAccountType(AccountType.SAVINGS);
+            account.setDefault(true);
             accountRepository.save(account);
 
             if (userPojo.isCorporate()){
