@@ -39,16 +39,17 @@ public class AccountServiceImpl implements AccountService {
         if (user == null) {
             return new ResponseEntity<>(new ErrorResponse("Invalid User"), HttpStatus.BAD_REQUEST);
         }
-        Accounts account = new ModelMapper().map(accountPojo, Accounts.class);
+        Accounts account = new Accounts();
         account.setUser(user);
-        account.setAccountName(user.getUserId()+randomGenerators.generateAlphabet(7));
+        account.setAccountName(randomGenerators.generateAlphabet(7));
         account.setAccountType(AccountType.SAVINGS);
         account.setAccountNo(randomGenerators.generateAlphanumeric(10));
         try {
-            userRepository.save(user);
             accountRepository.save(account);
+            userRepository.save(user);
             List<Accounts> userAccount = user.getAccounts();
             userAccount.add(account);
+            user.setAccounts(userAccount);
             userRepository.save(user);
             return new ResponseEntity<>(new SuccessResponse("Account Created Successfully.", account), HttpStatus.CREATED);
         } catch (Exception e) {
