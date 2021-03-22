@@ -18,5 +18,7 @@ public interface AccountRepository extends JpaRepository<Accounts, Long> {
 
     Accounts findByIsDefault(boolean b);
 
-    List<Accounts> findByUserAndAccountType(Users user, AccountType commission);
+    Accounts findByUserAndAccountType(Users user, AccountType commission);
+
+    Accounts findByUserAndIsDefault(Users toUser, boolean b);
 }

@@ -4,6 +4,8 @@ import com.wayapaychat.temporalwallet.pojo.AccountPojo;
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
+
 public interface AccountService {
 
     ResponseEntity createAccount(AccountPojo2 accountPojo);
@@ -14,6 +16,7 @@ public interface AccountService {
     ResponseEntity makeDefaultWallet(long userId, String accountNo);
     ResponseEntity getAccountInfo(String accountNo);
     ResponseEntity editAccountName(String newName, String accountNo);
+    ResponseEntity getCommissionAccountListByArray(List<Integer> ids);
 
 
 }

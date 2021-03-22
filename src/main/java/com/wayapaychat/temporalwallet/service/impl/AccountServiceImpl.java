@@ -17,6 +17,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -73,7 +74,7 @@ public class AccountServiceImpl implements AccountService {
         if (user == null) {
             return new ResponseEntity<>(new ErrorResponse("Invalid User"), HttpStatus.BAD_REQUEST);
         }
-        List<Accounts> accounts = accountRepository.findByUserAndAccountType(user, AccountType.COMMISSION);
+        Accounts accounts = accountRepository.findByUserAndAccountType(user, AccountType.COMMISSION);
         return new ResponseEntity<>(new SuccessResponse("Success.", accounts), HttpStatus.OK);
     }
 
@@ -126,7 +127,7 @@ public class AccountServiceImpl implements AccountService {
     }
 
     @Override
-    public ResponseEntity editAccountName(String newName, String accountNo) {
+    public ResponseEntity editAccountName(String accountNo, String newName) {
         Accounts account = accountRepository.findByAccountNo(accountNo);
         account.setAccountName(newName);
         try {
@@ -135,6 +136,20 @@ public class AccountServiceImpl implements AccountService {
         } catch (Exception e) {
             return new ResponseEntity<>(new ErrorResponse(), HttpStatus.BAD_REQUEST);
         }
+    }
+
+    @Override
+    public ResponseEntity getCommissionAccountListByArray(List<Integer> ids) {
+        List<Accounts> accounts = new ArrayList<>();
+        for (int id: ids) {
+            Accounts commissionAccount = null;
+            Users user = userRepository.findByUserId(id);
+            if(user != null){
+                commissionAccount = accountRepository.findByUserAndAccountType(user, AccountType.COMMISSION);
+            }
+            accounts.add(commissionAccount);
+        }
+        return new ResponseEntity<>(new SuccessResponse("Account name changed", accounts), HttpStatus.OK);
     }
 
 

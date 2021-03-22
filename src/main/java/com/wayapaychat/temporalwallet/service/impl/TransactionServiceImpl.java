@@ -2,9 +2,11 @@ package com.wayapaychat.temporalwallet.service.impl;
 
 import com.wayapaychat.temporalwallet.entity.Accounts;
 import com.wayapaychat.temporalwallet.entity.Transactions;
+import com.wayapaychat.temporalwallet.entity.Users;
 import com.wayapaychat.temporalwallet.enumm.TransactionType;
 import com.wayapaychat.temporalwallet.pojo.TransactionPojo;
 import com.wayapaychat.temporalwallet.pojo.TransactionTransferPojo;
+import com.wayapaychat.temporalwallet.pojo.TransactionTransferPojo2;
 import com.wayapaychat.temporalwallet.repository.AccountRepository;
 import com.wayapaychat.temporalwallet.repository.TransactionRepository;
 import com.wayapaychat.temporalwallet.repository.UserRepository;
@@ -158,5 +160,59 @@ public class TransactionServiceImpl implements TransactionService {
 
         return new ResponseEntity<>(new SuccessResponse("Transfer Completed.", null), HttpStatus.OK);
 
+    }
+
+    @Override
+    public ResponseEntity transferTransactionWithId(TransactionTransferPojo2 transactionTransferPojo2) {
+        Users fromUser = userRepository.findByUserId(transactionTransferPojo2.getFromId());
+        Users toUser = userRepository.findByUserId(transactionTransferPojo2.getToId());
+
+        if (fromUser == null){
+            return new ResponseEntity<>(new ErrorResponse("Invalid Sender Id"), HttpStatus.BAD_REQUEST);
+        }
+        if (toUser == null){
+            return new ResponseEntity<>(new ErrorResponse("Invalid Receiver Id"), HttpStatus.BAD_REQUEST);
+        }
+
+        Accounts fromAccount = accountRepository.findByUserAndIsDefault(fromUser, true);
+        Accounts toAccount = accountRepository.findByUserAndIsDefault(toUser, true);
+        String ref = randomGenerators.generateAlphanumeric(12);
+        if (fromAccount == null || toAccount == null) {
+            return new ResponseEntity<>(new ErrorResponse("Possible Invalid Account"), HttpStatus.BAD_REQUEST);
+        }
+        if (transactionTransferPojo2.getAmount() < 1) {
+            return new ResponseEntity<>(new ErrorResponse("Invalid Amount"), HttpStatus.BAD_REQUEST);
+        }
+        if (fromAccount.getBalance() < transactionTransferPojo2.getAmount()) {
+            return new ResponseEntity<>(new ErrorResponse("Insufficient Fund"), HttpStatus.BAD_REQUEST);
+        }
+
+        // Handle Debit User Account
+        Transactions transaction = new Transactions();
+        transaction.setTransactionType(TransactionType.DEBIT);
+        transaction.setAccount(fromAccount);
+        transaction.setAmount(transactionTransferPojo2.getAmount());
+        transaction.setRefCode(ref);
+
+        transactionRepository.save(transaction);
+        fromAccount.setBalance(fromAccount.getBalance() - transactionTransferPojo2.getAmount());
+        List<Transactions> transactionList = fromAccount.getTransactions();
+        transactionList.add(transaction);
+        accountRepository.save(fromAccount);
+
+        // Handle Debit Waya Account
+        Transactions transaction2 = new Transactions();
+        transaction2.setTransactionType(TransactionType.CREDIT);
+        transaction2.setAccount(toAccount);
+        transaction2.setAmount(transactionTransferPojo2.getAmount());
+        transaction2.setRefCode(ref);
+
+        transactionRepository.save(transaction2);
+        toAccount.setBalance(toAccount.getBalance() + transactionTransferPojo2.getAmount());
+        List<Transactions> transactionList2 = toAccount.getTransactions();
+        transactionList2.add(transaction2);
+        accountRepository.save(toAccount);
+
+        return new ResponseEntity<>(new SuccessResponse("Transfer Completed.", null), HttpStatus.OK);
     }
 }

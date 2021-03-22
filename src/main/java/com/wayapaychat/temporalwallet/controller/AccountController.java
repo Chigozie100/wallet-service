@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/wallet")
 public class AccountController {
@@ -18,10 +20,16 @@ public class AccountController {
     @Autowired
     AccountService accountService;
 
-    @ApiOperation(value = "Create a Wallet", hidden = false)
+    @ApiOperation(value = "Create a Wallet")
     @PostMapping(path = "/create-wallet")
     public ResponseEntity creteAccount(@RequestBody AccountPojo2 accountPojo) {
         return accountService.createAccount(accountPojo);
+    }
+
+    @ApiOperation(value = "Get List of Commission Accounts by UserId Array")
+    @PostMapping(path = "/commission-wallets")
+    public ResponseEntity getCommissionAccounts(@RequestBody List<Integer> ids) {
+        return accountService.getCommissionAccountListByArray(ids);
     }
 
     @ApiOperation(value = "Edit Wallet", hidden = false)

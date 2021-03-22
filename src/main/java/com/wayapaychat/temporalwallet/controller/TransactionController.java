@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.controller;
 
 import com.wayapaychat.temporalwallet.pojo.TransactionPojo;
 import com.wayapaychat.temporalwallet.pojo.TransactionTransferPojo;
+import com.wayapaychat.temporalwallet.pojo.TransactionTransferPojo2;
 import com.wayapaychat.temporalwallet.pojo.UserPojo;
 import com.wayapaychat.temporalwallet.service.TransactionService;
 import com.wayapaychat.temporalwallet.service.UserService;
@@ -20,17 +21,22 @@ public class TransactionController {
     @Autowired
     TransactionService transactionService;
 
-    @ApiOperation(value = "Withdraw or Deposit Amount", hidden = false)
+    @ApiOperation(value = "Withdraw or Deposit Amount")
     @PostMapping(path = "/dotransaction")
     public ResponseEntity doTransaction(@RequestBody TransactionPojo transactionPojo) {
         return transactionService.transactAmount(transactionPojo);
     }
 
-
-    @ApiOperation(value = "Wallet to Wallet Transfer", hidden = false)
+    @ApiOperation(value = "Wallet to Wallet Transfer")
     @PostMapping(path = "/wallet2wallet")
     public ResponseEntity doTransaction(@RequestBody TransactionTransferPojo transactionTransferPojo) {
         return transactionService.transferTransaction(transactionTransferPojo);
+    }
+
+    @ApiOperation(value = "Wallet to Wallet Transfer by User Id's")
+    @PostMapping(path = "/wallet2wallet-by-ids")
+    public ResponseEntity doTransaction2(@RequestBody TransactionTransferPojo2 transactionTransferPojo) {
+        return transactionService.transferTransactionWithId(transactionTransferPojo);
     }
 
 }
