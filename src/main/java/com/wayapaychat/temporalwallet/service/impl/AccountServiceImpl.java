@@ -90,7 +90,7 @@ public class AccountServiceImpl implements AccountService {
         if (user == null) {
             return new ResponseEntity<>(new ErrorResponse("Invalid User"), HttpStatus.BAD_REQUEST);
         }
-        Accounts account = accountRepository.findByIsDefault(true);
+        Accounts account = accountRepository.findByIsDefaultAndUser(true, user);
         return new ResponseEntity<>(new SuccessResponse("Default Wallet", account), HttpStatus.OK);
     }
 
