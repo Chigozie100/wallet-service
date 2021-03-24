@@ -109,7 +109,7 @@ public class AccountServiceImpl implements AccountService {
             return new ResponseEntity<>(new ErrorResponse("Invalid Account Access"), HttpStatus.BAD_REQUEST);
         }
         // Get Default Wallet
-        Accounts defAccount = accountRepository.findByIsDefault(true);
+        Accounts defAccount = accountRepository.findByIsDefaultAndUser(true, user);
         if (defAccount != null){
             defAccount.setDefault(false);
             accountRepository.save(defAccount);
