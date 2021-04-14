@@ -44,6 +44,7 @@ public class AccountServiceImpl implements AccountService {
         account.setUser(user);
         account.setAccountName(randomGenerators.generateAlphabet(7));
         account.setAccountType(AccountType.SAVINGS);
+        account.setDefault(true);
         account.setAccountNo(randomGenerators.generateAlphanumeric(10));
         try {
             accountRepository.save(account);
