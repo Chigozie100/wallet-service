@@ -13,6 +13,9 @@ import com.wayapaychat.temporalwallet.util.RandomGenerators;
 import com.wayapaychat.temporalwallet.util.SuccessResponse;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -81,8 +84,10 @@ public class AccountServiceImpl implements AccountService {
 
     @Override
     public ResponseEntity getAllAccount() {
-        List<Accounts> accountList = accountRepository.findAll();
-        return new ResponseEntity<>(new SuccessResponse("Success.", accountList), HttpStatus.OK);
+    	Pageable paging = PageRequest.of(0, 10);
+    	Page<Accounts> pagedResult = accountRepository.findAll(paging);
+//        List<Accounts> accountList = accountRepository.findAll();
+        return new ResponseEntity<>(new SuccessResponse("Success.", pagedResult), HttpStatus.OK);
     }
 
     @Override
