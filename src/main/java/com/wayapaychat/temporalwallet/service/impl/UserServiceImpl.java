@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -34,14 +35,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity createUser(UserPojo userPojo) {
-        Users existingUser = userRepository.findByUserId(userPojo.getUserId());
+    	Optional<Users> existingUser = userRepository.findByUserId(userPojo.getUserId());
         if (existingUser != null) {
             return new ResponseEntity<>(new ErrorResponse("User already exists"), HttpStatus.BAD_REQUEST);
         }
         Users user = new ModelMapper().map(userPojo, Users.class);
         try {
-            userRepository.save(user);
-            Users u = userRepository.findByUserId(user.getUserId());
+            Users u = userRepository.save(user);
+//            Optional<Users> u = userRepository.findByUserId(user.getUserId());
             Accounts account = new Accounts();
             account.setUser(u);
             account.setAccountNo(randomGenerators.generateAlphanumeric(10));

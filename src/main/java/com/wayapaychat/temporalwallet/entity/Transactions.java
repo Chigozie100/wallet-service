@@ -1,8 +1,12 @@
 package com.wayapaychat.temporalwallet.entity;
 
 import com.wayapaychat.temporalwallet.enumm.TransactionType;
-import lombok.Data;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import org.hibernate.annotations.CreationTimestamp;
 
 import javax.persistence.*;
@@ -10,7 +14,9 @@ import java.util.Date;
 
 
 @Entity
-@Data
+@Getter
+@Setter
+@AllArgsConstructor
 @NoArgsConstructor
 public class Transactions {
 
@@ -29,6 +35,8 @@ public class Transactions {
 
     @ManyToOne
     Accounts account;
+    
+    public Long walletId;
 
     double amount;
 

@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
 import static com.wayapaychat.temporalwallet.util.Constant.WAYA_SETTLEMENT_ACCOUNT_NO;
 
@@ -43,9 +44,9 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     @Transactional
     public ResponseEntity transactAmount(TransactionPojo transactionPojo) {
-        Accounts account = accountRepository.findByAccountNo(transactionPojo.getAccountNo());
-        Accounts wayaAccount = accountRepository.findByAccountNo(WAYA_SETTLEMENT_ACCOUNT_NO);
-        if (account == null) {
+    	Optional<Accounts> account = accountRepository.findByAccountNo(transactionPojo.getAccountNo());
+    	Optional<Accounts> wayaAccount = accountRepository.findByAccountNo(WAYA_SETTLEMENT_ACCOUNT_NO);
+        if (!account.isPresent()) {
             return new ResponseEntity<>(new ErrorResponse("Invalid Account"), HttpStatus.BAD_REQUEST);
         }
         if (transactionPojo.getAmount() < 1) {
@@ -59,59 +60,59 @@ public class TransactionServiceImpl implements TransactionService {
             // Handle Credit User Account
             Transactions transaction = new Transactions();
             transaction.setTransactionType(transactionPojo.getTransactionType());
-            transaction.setAccount(account);
+            transaction.setAccount(account.get());
             transaction.setAmount(transactionPojo.getAmount());
             transaction.setRefCode(ref);
 
             transactionRepository.save(transaction);
-            account.setBalance(account.getBalance() + transactionPojo.getAmount());
-            List<Transactions> transactionList = account.getTransactions();
+            account.get().setBalance(account.get().getBalance() + transactionPojo.getAmount());
+            List<Transactions> transactionList = account.get().getTransactions();
             transactionList.add(transaction);
-            accountRepository.save(account);
+            accountRepository.save(account.get());
 
             // Handle Debit Waya Account
             Transactions transaction2 = new Transactions();
             transaction2.setTransactionType(TransactionType.DEBIT);
-            transaction2.setAccount(wayaAccount);
+            transaction2.setAccount(wayaAccount.get());
             transaction2.setAmount(transactionPojo.getAmount());
             transaction2.setRefCode(ref);
 
             transactionRepository.save(transaction2);
-            wayaAccount.setBalance(wayaAccount.getBalance() - transactionPojo.getAmount());
-            List<Transactions> transactionList2 = wayaAccount.getTransactions();
+            wayaAccount.get().setBalance(wayaAccount.get().getBalance() - transactionPojo.getAmount());
+            List<Transactions> transactionList2 = wayaAccount.get().getTransactions();
             transactionList2.add(transaction2);
         }
         else {
 
-            if (account.getBalance() < transactionPojo.getAmount()) {
+            if (account.get().getBalance() < transactionPojo.getAmount()) {
                 return new ResponseEntity<>(new ErrorResponse("Insufficient Balance"), HttpStatus.BAD_REQUEST);
             }
 
             // Handle Debit User Account
             Transactions transaction = new Transactions();
             transaction.setTransactionType(TransactionType.DEBIT);
-            transaction.setAccount(account);
+            transaction.setAccount(account.get());
             transaction.setAmount(transactionPojo.getAmount());
             transaction.setRefCode(ref);
 
             transactionRepository.save(transaction);
-            account.setBalance(account.getBalance() - transactionPojo.getAmount());
-            List<Transactions> transactionList = account.getTransactions();
+            account.get().setBalance(account.get().getBalance() - transactionPojo.getAmount());
+            List<Transactions> transactionList = account.get().getTransactions();
             transactionList.add(transaction);
-            accountRepository.save(account);
+            accountRepository.save(account.get());
 
             // Handle Debit Waya Account
             Transactions transaction2 = new Transactions();
             transaction2.setTransactionType(TransactionType.CREDIT);
-            transaction2.setAccount(wayaAccount);
+            transaction2.setAccount(wayaAccount.get());
             transaction2.setAmount(transactionPojo.getAmount());
             transaction2.setRefCode(ref);
 
             transactionRepository.save(transaction2);
-            wayaAccount.setBalance(wayaAccount.getBalance() + transactionPojo.getAmount());
-            List<Transactions> transactionList2 = wayaAccount.getTransactions();
+            wayaAccount.get().setBalance(wayaAccount.get().getBalance() + transactionPojo.getAmount());
+            List<Transactions> transactionList2 = wayaAccount.get().getTransactions();
             transactionList2.add(transaction2);
-            accountRepository.save(wayaAccount);
+            accountRepository.save(wayaAccount.get());
         }
         return new ResponseEntity<>(new SuccessResponse("Success.", null), HttpStatus.OK);
     }
@@ -119,8 +120,8 @@ public class TransactionServiceImpl implements TransactionService {
     @Override
     public ResponseEntity transferTransaction(TransactionTransferPojo transactionTransferPojo) {
 
-        Accounts fromAccount = accountRepository.findByAccountNo(transactionTransferPojo.getFromAccount());
-        Accounts toAccount = accountRepository.findByAccountNo(transactionTransferPojo.getToAccount());
+        Optional<Accounts> fromAccount = accountRepository.findByAccountNo(transactionTransferPojo.getFromAccount());
+        Optional<Accounts> toAccount = accountRepository.findByAccountNo(transactionTransferPojo.getToAccount());
         String ref = randomGenerators.generateAlphanumeric(12);
         if (fromAccount == null || toAccount == null) {
             return new ResponseEntity<>(new ErrorResponse("Possible Invalid Account"), HttpStatus.BAD_REQUEST);
@@ -128,35 +129,35 @@ public class TransactionServiceImpl implements TransactionService {
         if (transactionTransferPojo.getAmount() < 1) {
             return new ResponseEntity<>(new ErrorResponse("Invalid Amount"), HttpStatus.BAD_REQUEST);
         }
-        if (fromAccount.getBalance() < transactionTransferPojo.getAmount()) {
+        if (fromAccount.get().getBalance() < transactionTransferPojo.getAmount()) {
             return new ResponseEntity<>(new ErrorResponse("Insufficient Fund"), HttpStatus.BAD_REQUEST);
         }
 
         // Handle Debit User Account
         Transactions transaction = new Transactions();
         transaction.setTransactionType(TransactionType.DEBIT);
-        transaction.setAccount(fromAccount);
+        transaction.setAccount(fromAccount.get());
         transaction.setAmount(transactionTransferPojo.getAmount());
         transaction.setRefCode(ref);
 
         transactionRepository.save(transaction);
-        fromAccount.setBalance(fromAccount.getBalance() - transactionTransferPojo.getAmount());
-        List<Transactions> transactionList = fromAccount.getTransactions();
+        fromAccount.get().setBalance(fromAccount.get().getBalance() - transactionTransferPojo.getAmount());
+        List<Transactions> transactionList = fromAccount.get().getTransactions();
         transactionList.add(transaction);
-        accountRepository.save(fromAccount);
+        accountRepository.save(fromAccount.get());
 
         // Handle Debit Waya Account
         Transactions transaction2 = new Transactions();
         transaction2.setTransactionType(TransactionType.CREDIT);
-        transaction2.setAccount(toAccount);
+        transaction2.setAccount(toAccount.get());
         transaction2.setAmount(transactionTransferPojo.getAmount());
         transaction2.setRefCode(ref);
 
         transactionRepository.save(transaction2);
-        toAccount.setBalance(toAccount.getBalance() + transactionTransferPojo.getAmount());
-        List<Transactions> transactionList2 = toAccount.getTransactions();
+        toAccount.get().setBalance(toAccount.get().getBalance() + transactionTransferPojo.getAmount());
+        List<Transactions> transactionList2 = toAccount.get().getTransactions();
         transactionList2.add(transaction2);
-        accountRepository.save(toAccount);
+        accountRepository.save(toAccount.get());
 
         return new ResponseEntity<>(new SuccessResponse("Transfer Completed.", null), HttpStatus.OK);
 
@@ -164,18 +165,18 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public ResponseEntity transferTransactionWithId(TransactionTransferPojo2 transactionTransferPojo2) {
-        Users fromUser = userRepository.findByUserId(transactionTransferPojo2.getFromId());
-        Users toUser = userRepository.findByUserId(transactionTransferPojo2.getToId());
+        Optional<Users> fromUser = userRepository.findByUserId(transactionTransferPojo2.getFromId());
+        Optional<Users> toUser = userRepository.findByUserId(transactionTransferPojo2.getToId());
 
-        if (fromUser == null){
+        if (!fromUser.isPresent()){
             return new ResponseEntity<>(new ErrorResponse("Invalid Sender Id"), HttpStatus.BAD_REQUEST);
         }
-        if (toUser == null){
+        if (!toUser.isPresent()){
             return new ResponseEntity<>(new ErrorResponse("Invalid Receiver Id"), HttpStatus.BAD_REQUEST);
         }
 
-        Accounts fromAccount = accountRepository.findByUserAndIsDefault(fromUser, true);
-        Accounts toAccount = accountRepository.findByUserAndIsDefault(toUser, true);
+        Accounts fromAccount = accountRepository.findByUserAndIsDefault(fromUser.get(), true);
+        Accounts toAccount = accountRepository.findByUserAndIsDefault(toUser.get(), true);
         String ref = randomGenerators.generateAlphanumeric(12);
         if (fromAccount == null || toAccount == null) {
             return new ResponseEntity<>(new ErrorResponse("Possible Invalid Account"), HttpStatus.BAD_REQUEST);

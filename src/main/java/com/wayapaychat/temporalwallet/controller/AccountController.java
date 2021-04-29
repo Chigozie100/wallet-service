@@ -71,7 +71,7 @@ public class AccountController {
 
     @ApiOperation(value = "Get All Wallets - (Admin COnsumption Only)", hidden = false)
     @GetMapping(path = "/all-wallets")
-    public ResponseEntity getAllAccounts() {
+    public ResponseEntity<?> getAllAccounts() {
         return accountService.getAllAccount();
     }
 
