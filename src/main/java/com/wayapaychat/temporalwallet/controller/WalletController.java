@@ -80,7 +80,7 @@ public class WalletController {
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Get logged in user default wallet", notes = "Get logged in user defalult wallet")
-	@GetMapping("/get/default/waller")
+	@GetMapping("/get/default/wallet")
 	public ResponseEntity<MainWalletResponse> getDefaultWallet() {
 		return ResponseEntity.ok(walletImplementation.getDefaultWallet());
 	}

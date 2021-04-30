@@ -356,8 +356,14 @@ public class WalletImplementation {
     
     public MainWalletResponse getDefaultWallet() {
     	try {
-    		Users user = (Users)  userFacade.getAuthentication().getPrincipal();
-    		Accounts accnt = accountRepository.findByIsDefaultAndUser(true, user);
+    		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
+    		Users mUser = new Users();
+    		mUser.setEmailAddress(user.getEmail());
+    		mUser.setFirstName(user.getFirstName());
+    		mUser.setLastName(user.getSurname());
+    		mUser.setMobileNo(user.getPhoneNumber());
+    		mUser.setUserId(user.getId());
+    		Accounts accnt = accountRepository.findByIsDefaultAndUser(true, mUser);
 			MainWalletResponse mainWallet = new MainWalletResponse();
 			WalletStatus status = new WalletStatus();
 			status.setActive(accnt.isActive());
@@ -391,7 +397,7 @@ public class WalletImplementation {
 			
 			
 			mainWallet.setAccountNo(accnt.getAccountNo());
-			mainWallet.setClientId(user.getSavingsProductId());
+			mainWallet.setClientId(mUser.getSavingsProductId());
 			mainWallet.setClientName(accnt.getAccountName());
 			mainWallet.setId(accnt.getId());
 			mainWallet.setNominalAnnualInterestRate(0.0);
