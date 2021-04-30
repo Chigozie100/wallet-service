@@ -79,6 +79,7 @@ public class WalletImplementation {
             account.setApproved(true);
             account.setDefault(true);
             account.setClosed(false);
+//            account.setU
             account.setCode("savingsAccountStatusType.active");
             account.setValue("Active");
 	        account.setAccountName(us.getFirstName()+" "+us.getLastName());
@@ -358,8 +359,10 @@ public class WalletImplementation {
     public MainWalletResponse getDefaultWallet() {
     	try {
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
-    		Optional<Users> mUser = userRepository.findById(user.getId());
+//    		System.out.println(":::::::::user id::::::"+user.getId());
+    		Optional<Users> mUser = userRepository.findByUserId(user.getId());
     		Accounts accnt = accountRepository.findByIsDefaultAndUser(true, mUser.get());
+//    		System.out.println(":::later userId::::"+mUser.get().getId());
 			MainWalletResponse mainWallet = new MainWalletResponse();
 			WalletStatus status = new WalletStatus();
 			status.setActive(accnt.isActive());
