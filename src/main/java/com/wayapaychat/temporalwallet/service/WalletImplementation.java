@@ -74,7 +74,7 @@ public class WalletImplementation {
 			Accounts account = new Accounts();
 			System.out.println("::::saving account:::");
 	        account.setUser(mu);
-	        account.setProductId(createWallet.getExternalId());
+	        account.setProductId(1L);
 	        account.setActive(true);
             account.setApproved(true);
             account.setClosed(false);
