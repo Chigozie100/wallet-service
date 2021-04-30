@@ -77,6 +77,7 @@ public class WalletImplementation {
 	        account.setProductId(1L);
 	        account.setActive(true);
             account.setApproved(true);
+            account.setDefault(true);
             account.setClosed(false);
             account.setCode("savingsAccountStatusType.active");
             account.setValue("Active");
