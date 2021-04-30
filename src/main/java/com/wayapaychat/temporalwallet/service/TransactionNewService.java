@@ -20,6 +20,7 @@ import com.wayapaychat.temporalwallet.entity.Transactions;
 import com.wayapaychat.temporalwallet.entity.Users;
 import com.wayapaychat.temporalwallet.enumm.TransactionType;
 import com.wayapaychat.temporalwallet.exception.CustomException;
+import com.wayapaychat.temporalwallet.pojo.MyData;
 import com.wayapaychat.temporalwallet.pojo.TransactionRequest;
 import com.wayapaychat.temporalwallet.pojo.TransactionResponse;
 import com.wayapaychat.temporalwallet.repository.AccountRepository;
@@ -54,8 +55,11 @@ public class TransactionNewService {
     public Page<Transactions> getWalletTransaction(int page, int size) {
     	try {
     		Pageable paging = PageRequest.of(page, size);
-    		Users user = (Users)  userFacade.getAuthentication().getPrincipal();
-    		Accounts accnt = accountRepository.findByIsDefaultAndUser(true, user);
+    		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
+//    		System.out.println(":::::::::user id::::::"+user.getId());
+    		Optional<Users> mUser = userRepository.findByUserId(user.getId());
+//    		Users user = (Users)  userFacade.getAuthentication().getPrincipal();
+    		Accounts accnt = accountRepository.findByIsDefaultAndUser(true, mUser.get());
     		return transactionRepository.findByAccount(accnt,paging);
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);

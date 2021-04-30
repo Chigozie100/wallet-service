@@ -478,7 +478,7 @@ public class WalletImplementation {
     private List<MainWalletResponse> walletResponse(Long externalId) {
     	try {
     		List<MainWalletResponse> walletResList = new ArrayList<>();
-			return userRepository.findById(externalId).map(user -> {
+			return userRepository.findByUserId(externalId).map(user -> {
 				List<Accounts> accountList = accountRepository.findByUser(user);
 				
 				
