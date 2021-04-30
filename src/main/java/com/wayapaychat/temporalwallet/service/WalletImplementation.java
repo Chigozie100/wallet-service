@@ -122,7 +122,7 @@ public class WalletImplementation {
           account.setAccountType(AccountType.SAVINGS);
           account.setUser(mUser);
           account.setBalance(1000000);
-          account.setAccountName("Waya Settlement");
+          account.setAccountName(user.getFirstName()+" "+user.getSurname());
           accountRepository.save(account);
 
           // Commission Account
