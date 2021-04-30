@@ -80,8 +80,10 @@ public class TransactionNewService {
     
     public TransactionRequest makeTransaction(String command, TransactionRequest request) {
     	try {
-    		Users user = (Users)  userFacade.getAuthentication().getPrincipal();
-    		Accounts senderAccount = accountRepository.findByUserAndIsDefault(user, true);
+    		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
+//    		System.out.println(":::::::::user id::::::"+user.getId());
+    		Optional<Users> mUser = userRepository.findByUserId(user.getId());
+    		Accounts senderAccount = accountRepository.findByUserAndIsDefault(mUser.get(), true);
     		Optional<Accounts> wayaAccount = accountRepository.findByAccountNo(WAYA_SETTLEMENT_ACCOUNT_NO);
     		if (senderAccount == null) {
     			throw new CustomException("Invalid Account", HttpStatus.UNPROCESSABLE_ENTITY);
@@ -187,8 +189,10 @@ public class TransactionNewService {
     
     public TransactionRequest transferUserToUser(String command, TransactionRequest request) {
     	try {
-    		Users user = (Users)  userFacade.getAuthentication().getPrincipal();
-    		Accounts senderAccount = accountRepository.findByUserAndIsDefault(user, true);
+    		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
+//    		System.out.println(":::::::::user id::::::"+user.getId());
+    		Optional<Users> mUser = userRepository.findByUserId(user.getId());
+    		Accounts senderAccount = accountRepository.findByUserAndIsDefault(mUser.get(), true);
     		Optional<Accounts> wayaAccount = accountRepository.findByAccountNo(WAYA_SETTLEMENT_ACCOUNT_NO);
     		Optional<Accounts> receiverAccount = accountRepository.findById(request.getCustomerWalletId());
     		
