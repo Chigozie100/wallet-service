@@ -182,7 +182,7 @@ public class TransactionNewService {
             throw new CustomException("Invalid Transaction", HttpStatus.UNPROCESSABLE_ENTITY);
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
-			throw new CustomException(e.getMessage(), HttpStatus.BAD_REQUEST);
+			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
 		}
     }
     
@@ -272,7 +272,7 @@ public class TransactionNewService {
             
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
-			throw new CustomException(e.getMessage(), HttpStatus.BAD_REQUEST);
+			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
 		}
     }
     

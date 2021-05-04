@@ -111,6 +111,7 @@ public class WalletImplementation {
     
     public ResponsePojo createWayaWallet() {
     	try {
+    		System.out.println("::::::::Creating Wallet::::::::");
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
     		Users mUser = new Users();
     		mUser.setEmailAddress(user.getEmail());
@@ -144,20 +145,20 @@ public class WalletImplementation {
     @Transactional
     public CreateWalletResponse createWallet(Integer productId) {
     	try {
-    		System.out.println(":::::::::Adding wallet::::::::");
+//    		System.out.println(":::::::::Adding wallet::::::::");
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
-    		Users mUser = new Users();
-    		mUser.setEmailAddress(user.getEmail());
-    		mUser.setFirstName(user.getFirstName());
-    		mUser.setLastName(user.getSurname());
-    		mUser.setMobileNo(user.getPhoneNumber());
-    		mUser.setUserId(user.getId());
-    		System.out.println(":::::::usss:::::");
+    		Optional<Users> mUser = userRepository.findByUserId(user.getId());
+    		mUser.get().setEmailAddress(user.getEmail());
+    		mUser.get().setFirstName(user.getFirstName());
+    		mUser.get().setLastName(user.getSurname());
+    		mUser.get().setMobileNo(user.getPhoneNumber());
+    		mUser.get().setUserId(user.getId());
+//    		System.out.println(":::::::usss:::::");
         	Accounts account = new Accounts();
-            account.setUser(mUser);
+            account.setUser(mUser.get());
             account.setProductId(Long.valueOf(productId));
-            account.setAccountName(mUser.getFirstName()+" "+mUser.getLastName());
-            System.out.println("::::::wallet creation:::::");
+            account.setAccountName(mUser.get().getFirstName()+" "+mUser.get().getLastName());
+//            System.out.println("::::::wallet creation:::::");
             if(productId == 1) {
             	account.setAccountType(AccountType.SAVINGS);
             }
@@ -172,13 +173,13 @@ public class WalletImplementation {
             account.setValue("Active");
             account.setAccountNo(randomGenerators.generateAlphanumeric(10));
             Accounts mAccount = accountRepository.save(account);
-            System.out.println("::::::Account Saved:::::"+mAccount.getAccountName());
+//            System.out.println("::::::Account Saved:::::"+mAccount.getAccountName());
 //            userRepository.save(user);
             List<Accounts> userAccount = new ArrayList<>();
             userAccount.add(account);
-            mUser.setAccounts(userAccount);
-            Users mUser2 = userRepository.save(mUser);
-        	CreateWalletResponse res = new CreateWalletResponse(mUser.getId(),account.getProductId(),Long.valueOf(mUser2.getSavingsProductId()),mAccount.getId());
+            mUser.get().setAccounts(userAccount);
+            Users mUser2 = userRepository.save(mUser.get());
+        	CreateWalletResponse res = new CreateWalletResponse(mUser.get().getId(),account.getProductId(),Long.valueOf(mUser2.getSavingsProductId()),mAccount.getId());
         	return res;
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
@@ -594,6 +595,9 @@ public class WalletImplementation {
 			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
 		}
     }
+    
+    
+    
     
     
 

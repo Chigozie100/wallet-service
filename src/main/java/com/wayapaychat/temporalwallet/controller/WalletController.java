@@ -35,7 +35,7 @@ public class WalletController {
 	
 	
 	
-	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	
 	@ApiOperation(value = "Create User account/wallet", notes = "Create user account/wallet")
 	@PostMapping("/create/account")
 	public ResponseEntity<CreateAccountResponse> createAccount(@RequestBody CreateAccountPojo createWallet) {

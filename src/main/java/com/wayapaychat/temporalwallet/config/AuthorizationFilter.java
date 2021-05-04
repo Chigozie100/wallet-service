@@ -3,6 +3,8 @@ package com.wayapaychat.temporalwallet.config;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import lombok.extern.slf4j.Slf4j;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,12 +32,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 public class AuthorizationFilter extends BasicAuthenticationFilter {
 
 	@Autowired
 	AuthProxy authProxy;
 	
-    private static final Logger LOGGER= LoggerFactory.getLogger(AuthorizationFilter.class);
+//    private static final Logger LOGGER= LoggerFactory.getLogger(AuthorizationFilter.class);
+    
     public AuthorizationFilter(AuthenticationManager authManager) {
         super(authManager);
     }
@@ -65,11 +69,11 @@ public class AuthorizationFilter extends BasicAuthenticationFilter {
         
         
         if(!tokenResponse.isStatus()) {
-        	LOGGER.info("Error::: {}, {} and {}", tokenResponse.getMessage(),2,3);
+        	log.info("Error::: {}, {} and {}", tokenResponse.getMessage(),2,3);
 			throw new CustomException(tokenResponse.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
         }
         List<GrantedAuthority> grantedAuthorities = tokenResponse.getData().getRoles().stream().map(r -> {
-            LOGGER.info("Privilege List::: {}, {} and {}", r,2,3);
+            log.info("Privilege List::: {}, {} and {}", r,2,3);
             return new SimpleGrantedAuthority(r);
         }).collect(Collectors.toList());
         return new UsernamePasswordAuthenticationToken(tokenResponse.getData(), null,grantedAuthorities);
