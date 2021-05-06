@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,6 +34,14 @@ public class TransactionControllerNew {
 	public ResponseEntity<Page<Transactions>> getWalletTransaction(@RequestParam(defaultValue = "0") int page,
 	        @RequestParam(defaultValue = "10") int size) {
 		return ResponseEntity.ok(transactionService.getWalletTransaction(page, size));
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Get wallet transactions By UserId pagable", notes = "Get wallet transaction by userId pageable")
+	@GetMapping("/get/wallet/transaction/{userId}")
+	public ResponseEntity<Page<Transactions>> getWalletTransactionByUser(@PathVariable("userId") Long userId, @RequestParam(defaultValue = "0") int page,
+	        @RequestParam(defaultValue = "10") int size) {
+		return ResponseEntity.ok(transactionService.getWalletTransactionByUser(userId, page, size));
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })

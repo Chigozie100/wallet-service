@@ -67,6 +67,21 @@ public class TransactionNewService {
 		}
     }
     
+    public Page<Transactions> getWalletTransactionByUser(Long userId, int page, int size) {
+    	try {
+    		Pageable paging = PageRequest.of(page, size);
+//    		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
+//    		System.out.println(":::::::::user id::::::"+user.getId());
+    		Optional<Users> mUser = userRepository.findByUserId(userId);
+//    		Users user = (Users)  userFacade.getAuthentication().getPrincipal();
+    		Accounts accnt = accountRepository.findByIsDefaultAndUser(true, mUser.get());
+    		return transactionRepository.findByAccount(accnt,paging);
+		} catch (Exception e) {
+			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
+			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+		}
+    }
+    
     public Page<Transactions> findAllTransaction(int page, int size) {
     	try {
     		Pageable paging = PageRequest.of(page, size);
