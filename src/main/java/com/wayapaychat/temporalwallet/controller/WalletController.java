@@ -111,8 +111,8 @@ public class WalletController {
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Get commission account list by user id list", notes = "Get commission account list by user id list")
-	@GetMapping("/get/commission/list/{ids}")
-	public ResponseEntity<List<MainWalletResponse>> getCommissionAccountListByIdList(@PathVariable("ids") List<Long> ids) {
+	@PostMapping("/get/commission/list/{ids}")
+	public ResponseEntity<List<MainWalletResponse>> getCommissionAccountListByIdList(@RequestBody List<Long> ids) {
 		return ResponseEntity.ok(walletImplementation.getCommissionAccountListByArray(ids));
 	}
 }
