@@ -96,9 +96,16 @@ public class WalletController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Create waya Account, this is for users with admin role", notes = "Create waya Account, this is for users with admin role")
 	@PostMapping("/create/waya/account")
-	@PreAuthorize("Admin")
+//	@PreAuthorize("Admin")
 	public ResponseEntity<ResponsePojo> createWayaAccount() {
 		return ResponseEntity.ok(walletImplementation.createWayaWallet());
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "User can user this endpoint to set default wallet using the wallet id", notes = "User can user this endpoint to set default wallet using the wallet id")
+	@PostMapping("/set/default/wallet")
+	public ResponseEntity<ResponsePojo> setDefaultWallet(@RequestParam("walletId") Long walletId) {
+		return ResponseEntity.ok(walletImplementation.makeDefaultWallet(walletId));
 	}
 	
 	

@@ -68,11 +68,8 @@ public class WalletImplementation {
 			us.setMobileNo(createWallet.getMobileNo());
 			us.setSavingsProductId(1);
 			us.setUserId(createWallet.getExternalId());
-			System.out.println(":::::Saving::::");
 			Users mu = userRepository.save(us);
-			System.out.println("::::::"+mu.getEmailAddress());
 			Accounts account = new Accounts();
-			System.out.println("::::saving account:::");
 	        account.setUser(mu);
 	        account.setProductId(1L);
 	        account.setActive(true);
@@ -92,13 +89,10 @@ public class WalletImplementation {
 	        account.setAccountNo(randomGenerators.generateAlphanumeric(10));
 	        Accounts mAccount = accountRepository.save(account);
 //            userRepository.save(user);
-	        System.out.println(":::::::"+mAccount.getAccountName());
             List<Accounts> userAccount = new ArrayList<>();
-            System.out.println("::::List of account::::"+userAccount.size());
             userAccount.add(account);
             mu.setAccounts(userAccount);
             Users uu = userRepository.save(mu);
-            System.out.println(":::::MY U::::"+uu.getEmailAddress());
             CreateAccountResponse res = new CreateAccountResponse(us.getId(), us.getEmailAddress(),us.getMobileNo(),mAccount.getId());
             
 			return res;
@@ -111,7 +105,6 @@ public class WalletImplementation {
     
     public ResponsePojo createWayaWallet() {
     	try {
-    		System.out.println("::::::::Creating Wallet::::::::");
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
     		Users mUser = new Users();
     		mUser.setEmailAddress(user.getEmail());
@@ -351,6 +344,28 @@ public class WalletImplementation {
 				
 			});
 			return walletResList;
+		} catch (Exception e) {
+			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
+			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+		}
+    }
+    
+    @Transactional
+    public ResponsePojo makeDefaultWallet(Long walletId) {
+    	try {
+    		//Retrieve Logged in user Details
+    		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
+    		Optional<Users> mUser = userRepository.findByUserId(user.getId());
+    		//Get user default Account/wallet
+    		Accounts userDefaultAccount = accountRepository.findByUserAndIsDefault(mUser.get(), true);
+    		//Check if valid id and set new default wallet, else throw not found error 404
+    		return accountRepository.findById(walletId).map(accnt -> {
+    			userDefaultAccount.setDefault(false);
+    			accountRepository.save(userDefaultAccount);
+    			accnt.setDefault(true);
+    			accountRepository.save(accnt);
+    			return ResponsePojo.response(false, "New Default account set successfully", HttpStatus.OK.value());
+    		}).orElseThrow(() -> new CustomException("Wallet/Account Id provided is not found", HttpStatus.NOT_FOUND));
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
 			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
