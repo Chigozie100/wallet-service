@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.wayapaychat.temporalwallet.entity.Accounts;
 import com.wayapaychat.temporalwallet.entity.Transactions;
@@ -96,7 +97,7 @@ public class TransactionNewService {
     public TransactionRequest makeTransaction(String command, TransactionRequest request) {
     	try {
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
-//    		System.out.println(":::::::::user id::::::"+user.getId());
+    		System.out.println(":::::::::user id::::::"+user.getId());
     		Optional<Users> mUser = userRepository.findByUserId(user.getId());
     		Accounts senderAccount = accountRepository.findByUserAndIsDefault(mUser.get(), true);
     		Optional<Accounts> wayaAccount = accountRepository.findByAccountNo(WAYA_SETTLEMENT_ACCOUNT_NO);
@@ -119,7 +120,7 @@ public class TransactionNewService {
                 }
             	// Handle Credit User Account
                 Transactions transaction = new Transactions();
-                transaction.setTransactionType(TransactionType.valueOf(command));
+                transaction.setTransactionType(command);
                 transaction.setAccount(senderAccount);
                 transaction.setAmount(request.getAmount());
                 transaction.setRefCode(ref);
@@ -132,7 +133,7 @@ public class TransactionNewService {
                 
              // Handle Debit Waya Account
                 Transactions transaction2 = new Transactions();
-                transaction2.setTransactionType(TransactionType.DEBIT);
+                transaction2.setTransactionType("DEBIT");
                 transaction2.setAccount(wayaAccount.get());
                 transaction2.setAmount(request.getAmount());
                 transaction2.setRefCode(ref);
@@ -144,7 +145,7 @@ public class TransactionNewService {
                 
                 TransactionRequest res = new TransactionRequest();
                 res.setAmount(request.getAmount());
-                res.setCustomerWalletId(senderAccount.getId());
+//                res.setCustomerWalletId(senderAccount.getId());
                 res.setDescription(request.getDescription());
                 res.setPaymentReference(ref);
                 
@@ -159,7 +160,7 @@ public class TransactionNewService {
 
                 // Handle Debit User Account
                 Transactions transaction = new Transactions();
-                transaction.setTransactionType(TransactionType.DEBIT);
+                transaction.setTransactionType("DEBIT");
                 transaction.setAccount(senderAccount);
                 transaction.setAmount(request.getAmount());
                 transaction.setRefCode(ref);
@@ -172,7 +173,7 @@ public class TransactionNewService {
 
                 // Handle Debit Waya Account
                 Transactions transaction2 = new Transactions();
-                transaction2.setTransactionType(TransactionType.CREDIT);
+                transaction2.setTransactionType("CREDIT");
                 transaction2.setAccount(wayaAccount.get());
                 transaction2.setAmount(request.getAmount());
                 transaction2.setRefCode(ref);
@@ -185,7 +186,7 @@ public class TransactionNewService {
                 
                 TransactionRequest res = new TransactionRequest();
                 res.setAmount(request.getAmount());
-                res.setCustomerWalletId(senderAccount.getId());
+//                res.setCustomerWalletId(senderAccount.getId());
                 res.setDescription(request.getDescription());
                 res.setPaymentReference(ref);
                 
@@ -201,90 +202,106 @@ public class TransactionNewService {
 		}
     }
     
-    
+    @Transactional
     public TransactionRequest transferUserToUser(String command, TransactionRequest request) {
     	try {
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
-//    		System.out.println(":::::::::user id::::::"+user.getId());
+//    		System.out.println(":::::::::user id 2::::::"+user.getId());
     		Optional<Users> mUser = userRepository.findByUserId(user.getId());
-    		Accounts senderAccount = accountRepository.findByUserAndIsDefault(mUser.get(), true);
+    		Accounts userAccount = accountRepository.findByUserAndIsDefault(mUser.get(), true);
     		Optional<Accounts> wayaAccount = accountRepository.findByAccountNo(WAYA_SETTLEMENT_ACCOUNT_NO);
-    		Optional<Accounts> receiverAccount = accountRepository.findById(request.getCustomerWalletId());
-    		
-            if (!receiverAccount.isPresent()){
+    		if(wayaAccount.isPresent()) {
+                String ref = randomGenerators.generateAlphanumeric(12);
                 
-                throw new CustomException("Invalid Wallet", HttpStatus.BAD_REQUEST);
-            }
-            String ref = randomGenerators.generateAlphanumeric(12);
-            
-            if (request.getAmount() < 1) {
+                if (request.getAmount() < 1) {
+                    
+                    throw new CustomException("Invalid Amount", HttpStatus.BAD_REQUEST);
+                }
                 
-                throw new CustomException("Invalid Amount", HttpStatus.BAD_REQUEST);
-            }
-            if (receiverAccount.get().getBalance() < request.getAmount()) {
-                throw new CustomException("Insufficient Fund", HttpStatus.BAD_REQUEST);
-            }
-            
-         // Handle Debit Sender Account
-            Transactions transaction = new Transactions();
-            transaction.setTransactionType(TransactionType.DEBIT);
-            transaction.setAccount(senderAccount);
-            transaction.setAmount(request.getAmount());
-            transaction.setRefCode(ref);
+                
+             // Handle Debit User Account
+                if (command.equals("DEBIT")) {
+                	
+                	if (userAccount.getBalance() < request.getAmount()) {
+                        throw new CustomException("Insufficient Fund", HttpStatus.BAD_REQUEST);
+                    }
+                    Transactions transaction = new Transactions();
+                    transaction.setTransactionType("DEBIT");
+                    transaction.setAccount(userAccount);
+                    transaction.setAmount(request.getAmount());
+                    transaction.setRefCode(ref);
 
-            transactionRepository.save(transaction);
-            senderAccount.setBalance(senderAccount.getBalance() - request.getAmount());
-            List<Transactions> transactionList = senderAccount.getTransactions();
-            transactionList.add(transaction);
-            accountRepository.save(senderAccount);
-            
-         // Handle Credit Waya Account
-            Transactions transaction2 = new Transactions();
-            transaction2.setTransactionType(TransactionType.CREDIT);
-            transaction2.setAccount(wayaAccount.get());
-            transaction2.setAmount(request.getAmount());
-            transaction2.setRefCode(ref);
+                    transactionRepository.save(transaction);
+                    userAccount.setBalance(userAccount.getBalance() - request.getAmount());
+                    List<Transactions> transactionList = userAccount.getTransactions();
+                    transactionList.add(transaction);
+                    accountRepository.save(userAccount);
+                 // Handle Credit Waya Account
+                    Transactions transaction2 = new Transactions();
+                    transaction2.setTransactionType("CREDIT");
+                    transaction2.setAccount(wayaAccount.get());
+                    transaction2.setAmount(request.getAmount());
+                    transaction2.setRefCode(ref);
+                    
+                    transactionRepository.save(transaction2);
+                    wayaAccount.get().setBalance(wayaAccount.get().getBalance() + request.getAmount());
+                    List<Transactions> transactionList2 = wayaAccount.get().getTransactions();
+                    transactionList2.add(transaction2);
+                    accountRepository.save(wayaAccount.get());
+                    
+                    
+                    //Construct Response
+                    TransactionRequest res = new TransactionRequest();
+                    res.setAmount(request.getAmount());
+//                    res.setCustomerWalletId(userAccount.getId());
+                    res.setDescription(request.getDescription());
+                    res.setPaymentReference(ref);
+                    return res;
+    			}
+                
+                
+             // Handle Credit USER Account
+                if (command.equals("CREDIT")) {
+                	Transactions transaction = new Transactions();
+                    transaction.setTransactionType("DEBIT");
+                    transaction.setAccount(userAccount);
+                    transaction.setAmount(request.getAmount());
+                    transaction.setRefCode(ref);
 
-            transactionRepository.save(transaction2);
-            wayaAccount.get().setBalance(wayaAccount.get().getBalance() + request.getAmount());
-            List<Transactions> transactionList2 = wayaAccount.get().getTransactions();
-            transactionList2.add(transaction2);
-            accountRepository.save(wayaAccount.get());
-            
-         // Handle Debit Waya Account
-            Transactions transaction3 = new Transactions();
-            transaction3.setTransactionType(TransactionType.DEBIT);
-            transaction3.setAccount(wayaAccount.get());
-            transaction3.setAmount(request.getAmount());
-            transaction3.setRefCode(ref);
+                    transactionRepository.save(transaction);
+                    userAccount.setBalance(userAccount.getBalance() + request.getAmount());
+                    List<Transactions> transactionList = userAccount.getTransactions();
+                    transactionList.add(transaction);
+                    accountRepository.save(userAccount);
+                    
+                 // Handle Debit Waya Account
+                    Transactions transaction3 = new Transactions();
+                    transaction3.setTransactionType("DEBIT");
+                    transaction3.setAccount(wayaAccount.get());
+                    transaction3.setAmount(request.getAmount());
+                    transaction3.setRefCode(ref);
 
-            transactionRepository.save(transaction3);
-            wayaAccount.get().setBalance(wayaAccount.get().getBalance() - request.getAmount());
-            List<Transactions> transactionList3 = wayaAccount.get().getTransactions();
-            transactionList3.add(transaction3);
-            accountRepository.save(wayaAccount.get());
-            
-         // Handle Credit Receiver Account
-            Transactions transaction4 = new Transactions();
-            transaction4.setTransactionType(TransactionType.CREDIT);
-            transaction4.setAccount(receiverAccount.get());
-            transaction4.setAmount(request.getAmount());
-            transaction4.setRefCode(ref);
+                    transactionRepository.save(transaction3);
+                    wayaAccount.get().setBalance(wayaAccount.get().getBalance() - request.getAmount());
+                    List<Transactions> transactionList3 = wayaAccount.get().getTransactions();
+                    transactionList3.add(transaction3);
+                    accountRepository.save(wayaAccount.get());
+                    
+                  //Construct Response
+                    TransactionRequest res = new TransactionRequest();
+                    res.setAmount(request.getAmount());
+//                    res.setCustomerWalletId(userAccount.getId());
+                    res.setDescription(request.getDescription());
+                    res.setPaymentReference(ref);
+                    
+                    return res;
+    			}
 
-            transactionRepository.save(transaction4);
-            receiverAccount.get().setBalance(receiverAccount.get().getBalance() + request.getAmount());
-            List<Transactions> transactionList4 = receiverAccount.get().getTransactions();
-            transactionList4.add(transaction4);
-            accountRepository.save(receiverAccount.get());
+    		} else {
+    			throw new CustomException("Invalid User", HttpStatus.BAD_REQUEST);
+    		}
             
-            TransactionRequest res = new TransactionRequest();
-            res.setAmount(request.getAmount());
-            res.setCustomerWalletId(receiverAccount.get().getId());
-            res.setDescription(request.getDescription());
-            res.setPaymentReference(ref);
-            
-            return res;
-            
+            throw new CustomException("Error Occurred", HttpStatus.INTERNAL_SERVER_ERROR);
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
 			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);

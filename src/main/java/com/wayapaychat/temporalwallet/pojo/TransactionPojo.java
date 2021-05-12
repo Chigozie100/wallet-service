@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 public class TransactionPojo {
 
     private long id;
-    private TransactionType transactionType;
+    private String transactionType;
     private String accountNo;
     private String description;
     double amount;

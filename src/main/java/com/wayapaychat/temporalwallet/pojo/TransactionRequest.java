@@ -11,7 +11,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class TransactionRequest {
 
-	private Long customerWalletId;
+//	private Long customerWalletId;
     private String paymentReference;
     private String description;
     private Double amount;

@@ -30,8 +30,8 @@ public class Transactions {
 
     private String description;
 
-    @Enumerated(EnumType.ORDINAL)
-    private TransactionType transactionType;
+//    @Enumerated(EnumType.ORDINAL)
+    private String transactionType;
 
     @ManyToOne
     Accounts account;

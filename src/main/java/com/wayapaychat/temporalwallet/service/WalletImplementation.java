@@ -103,19 +103,20 @@ public class WalletImplementation {
 		}
     }
     
+    @Transactional
     public ResponsePojo createWayaWallet() {
     	try {
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
-    		Users mUser = new Users();
-    		mUser.setEmailAddress(user.getEmail());
-    		mUser.setFirstName(user.getFirstName());
-    		mUser.setLastName(user.getSurname());
-    		mUser.setMobileNo(user.getPhoneNumber());
-    		mUser.setUserId(user.getId());
+    		Optional<Users> mUser = userRepository.findByUserId(user.getId());
+    		mUser.get().setEmailAddress(user.getEmail());
+    		mUser.get().setFirstName(user.getFirstName());
+    		mUser.get().setLastName(user.getSurname());
+    		mUser.get().setMobileNo(user.getPhoneNumber());
+    		mUser.get().setUserId(user.getId());
     		Accounts account = new Accounts();
           account.setAccountNo(Constant.WAYA_SETTLEMENT_ACCOUNT_NO);
           account.setAccountType(AccountType.SAVINGS);
-          account.setUser(mUser);
+          account.setUser(mUser.get());
           account.setBalance(1000000);
           account.setAccountName(user.getFirstName()+" "+user.getSurname());
           accountRepository.save(account);
@@ -124,7 +125,7 @@ public class WalletImplementation {
           Accounts account2 = new Accounts();
           account2.setAccountNo(Constant.WAYA_COMMISSION_ACCOUNT_NO);
           account2.setAccountType(AccountType.COMMISSION);
-          account2.setUser(mUser);
+          account2.setUser(mUser.get());
           account2.setBalance(1000000);
           account2.setAccountName("Waya Commissions");
           accountRepository.save(account2);

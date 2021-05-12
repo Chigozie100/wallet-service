@@ -55,7 +55,7 @@ public class TransactionServiceImpl implements TransactionService {
         // Register Transaction
 
         String ref = randomGenerators.generateAlphanumeric(12);
-        if (transactionPojo.getTransactionType() == TransactionType.CREDIT){
+        if (transactionPojo.getTransactionType().equals("CREDIT")){
 
             // Handle Credit User Account
             Transactions transaction = new Transactions();
@@ -72,7 +72,7 @@ public class TransactionServiceImpl implements TransactionService {
 
             // Handle Debit Waya Account
             Transactions transaction2 = new Transactions();
-            transaction2.setTransactionType(TransactionType.DEBIT);
+            transaction2.setTransactionType("DEBIT");
             transaction2.setAccount(wayaAccount.get());
             transaction2.setAmount(transactionPojo.getAmount());
             transaction2.setRefCode(ref);
@@ -90,7 +90,7 @@ public class TransactionServiceImpl implements TransactionService {
 
             // Handle Debit User Account
             Transactions transaction = new Transactions();
-            transaction.setTransactionType(TransactionType.DEBIT);
+            transaction.setTransactionType("DEBIT");
             transaction.setAccount(account.get());
             transaction.setAmount(transactionPojo.getAmount());
             transaction.setRefCode(ref);
@@ -103,7 +103,7 @@ public class TransactionServiceImpl implements TransactionService {
 
             // Handle Debit Waya Account
             Transactions transaction2 = new Transactions();
-            transaction2.setTransactionType(TransactionType.CREDIT);
+            transaction2.setTransactionType("CREDIT");
             transaction2.setAccount(wayaAccount.get());
             transaction2.setAmount(transactionPojo.getAmount());
             transaction2.setRefCode(ref);
@@ -135,7 +135,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         // Handle Debit User Account
         Transactions transaction = new Transactions();
-        transaction.setTransactionType(TransactionType.DEBIT);
+        transaction.setTransactionType("DEBIT");
         transaction.setAccount(fromAccount.get());
         transaction.setAmount(transactionTransferPojo.getAmount());
         transaction.setRefCode(ref);
@@ -148,7 +148,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         // Handle Debit Waya Account
         Transactions transaction2 = new Transactions();
-        transaction2.setTransactionType(TransactionType.CREDIT);
+        transaction2.setTransactionType("CREDIT");
         transaction2.setAccount(toAccount.get());
         transaction2.setAmount(transactionTransferPojo.getAmount());
         transaction2.setRefCode(ref);
@@ -190,7 +190,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         // Handle Debit User Account
         Transactions transaction = new Transactions();
-        transaction.setTransactionType(TransactionType.DEBIT);
+        transaction.setTransactionType("DEBIT");
         transaction.setAccount(fromAccount);
         transaction.setAmount(transactionTransferPojo2.getAmount());
         transaction.setRefCode(ref);
@@ -203,7 +203,7 @@ public class TransactionServiceImpl implements TransactionService {
 
         // Handle Debit Waya Account
         Transactions transaction2 = new Transactions();
-        transaction2.setTransactionType(TransactionType.CREDIT);
+        transaction2.setTransactionType("CREDIT");
         transaction2.setAccount(toAccount);
         transaction2.setAmount(transactionTransferPojo2.getAmount());
         transaction2.setRefCode(ref);
