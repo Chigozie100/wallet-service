@@ -19,6 +19,7 @@ public class MainWalletResponse {
     private String savingsProductName;
     private Long fieldOfficerId;
     private Double nominalAnnualInterestRate;
+    private boolean defaultWallet;
     private WalletStatus status;
     private WalletTimeLine timeline;
     private WalletCurrency currency;

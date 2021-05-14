@@ -266,6 +266,7 @@ public class WalletImplementation {
 				mainWallet.setTimeline(timeLine);
 				mainWallet.setCurrency(currency);
 				mainWallet.setFieldOfficerId(user.getId());
+				mainWallet.setDefaultWallet(accnt.isDefault());
 				
 				return mainWallet;
 			}).orElseThrow(() -> new CustomException("Account Number provided not found", HttpStatus.UNPROCESSABLE_ENTITY));
@@ -340,6 +341,7 @@ public class WalletImplementation {
 					mainWallet.setTimeline(timeLine);
 					mainWallet.setCurrency(currency);
 					mainWallet.setFieldOfficerId(user.get().getId());
+					mainWallet.setDefaultWallet(accnt.isDefault());
 					walletResList.add(mainWallet);
 				}
 				
@@ -424,6 +426,7 @@ public class WalletImplementation {
 			mainWallet.setTimeline(timeLine);
 			mainWallet.setCurrency(currency);
 			mainWallet.setFieldOfficerId(user.getId());
+			mainWallet.setDefaultWallet(accnt.isDefault());
 			
 			return mainWallet;
     		
@@ -483,6 +486,7 @@ public class WalletImplementation {
 				mainWallet.setTimeline(timeLine);
 				mainWallet.setCurrency(currency);
 				mainWallet.setFieldOfficerId(user.getId());
+				mainWallet.setDefaultWallet(accnt.isDefault());
 				walletResList.add(mainWallet);
 			}
 			return walletResList;
@@ -545,6 +549,7 @@ public class WalletImplementation {
 					mainWallet.setCurrency(currency);
 					mainWallet.setFieldOfficerId(user.getId());
 					walletResList.add(mainWallet);
+					mainWallet.setDefaultWallet(accnt.isDefault());
 				}
 				return walletResList;
 			}).orElseThrow(() -> new CustomException("Id provided not found", HttpStatus.UNPROCESSABLE_ENTITY));
@@ -602,6 +607,7 @@ public class WalletImplementation {
     			mainWallet.setTimeline(timeLine);
     			mainWallet.setCurrency(currency);
     			mainWallet.setFieldOfficerId(user.getId());
+    			mainWallet.setDefaultWallet(accnt.isDefault());
     			
     			return mainWallet;
     			
