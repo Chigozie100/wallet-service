@@ -115,4 +115,12 @@ public class WalletController {
 	public ResponseEntity<List<MainWalletResponse>> getCommissionAccountListByIdList(@RequestBody List<Long> ids) {
 		return ResponseEntity.ok(walletImplementation.getCommissionAccountListByArray(ids));
 	}
+	
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Find all user wallet", notes = "Fetch all user wallet")
+	@GetMapping("/all/user/wallet")
+	public ResponseEntity<List<MainWalletResponse>> findAllUserWallet() {
+		return ResponseEntity.ok(walletImplementation.allUserWallet());
+	}
 }

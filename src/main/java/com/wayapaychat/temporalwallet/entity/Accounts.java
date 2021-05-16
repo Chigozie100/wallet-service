@@ -38,6 +38,7 @@ public class Accounts {
     private double lagerBalance = 0.00;
 
     private boolean isDefault = false;
+    @Column(unique = true)
     private boolean active;
     private boolean closed;
     private boolean approved;

@@ -163,6 +163,7 @@ public class WalletImplementation {
             account.setActive(true);
             account.setApproved(true);
             account.setClosed(false);
+            account.setDefault(false);
             account.setCode("savingsAccountStatusType.active");
             account.setValue("Active");
             account.setAccountNo(randomGenerators.generateAlphanumeric(10));
@@ -562,7 +563,7 @@ public class WalletImplementation {
     private MainWalletResponse getSingleWallet(Long externalId) {
     	try {
     		return userRepository.findById(externalId).map(user -> {
-        		Accounts accnt = accountRepository.findByUserAndAccountType(user, AccountType.COMMISSION);
+        		Accounts accnt = accountRepository.findByUserAndAccountType(user, AccountType.SAVINGS);
         		MainWalletResponse mainWallet = new MainWalletResponse();
     			WalletStatus status = new WalletStatus();
     			status.setActive(accnt.isActive());
@@ -619,7 +620,70 @@ public class WalletImplementation {
     }
     
     
-    
+    public List<MainWalletResponse> allUserWallet() {
+    	try {
+    		
+    		MyData mUser = (MyData)  userFacade.getAuthentication().getPrincipal();
+    		List<MainWalletResponse> walletResList = new ArrayList<>();
+			return userRepository.findByUserId(mUser.getId()).map(user -> {
+				List<Accounts> accountList = accountRepository.findByUser(user);
+				
+				
+				for(Accounts accnt : accountList) {
+					MainWalletResponse mainWallet = new MainWalletResponse();
+					WalletStatus status = new WalletStatus();
+					status.setActive(accnt.isActive());
+					status.setApproved(accnt.isApproved());
+					status.setClosed(accnt.isClosed());
+					status.setCode(accnt.getCode());
+					status.setId(accnt.getId());
+					status.setRejected(accnt.isRejected());
+					status.setSubmittedAndPendingApproval(accnt.isSetSubmittedAndPendingApproval());
+					status.setValue(accnt.getValue());
+					status.setWithdrawnByApplicant(accnt.isWithdrawnByApplicant());
+					status.setClosed(accnt.isClosed());
+					
+					WalletTimeLine timeLine = new WalletTimeLine();
+					timeLine.setSubmittedOnDate(accnt.getCreatedAt().toInstant()
+						      .atZone(ZoneId.systemDefault())
+						      .toLocalDate());
+					
+					WalletCurrency currency = new WalletCurrency();
+					currency.setCode("NGN");
+					currency.setDecimalPlaces(2);
+					currency.setDisplayLabel("Nigerian Naira [NGN]");
+					currency.setDisplaySymbol(null);
+					currency.setName("Nigerian Naira");
+					currency.setNameCode("currency.NGN");
+					
+					WalletSummary summary = new WalletSummary();
+					summary.setAccountBalance(accnt.getBalance());
+					summary.setAvailableBalance(accnt.getLagerBalance());
+					summary.setCurrency(currency);
+					
+					
+					mainWallet.setAccountNo(accnt.getAccountNo());
+					mainWallet.setClientId(user.getSavingsProductId());
+					mainWallet.setClientName(accnt.getAccountName());
+					mainWallet.setId(accnt.getId());
+					mainWallet.setNominalAnnualInterestRate(0.0);
+					mainWallet.setSavingsProductId(accnt.getProductId());
+					mainWallet.setSavingsProductName(accnt.getAccountType().name());
+					mainWallet.setStatus(status);
+					mainWallet.setSummary(summary);
+					mainWallet.setTimeline(timeLine);
+					mainWallet.setCurrency(currency);
+					mainWallet.setFieldOfficerId(user.getId());
+					walletResList.add(mainWallet);
+					mainWallet.setDefaultWallet(accnt.isDefault());
+				}
+				return walletResList;
+			}).orElseThrow(() -> new CustomException("Id provided not found", HttpStatus.UNPROCESSABLE_ENTITY));
+		} catch (Exception e) {
+			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
+			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+		}
+    }
     
     
 
