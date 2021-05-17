@@ -96,6 +96,7 @@ public class TransactionNewService {
     
     public TransactionRequest makeTransaction(String command, TransactionRequest request) {
     	try {
+    		System.out.println("Making Transaction.......");
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
     		System.out.println(":::::::::user id::::::"+user.getId());
     		Optional<Users> mUser = userRepository.findByUserId(user.getId());
@@ -114,10 +115,8 @@ public class TransactionNewService {
 
             String ref = randomGenerators.generateAlphanumeric(12);
             
-            if (command == TransactionType.CREDIT.name()){
-            	if (senderAccount.getBalance() < request.getAmount()) {
-                    throw new CustomException("Insufficient Balance", HttpStatus.BAD_REQUEST);
-                }
+            if (command == "CREDIT"){
+            	
             	// Handle Credit User Account
                 Transactions transaction = new Transactions();
                 transaction.setTransactionType(command);
@@ -152,7 +151,7 @@ public class TransactionNewService {
                 return res;
                 
             }
-            if (command == TransactionType.DEBIT.name()) {
+            if (command == "DEBIT") {
 
                 if (senderAccount.getBalance() < request.getAmount()) {
                 	throw new CustomException("Insufficient Balance", HttpStatus.BAD_REQUEST);
@@ -233,6 +232,7 @@ public class TransactionNewService {
 
                     transactionRepository.save(transaction);
                     userAccount.setBalance(userAccount.getBalance() - request.getAmount());
+                    userAccount.setLagerBalance(userAccount.getBalance() - request.getAmount());
                     List<Transactions> transactionList = userAccount.getTransactions();
                     transactionList.add(transaction);
                     accountRepository.save(userAccount);
@@ -270,6 +270,7 @@ public class TransactionNewService {
 
                     transactionRepository.save(transaction);
                     userAccount.setBalance(userAccount.getBalance() + request.getAmount());
+                    userAccount.setLagerBalance(userAccount.getBalance() + request.getAmount());
                     List<Transactions> transactionList = userAccount.getTransactions();
                     transactionList.add(transaction);
                     accountRepository.save(userAccount);

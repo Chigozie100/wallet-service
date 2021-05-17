@@ -137,6 +137,68 @@ public class WalletImplementation {
     }
     
     @Transactional
+    public CreateAccountResponse createCooperateUserAccount(CreateAccountPojo createWallet) {
+    	try {
+    		System.out.println("::::::::::::::account creation:::::::::::");
+    		Users us = new Users();
+			us.setCreatedAt(new Date());
+			us.setEmailAddress(createWallet.getEmailAddress());
+			us.setFirstName(createWallet.getFirstName());
+			us.setId(0L);
+			us.setLastName(createWallet.getLastName());
+			us.setMobileNo(createWallet.getMobileNo());
+			us.setSavingsProductId(1);
+			us.setUserId(createWallet.getExternalId());
+			Users mu = userRepository.save(us);
+			
+			//Create Cooperate default account
+			Accounts account = new Accounts();
+	        account.setUser(mu);
+	        account.setProductId(1L);
+	        account.setActive(true);
+            account.setApproved(true);
+            account.setDefault(true);
+            account.setClosed(false);
+//            account.setU
+            account.setCode("savingsAccountStatusType.active");
+            account.setValue("Active");
+	        account.setAccountName(us.getFirstName()+" "+us.getLastName());
+	        if(createWallet.getSavingsProductId() == 1) {
+            	account.setAccountType(AccountType.SAVINGS);
+            }
+            if(createWallet.getSavingsProductId() == 2) {
+            	account.setAccountType(AccountType.CURRENT);
+            }
+	        account.setAccountNo(randomGenerators.generateAlphanumeric(10));
+	        Accounts mAccount = accountRepository.save(account);
+	        System.out.println("::::::::::::::User default account:::::::::::"+mAccount.getId());
+	        //Create Cooperate user commission account
+	        
+	        Accounts commissionAccount = new Accounts();
+	        commissionAccount.setUser(mu);
+	        commissionAccount.setProductId(1L);
+	        commissionAccount.setActive(true);
+	        commissionAccount.setApproved(true);
+	        commissionAccount.setDefault(false);
+	        commissionAccount.setClosed(false);
+//            account.setU
+	        commissionAccount.setCode("savingsAccountStatusType.active");
+	        commissionAccount.setValue("Active");
+	        commissionAccount.setAccountName(us.getFirstName()+" "+us.getLastName());
+	        commissionAccount.setAccountType(AccountType.COMMISSION);
+	        account.setAccountNo(randomGenerators.generateAlphanumeric(10));
+	        Accounts mCommissionAccountAccount = accountRepository.save(commissionAccount);
+	        System.out.println("::::::::::::::User commission account:::::::::::"+mCommissionAccountAccount.getId());
+	        //Generate Response
+	        CreateAccountResponse res = new CreateAccountResponse(us.getId(), us.getEmailAddress(),us.getMobileNo(),mAccount.getId());
+			return res;
+		} catch (Exception e) {
+			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
+			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+		}
+    }
+    
+    @Transactional
     public CreateWalletResponse createWallet(Integer productId) {
     	try {
 //    		System.out.println(":::::::::Adding wallet::::::::");
