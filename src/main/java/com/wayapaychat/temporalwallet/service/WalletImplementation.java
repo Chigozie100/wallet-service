@@ -171,7 +171,6 @@ public class WalletImplementation {
             }
 	        account.setAccountNo(randomGenerators.generateAlphanumeric(10));
 	        Accounts mAccount = accountRepository.save(account);
-	        System.out.println("::::::::::::::User default account:::::::::::"+mAccount.getId());
 	        //Create Cooperate user commission account
 	        
 	        Accounts commissionAccount = new Accounts();
@@ -186,9 +185,8 @@ public class WalletImplementation {
 	        commissionAccount.setValue("Active");
 	        commissionAccount.setAccountName(us.getFirstName()+" "+us.getLastName());
 	        commissionAccount.setAccountType(AccountType.COMMISSION);
-	        account.setAccountNo(randomGenerators.generateAlphanumeric(10));
+	        commissionAccount.setAccountNo(randomGenerators.generateAlphanumeric(10));
 	        Accounts mCommissionAccountAccount = accountRepository.save(commissionAccount);
-	        System.out.println("::::::::::::::User commission account:::::::::::"+mCommissionAccountAccount.getId());
 	        //Generate Response
 	        CreateAccountResponse res = new CreateAccountResponse(us.getId(), us.getEmailAddress(),us.getMobileNo(),mAccount.getId());
 			return res;
