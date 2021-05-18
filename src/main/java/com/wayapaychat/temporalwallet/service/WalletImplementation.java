@@ -140,11 +140,22 @@ public class WalletImplementation {
     public CreateAccountResponse createCooperateUserAccount(CreateAccountPojo createWallet) {
     	try {
     		System.out.println("::::::::::::::account creation:::::::::::");
+    		System.out.println("::::User Email::::"+createWallet.getEmailAddress());
+    		System.out.println("::Size:::"+userRepository.findAll().size());
+    		Optional<Users> mainUser = userRepository.findByEmailAddress(createWallet.getEmailAddress());
+    		userRepository.findAll().forEach(user -> {
+    			System.out.println("::::::"+user.getEmailAddress());
+    		});
+    		if(mainUser.isPresent()) {
+    			System.out.println(":::User is present::::");
+    			LOGGER.info("Error::: {}, {} and {}", "User already Exist",2,3);
+    			throw new CustomException("User already Exist", HttpStatus.BAD_REQUEST);
+    		}
     		Users us = new Users();
 			us.setCreatedAt(new Date());
 			us.setEmailAddress(createWallet.getEmailAddress());
 			us.setFirstName(createWallet.getFirstName());
-			us.setId(0L);
+//			us.setId(0L);
 			us.setLastName(createWallet.getLastName());
 			us.setMobileNo(createWallet.getMobileNo());
 			us.setSavingsProductId(1);
@@ -176,8 +187,8 @@ public class WalletImplementation {
 	        Accounts commissionAccount = new Accounts();
 	        commissionAccount.setUser(mu);
 	        commissionAccount.setProductId(1L);
-	        commissionAccount.setActive(true);
-	        commissionAccount.setApproved(true);
+	        commissionAccount.setActive(false);
+	        commissionAccount.setApproved(false);
 	        commissionAccount.setDefault(false);
 	        commissionAccount.setClosed(false);
 //            account.setU
@@ -186,7 +197,7 @@ public class WalletImplementation {
 	        commissionAccount.setAccountName(us.getFirstName()+" "+us.getLastName());
 	        commissionAccount.setAccountType(AccountType.COMMISSION);
 	        commissionAccount.setAccountNo(randomGenerators.generateAlphanumeric(10));
-	        Accounts mCommissionAccountAccount = accountRepository.save(commissionAccount);
+	        accountRepository.save(commissionAccount);
 	        //Generate Response
 	        CreateAccountResponse res = new CreateAccountResponse(us.getId(), us.getEmailAddress(),us.getMobileNo(),mAccount.getId());
 			return res;
