@@ -508,7 +508,7 @@ public class WalletImplementation {
     
     public MainWalletResponse getDefaultWalletOpen(Long userId) {
     	try {
-    		return userRepository.findById(userId).map(mUser -> {
+    		return userRepository.findByUserId(userId).map(mUser -> {
     			Accounts accnt = accountRepository.findByIsDefaultAndUser(true, mUser);
 //        		System.out.println(":::later userId::::"+mUser.get().getId());
     			MainWalletResponse mainWallet = new MainWalletResponse();
