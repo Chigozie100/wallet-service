@@ -143,9 +143,7 @@ public class WalletImplementation {
     		System.out.println("::::User Email::::"+createWallet.getEmailAddress());
     		System.out.println("::Size:::"+userRepository.findAll().size());
     		Optional<Users> mainUser = userRepository.findByEmailAddress(createWallet.getEmailAddress());
-    		userRepository.findAll().forEach(user -> {
-    			System.out.println("::::::"+user.getEmailAddress());
-    		});
+    		
     		if(mainUser.isPresent()) {
     			System.out.println(":::User is present::::");
     			LOGGER.info("Error::: {}, {} and {}", "User already Exist",2,3);
@@ -187,13 +185,13 @@ public class WalletImplementation {
 	        Accounts commissionAccount = new Accounts();
 	        commissionAccount.setUser(mu);
 	        commissionAccount.setProductId(1L);
-	        commissionAccount.setActive(false);
+//	        commissionAccount.setActive(false);
 	        commissionAccount.setApproved(false);
 	        commissionAccount.setDefault(false);
 	        commissionAccount.setClosed(false);
 //            account.setU
 	        commissionAccount.setCode("savingsAccountStatusType.active");
-	        commissionAccount.setValue("Active");
+	        commissionAccount.setValue("In-Active");
 	        commissionAccount.setAccountName(us.getFirstName()+" "+us.getLastName());
 	        commissionAccount.setAccountType(AccountType.COMMISSION);
 	        commissionAccount.setAccountNo(randomGenerators.generateAlphanumeric(10));
@@ -507,6 +505,68 @@ public class WalletImplementation {
 			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
 		}
     }
+    
+    public MainWalletResponse getDefaultWalletOpen(Long userId) {
+    	try {
+    		return userRepository.findById(userId).map(mUser -> {
+    			Accounts accnt = accountRepository.findByIsDefaultAndUser(true, mUser);
+//        		System.out.println(":::later userId::::"+mUser.get().getId());
+    			MainWalletResponse mainWallet = new MainWalletResponse();
+    			WalletStatus status = new WalletStatus();
+    			status.setActive(accnt.isActive());
+    			status.setApproved(accnt.isApproved());
+    			status.setClosed(accnt.isClosed());
+    			status.setCode(accnt.getCode());
+    			status.setId(accnt.getId());
+    			status.setRejected(accnt.isRejected());
+    			status.setSubmittedAndPendingApproval(accnt.isSetSubmittedAndPendingApproval());
+    			status.setValue(accnt.getValue());
+    			status.setWithdrawnByApplicant(accnt.isWithdrawnByApplicant());
+    			status.setClosed(accnt.isClosed());
+    			
+    			WalletTimeLine timeLine = new WalletTimeLine();
+    			timeLine.setSubmittedOnDate(accnt.getCreatedAt().toInstant()
+    				      .atZone(ZoneId.systemDefault())
+    				      .toLocalDate());
+    			
+    			WalletCurrency currency = new WalletCurrency();
+    			currency.setCode("NGN");
+    			currency.setDecimalPlaces(2);
+    			currency.setDisplayLabel("Nigerian Naira [NGN]");
+    			currency.setDisplaySymbol(null);
+    			currency.setName("Nigerian Naira");
+    			currency.setNameCode("currency.NGN");
+    			
+    			WalletSummary summary = new WalletSummary();
+    			summary.setAccountBalance(accnt.getBalance());
+    			summary.setAvailableBalance(accnt.getLagerBalance());
+    			summary.setCurrency(currency);
+    			
+    			
+    			mainWallet.setAccountNo(accnt.getAccountNo());
+    			mainWallet.setClientId(mUser.getSavingsProductId());
+    			mainWallet.setClientName(accnt.getAccountName());
+    			mainWallet.setId(accnt.getId());
+    			mainWallet.setNominalAnnualInterestRate(0.0);
+    			mainWallet.setSavingsProductId(accnt.getProductId());
+    			mainWallet.setSavingsProductName(accnt.getAccountType().name());
+    			mainWallet.setStatus(status);
+    			mainWallet.setSummary(summary);
+    			mainWallet.setTimeline(timeLine);
+    			mainWallet.setCurrency(currency);
+    			mainWallet.setFieldOfficerId(mUser.getId());
+    			mainWallet.setDefaultWallet(accnt.isDefault());
+    			
+    			return mainWallet;
+    		}).orElseThrow(() -> new CustomException("Id provided not found", HttpStatus.NOT_FOUND));
+    		
+    		
+		} catch (Exception e) {
+			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
+			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+		}
+    }
+    
     
     public List<MainWalletResponse> findAll() {
     	try {

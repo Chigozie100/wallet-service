@@ -86,6 +86,13 @@ public class WalletController {
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Get logged in user default wallet", notes = "Get logged in user defalult wallet")
+	@GetMapping("/get/default/wallet/open/{userId}")
+	public ResponseEntity<MainWalletResponse> getDefaultWalletOpen(@PathVariable("userId") Long userId) {
+		return ResponseEntity.ok(walletImplementation.getDefaultWalletOpen(userId));
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Find all wallets", notes = "Find all wallets")
 	@GetMapping("/find/all")
 	public ResponseEntity<List<MainWalletResponse>> findAll() {

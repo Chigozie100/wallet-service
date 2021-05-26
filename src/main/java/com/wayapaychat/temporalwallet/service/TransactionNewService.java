@@ -205,7 +205,7 @@ public class TransactionNewService {
     public TransactionRequest transferUserToUser(String command, TransactionRequest request) {
     	try {
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
-//    		System.out.println(":::::::::user id 2::::::"+user.getId());
+    		
     		Optional<Users> mUser = userRepository.findByUserId(user.getId());
     		Accounts userAccount = accountRepository.findByUserAndIsDefault(mUser.get(), true);
     		Optional<Accounts> wayaAccount = accountRepository.findByAccountNo(WAYA_SETTLEMENT_ACCOUNT_NO);
@@ -220,7 +220,6 @@ public class TransactionNewService {
                 
              // Handle Debit User Account
                 if (command.equals("DEBIT")) {
-                	
                 	if (userAccount.getBalance() < request.getAmount()) {
                         throw new CustomException("Insufficient Fund", HttpStatus.BAD_REQUEST);
                     }
