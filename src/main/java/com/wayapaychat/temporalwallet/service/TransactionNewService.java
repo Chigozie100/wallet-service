@@ -125,7 +125,11 @@ public class TransactionNewService {
                 transaction.setRefCode(ref);
 
                 transactionRepository.save(transaction);
-                senderAccount.setBalance(senderAccount.getBalance() + request.getAmount());
+                
+                Double balance = senderAccount.getBalance() + request.getAmount();
+                Double lagerBalance = senderAccount.getLagerBalance() + request.getAmount();
+                senderAccount.setBalance(balance);
+                senderAccount.setLagerBalance(lagerBalance);
                 List<Transactions> transactionList = senderAccount.getTransactions();
                 transactionList.add(transaction);
                 accountRepository.save(senderAccount);
@@ -152,24 +156,31 @@ public class TransactionNewService {
                 
             }
             if (command == "DEBIT") {
-
-                if (senderAccount.getBalance() < request.getAmount()) {
+            	System.out.println("====Debit====");
+                if (senderAccount.getBalance() < request.getAmount() ) {
+                	System.out.println("=====insuficient funds=====");
                 	throw new CustomException("Insufficient Balance", HttpStatus.BAD_REQUEST);
                 }
 
                 // Handle Debit User Account
+                
                 Transactions transaction = new Transactions();
                 transaction.setTransactionType("DEBIT");
                 transaction.setAccount(senderAccount);
                 transaction.setAmount(request.getAmount());
                 transaction.setRefCode(ref);
 
+                Double balance = senderAccount.getBalance() - request.getAmount();
+                Double lagerBalance = senderAccount.getLagerBalance() - request.getAmount();
+                System.out.println("::::Balance after debit:::::"+balance);
                 transactionRepository.save(transaction);
-                senderAccount.setBalance(senderAccount.getBalance() - request.getAmount());
+                senderAccount.setBalance(balance);
+                senderAccount.setLagerBalance(lagerBalance);
                 List<Transactions> transactionList = senderAccount.getTransactions();
                 transactionList.add(transaction);
                 accountRepository.save(senderAccount);
 
+                
                 // Handle Debit Waya Account
                 Transactions transaction2 = new Transactions();
                 transaction2.setTransactionType("CREDIT");
