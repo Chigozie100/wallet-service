@@ -131,8 +131,6 @@ public class WalletController {
 		return ResponseEntity.ok(walletImplementation.allUserWallet());
 	}
 	
-	
-	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Create Cooperate account, this creates a default account and a commission account", notes = "Create Cooperate account, this creates a default account and a commission account")
 	@PostMapping("/create/cooperate/user")
 	public ResponseEntity<CreateAccountResponse> createCooperateAccount(@RequestBody CreateAccountPojo createAccountPojo) {

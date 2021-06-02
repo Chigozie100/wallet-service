@@ -48,7 +48,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 // dont authenticate this particular request
                 .authorizeRequests().antMatchers(
                 "/wallet/create/account", "/api/userjdbc/register/jdbc/add"
-                ,"/wallet/get/default/wallet/open/**", "/api/users/register/admin", "/api/users/welcome").permitAll()
+                ,"/wallet/get/default/wallet/open/**","/wallet/create/cooperate/user", 
+                "/api/users/register/admin", "/api/users/welcome").permitAll()
                 .antMatchers("/v2/api-docs", "/configuration/**", "/swagger*/**","/actuator/**", "/webjars/**").permitAll()
                 // all other requests need to be authenticated
                 .anyRequest().authenticated().and()

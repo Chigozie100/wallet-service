@@ -159,7 +159,7 @@ public class WalletImplementation {
 			us.setSavingsProductId(1);
 			us.setUserId(createWallet.getExternalId());
 			Users mu = userRepository.save(us);
-			
+			System.out.println("=========User saving done========");
 			//Create Cooperate default account
 			Accounts account = new Accounts();
 	        account.setUser(mu);
@@ -180,6 +180,7 @@ public class WalletImplementation {
             }
 	        account.setAccountNo(randomGenerators.generateAlphanumeric(10));
 	        Accounts mAccount = accountRepository.save(account);
+	        System.out.println("=========Default Account saving done========");
 	        //Create Cooperate user commission account
 	        
 	        Accounts commissionAccount = new Accounts();
@@ -196,6 +197,7 @@ public class WalletImplementation {
 	        commissionAccount.setAccountType(AccountType.COMMISSION);
 	        commissionAccount.setAccountNo(randomGenerators.generateAlphanumeric(10));
 	        accountRepository.save(commissionAccount);
+	        System.out.println("=========Commission Account saving done========");
 	        //Generate Response
 	        CreateAccountResponse res = new CreateAccountResponse(us.getId(), us.getEmailAddress(),us.getMobileNo(),mAccount.getId());
 			return res;
