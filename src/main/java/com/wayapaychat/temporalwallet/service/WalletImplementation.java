@@ -186,7 +186,7 @@ public class WalletImplementation {
 	        Accounts commissionAccount = new Accounts();
 	        commissionAccount.setUser(mu);
 	        commissionAccount.setProductId(1L);
-//	        commissionAccount.setActive(false);
+	        commissionAccount.setActive(false);
 	        commissionAccount.setApproved(false);
 	        commissionAccount.setDefault(false);
 	        commissionAccount.setClosed(false);

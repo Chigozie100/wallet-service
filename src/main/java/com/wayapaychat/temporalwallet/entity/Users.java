@@ -43,7 +43,9 @@ public class Users {
     private String lastName;
 //    private String externalId;
     private int savingsProductId;
+    @Column(unique = true, nullable = false)
     private String emailAddress;
+    @Column(unique = true, nullable = false)
     private String mobileNo;
 
 }
