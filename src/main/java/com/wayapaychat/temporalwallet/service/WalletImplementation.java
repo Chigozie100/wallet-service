@@ -153,11 +153,20 @@ public class WalletImplementation {
 			us.setCreatedAt(new Date());
 			us.setEmailAddress(createWallet.getEmailAddress());
 			us.setFirstName(createWallet.getFirstName());
-//			us.setId(0L);
+			us.setId(0L);
 			us.setLastName(createWallet.getLastName());
 			us.setMobileNo(createWallet.getMobileNo());
 			us.setSavingsProductId(1);
 			us.setUserId(createWallet.getExternalId());
+			
+			Optional<Users> mUser = userRepository.findByEmailAddress(createWallet.getEmailAddress());
+    		
+    		if(mUser.isPresent()) {
+    			System.out.println(":::User is present::::");
+    			LOGGER.info("Error::: {}, {} and {}", "User already Exist",2,3);
+    			throw new CustomException("User already Exist", HttpStatus.BAD_REQUEST);
+    		}
+			
 			Users mu = userRepository.save(us);
 			System.out.println("=========User saving done========");
 			//Create Cooperate default account

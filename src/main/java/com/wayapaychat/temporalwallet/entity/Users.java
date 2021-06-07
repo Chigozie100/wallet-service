@@ -28,7 +28,7 @@ public class Users {
     private Long id;
 
 
-    @Column( nullable = false)
+    @Column(unique = true, nullable = false)
     private Long userId;
 
     @JsonIgnore
