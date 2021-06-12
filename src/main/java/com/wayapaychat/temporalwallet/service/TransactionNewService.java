@@ -21,6 +21,7 @@ import com.wayapaychat.temporalwallet.entity.Transactions;
 import com.wayapaychat.temporalwallet.entity.Users;
 import com.wayapaychat.temporalwallet.enumm.TransactionType;
 import com.wayapaychat.temporalwallet.exception.CustomException;
+import com.wayapaychat.temporalwallet.pojo.AdminUserTransferDto;
 import com.wayapaychat.temporalwallet.pojo.MyData;
 import com.wayapaychat.temporalwallet.pojo.TransactionRequest;
 import com.wayapaychat.temporalwallet.pojo.TransactionResponse;
@@ -318,6 +319,120 @@ public class TransactionNewService {
 				}
 				
 			}).orElseThrow(() -> new CustomException("Wallet Id provided not found", HttpStatus.NOT_FOUND));
+		} catch (Exception e) {
+			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
+			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+		}
+    }
+    
+    public TransactionRequest adminTransferForUser(String command, AdminUserTransferDto adminTranser) {
+    	try {
+			Optional<Users> user = userRepository.findById(adminTranser.getUserId());
+			if(user.isPresent()) {
+				return accountRepository.findByIdAndUser(adminTranser.getCustomerWalletId(), user.get()).map(account -> {
+					Optional<Accounts> wayaAccount = accountRepository.findByAccountNo(WAYA_SETTLEMENT_ACCOUNT_NO);
+					String ref = randomGenerators.generateAlphanumeric(12);
+					if(adminTranser.getAmount() < 1) {
+						throw new CustomException("Amount Cannot be a negetive value", HttpStatus.UNPROCESSABLE_ENTITY);
+					}
+					
+					if(command.equals("DEBIT")) {
+						if(account.getBalance() < adminTranser.getAmount()) {
+							throw new CustomException("Insufficient Funds", HttpStatus.UNPROCESSABLE_ENTITY);
+						}
+						
+						// Handle Debit User Account
+		                
+		                Transactions transaction = new Transactions();
+		                transaction.setTransactionType("DEBIT");
+		                transaction.setAccount(account);
+		                transaction.setAmount(adminTranser.getAmount());
+		                transaction.setRefCode(ref);
+
+		                Double balance = account.getBalance() - adminTranser.getAmount();
+		                Double lagerBalance = account.getBalance() - adminTranser.getAmount();
+		                System.out.println("::::Balance after debit:::::"+balance);
+		                transactionRepository.save(transaction);
+		                
+		                transactionRepository.save(transaction);
+		                account.setBalance(balance);
+		                account.setLagerBalance(lagerBalance);
+		                List<Transactions> transactionList = account.getTransactions();
+		                transactionList.add(transaction);
+		                accountRepository.save(account);
+		                
+		             // Handle Debit Waya Account
+		                Transactions transaction2 = new Transactions();
+		                transaction2.setTransactionType("CREDIT");
+		                transaction2.setAccount(wayaAccount.get());
+		                transaction2.setAmount(adminTranser.getAmount());
+		                transaction2.setRefCode(ref);
+
+		                transactionRepository.save(transaction2);
+		                wayaAccount.get().setBalance(wayaAccount.get().getBalance() + adminTranser.getAmount());
+		                List<Transactions> transactionList2 = wayaAccount.get().getTransactions();
+		                transactionList2.add(transaction2);
+		                accountRepository.save(wayaAccount.get());
+		                
+		                TransactionRequest res = new TransactionRequest();
+		                res.setAmount(adminTranser.getAmount());
+//		                res.setCustomerWalletId(senderAccount.getId());
+		                res.setDescription(adminTranser.getDescription());
+		                res.setPaymentReference(ref);
+		                
+		                return res;
+					}
+					
+					if(command.equals("CREDIT")) {
+						
+						// Handle cREDIT User Account
+		                
+		                Transactions transaction = new Transactions();
+		                transaction.setTransactionType("CREDIT");
+		                transaction.setAccount(account);
+		                transaction.setAmount(adminTranser.getAmount());
+		                transaction.setRefCode(ref);
+
+		                Double balance = account.getBalance() + adminTranser.getAmount();
+		                Double lagerBalance = account.getBalance() + adminTranser.getAmount();
+		                System.out.println("::::Balance after debit:::::"+balance);
+		                transactionRepository.save(transaction);
+		                
+		                transactionRepository.save(transaction);
+		                account.setBalance(balance);
+		                account.setLagerBalance(lagerBalance);
+		                List<Transactions> transactionList = account.getTransactions();
+		                transactionList.add(transaction);
+		                accountRepository.save(account);
+		                
+		             // Handle Debit Waya Account
+		                Transactions transaction2 = new Transactions();
+		                transaction2.setTransactionType("DEBIT");
+		                transaction2.setAccount(wayaAccount.get());
+		                transaction2.setAmount(adminTranser.getAmount());
+		                transaction2.setRefCode(ref);
+
+		                transactionRepository.save(transaction2);
+		                wayaAccount.get().setBalance(wayaAccount.get().getBalance() - adminTranser.getAmount());
+		                List<Transactions> transactionList2 = wayaAccount.get().getTransactions();
+		                transactionList2.add(transaction2);
+		                accountRepository.save(wayaAccount.get());
+		                
+		                TransactionRequest res = new TransactionRequest();
+		                res.setAmount(adminTranser.getAmount());
+//		                res.setCustomerWalletId(senderAccount.getId());
+		                res.setDescription(adminTranser.getDescription());
+		                res.setPaymentReference(ref);
+		                
+		                return res;
+					} else {
+						throw new CustomException("Error occurred", HttpStatus.UNPROCESSABLE_ENTITY);
+					}
+
+				}).orElseThrow(() -> new CustomException("Wallet Id provided not found", HttpStatus.NOT_FOUND));
+			} else {
+				throw new CustomException("User not found", HttpStatus.NOT_FOUND);
+			}
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
 			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
