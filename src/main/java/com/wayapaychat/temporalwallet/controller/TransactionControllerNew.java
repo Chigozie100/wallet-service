@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.wayapaychat.temporalwallet.entity.Transactions;
 import com.wayapaychat.temporalwallet.pojo.TransactionRequest;
+import com.wayapaychat.temporalwallet.pojo.WalletToWalletDto;
 import com.wayapaychat.temporalwallet.service.TransactionNewService;
 
 import io.swagger.annotations.ApiImplicitParam;
@@ -49,6 +50,13 @@ public class TransactionControllerNew {
 	@PostMapping("/transfer/to/user")
 	public ResponseEntity<TransactionRequest> transerUserToUser(@RequestParam("command") String command, @RequestBody TransactionRequest request) {
 		return ResponseEntity.ok(transactionService.transferUserToUser(command, request));
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Transfer from one Wallet to another wallet", notes = "Transfer amount from one wallet to another wallet")
+	@PostMapping("/wallet/to/wallet")
+	public ResponseEntity<TransactionRequest> walletToWalletTransfer(@RequestBody() WalletToWalletDto walletDto, @RequestParam("command") String command) {
+		return ResponseEntity.ok(transactionService.walletToWalletTransfer(walletDto, command));
 	}
 	
 	
