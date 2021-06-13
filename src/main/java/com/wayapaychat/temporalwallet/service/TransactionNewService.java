@@ -30,6 +30,7 @@ import com.wayapaychat.temporalwallet.repository.AccountRepository;
 import com.wayapaychat.temporalwallet.repository.TransactionRepository;
 import com.wayapaychat.temporalwallet.repository.UserRepository;
 import com.wayapaychat.temporalwallet.security.AuthenticatedUserFacade;
+import com.wayapaychat.temporalwallet.util.ApiResponse;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.RandomGenerators;
 
@@ -55,7 +56,7 @@ public class TransactionNewService {
     
     
     
-    public Page<Transactions> getWalletTransaction(int page, int size) {
+    public ApiResponse<Page<Transactions>> getWalletTransaction(int page, int size) {
     	try {
     		Pageable paging = PageRequest.of(page, size);
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
@@ -63,14 +64,19 @@ public class TransactionNewService {
     		Optional<Users> mUser = userRepository.findByUserId(user.getId());
 //    		Users user = (Users)  userFacade.getAuthentication().getPrincipal();
     		Accounts accnt = accountRepository.findByIsDefaultAndUser(true, mUser.get());
-    		return transactionRepository.findByAccount(accnt,paging);
+    		return new ApiResponse.Builder<>()
+	                .setStatus(true)
+	                .setCode(ApiResponse.Code.SUCCESS)
+	                .setMessage("Success")
+	                .setData(transactionRepository.findByAccount(accnt,paging))
+	                .build();
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
 			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
 		}
     }
     
-    public Page<Transactions> getWalletTransactionByUser(Long userId, int page, int size) {
+    public ApiResponse<Page<Transactions>> getWalletTransactionByUser(Long userId, int page, int size) {
     	try {
     		Pageable paging = PageRequest.of(page, size);
 //    		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
@@ -78,25 +84,34 @@ public class TransactionNewService {
     		Optional<Users> mUser = userRepository.findByUserId(userId);
 //    		Users user = (Users)  userFacade.getAuthentication().getPrincipal();
     		Accounts accnt = accountRepository.findByIsDefaultAndUser(true, mUser.get());
-    		return transactionRepository.findByAccount(accnt,paging);
+    		return new ApiResponse.Builder<>()
+	                .setStatus(true)
+	                .setCode(ApiResponse.Code.SUCCESS)
+	                .setMessage("Success")
+	                .setData(transactionRepository.findByAccount(accnt,paging))
+	                .build();
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
 			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
 		}
     }
     
-    public Page<Transactions> findAllTransaction(int page, int size) {
+    public ApiResponse<Page<Transactions>> findAllTransaction(int page, int size) {
     	try {
     		Pageable paging = PageRequest.of(page, size);
-    		
-    		return transactionRepository.findAll(paging);
+    		return new ApiResponse.Builder<>()
+	                .setStatus(true)
+	                .setCode(ApiResponse.Code.SUCCESS)
+	                .setMessage("Success")
+	                .setData(transactionRepository.findAll(paging))
+	                .build();
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
 			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
 		}
     }
     
-    public TransactionRequest makeTransaction(String command, TransactionRequest request) {
+    public ApiResponse<TransactionRequest> makeTransaction(String command, TransactionRequest request) {
     	try {
     		System.out.println("Making Transaction.......");
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
@@ -154,7 +169,12 @@ public class TransactionNewService {
                 res.setDescription(request.getDescription());
                 res.setPaymentReference(ref);
                 
-                return res;
+                return new ApiResponse.Builder<>()
+		                .setStatus(true)
+		                .setCode(ApiResponse.Code.SUCCESS)
+		                .setMessage("Success")
+		                .setData(res)
+		                .build();
                 
             }
             if (command == "DEBIT") {
@@ -202,11 +222,14 @@ public class TransactionNewService {
                 res.setDescription(request.getDescription());
                 res.setPaymentReference(ref);
                 
-                return res;
+                return new ApiResponse.Builder<>()
+		                .setStatus(true)
+		                .setCode(ApiResponse.Code.SUCCESS)
+		                .setMessage("Success")
+		                .setData(res)
+		                .build();
             }
-            if (command == TransactionType.FUNDS_TRANSFER.name()) {
-            	
-            }
+            
             throw new CustomException("Invalid Transaction", HttpStatus.UNPROCESSABLE_ENTITY);
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
@@ -215,7 +238,7 @@ public class TransactionNewService {
     }
     
     @Transactional
-    public TransactionRequest walletToWalletTransfer(WalletToWalletDto walletDto, String command) {
+    public ApiResponse<TransactionRequest> walletToWalletTransfer(WalletToWalletDto walletDto, String command) {
     	try {
     		
 			return accountRepository.findById(walletDto.getCustomerWalletId()).map(account -> {
@@ -269,7 +292,12 @@ public class TransactionNewService {
 	                res.setDescription(walletDto.getDescription());
 	                res.setPaymentReference(ref);
 	                
-	                return res;
+	                return new ApiResponse.Builder<>()
+			                .setStatus(true)
+			                .setCode(ApiResponse.Code.SUCCESS)
+			                .setMessage("Success")
+			                .setData(res)
+			                .build();
 				}
 				
 				if(command.equals("CREDIT")) {
@@ -313,7 +341,12 @@ public class TransactionNewService {
 	                res.setDescription(walletDto.getDescription());
 	                res.setPaymentReference(ref);
 	                
-	                return res;
+	                return new ApiResponse.Builder<>()
+			                .setStatus(true)
+			                .setCode(ApiResponse.Code.SUCCESS)
+			                .setMessage("Success")
+			                .setData(res)
+			                .build();
 				} else {
 					throw new CustomException("Error occurred", HttpStatus.UNPROCESSABLE_ENTITY);
 				}
@@ -325,7 +358,8 @@ public class TransactionNewService {
 		}
     }
     
-    public TransactionRequest adminTransferForUser(String command, AdminUserTransferDto adminTranser) {
+    @Transactional
+    public ApiResponse<TransactionRequest> adminTransferForUser(String command, AdminUserTransferDto adminTranser) {
     	try {
 			Optional<Users> user = userRepository.findById(adminTranser.getUserId());
 			if(user.isPresent()) {
@@ -380,7 +414,12 @@ public class TransactionNewService {
 		                res.setDescription(adminTranser.getDescription());
 		                res.setPaymentReference(ref);
 		                
-		                return res;
+		                return new ApiResponse.Builder<>()
+				                .setStatus(true)
+				                .setCode(ApiResponse.Code.SUCCESS)
+				                .setMessage("Success")
+				                .setData(res)
+				                .build();
 					}
 					
 					if(command.equals("CREDIT")) {
@@ -424,7 +463,12 @@ public class TransactionNewService {
 		                res.setDescription(adminTranser.getDescription());
 		                res.setPaymentReference(ref);
 		                
-		                return res;
+		                return new ApiResponse.Builder<>()
+				                .setStatus(true)
+				                .setCode(ApiResponse.Code.SUCCESS)
+				                .setMessage("Success")
+				                .setData(res)
+				                .build();
 					} else {
 						throw new CustomException("Error occurred", HttpStatus.UNPROCESSABLE_ENTITY);
 					}
@@ -440,7 +484,7 @@ public class TransactionNewService {
     }
     
     @Transactional
-    public TransactionRequest transferUserToUser(String command, TransactionRequest request) {
+    public ApiResponse<TransactionRequest> transferUserToUser(String command, TransactionRequest request) {
     	try {
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
     		
@@ -493,14 +537,19 @@ public class TransactionNewService {
 //                    res.setCustomerWalletId(userAccount.getId());
                     res.setDescription(request.getDescription());
                     res.setPaymentReference(ref);
-                    return res;
+                    return new ApiResponse.Builder<>()
+			                .setStatus(true)
+			                .setCode(ApiResponse.Code.SUCCESS)
+			                .setMessage("Success")
+			                .setData(res)
+			                .build();
     			}
                 
                 
              // Handle Credit USER Account
                 if (command.equals("CREDIT")) {
                 	Transactions transaction = new Transactions();
-                    transaction.setTransactionType("DEBIT");
+                    transaction.setTransactionType("CREDIT");
                     transaction.setAccount(userAccount);
                     transaction.setAmount(request.getAmount());
                     transaction.setRefCode(ref);
@@ -532,7 +581,12 @@ public class TransactionNewService {
                     res.setDescription(request.getDescription());
                     res.setPaymentReference(ref);
                     
-                    return res;
+                    return new ApiResponse.Builder<>()
+			                .setStatus(true)
+			                .setCode(ApiResponse.Code.SUCCESS)
+			                .setMessage("Success")
+			                .setData(res)
+			                .build();
     			}
 
     		} else {
@@ -540,6 +594,55 @@ public class TransactionNewService {
     		}
             
             throw new CustomException("Error Occurred", HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (Exception e) {
+			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
+			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+		}
+    }
+    
+    public ApiResponse<Page<Transactions>> getTransactionByWalletId(int page, int size, Long walletId) {
+    	try {
+			return accountRepository.findById(walletId).map(account -> {
+				Pageable paging = PageRequest.of(page, size);
+				return new ApiResponse.Builder<>()
+		                .setStatus(true)
+		                .setCode(ApiResponse.Code.SUCCESS)
+		                .setMessage("Success")
+		                .setData(transactionRepository.findByAccount(account,paging))
+		                .build();
+			}).orElseThrow(() -> new CustomException("Wallet Id provided not found", HttpStatus.NOT_FOUND));
+		} catch (Exception e) {
+			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
+			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+		}
+    }
+    
+    public ApiResponse<Page<Transactions>> getTransactionByType(int page, int size, String transactionType) {
+    	try {
+    		Pageable paging = PageRequest.of(page, size);
+    		return new ApiResponse.Builder<>()
+	                .setStatus(true)
+	                .setCode(ApiResponse.Code.SUCCESS)
+	                .setMessage("Success")
+	                .setData(transactionRepository.findByTransactionType(transactionType, paging))
+	                .build();
+		} catch (Exception e) {
+			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
+			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+		}
+    }
+    
+    public ApiResponse<Page<Transactions>> findByAccountNumber(int page, int size, String accountNumber) {
+    	try {
+			return accountRepository.findByAccountNo(accountNumber).map(account -> {
+				Pageable paging = PageRequest.of(page, size);
+				return new ApiResponse.Builder<>()
+		                .setStatus(true)
+		                .setCode(ApiResponse.Code.SUCCESS)
+		                .setMessage("Success")
+		                .setData(transactionRepository.findByAccount(account, paging))
+		                .build();
+			}).orElseThrow(() -> new CustomException("Account Number provided not found", HttpStatus.NOT_FOUND));
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
 			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);

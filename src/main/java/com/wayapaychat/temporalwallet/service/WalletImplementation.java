@@ -35,6 +35,7 @@ import com.wayapaychat.temporalwallet.repository.UserRepository;
 import com.wayapaychat.temporalwallet.security.AuthenticatedUserFacade;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.RandomGenerators;
+import com.wayapaychat.temporalwallet.util.ApiResponse;
 import com.wayapaychat.temporalwallet.util.Constant;
 
 @Service
@@ -56,7 +57,7 @@ public class WalletImplementation {
     
     
     @Transactional
-    public CreateAccountResponse createAccount(CreateAccountPojo createWallet) {
+    public ApiResponse<CreateAccountResponse> createAccount(CreateAccountPojo createWallet) {
     	try {
     		System.out.println("::::::::::::::account creation:::::::::::");
     		Users us = new Users();
@@ -80,12 +81,7 @@ public class WalletImplementation {
             account.setCode("savingsAccountStatusType.active");
             account.setValue("Active");
 	        account.setAccountName(us.getFirstName()+" "+us.getLastName());
-	        if(createWallet.getSavingsProductId() == 1) {
-            	account.setAccountType(AccountType.SAVINGS);
-            }
-            if(createWallet.getSavingsProductId() == 2) {
-            	account.setAccountType(AccountType.CURRENT);
-            }
+	        
 	        account.setAccountNo(randomGenerators.generateAlphanumeric(10));
 	        Accounts mAccount = accountRepository.save(account);
 //            userRepository.save(user);
@@ -95,7 +91,12 @@ public class WalletImplementation {
             Users uu = userRepository.save(mu);
             CreateAccountResponse res = new CreateAccountResponse(us.getId(), us.getEmailAddress(),us.getMobileNo(),mAccount.getId());
             
-			return res;
+            return new ApiResponse.Builder<>()
+	                .setStatus(true)
+	                .setCode(ApiResponse.Code.SUCCESS)
+	                .setMessage("Success")
+	                .setData(res)
+	                .build();
     		
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
@@ -104,7 +105,7 @@ public class WalletImplementation {
     }
     
     @Transactional
-    public ResponsePojo createWayaWallet() {
+    public ApiResponse createWayaWallet() {
     	try {
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
     		Optional<Users> mUser = userRepository.findByUserId(user.getId());
@@ -129,7 +130,11 @@ public class WalletImplementation {
           account2.setBalance(1000000);
           account2.setAccountName("Waya Commissions");
           accountRepository.save(account2);
-          return ResponsePojo.response(true, "Created Successfully", HttpStatus.OK.value());
+          return new ApiResponse.Builder<>()
+	                .setStatus(true)
+	                .setCode(ApiResponse.Code.SUCCESS)
+	                .setMessage("Created Successfully")
+	                .build();
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
 			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
@@ -137,15 +142,12 @@ public class WalletImplementation {
     }
     
     @Transactional
-    public CreateAccountResponse createCooperateUserAccount(CreateAccountPojo createWallet) {
+    public ApiResponse<CreateAccountResponse> createCooperateUserAccount(CreateAccountPojo createWallet) {
     	try {
-    		System.out.println("::::::::::::::account creation:::::::::::");
-    		System.out.println("::::User Email::::"+createWallet.getEmailAddress());
-    		System.out.println("::Size:::"+userRepository.findAll().size());
+    		
     		Optional<Users> mainUser = userRepository.findByEmailAddress(createWallet.getEmailAddress());
     		
     		if(mainUser.isPresent()) {
-    			System.out.println(":::User is present::::");
     			LOGGER.info("Error::: {}, {} and {}", "User already Exist",2,3);
     			throw new CustomException("User already Exist", HttpStatus.BAD_REQUEST);
     		}
@@ -162,13 +164,11 @@ public class WalletImplementation {
 			Optional<Users> mUser = userRepository.findByEmailAddress(createWallet.getEmailAddress());
     		
     		if(mUser.isPresent()) {
-    			System.out.println(":::User is present::::");
     			LOGGER.info("Error::: {}, {} and {}", "User already Exist",2,3);
     			throw new CustomException("User already Exist", HttpStatus.BAD_REQUEST);
     		}
 			
 			Users mu = userRepository.save(us);
-			System.out.println("=========User saving done========");
 			//Create Cooperate default account
 			Accounts account = new Accounts();
 	        account.setUser(mu);
@@ -181,15 +181,9 @@ public class WalletImplementation {
             account.setCode("savingsAccountStatusType.active");
             account.setValue("Active");
 	        account.setAccountName(us.getFirstName()+" "+us.getLastName());
-	        if(createWallet.getSavingsProductId() == 1) {
-            	account.setAccountType(AccountType.SAVINGS);
-            }
-            if(createWallet.getSavingsProductId() == 2) {
-            	account.setAccountType(AccountType.CURRENT);
-            }
+	        
 	        account.setAccountNo(randomGenerators.generateAlphanumeric(10));
 	        Accounts mAccount = accountRepository.save(account);
-	        System.out.println("=========Default Account saving done========");
 	        //Create Cooperate user commission account
 	        
 	        Accounts commissionAccount = new Accounts();
@@ -206,10 +200,15 @@ public class WalletImplementation {
 	        commissionAccount.setAccountType(AccountType.COMMISSION);
 	        commissionAccount.setAccountNo(randomGenerators.generateAlphanumeric(10));
 	        accountRepository.save(commissionAccount);
-	        System.out.println("=========Commission Account saving done========");
 	        //Generate Response
 	        CreateAccountResponse res = new CreateAccountResponse(us.getId(), us.getEmailAddress(),us.getMobileNo(),mAccount.getId());
-			return res;
+			
+	        return new ApiResponse.Builder<>()
+	                .setStatus(true)
+	                .setCode(ApiResponse.Code.SUCCESS)
+	                .setMessage("Success")
+	                .setData(res)
+	                .build();
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
 			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
@@ -217,7 +216,7 @@ public class WalletImplementation {
     }
     
     @Transactional
-    public CreateWalletResponse createWallet(Integer productId) {
+    public ApiResponse<CreateWalletResponse> createWallet(Integer productId) {
     	try {
 //    		System.out.println(":::::::::Adding wallet::::::::");
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
@@ -233,12 +232,6 @@ public class WalletImplementation {
             account.setProductId(Long.valueOf(productId));
             account.setAccountName(mUser.get().getFirstName()+" "+mUser.get().getLastName());
 //            System.out.println("::::::wallet creation:::::");
-            if(productId == 1) {
-            	account.setAccountType(AccountType.SAVINGS);
-            }
-            if(productId == 2) {
-            	account.setAccountType(AccountType.CURRENT);
-            }
             
             account.setActive(true);
             account.setApproved(true);
@@ -255,33 +248,57 @@ public class WalletImplementation {
             mUser.get().setAccounts(userAccount);
             Users mUser2 = userRepository.save(mUser.get());
         	CreateWalletResponse res = new CreateWalletResponse(mUser.get().getId(),account.getProductId(),Long.valueOf(mUser2.getSavingsProductId()),mAccount.getId());
-        	return res;
+        	
+        	return new ApiResponse.Builder<>()
+	                .setStatus(true)
+	                .setCode(ApiResponse.Code.SUCCESS)
+	                .setMessage("Success")
+	                .setData(res)
+	                .build();
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
 			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
 		}
     }
     
-    public List<MainWalletResponse> findWalletByExternalId(Long externalId) {
-    	return walletResponse(externalId);
+    public ApiResponse<List<MainWalletResponse>> findWalletByExternalId(Long externalId) {
+    	return new ApiResponse.Builder<>()
+                .setStatus(true)
+                .setCode(ApiResponse.Code.SUCCESS)
+                .setMessage("Success")
+                .setData(walletResponse(externalId))
+                .build();
     }
     
-    public MainWalletResponse getUserCommissionList(Long externalId) {
-    	return getSingleWallet(externalId);
+    public ApiResponse<MainWalletResponse> getUserCommissionList(Long externalId) {
+    	return new ApiResponse.Builder<>()
+                .setStatus(true)
+                .setCode(ApiResponse.Code.SUCCESS)
+                .setMessage("Success")
+                .setData(getSingleWallet(externalId))
+                .build();
     }
     
-    public ResponsePojo makeDefaultWallet(long externalId, String accountNo) {
+    public ApiResponse makeDefaultWallet(long externalId, String accountNo) {
     	try {
 			return userRepository.findById(externalId).map(user -> {
 				Optional<Accounts> account = accountRepository.findByAccountNo(accountNo);
 		        if (!account.isPresent()) {
 		        	//ResponseEntity<>(new ErrorResponse("Invalid Account No"), HttpStatus.BAD_REQUEST)
-		            return ResponsePojo.response(true, "Invalid Account No", HttpStatus.BAD_REQUEST.value()) ;
+		        	return new ApiResponse.Builder<>()
+		                    .setStatus(true)
+		                    .setCode(ApiResponse.Code.INVALID_ACCOUNT)
+		                    .setMessage("Invalid Account No")
+		                    .build();
 		        }
 		     // Check if account belongs to user
 		        if (account.get().getUser() != user){
 //		            return new ResponseEntity<>(new ErrorResponse("Invalid Account Access"), HttpStatus.BAD_REQUEST);
-		        	return ResponsePojo.response(true, "Invalid Account Access", HttpStatus.BAD_REQUEST.value()) ;
+		        	return new ApiResponse.Builder<>()
+		                    .setStatus(true)
+		                    .setCode(ApiResponse.Code.INVALID_PERMISSION_REQUEST_STATUS)
+		                    .setMessage("Invalid Account Access")
+		                    .build();
 		        }
 		     // Get Default Wallet
 		        Accounts defAccount = accountRepository.findByIsDefaultAndUser(true, user);
@@ -291,7 +308,11 @@ public class WalletImplementation {
 		        }
 		        account.get().setDefault(true);
 		        accountRepository.save(account.get());
-		        return ResponsePojo.response(true, "Default Account set successfully", HttpStatus.OK.value()) ;
+		        return new ApiResponse.Builder<>()
+	                    .setStatus(true)
+	                    .setCode(ApiResponse.Code.SUCCESS)
+	                    .setMessage("Default Account set successfully")
+	                    .build();
 			}).orElseThrow(() -> new CustomException("Id provided not found", HttpStatus.UNPROCESSABLE_ENTITY));
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
@@ -299,7 +320,7 @@ public class WalletImplementation {
 		}
     }
     
-    public MainWalletResponse getAccountInfo(String accountNum) {
+    public ApiResponse<MainWalletResponse> getAccountInfo(String accountNum) {
     	try {
 			return accountRepository.findByAccountNo(accountNum).map(accnt -> {
 				MainWalletResponse mainWallet = new MainWalletResponse();
@@ -349,7 +370,12 @@ public class WalletImplementation {
 				mainWallet.setFieldOfficerId(user.getId());
 				mainWallet.setDefaultWallet(accnt.isDefault());
 				
-				return mainWallet;
+				return new ApiResponse.Builder<>()
+		                .setStatus(true)
+		                .setCode(ApiResponse.Code.SUCCESS)
+		                .setMessage("Success")
+		                .setData(mainWallet)
+		                .build();
 			}).orElseThrow(() -> new CustomException("Account Number provided not found", HttpStatus.UNPROCESSABLE_ENTITY));
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
@@ -357,12 +383,17 @@ public class WalletImplementation {
 		}
     }
     
-    public Accounts editAccountName(String accountNo, String newName) {
+    public ApiResponse<Accounts> editAccountName(String accountNo, String newName) {
     	try {
     		return accountRepository.findByAccountNo(accountNo).map(account -> {
     			account.setAccountName(newName);
     			Accounts mAccount = accountRepository.save(account);
-    			return mAccount;
+    			return new ApiResponse.Builder<>()
+		                .setStatus(true)
+		                .setCode(ApiResponse.Code.SUCCESS)
+		                .setMessage("Success")
+		                .setData(mAccount)
+		                .build();
     		}).orElseThrow(() -> new CustomException("Account Number provided not found", HttpStatus.UNPROCESSABLE_ENTITY));
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
@@ -370,7 +401,7 @@ public class WalletImplementation {
 		}
     }
     
-    public List<MainWalletResponse> getCommissionAccountListByArray(List<Long> ids) {
+    public ApiResponse<List<MainWalletResponse>> getCommissionAccountListByArray(List<Long> ids) {
     	try {
     		List<MainWalletResponse> walletResList = new ArrayList<>();
 			ids.forEach(id -> {
@@ -427,7 +458,12 @@ public class WalletImplementation {
 				}
 				
 			});
-			return walletResList;
+			return new ApiResponse.Builder<>()
+	                .setStatus(true)
+	                .setCode(ApiResponse.Code.SUCCESS)
+	                .setMessage("Success")
+	                .setData(walletResList)
+	                .build();
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
 			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
@@ -435,7 +471,7 @@ public class WalletImplementation {
     }
     
     @Transactional
-    public ResponsePojo makeDefaultWallet(Long walletId) {
+    public ApiResponse makeDefaultWallet(Long walletId) {
     	try {
     		//Retrieve Logged in user Details
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
@@ -448,7 +484,11 @@ public class WalletImplementation {
     			accountRepository.save(userDefaultAccount);
     			accnt.setDefault(true);
     			accountRepository.save(accnt);
-    			return ResponsePojo.response(false, "New Default account set successfully", HttpStatus.OK.value());
+    			return new ApiResponse.Builder<>()
+    	                .setStatus(true)
+    	                .setCode(ApiResponse.Code.SUCCESS)
+    	                .setMessage("New Default account set successfully")
+    	                .build();
     		}).orElseThrow(() -> new CustomException("Wallet/Account Id provided is not found", HttpStatus.NOT_FOUND));
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
@@ -456,7 +496,7 @@ public class WalletImplementation {
 		}
     }
     
-    public MainWalletResponse getDefaultWallet() {
+    public ApiResponse<MainWalletResponse> getDefaultWallet() {
     	try {
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
 //    		System.out.println(":::::::::user id::::::"+user.getId());
@@ -509,7 +549,12 @@ public class WalletImplementation {
 			mainWallet.setFieldOfficerId(user.getId());
 			mainWallet.setDefaultWallet(accnt.isDefault());
 			
-			return mainWallet;
+			return new ApiResponse.Builder<>()
+	                .setStatus(true)
+	                .setCode(ApiResponse.Code.SUCCESS)
+	                .setMessage("Success")
+	                .setData(mainWallet)
+	                .build();
     		
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
@@ -517,7 +562,7 @@ public class WalletImplementation {
 		}
     }
     
-    public MainWalletResponse getDefaultWalletOpen(Long userId) {
+    public ApiResponse<MainWalletResponse> getDefaultWalletOpen(Long userId) {
     	try {
     		return userRepository.findByUserId(userId).map(mUser -> {
     			Accounts accnt = accountRepository.findByIsDefaultAndUser(true, mUser);
@@ -568,7 +613,12 @@ public class WalletImplementation {
     			mainWallet.setFieldOfficerId(mUser.getId());
     			mainWallet.setDefaultWallet(accnt.isDefault());
     			
-    			return mainWallet;
+    			return new ApiResponse.Builder<>()
+    	                .setStatus(true)
+    	                .setCode(ApiResponse.Code.SUCCESS)
+    	                .setMessage("Success")
+    	                .setData(mainWallet)
+    	                .build();
     		}).orElseThrow(() -> new CustomException("Id provided not found", HttpStatus.NOT_FOUND));
     		
     		
@@ -579,7 +629,7 @@ public class WalletImplementation {
     }
     
     
-    public List<MainWalletResponse> findAll() {
+    public ApiResponse<List<MainWalletResponse>> findAll() {
     	try {
     		List<Accounts> accountList = accountRepository.findAll();
     		List<MainWalletResponse> walletResList = new ArrayList<>();
@@ -632,14 +682,19 @@ public class WalletImplementation {
 				mainWallet.setDefaultWallet(accnt.isDefault());
 				walletResList.add(mainWallet);
 			}
-			return walletResList;
+    		return new ApiResponse.Builder<>()
+	                .setStatus(true)
+	                .setCode(ApiResponse.Code.SUCCESS)
+	                .setMessage("Success")
+	                .setData(walletResList)
+	                .build();
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
 			throw new CustomException(e.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
 		}
     }
     
-    private List<MainWalletResponse> walletResponse(Long externalId) {
+    private ApiResponse<List<MainWalletResponse>> walletResponse(Long externalId) {
     	try {
     		List<MainWalletResponse> walletResList = new ArrayList<>();
 			return userRepository.findByUserId(externalId).map(user -> {
@@ -694,7 +749,12 @@ public class WalletImplementation {
 					walletResList.add(mainWallet);
 					mainWallet.setDefaultWallet(accnt.isDefault());
 				}
-				return walletResList;
+				return new ApiResponse.Builder<>()
+		                .setStatus(true)
+		                .setCode(ApiResponse.Code.SUCCESS)
+		                .setMessage("Success")
+		                .setData(walletResList)
+		                .build();
 			}).orElseThrow(() -> new CustomException("Id provided not found", HttpStatus.UNPROCESSABLE_ENTITY));
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);
@@ -702,7 +762,7 @@ public class WalletImplementation {
 		}
     }
     
-    private MainWalletResponse getSingleWallet(Long externalId) {
+    private ApiResponse<MainWalletResponse> getSingleWallet(Long externalId) {
     	try {
     		return userRepository.findById(externalId).map(user -> {
         		Accounts accnt = accountRepository.findByUserAndAccountType(user, AccountType.SAVINGS);
@@ -752,7 +812,12 @@ public class WalletImplementation {
     			mainWallet.setFieldOfficerId(user.getId());
     			mainWallet.setDefaultWallet(accnt.isDefault());
     			
-    			return mainWallet;
+    			return new ApiResponse.Builder<>()
+		                .setStatus(true)
+		                .setCode(ApiResponse.Code.SUCCESS)
+		                .setMessage("Success")
+		                .setData(mainWallet)
+		                .build();
     			
         	}).orElseThrow(() -> new CustomException("Id provided not found", HttpStatus.UNPROCESSABLE_ENTITY));
 		} catch (Exception e) {
@@ -762,7 +827,7 @@ public class WalletImplementation {
     }
     
     
-    public List<MainWalletResponse> allUserWallet() {
+    public ApiResponse<List<MainWalletResponse>> allUserWallet() {
     	try {
     		
     		MyData mUser = (MyData)  userFacade.getAuthentication().getPrincipal();
@@ -819,7 +884,13 @@ public class WalletImplementation {
 					walletResList.add(mainWallet);
 					mainWallet.setDefaultWallet(accnt.isDefault());
 				}
-				return walletResList;
+				
+				return new ApiResponse.Builder<>()
+		                .setStatus(true)
+		                .setCode(ApiResponse.Code.SUCCESS)
+		                .setMessage("Success")
+		                .setData(walletResList)
+		                .build();
 			}).orElseThrow(() -> new CustomException("Id provided not found", HttpStatus.UNPROCESSABLE_ENTITY));
 		} catch (Exception e) {
 			LOGGER.info("Error::: {}, {} and {}", e.getMessage(),2,3);

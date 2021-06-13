@@ -3,6 +3,7 @@ package com.wayapaychat.temporalwallet.controller;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,6 +22,7 @@ import com.wayapaychat.temporalwallet.pojo.CreateWalletResponse;
 import com.wayapaychat.temporalwallet.pojo.MainWalletResponse;
 import com.wayapaychat.temporalwallet.pojo.ResponsePojo;
 import com.wayapaychat.temporalwallet.service.WalletImplementation;
+import com.wayapaychat.temporalwallet.util.ApiResponse;
 
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -38,65 +40,101 @@ public class WalletController {
 	
 	@ApiOperation(value = "Create User account/wallet", notes = "Create user account/wallet")
 	@PostMapping("/create/account")
-	public ResponseEntity<CreateAccountResponse> createAccount(@RequestBody CreateAccountPojo createWallet) {
-		return ResponseEntity.ok(walletImplementation.createAccount(createWallet));
+	public ResponseEntity<ApiResponse> createAccount(@RequestBody CreateAccountPojo createWallet) {
+		ApiResponse res = walletImplementation.createAccount(createWallet);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Create User account/wallet", notes = "Create user account/wallet")
 	@PostMapping("/create/wallet")
-	public ResponseEntity<CreateWalletResponse> createWallet(@RequestParam("productId") Integer productId) {
-		return ResponseEntity.ok(walletImplementation.createWallet(productId));
+	public ResponseEntity<ApiResponse> createWallet(@RequestParam("productId") Integer productId) {
+		ApiResponse res = walletImplementation.createWallet(productId);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Find user wallet by userId/externalId", notes = "Find user wallet by userId/externalId")
 	@GetMapping("/find/by/userId/{userId}")
-	public ResponseEntity<List<MainWalletResponse>> findWalletByExternalId(@PathVariable("userId") Long externalId) {
-		return ResponseEntity.ok(walletImplementation.findWalletByExternalId(externalId));
+	public ResponseEntity<ApiResponse> findWalletByExternalId(@PathVariable("userId") Long externalId) {
+		ApiResponse res = walletImplementation.findWalletByExternalId(externalId);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 	
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Find user Commission list", notes = "Find user commission list")
 	@GetMapping("/get/commision/list/{userId}")
-	public ResponseEntity<MainWalletResponse> getUserCommissionList(@PathVariable("userId") Long externalId) {
-		return ResponseEntity.ok(walletImplementation.getUserCommissionList(externalId));
+	public ResponseEntity<ApiResponse> getUserCommissionList(@PathVariable("userId") Long externalId) {
+		ApiResponse res = walletImplementation.getUserCommissionList(externalId);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "get account info using account number", notes = "Get account info using account number")
 	@GetMapping("/get/account/info/{accountNum}")
-	public ResponseEntity<MainWalletResponse> getAccountInfo(@PathVariable("accountNum") String accountNum){
-		return ResponseEntity.ok(walletImplementation.getAccountInfo(accountNum));
+	public ResponseEntity<ApiResponse> getAccountInfo(@PathVariable("accountNum") String accountNum){
+		ApiResponse res = walletImplementation.getAccountInfo(accountNum);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Edit account name", notes = "Edit account name")
 	@PutMapping("/edit/account/name")
-	public ResponseEntity<Accounts> editAccountName(@RequestParam("accountName") String accountName, @RequestParam("accountNum") String accountNum) {
-		return ResponseEntity.ok(walletImplementation.editAccountName(accountName, accountNum));
+	public ResponseEntity<ApiResponse> editAccountName(@RequestParam("accountName") String accountName, @RequestParam("accountNum") String accountNum) {
+		ApiResponse res = walletImplementation.editAccountName(accountName, accountNum);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Get logged in user default wallet", notes = "Get logged in user defalult wallet")
 	@GetMapping("/get/default/wallet")
-	public ResponseEntity<MainWalletResponse> getDefaultWallet() {
-		return ResponseEntity.ok(walletImplementation.getDefaultWallet());
+	public ResponseEntity<ApiResponse> getDefaultWallet() {
+		ApiResponse res = walletImplementation.getDefaultWallet();
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 	
 	
 	@ApiOperation(value = "Get logged in user default wallet", notes = "Get logged in user defalult wallet")
 	@GetMapping("/get/default/wallet/open/{userId}")
-	public ResponseEntity<MainWalletResponse> getDefaultWalletOpen(@PathVariable("userId") Long userId) {
-		return ResponseEntity.ok(walletImplementation.getDefaultWalletOpen(userId));
+	public ResponseEntity<ApiResponse> getDefaultWalletOpen(@PathVariable("userId") Long userId) {
+		ApiResponse res = walletImplementation.getDefaultWalletOpen(userId);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Find all wallets", notes = "Find all wallets")
 	@GetMapping("/find/all")
-	public ResponseEntity<List<MainWalletResponse>> findAll() {
-		return ResponseEntity.ok(walletImplementation.findAll());
+	public ResponseEntity<ApiResponse> findAll() {
+		ApiResponse res = walletImplementation.findAll();
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 	
 	
@@ -104,36 +142,56 @@ public class WalletController {
 	@ApiOperation(value = "Create waya Account, this is for users with admin role", notes = "Create waya Account, this is for users with admin role")
 	@PostMapping("/create/waya/account")
 //	@PreAuthorize("Admin")
-	public ResponseEntity<ResponsePojo> createWayaAccount() {
-		return ResponseEntity.ok(walletImplementation.createWayaWallet());
+	public ResponseEntity<ApiResponse> createWayaAccount() {
+		ApiResponse res = walletImplementation.createWayaWallet();
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "User can user this endpoint to set default wallet using the wallet id", notes = "User can user this endpoint to set default wallet using the wallet id")
 	@PostMapping("/set/default/wallet")
-	public ResponseEntity<ResponsePojo> setDefaultWallet(@RequestParam("walletId") Long walletId) {
-		return ResponseEntity.ok(walletImplementation.makeDefaultWallet(walletId));
+	public ResponseEntity<ApiResponse> setDefaultWallet(@RequestParam("walletId") Long walletId) {
+		ApiResponse res = walletImplementation.makeDefaultWallet(walletId);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 	
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Get commission account list by user id list", notes = "Get commission account list by user id list")
 	@PostMapping("/get/commission/list")
-	public ResponseEntity<List<MainWalletResponse>> getCommissionAccountListByIdList(@RequestBody List<Long> ids) {
-		return ResponseEntity.ok(walletImplementation.getCommissionAccountListByArray(ids));
+	public ResponseEntity<ApiResponse> getCommissionAccountListByIdList(@RequestBody List<Long> ids) {
+		ApiResponse res = walletImplementation.getCommissionAccountListByArray(ids);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 	
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Find all user wallet", notes = "Fetch all user wallet")
 	@GetMapping("/all/user/wallet")
-	public ResponseEntity<List<MainWalletResponse>> findAllUserWallet() {
-		return ResponseEntity.ok(walletImplementation.allUserWallet());
+	public ResponseEntity<ApiResponse> findAllUserWallet() {
+		ApiResponse res = walletImplementation.allUserWallet();
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 	
 	@ApiOperation(value = "Create Cooperate account, this creates a default account and a commission account", notes = "Create Cooperate account, this creates a default account and a commission account")
 	@PostMapping("/create/cooperate/user")
-	public ResponseEntity<CreateAccountResponse> createCooperateAccount(@RequestBody CreateAccountPojo createAccountPojo) {
-		return ResponseEntity.ok(walletImplementation.createCooperateUserAccount(createAccountPojo));
+	public ResponseEntity<ApiResponse> createCooperateAccount(@RequestBody CreateAccountPojo createAccountPojo) {
+		ApiResponse res = walletImplementation.createCooperateUserAccount(createAccountPojo);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 }
