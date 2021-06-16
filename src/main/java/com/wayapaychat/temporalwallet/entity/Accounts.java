@@ -37,6 +37,7 @@ public class Accounts {
     private double balance = 0.00;
     private double lagerBalance = 0.00;
 
+    @Column(unique = true)
     private boolean isDefault = false;
 //    @Column(unique = true)
     private boolean active;

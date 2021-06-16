@@ -119,6 +119,7 @@ public class WalletImplementation {
           account.setAccountType(AccountType.SAVINGS);
           account.setUser(mUser.get());
           account.setBalance(1000000);
+          account.setDefault(false);
           account.setAccountName(user.getFirstName()+" "+user.getSurname());
           accountRepository.save(account);
 
