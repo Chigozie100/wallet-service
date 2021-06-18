@@ -242,6 +242,11 @@ public class TransactionNewService {
     	try {
     		
 			return accountRepository.findById(walletDto.getCustomerWalletId()).map(account -> {
+				
+				MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
+	    		
+	    		Optional<Users> mUser = userRepository.findByUserId(user.getId());
+	    		Accounts senderAccount = accountRepository.findByUserAndIsDefault(mUser.get(), true);
 				Optional<Accounts> wayaAccount = accountRepository.findByAccountNo(WAYA_SETTLEMENT_ACCOUNT_NO);
 				String ref = randomGenerators.generateAlphanumeric(12);
 				if(walletDto.getAmount() < 1) {
@@ -249,7 +254,7 @@ public class TransactionNewService {
 				}
 				
 				if(command.equals("DEBIT")) {
-					if(account.getBalance() < walletDto.getAmount()) {
+					if(senderAccount.getBalance() < walletDto.getAmount()) {
 						throw new CustomException("Insufficient Funds", HttpStatus.UNPROCESSABLE_ENTITY);
 					}
 					
@@ -301,6 +306,9 @@ public class TransactionNewService {
 				}
 				
 				if(command.equals("CREDIT")) {
+					
+					
+					
 					
 					// Handle cREDIT User Account
 	                
@@ -494,7 +502,7 @@ public class TransactionNewService {
     		if(wayaAccount.isPresent()) {
                 String ref = randomGenerators.generateAlphanumeric(12);
                 
-                if (request.getAmount() < 1) {
+                if (request.getAmount() < 1 || request.getAmount() == 0) {
                     
                     throw new CustomException("Invalid Amount", HttpStatus.BAD_REQUEST);
                 }
@@ -553,7 +561,8 @@ public class TransactionNewService {
                     transaction.setAccount(userAccount);
                     transaction.setAmount(request.getAmount());
                     transaction.setRefCode(ref);
-
+                    System.out.println(":::Credit:::");
+                    System.out.println(":::wallet Id:::"+userAccount.getId());
                     transactionRepository.save(transaction);
                     userAccount.setBalance(userAccount.getBalance() + request.getAmount());
                     userAccount.setLagerBalance(userAccount.getBalance() + request.getAmount());
