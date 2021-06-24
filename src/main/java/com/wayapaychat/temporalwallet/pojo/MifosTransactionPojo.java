@@ -9,10 +9,11 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class TransactionRequest {
+public class MifosTransactionPojo {
 
-//	private Long customerWalletId;
-    private String paymentReference;
-    private String description;
-    private Float amount;
+	private Long customerWalletid;
+	private Long beneficiaryWalletId;
+	private String paymentReference;
+	private Float amount;
+	private String description;
 }

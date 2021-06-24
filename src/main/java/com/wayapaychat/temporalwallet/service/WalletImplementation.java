@@ -1,5 +1,7 @@
 package com.wayapaychat.temporalwallet.service;
 
+import static com.wayapaychat.temporalwallet.util.Constant.WAYA_SETTLEMENT_ACCOUNT_NO;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -59,7 +61,6 @@ public class WalletImplementation {
     @Transactional
     public ApiResponse<CreateAccountResponse> createAccount(CreateAccountPojo createWallet) {
     	try {
-    		System.out.println("::::::::::::::account creation:::::::::::");
     		Users us = new Users();
 			us.setCreatedAt(new Date());
 			us.setEmailAddress(createWallet.getEmailAddress());
@@ -899,6 +900,31 @@ public class WalletImplementation {
 		}
     }
     
+    
+    public ApiResponse getWayaCommissionWallet() {
+    	try {
+    		return accountRepository.findByAccountNo(WAYA_SETTLEMENT_ACCOUNT_NO).map(wayaAccount -> {
+    			return new ApiResponse.Builder<>()
+		                .setStatus(true)
+		                .setCode(ApiResponse.Code.SUCCESS)
+		                .setMessage("Success")
+		                .setData(wayaAccount)
+		                .build();
+    		}).orElse(
+                    new ApiResponse.Builder<>()
+                    .setStatus(false)
+                    .setCode(ApiResponse.Code.NOT_FOUND)
+                    .setMessage("Waya Account not found")
+                    .build()
+    );
+		} catch (Exception e) {
+			return new ApiResponse.Builder<>()
+                    .setStatus(false)
+                    .setCode(ApiResponse.Code.UNKNOWN_ERROR)
+                    .setMessage("Error Occurred")
+                    .build();
+		}
+    }
     
 
 }

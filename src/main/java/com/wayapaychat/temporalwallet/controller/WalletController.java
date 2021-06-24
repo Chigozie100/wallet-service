@@ -16,11 +16,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.wayapaychat.temporalwallet.entity.Accounts;
+import com.wayapaychat.temporalwallet.entity.SwitchWallet;
 import com.wayapaychat.temporalwallet.pojo.CreateAccountPojo;
 import com.wayapaychat.temporalwallet.pojo.CreateAccountResponse;
 import com.wayapaychat.temporalwallet.pojo.CreateWalletResponse;
 import com.wayapaychat.temporalwallet.pojo.MainWalletResponse;
 import com.wayapaychat.temporalwallet.pojo.ResponsePojo;
+import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
+import com.wayapaychat.temporalwallet.repository.SwitchWalletRepository;
 import com.wayapaychat.temporalwallet.service.WalletImplementation;
 import com.wayapaychat.temporalwallet.util.ApiResponse;
 
@@ -35,17 +38,45 @@ public class WalletController {
 	@Autowired
 	private WalletImplementation walletImplementation;
 	
+	@Autowired
+	private SwitchWalletRepository switchWalletRepo;
+	
+	@Autowired
+	private MifosWalletProxy mifosWalletProxy;
 	
 	
 	
 	@ApiOperation(value = "Create User account/wallet", notes = "Create user account/wallet")
 	@PostMapping("/create/account")
 	public ResponseEntity<ApiResponse> createAccount(@RequestBody CreateAccountPojo createWallet) {
-		ApiResponse res = walletImplementation.createAccount(createWallet);
-		if (!res.getStatus()) {
-            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(res, HttpStatus.OK);
+		
+		List<SwitchWallet> switchList = switchWalletRepo.findAll();
+		
+		if(switchList.size() == 0) {
+			ApiResponse res = walletImplementation.createAccount(createWallet);
+			if (!res.getStatus()) {
+	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+	        }
+	        return new ResponseEntity<>(res, HttpStatus.OK);
+		}
+		
+		if(switchList.get(0).isMifosWallet()) {
+			ApiResponse res = mifosWalletProxy.register(createWallet);
+			if (!res.getStatus()) {
+	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+	        }
+	        return new ResponseEntity<>(res, HttpStatus.OK);
+		}
+		
+		else if(switchList.get(0).isTemporalWallet()) {
+			ApiResponse res = walletImplementation.createAccount(createWallet);
+			if (!res.getStatus()) {
+	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+	        }
+	        return new ResponseEntity<>(res, HttpStatus.OK);
+		}
+		String mm = "";
+		return new ResponseEntity<ApiResponse>(HttpStatus.NOT_FOUND);
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
@@ -189,6 +220,17 @@ public class WalletController {
 	@PostMapping("/create/cooperate/user")
 	public ResponseEntity<ApiResponse> createCooperateAccount(@RequestBody CreateAccountPojo createAccountPojo) {
 		ApiResponse res = walletImplementation.createCooperateUserAccount(createAccountPojo);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Get waya commission wallet", notes = "Get Waya commission wallet")
+	@GetMapping("/get/waya/commission/wallet")
+	public ResponseEntity<ApiResponse> getWayaCommissionWallet() {
+		ApiResponse res = walletImplementation.getWayaCommissionWallet();
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }

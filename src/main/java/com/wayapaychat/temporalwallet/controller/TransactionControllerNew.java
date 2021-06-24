@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.wayapaychat.temporalwallet.entity.Transactions;
 import com.wayapaychat.temporalwallet.pojo.AdminUserTransferDto;
+import com.wayapaychat.temporalwallet.pojo.MifosTransactionPojo;
 import com.wayapaychat.temporalwallet.pojo.TransactionRequest;
 import com.wayapaychat.temporalwallet.pojo.WalletToWalletDto;
 import com.wayapaychat.temporalwallet.service.TransactionNewService;
@@ -132,6 +133,17 @@ public class TransactionControllerNew {
 	public ResponseEntity<ApiResponse> findByAccountNumber(@RequestParam("accountNumber") String accountNumber, @RequestParam(defaultValue = "0") int page,
 	        @RequestParam(defaultValue = "10") int size){
 		ApiResponse res = transactionService.findByAccountNumber(page, size, accountNumber);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Transfer from one User Wallet to another User wallet, this takes customer wallet id and the Beneficiary wallet id, effective from 06/24/2021 ", notes = "Transfer from one Wallet to another wallet for a user this takes customer wallet id and the Beneficiary wallet id, effective from 06/24/2021")
+	@PostMapping("/transfer/fund/to/wallet")
+	public ResponseEntity<ApiResponse> handleTransactions(@RequestBody MifosTransactionPojo transactionPojo, @RequestParam("command") String command) {
+		ApiResponse res = transactionService.makeWalletTransaction(transactionPojo, command);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
