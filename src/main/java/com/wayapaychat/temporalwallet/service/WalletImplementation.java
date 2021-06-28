@@ -121,7 +121,7 @@ public class WalletImplementation {
           account.setUser(mUser.get());
           account.setBalance(1000000);
           account.setDefault(false);
-          account.setAccountName(user.getFirstName()+" "+user.getSurname());
+          account.setAccountName("WAYA COMMISSION ACCOUNT");
           accountRepository.save(account);
 
           // Commission Account
@@ -238,10 +238,11 @@ public class WalletImplementation {
             account.setActive(true);
             account.setApproved(true);
             account.setClosed(false);
-            account.setDefault(false);
+            
             account.setCode("savingsAccountStatusType.active");
             account.setValue("Active");
             account.setAccountNo(randomGenerators.generateAlphanumeric(10));
+            account.setDefault(false);
             Accounts mAccount = accountRepository.save(account);
 //            System.out.println("::::::Account Saved:::::"+mAccount.getAccountName());
 //            userRepository.save(user);
