@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import com.wayapaychat.temporalwallet.config.WalletClientConfiguration;
 import com.wayapaychat.temporalwallet.pojo.TokenCheckResponse;
 
-@FeignClient(name = "WAYA-AUTHENTICATION-SERVICE", url = "http://68.183.60.114:8059", configuration = WalletClientConfiguration.class)
+@FeignClient(name = "${waya.wallet.auth}", url = "${waya.wallet.authurl}", configuration = WalletClientConfiguration.class)
 public interface AuthProxy {
 
     
