@@ -165,18 +165,21 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     public ResponseEntity transferTransactionWithId(TransactionTransferPojo2 transactionTransferPojo2) {
-        Optional<Users> fromUser = userRepository.findByUserId(transactionTransferPojo2.getFromId());
-        Optional<Users> toUser = userRepository.findByUserId(transactionTransferPojo2.getToId());
+    	Long tranId = Long.valueOf(transactionTransferPojo2.getFromId());
+    	Long tId = Long.valueOf(transactionTransferPojo2.getToId());
+        Optional<Users> fromUserx = userRepository.findById(tranId);
+        Optional<Users> toUserx = userRepository.findById(tId);
 
-        if (!fromUser.isPresent()){
+        if (!fromUserx.isPresent()){
             return new ResponseEntity<>(new ErrorResponse("Invalid Sender Id"), HttpStatus.BAD_REQUEST);
         }
-        if (!toUser.isPresent()){
+        if (!toUserx.isPresent()){
             return new ResponseEntity<>(new ErrorResponse("Invalid Receiver Id"), HttpStatus.BAD_REQUEST);
         }
-
-        Accounts fromAccount = accountRepository.findByUserAndIsDefault(fromUser.get(), true);
-        Accounts toAccount = accountRepository.findByUserAndIsDefault(toUser.get(), true);
+        Users fromUser = fromUserx.get();
+        Users toUser  = toUserx.get();
+        Accounts fromAccount = accountRepository.findByUserAndIsDefault(fromUser, true);
+        Accounts toAccount = accountRepository.findByUserAndIsDefault(toUser, true);
         String ref = randomGenerators.generateAlphanumeric(12);
         if (fromAccount == null || toAccount == null) {
             return new ResponseEntity<>(new ErrorResponse("Possible Invalid Account"), HttpStatus.BAD_REQUEST);

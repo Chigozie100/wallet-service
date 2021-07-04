@@ -35,8 +35,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public ResponseEntity createUser(UserPojo userPojo) {
-    	Optional<Users> existingUser = userRepository.findByUserId(userPojo.getUserId());
-        if (existingUser != null) {
+    	Optional<Users> existingUser = userRepository.findById(userPojo.getUserId());
+        if (existingUser.isPresent()) {
             return new ResponseEntity<>(new ErrorResponse("User already exists"), HttpStatus.BAD_REQUEST);
         }
         Users user = new ModelMapper().map(userPojo, Users.class);
