@@ -109,16 +109,24 @@ public class WalletImplementation {
     public ApiResponse createWayaWallet() {
     	try {
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
-    		Optional<Users> mUser = userRepository.findByUserId(user.getId());
-    		mUser.get().setEmailAddress(user.getEmail());
-    		mUser.get().setFirstName(user.getFirstName());
-    		mUser.get().setLastName(user.getSurname());
-    		mUser.get().setMobileNo(user.getPhoneNumber());
-    		mUser.get().setUserId(user.getId());
+    		Optional<Users> mUserx = userRepository.findById(user.getId());
+    		 if (!mUserx.isPresent()) {
+    			 return new ApiResponse.Builder<>()
+    		                .setStatus(false)
+    		                .setCode(ApiResponse.Code.NOT_FOUND)
+    		                .setMessage("Failed")
+    		                .build();
+             }
+             Users mUser = mUserx.get();
+    		mUser.setEmailAddress(user.getEmail());
+    		mUser.setFirstName(user.getFirstName());
+    		mUser.setLastName(user.getSurname());
+    		mUser.setMobileNo(user.getPhoneNumber());
+    		mUser.setUserId(user.getId());
     		Accounts account = new Accounts();
           account.setAccountNo(Constant.WAYA_SETTLEMENT_ACCOUNT_NO);
           account.setAccountType(AccountType.SAVINGS);
-          account.setUser(mUser.get());
+          account.setUser(mUser);
           account.setBalance(1000000);
           account.setDefault(false);
           account.setAccountName("WAYA COMMISSION ACCOUNT");
@@ -128,7 +136,7 @@ public class WalletImplementation {
           Accounts account2 = new Accounts();
           account2.setAccountNo(Constant.WAYA_COMMISSION_ACCOUNT_NO);
           account2.setAccountType(AccountType.COMMISSION);
-          account2.setUser(mUser.get());
+          account2.setUser(mUser);
           account2.setBalance(1000000);
           account2.setAccountName("Waya Commissions");
           accountRepository.save(account2);
@@ -222,17 +230,25 @@ public class WalletImplementation {
     	try {
 //    		System.out.println(":::::::::Adding wallet::::::::");
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
-    		Optional<Users> mUser = userRepository.findByUserId(user.getId());
-    		mUser.get().setEmailAddress(user.getEmail());
-    		mUser.get().setFirstName(user.getFirstName());
-    		mUser.get().setLastName(user.getSurname());
-    		mUser.get().setMobileNo(user.getPhoneNumber());
-    		mUser.get().setUserId(user.getId());
+    		Optional<Users> mUserx = userRepository.findById(user.getId());
+    		 if (!mUserx.isPresent()) {
+    			 return new ApiResponse.Builder<>()
+    		                .setStatus(false)
+    		                .setCode(ApiResponse.Code.NOT_FOUND)
+    		                .setMessage("Failed")
+    		                .build();
+             }
+             Users mUser = mUserx.get();
+    		mUser.setEmailAddress(user.getEmail());
+    		mUser.setFirstName(user.getFirstName());
+    		mUser.setLastName(user.getSurname());
+    		mUser.setMobileNo(user.getPhoneNumber());
+    		mUser.setUserId(user.getId());
 //    		System.out.println(":::::::usss:::::");
         	Accounts account = new Accounts();
-            account.setUser(mUser.get());
+            account.setUser(mUser);
             account.setProductId(Long.valueOf(productId));
-            account.setAccountName(mUser.get().getFirstName()+" "+mUser.get().getLastName());
+            account.setAccountName(mUser.getFirstName()+" "+mUser.getLastName());
 //            System.out.println("::::::wallet creation:::::");
             
             account.setActive(true);
@@ -248,9 +264,9 @@ public class WalletImplementation {
 //            userRepository.save(user);
             List<Accounts> userAccount = new ArrayList<>();
             userAccount.add(account);
-            mUser.get().setAccounts(userAccount);
-            Users mUser2 = userRepository.save(mUser.get());
-        	CreateWalletResponse res = new CreateWalletResponse(mUser.get().getId(),account.getProductId(),Long.valueOf(mUser2.getSavingsProductId()),mAccount.getId());
+            mUser.setAccounts(userAccount);
+            Users mUser2 = userRepository.save(mUser);
+        	CreateWalletResponse res = new CreateWalletResponse(mUser.getId(),account.getProductId(),Long.valueOf(mUser2.getSavingsProductId()),mAccount.getId());
         	
         	return new ApiResponse.Builder<>()
 	                .setStatus(true)
@@ -408,9 +424,10 @@ public class WalletImplementation {
     	try {
     		List<MainWalletResponse> walletResList = new ArrayList<>();
 			ids.forEach(id -> {
-				Optional<Users> user = userRepository.findByUserId(id);
-				if(user.isPresent()) {
-					Accounts accnt = accountRepository.findByUserAndAccountType(user.get(), AccountType.COMMISSION);
+				Optional<Users> userx = userRepository.findById(id);
+				if(userx.isPresent()) {
+					Users user = userx.get();
+					Accounts accnt = accountRepository.findByUserAndAccountType(user, AccountType.COMMISSION);
 					MainWalletResponse mainWallet = new MainWalletResponse();
 //					Users user = accnt.getUser();
 					WalletStatus status = new WalletStatus();
@@ -445,7 +462,7 @@ public class WalletImplementation {
 					
 					
 					mainWallet.setAccountNo(accnt.getAccountNo());
-					mainWallet.setClientId(user.get().getSavingsProductId());
+					mainWallet.setClientId(user.getSavingsProductId());
 					mainWallet.setClientName(accnt.getAccountName());
 					mainWallet.setId(accnt.getId());
 					mainWallet.setNominalAnnualInterestRate(0.0);
@@ -455,7 +472,7 @@ public class WalletImplementation {
 					mainWallet.setSummary(summary);
 					mainWallet.setTimeline(timeLine);
 					mainWallet.setCurrency(currency);
-					mainWallet.setFieldOfficerId(user.get().getId());
+					mainWallet.setFieldOfficerId(user.getId());
 					mainWallet.setDefaultWallet(accnt.isDefault());
 					walletResList.add(mainWallet);
 				}
@@ -478,9 +495,17 @@ public class WalletImplementation {
     	try {
     		//Retrieve Logged in user Details
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
-    		Optional<Users> mUser = userRepository.findByUserId(user.getId());
+    		Optional<Users> mUserx = userRepository.findById(user.getId());
+    		 if (!mUserx.isPresent()) {
+    			 return new ApiResponse.Builder<>()
+     	                .setStatus(false)
+     	                .setCode(ApiResponse.Code.NOT_FOUND)
+     	                .setMessage("Failed to create default account")
+     	                .build();
+             }
+             Users mUser = mUserx.get();
     		//Get user default Account/wallet
-    		Accounts userDefaultAccount = accountRepository.findByUserAndIsDefault(mUser.get(), true);
+    		Accounts userDefaultAccount = accountRepository.findByUserAndIsDefault(mUser, true);
     		//Check if valid id and set new default wallet, else throw not found error 404
     		return accountRepository.findById(walletId).map(accnt -> {
     			userDefaultAccount.setDefault(false);
@@ -503,8 +528,16 @@ public class WalletImplementation {
     	try {
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
 //    		System.out.println(":::::::::user id::::::"+user.getId());
-    		Optional<Users> mUser = userRepository.findByUserId(user.getId());
-    		Accounts accnt = accountRepository.findByIsDefaultAndUser(true, mUser.get());
+    		Optional<Users> mUserx = userRepository.findById(user.getId());
+    		 if (!mUserx.isPresent()) {
+    			 return new ApiResponse.Builder<>()
+    		                .setStatus(true)
+    		                .setCode(ApiResponse.Code.NOT_FOUND)
+    		                .setMessage("Failed")
+    		                .build();
+             }
+             Users mUser = mUserx.get();
+    		Accounts accnt = accountRepository.findByIsDefaultAndUser(true, mUser);
 //    		System.out.println(":::later userId::::"+mUser.get().getId());
 			MainWalletResponse mainWallet = new MainWalletResponse();
 			WalletStatus status = new WalletStatus();
@@ -539,7 +572,7 @@ public class WalletImplementation {
 			
 			
 			mainWallet.setAccountNo(accnt.getAccountNo());
-			mainWallet.setClientId(mUser.get().getSavingsProductId());
+			mainWallet.setClientId(mUser.getSavingsProductId());
 			mainWallet.setClientName(accnt.getAccountName());
 			mainWallet.setId(accnt.getId());
 			mainWallet.setNominalAnnualInterestRate(0.0);
@@ -567,7 +600,7 @@ public class WalletImplementation {
     
     public ApiResponse<MainWalletResponse> getDefaultWalletOpen(Long userId) {
     	try {
-    		return userRepository.findByUserId(userId).map(mUser -> {
+    		return userRepository.findById(userId).map(mUser -> {
     			Accounts accnt = accountRepository.findByIsDefaultAndUser(true, mUser);
 //        		System.out.println(":::later userId::::"+mUser.get().getId());
     			MainWalletResponse mainWallet = new MainWalletResponse();
@@ -700,7 +733,7 @@ public class WalletImplementation {
     private ApiResponse<List<MainWalletResponse>> walletResponse(Long externalId) {
     	try {
     		List<MainWalletResponse> walletResList = new ArrayList<>();
-			return userRepository.findByUserId(externalId).map(user -> {
+			return userRepository.findById(externalId).map(user -> {
 				List<Accounts> accountList = accountRepository.findByUser(user);
 				
 				
@@ -835,7 +868,7 @@ public class WalletImplementation {
     		
     		MyData mUser = (MyData)  userFacade.getAuthentication().getPrincipal();
     		List<MainWalletResponse> walletResList = new ArrayList<>();
-			return userRepository.findByUserId(mUser.getId()).map(user -> {
+			return userRepository.findById(mUser.getId()).map(user -> {
 				List<Accounts> accountList = accountRepository.findByUser(user);
 				
 				

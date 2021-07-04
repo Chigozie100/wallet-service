@@ -39,13 +39,33 @@ public class Users {
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
+    
     private String firstName;
+    
     private String lastName;
 //    private String externalId;
     private int savingsProductId;
+    
     @Column(unique = true, nullable = false)
     private String emailAddress;
+    
     @Column(unique = true, nullable = false)
     private String mobileNo;
+
+	public Users(Long userId, List<Accounts> accounts, Date createdAt, String firstName, String lastName,
+			int savingsProductId, String emailAddress, String mobileNo) {
+		super();
+		this.userId = userId;
+		this.accounts = accounts;
+		this.createdAt = createdAt;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.savingsProductId = savingsProductId;
+		this.emailAddress = emailAddress;
+		this.mobileNo = mobileNo;
+	}
+
+	
+    
 
 }

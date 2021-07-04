@@ -64,9 +64,18 @@ public class TransactionNewService {
     		Pageable paging = PageRequest.of(page, size);
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
 //    		System.out.println(":::::::::user id::::::"+user.getId());
-    		Optional<Users> mUser = userRepository.findByUserId(user.getId());
+    		//Users mUser = userRepository.findByUserId(user.getId());
+    		Optional<Users> mUserx = userRepository.findById(user.getId());
+   		    if (!mUserx.isPresent()) {
+   			 return new ApiResponse.Builder<>()
+   		                .setStatus(false)
+   		                .setCode(ApiResponse.Code.NOT_FOUND)
+   		                .setMessage("Failed")
+   		                .build();
+            }
+            Users mUser = mUserx.get();
 //    		Users user = (Users)  userFacade.getAuthentication().getPrincipal();
-    		Accounts accnt = accountRepository.findByIsDefaultAndUser(true, mUser.get());
+    		Accounts accnt = accountRepository.findByIsDefaultAndUser(true, mUser);
     		return new ApiResponse.Builder<>()
 	                .setStatus(true)
 	                .setCode(ApiResponse.Code.SUCCESS)
@@ -88,9 +97,18 @@ public class TransactionNewService {
     		Pageable paging = PageRequest.of(page, size);
 //    		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
 //    		System.out.println(":::::::::user id::::::"+user.getId());
-    		Optional<Users> mUser = userRepository.findByUserId(userId);
+    		//Users mUser = userRepository.findById(userId);
+    		Optional<Users> mUserx = userRepository.findById(userId);
+   		    if (!mUserx.isPresent()) {
+   			 return new ApiResponse.Builder<>()
+   		                .setStatus(false)
+   		                .setCode(ApiResponse.Code.NOT_FOUND)
+   		                .setMessage("Failed")
+   		                .build();
+            }
+            Users mUser = mUserx.get();
 //    		Users user = (Users)  userFacade.getAuthentication().getPrincipal();
-    		Accounts accnt = accountRepository.findByIsDefaultAndUser(true, mUser.get());
+    		Accounts accnt = accountRepository.findByIsDefaultAndUser(true, mUser);
     		return new ApiResponse.Builder<>()
 	                .setStatus(true)
 	                .setCode(ApiResponse.Code.SUCCESS)
@@ -131,8 +149,17 @@ public class TransactionNewService {
     		System.out.println("Making Transaction.......");
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
     		System.out.println(":::::::::user id::::::"+user.getId());
-    		Optional<Users> mUser = userRepository.findByUserId(user.getId());
-    		Accounts senderAccount = accountRepository.findByUserAndIsDefault(mUser.get(), true);
+    		//Users mUser = userRepository.findById(user.getId());
+    		Optional<Users> mUserx = userRepository.findById(user.getId());
+   		    if (!mUserx.isPresent()) {
+   			 return new ApiResponse.Builder<>()
+   		                .setStatus(false)
+   		                .setCode(ApiResponse.Code.NOT_FOUND)
+   		                .setMessage("Failed")
+   		                .build();
+            }
+            Users mUser = mUserx.get();
+    		Accounts senderAccount = accountRepository.findByUserAndIsDefault(mUser, true);
     		Optional<Accounts> wayaAccount = accountRepository.findByAccountNo(WAYA_SETTLEMENT_ACCOUNT_NO);
     		if (senderAccount == null) {
     			throw new CustomException("Invalid Account", HttpStatus.UNPROCESSABLE_ENTITY);
@@ -269,8 +296,17 @@ public class TransactionNewService {
 				
 				MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
 	    		
-	    		Optional<Users> mUser = userRepository.findByUserId(user.getId());
-	    		Accounts senderAccount = accountRepository.findByUserAndIsDefault(mUser.get(), true);
+	    		//Users mUser = userRepository.findById(user.getId());
+	    		Optional<Users> mUserx = userRepository.findById(user.getId());
+	    		 if (!mUserx.isPresent()) {
+	    			 return new ApiResponse.Builder<>()
+	    		                .setStatus(false)
+	    		                .setCode(ApiResponse.Code.NOT_FOUND)
+	    		                .setMessage("Failed")
+	    		                .build();
+	             }
+	             Users mUser = mUserx.get();
+	    		Accounts senderAccount = accountRepository.findByUserAndIsDefault(mUser, true);
 				Optional<Accounts> wayaAccount = accountRepository.findByAccountNo(WAYA_SETTLEMENT_ACCOUNT_NO);
 				String ref = randomGenerators.generateAlphanumeric(12);
 				if(walletDto.getAmount() < 1) {
@@ -551,8 +587,17 @@ public class TransactionNewService {
     	try {
     		MyData user = (MyData)  userFacade.getAuthentication().getPrincipal();
     		
-    		Optional<Users> mUser = userRepository.findByUserId(user.getId());
-    		Accounts userAccount = accountRepository.findByUserAndIsDefault(mUser.get(), true);
+    		//Users mUser = userRepository.findById(user.getId());
+    		Optional<Users> mUserx = userRepository.findById(user.getId());
+   		    if (!mUserx.isPresent()) {
+   			 return new ApiResponse.Builder<>()
+   		                .setStatus(false)
+   		                .setCode(ApiResponse.Code.NOT_FOUND)
+   		                .setMessage("Failed")
+   		                .build();
+            }
+            Users mUser = mUserx.get();
+    		Accounts userAccount = accountRepository.findByUserAndIsDefault(mUser, true);
     		Optional<Accounts> wayaAccount = accountRepository.findByAccountNo(WAYA_SETTLEMENT_ACCOUNT_NO);
     		if(wayaAccount.isPresent()) {
                 String ref = randomGenerators.generateAlphanumeric(12);
