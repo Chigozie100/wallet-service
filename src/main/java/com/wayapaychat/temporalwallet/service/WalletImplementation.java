@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.entity.Accounts;
 import com.wayapaychat.temporalwallet.entity.Users;
 import com.wayapaychat.temporalwallet.enumm.AccountType;
@@ -51,6 +52,9 @@ public class WalletImplementation {
 
     @Autowired
     RandomGenerators randomGenerators;
+    
+    @Autowired
+    AuthUserServiceDAO authService;
     
     private static final Logger LOGGER = LoggerFactory.getLogger(WalletImplementation.class);
     
@@ -732,8 +736,12 @@ public class WalletImplementation {
     
     private ApiResponse<List<MainWalletResponse>> walletResponse(Long externalId) {
     	try {
+    		//citymanjoe
+    		//int id = externalId.intValue();
+    		//int userId = authService.getId(id);
+    		Long userId = Long.valueOf(authService.getId(externalId.intValue()));
     		List<MainWalletResponse> walletResList = new ArrayList<>();
-			return userRepository.findById(externalId).map(user -> {
+			return userRepository.findById(userId).map(user -> {
 				List<Accounts> accountList = accountRepository.findByUser(user);
 				
 				

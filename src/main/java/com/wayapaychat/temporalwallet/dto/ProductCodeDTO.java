@@ -10,12 +10,15 @@ public class ProductCodeDTO {
 	
 	@NotNull
 	@Size(min=5, max=5)
-	private String product_code;
+	private String productCode;
 	
 	@NotNull
-	private String product_name; 
+	private String productName; 
 	
 	@NotNull
-	private String product_type;
+	private String productType;
+	
+	@NotNull
+	private String currencyCode;
 
 }

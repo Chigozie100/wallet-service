@@ -29,21 +29,28 @@ public class WalletProductCode {
 	private boolean del_flg;
 	
 	@Column(unique = true, nullable = false)
-	private String product_code;
+	private String productCode;
 	
 	@Column(unique = true, nullable = false)
-	private String product_name;
+	private String productName;
 	
 	@Column(nullable = false)
-	private String product_type;
+	private String productType; //Product Type
+	
+	@Column(nullable = false)
+	private String currencyCode; //Currency
 
-	public WalletProductCode(String product_code, String product_name, String product_type) {
+	public WalletProductCode(String productCode, String productName, String productType,
+			String currencyCode) {
 		super();
 		this.del_flg = false;
-		this.product_code = product_code;
-		this.product_name = product_name;
-		this.product_type = product_type;
+		this.productCode = productCode;
+		this.productName = productName;
+		this.productType = productType;
+		this.currencyCode = currencyCode;
 	}
+
+	
 	
 
 }
