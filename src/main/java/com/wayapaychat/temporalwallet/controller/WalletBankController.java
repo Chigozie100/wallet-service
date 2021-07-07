@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.wayapaychat.temporalwallet.dto.ProductCodeDTO;
 import com.wayapaychat.temporalwallet.dto.WalletConfigDTO;
 import com.wayapaychat.temporalwallet.service.ConfigService;
 
@@ -35,10 +36,28 @@ public class WalletBankController {
         return configService.getListDefaultCode();
     }
     
-    @ApiOperation(value = "Get List of Wallet Code Values")
-    @GetMapping(path = "/codeValue/{code_id}")
-    public ResponseEntity<?> getCodeValue(@PathVariable("code_id") Long code_id) {
-        return configService.getListCodeValue(code_id);
+    @ApiOperation(value = "Get Wallet CodeValues using codeValueId")
+    @GetMapping(path = "/codeValue/{codeValueId}")
+    public ResponseEntity<?> getCodeValue(@PathVariable("codeValueId") Long codeValueId) {
+        return configService.getListCodeValue(codeValueId);
+    }
+    
+    @ApiOperation(value = "Get Wallet CodeValues using codename")
+    @GetMapping(path = "/codeValue/{codeName}/command")
+    public ResponseEntity<?> FetchCodeValue(@PathVariable("codeName") String codeName) {
+        return configService.getAllCodeValue(codeName);
+    }
+    
+    @ApiOperation(value = "Get Wallet CodeValues using codeId")
+    @GetMapping(path = "/codes/{codeId}")
+    public ResponseEntity<?> getCode(@PathVariable("codeId") Long codeId) {
+        return configService.getCode(codeId);
+    }
+    
+    @ApiOperation(value = "Create a Wallet Product Code")
+    @PostMapping(path = "/create/product")
+    public ResponseEntity<?> creteProductCode(@Valid @RequestBody ProductCodeDTO product) {
+        return configService.createProduct(product);
     }
 
 }

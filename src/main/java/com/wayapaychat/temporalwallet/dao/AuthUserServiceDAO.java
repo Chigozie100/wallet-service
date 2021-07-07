@@ -12,5 +12,7 @@ public interface AuthUserServiceDAO {
 	
 	public Integer getAuthCount(String user_id);
 	
+	public Integer getId(int user_id);
+	
 
 }

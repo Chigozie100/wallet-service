@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.wayapaychat.temporalwallet.config.DBConnectConfig;
@@ -17,6 +18,9 @@ public class AuthUserServiceDAOImpl implements AuthUserServiceDAO {
 
 	@Autowired
 	private DBConnectConfig jdbcTemplate;
+	
+	@Autowired
+	private JdbcTemplate jdbcTemp;
 
 	@Override
 	public UserDetailPojo AuthUser(int user_id) {
@@ -61,6 +65,21 @@ public class AuthUserServiceDAOImpl implements AuthUserServiceDAO {
 		try {
 			Object[] params = new Object[] { user_id };
 			count = jdbcTemplate.jdbcConnect().queryForObject(sql, Integer.class, params);
+		} catch (EmptyResultDataAccessException ex) {
+			log.error(ex.getMessage());
+		}
+		return count;
+	}
+
+	@Override
+	public Integer getId(int user_id) {
+		String sql = "SELECT id FROM  users ";
+		sql = sql + "WHERE user_id = ? ";
+		log.info(":" + user_id);
+		int count = 0;
+		try {
+			Object[] params = new Object[] { user_id };
+			count = jdbcTemp.queryForObject(sql, Integer.class, params);
 		} catch (EmptyResultDataAccessException ex) {
 			log.error(ex.getMessage());
 		}

@@ -5,7 +5,11 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -35,7 +39,21 @@ public class WalletBankConfig {
 	private String codeValue;
 	
 	private String codeSymbol;
+	
+	@JsonIgnore
+    @ManyToOne
+    @JoinColumn(name="code_id")  
+    private WalletConfig config;
 
+	public WalletBankConfig(String codeDesc, String codeValue, String codeSymbol,WalletConfig config) {
+		super();
+		this.del_flg = false;
+		this.codeValue = codeValue;
+		this.codeDesc = codeDesc;
+		this.codeSymbol = codeSymbol;
+		this.config = config;
+	}
+	
 	public WalletBankConfig(String codeDesc, String codeValue, String codeSymbol) {
 		super();
 		this.del_flg = false;

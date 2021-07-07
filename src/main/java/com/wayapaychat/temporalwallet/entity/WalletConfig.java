@@ -1,6 +1,6 @@
 package com.wayapaychat.temporalwallet.entity;
 
-import java.util.List;
+import java.util.Collection;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -40,9 +40,9 @@ public class WalletConfig {
 	@OneToMany(cascade = CascadeType.ALL)  
 	@JoinColumn(name="code_id")  
 	@OrderColumn(name="position")  
-	private List<WalletBankConfig> bankConfig; 
+	private Collection<WalletBankConfig> bankConfig; 
 
-	public WalletConfig(String codeName, List<WalletBankConfig> bankConfig) {
+	public WalletConfig(String codeName, Collection<WalletBankConfig> bankConfig) {
 		super();
 		this.del_flg = false;
 		this.codeName = codeName;
