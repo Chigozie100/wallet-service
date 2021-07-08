@@ -30,9 +30,7 @@ public class ParamDefaultValidation {
 	}
 
 	public boolean returnValueIfMatch(InfoResponse info, String codeValue) {
-		int x = info.getData().size();
-		for (int i = 0; i < x; i++) {
-			Optional<WalletConfig> ret = info.getData().stream()
+		Optional<WalletConfig> ret = info.getData().stream()
 					.filter(code -> code.getCodeName().equals(code.getCodeName())).findAny();
 
 			if (ret.isPresent()) {
@@ -41,10 +39,9 @@ public class ParamDefaultValidation {
 						.collect(Collectors.toList());
 				int y = bank.size();
 				for (int j = 0; j < y; j++) {
-					
+					boolean codeT = ret.get().getBankConfig().stream().anyMatch(e -> e.getCodeValue().equals(codeValue));
 				}
 			}
-		}
 		return false;
 	}
 
