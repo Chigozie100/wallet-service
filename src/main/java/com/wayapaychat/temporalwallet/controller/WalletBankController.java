@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.wayapaychat.temporalwallet.dto.ProductCodeDTO;
+import com.wayapaychat.temporalwallet.dto.ProductDTO;
 import com.wayapaychat.temporalwallet.dto.WalletConfigDTO;
 import com.wayapaychat.temporalwallet.service.ConfigService;
 
@@ -58,6 +59,30 @@ public class WalletBankController {
     @PostMapping(path = "/create/product")
     public ResponseEntity<?> creteProductCode(@Valid @RequestBody ProductCodeDTO product) {
         return configService.createProduct(product);
+    }
+    
+    @ApiOperation(value = "Get Wallet Product Code")
+    @GetMapping(path = "/product/{productId}")
+    public ResponseEntity<?> getProduct(@PathVariable("productId") Long productId) {
+        return configService.findProduct(productId);
+    }
+    
+    @ApiOperation(value = "Get Wallet Product Code")
+    @GetMapping(path = "/product/code/{productCode}")
+    public ResponseEntity<?> getProduct(@PathVariable("productCode") String productCode) {
+        return configService.getProduct(productCode);
+    }
+    
+    @ApiOperation(value = "List Wallet Product Code")
+    @GetMapping(path = "/product")
+    public ResponseEntity<?> getListProductCode() {
+        return configService.ListProductCode();
+    }
+    
+    @ApiOperation(value = "Create a Wallet Product Code")
+    @PostMapping(path = "/create/product/parameter")
+    public ResponseEntity<?> creteProductParameter(@Valid @RequestBody ProductDTO product) {
+        return configService.createProductParameter(product);
     }
 
 }
