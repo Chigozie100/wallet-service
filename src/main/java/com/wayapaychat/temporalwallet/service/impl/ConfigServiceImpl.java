@@ -11,11 +11,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.wayapaychat.temporalwallet.dto.ProductCodeDTO;
+import com.wayapaychat.temporalwallet.dto.ProductDTO;
 import com.wayapaychat.temporalwallet.dto.WalletConfigDTO;
 import com.wayapaychat.temporalwallet.entity.WalletBankConfig;
 import com.wayapaychat.temporalwallet.entity.WalletConfig;
+import com.wayapaychat.temporalwallet.entity.WalletProduct;
+import com.wayapaychat.temporalwallet.entity.WalletProductCode;
 import com.wayapaychat.temporalwallet.repository.WalletBankConfigRepository;
 import com.wayapaychat.temporalwallet.repository.WalletConfigRepository;
+import com.wayapaychat.temporalwallet.repository.WalletProductCodeRepository;
+import com.wayapaychat.temporalwallet.repository.WalletProductRepository;
 import com.wayapaychat.temporalwallet.service.ConfigService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.ParamDefaultValidation;
@@ -32,6 +37,12 @@ public class ConfigServiceImpl implements ConfigService {
 	WalletBankConfigRepository WalletBankConfigRepo;
 	
 	@Autowired
+	WalletProductCodeRepository WalletProductCodeRepo;
+	
+	@Autowired
+	WalletProductRepository WalletProductRepo;
+	
+	@Autowired
 	ParamDefaultValidation paramValidation;
 
 	@Override
@@ -39,7 +50,7 @@ public class ConfigServiceImpl implements ConfigService {
 		WalletConfig config = walletConfigRepo.findByCodeName(configPojo.getCodeName());
         if (config != null) {
         	WalletBankConfig bank = new WalletBankConfig(configPojo.getCodeDesc(),configPojo.getCodeValue(),configPojo.getCodeSymbol(),config);
-            WalletBankConfigRepo.save(bank);
+        	WalletBankConfigRepo.save(bank);
             return new ResponseEntity<>(new SuccessResponse("Default Code Created Successfully.", bank), HttpStatus.CREATED);
         }
         WalletConfig wallet = null;
@@ -92,16 +103,80 @@ public class ConfigServiceImpl implements ConfigService {
 
 	@Override
 	public ResponseEntity<?> createProduct(ProductCodeDTO product) {
-		boolean validate = paramValidation.validateDefaultCode(product.getCurrencyCode());
+		boolean validate = paramValidation.validateDefaultCode(product.getCurrencyCode(),"Currency");
 		if(!validate) {
 			return new ResponseEntity<>(new ErrorResponse("Currency Code Validation Failed"), HttpStatus.BAD_REQUEST);
 		}
-		boolean validate2 = paramValidation.validateDefaultCode(product.getProductType());
+		boolean validate2 = paramValidation.validateDefaultCode(product.getProductType(),"Product Type");
 		if(!validate2) {
 			return new ResponseEntity<>(new ErrorResponse("Product Code Validation Failed"), HttpStatus.BAD_REQUEST);
 		}
-		
-		return null;
+		WalletProductCode prodx = new WalletProductCode(product.getProductCode(), product.getProductName(), product.getProductType(),
+				product.getCurrencyCode());
+		try {
+			WalletProductCodeRepo.save(prodx);
+            return new ResponseEntity<>(new SuccessResponse("Product Code Created Successfully.", prodx), HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+        }
+	}
+	
+	public ResponseEntity<?> ListProduct() {
+		try {
+			List<WalletProductCode> product = WalletProductCodeRepo.findAll();
+            return new ResponseEntity<>(new SuccessResponse("Success.", product), HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+        }
+	}
+	
+	public ResponseEntity<?> findProduct(Long id) {
+		try {
+			Optional<WalletProductCode> product = WalletProductCodeRepo.findById(id);
+			if(!product.isPresent()) {
+				return new ResponseEntity<>(new ErrorResponse("Invalid Product Id"), HttpStatus.BAD_REQUEST);
+			}
+            return new ResponseEntity<>(new SuccessResponse("Success.", product.get()), HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+        }
+	}
+	
+	public ResponseEntity<?> getProduct(String schm) {
+		try {
+			WalletProductCode product = WalletProductCodeRepo.findByProductCode(schm);
+            return new ResponseEntity<>(new SuccessResponse("Success.", product), HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+        }
+	}
+	
+	public ResponseEntity<?> ListProductCode() {
+		List<WalletProductCode> wallet = WalletProductCodeRepo.findAll();
+		return new ResponseEntity<>(new SuccessResponse("Success", wallet), HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> createProductParameter(ProductDTO product) {
+		boolean validate = paramValidation.validateDefaultCode(product.getFrequency(),"Frequency");
+		if(!validate) {
+			return new ResponseEntity<>(new ErrorResponse("Frequency Code Validation Failed"), HttpStatus.BAD_REQUEST);
+		}
+		boolean validate2 = paramValidation.validateDefaultCode(product.getInterestCode(),"Interest");
+		if(!validate2) {
+			return new ResponseEntity<>(new ErrorResponse("Interest Code Validation Failed"), HttpStatus.BAD_REQUEST);
+		}
+		WalletProductCode xyz = WalletProductCodeRepo.findByProductCode(product.getProductCode());
+		WalletProduct prodx = new WalletProduct(product.getProductCode(), xyz.getProductName(), product.isSysGenerate(),
+				xyz.getProductType(), product.isPaidInterest(), product.isCollectInterest(),product.isStaffEnabled(), 
+				product.getFrequency(), product.isPaidCommission(), xyz.getCurrencyCode(), 9999999.99, 
+				9999999.99, 9999999.99, 9999999.99, product.getInterestCode(), product.getProductMinBalance());
+		try {
+			WalletProductRepo.save(prodx);
+            return new ResponseEntity<>(new SuccessResponse("Product Parameter Created Successfully.", prodx), HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+        }
 	}
 }
 

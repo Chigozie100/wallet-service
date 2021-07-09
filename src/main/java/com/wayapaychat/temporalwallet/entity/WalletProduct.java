@@ -29,7 +29,7 @@ public class WalletProduct {
 	
 	private boolean del_flg;
 	
-	@Column(nullable = false)
+	@Column(unique = true, nullable = false)
 	private String product_code;
 	
 	private String product_desc;
@@ -44,9 +44,11 @@ public class WalletProduct {
 	
 	private boolean int_coll_flg;
 	
+	private String int_coll_bacid;
+	
 	private boolean staff_product_flg;
 	
-	private String int_freq_type_cr;
+	private String int_freq_type_cr;//M, D, Q, Y
 	
 	private String comm_paid_bacid;
 	
@@ -77,5 +79,34 @@ public class WalletProduct {
 	
 	@Column(nullable = false)
 	private LocalDate rcre_time;
+
+	public WalletProduct(String product_code, String product_desc, boolean sys_gen_acct_flg,
+			String product_type, boolean int_paid_flg, boolean int_coll_flg,boolean staff_product_flg, 
+			String int_freq_type_cr,boolean comm_paid_flg, String crncy_code, double cash_dr_limit, 
+			double xfer_dr_limit, double cash_cr_limit,double xfer_cr_limit, String int_tbl_code, 
+			double product_min_bal) {
+		super();
+		this.del_flg = false;
+		this.product_code = product_code;
+		this.product_desc = product_desc;
+		this.sys_gen_acct_flg = sys_gen_acct_flg;
+		this.product_type = product_type;
+		this.int_paid_flg = int_paid_flg;
+		this.int_coll_flg = int_coll_flg;
+		this.staff_product_flg = staff_product_flg;
+		this.int_freq_type_cr = int_freq_type_cr;
+		this.comm_paid_flg = comm_paid_flg;
+		this.crncy_code = crncy_code;
+		this.cash_dr_limit = cash_dr_limit;
+		this.xfer_dr_limit = xfer_dr_limit;
+		this.cash_cr_limit = cash_cr_limit;
+		this.xfer_cr_limit = xfer_cr_limit;
+		this.int_tbl_code = int_tbl_code;
+		this.product_min_bal = product_min_bal;
+		this.rcre_user_id = "WAYAADMIN";
+		this.rcre_time = LocalDate.now();
+	}
+	
+	
 
 }

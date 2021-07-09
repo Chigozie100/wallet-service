@@ -32,7 +32,7 @@ public class Users {
     private Long userId;
 
     @JsonIgnore
-    @OneToMany
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Accounts> accounts;
 
     @JsonIgnore
