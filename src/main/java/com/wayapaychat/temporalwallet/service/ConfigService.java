@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.service;
 
 import org.springframework.http.ResponseEntity;
 
+import com.wayapaychat.temporalwallet.dto.InterestDTO;
 import com.wayapaychat.temporalwallet.dto.ProductCodeDTO;
 import com.wayapaychat.temporalwallet.dto.ProductDTO;
 import com.wayapaychat.temporalwallet.dto.WalletConfigDTO;
@@ -19,5 +20,6 @@ public interface ConfigService {
 	ResponseEntity<?> getProduct(String schm);
 	ResponseEntity<?> ListProductCode();
 	ResponseEntity<?> createProductParameter(ProductDTO product);
+	ResponseEntity<?> createInterestParameter(InterestDTO interest);
 
 }

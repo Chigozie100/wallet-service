@@ -1,5 +1,13 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
+import java.util.Optional;
+
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
 import com.wayapaychat.temporalwallet.entity.Accounts;
 import com.wayapaychat.temporalwallet.entity.Users;
 import com.wayapaychat.temporalwallet.enumm.AccountType;
@@ -10,14 +18,6 @@ import com.wayapaychat.temporalwallet.service.UserService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.RandomGenerators;
 import com.wayapaychat.temporalwallet.util.SuccessResponse;
-import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -34,7 +34,7 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
-    public ResponseEntity createUser(UserPojo userPojo) {
+    public ResponseEntity<?> createUser(UserPojo userPojo) {
     	Optional<Users> existingUser = userRepository.findById(userPojo.getUserId());
         if (existingUser.isPresent()) {
             return new ResponseEntity<>(new ErrorResponse("User already exists"), HttpStatus.BAD_REQUEST);
@@ -66,7 +66,8 @@ public class UserServiceImpl implements UserService {
         }
     }
 
-    private void createAccount(Users user, boolean corporate) {
+    @SuppressWarnings("unused")
+	private void createAccount(Users user, boolean corporate) {
         Accounts account = new Accounts();
         account.setUser(user);
         account.setAccountNo(randomGenerators.generateAlphanumeric(10));
