@@ -30,7 +30,7 @@ public class WalletProduct {
 	private boolean del_flg;
 	
 	@Column(unique = true, nullable = false)
-	private String product_code;
+	private String productCode;
 	
 	private String product_desc;
 	
@@ -47,6 +47,8 @@ public class WalletProduct {
 	private String int_coll_bacid;
 	
 	private boolean staff_product_flg;
+	
+	private boolean chq_book_flg;
 	
 	private String int_freq_type_cr;//M, D, Q, Y
 	
@@ -80,14 +82,14 @@ public class WalletProduct {
 	@Column(nullable = false)
 	private LocalDate rcre_time;
 
-	public WalletProduct(String product_code, String product_desc, boolean sys_gen_acct_flg,
+	public WalletProduct(String productCode, String product_desc, boolean sys_gen_acct_flg,
 			String product_type, boolean int_paid_flg, boolean int_coll_flg,boolean staff_product_flg, 
 			String int_freq_type_cr,boolean comm_paid_flg, String crncy_code, double cash_dr_limit, 
 			double xfer_dr_limit, double cash_cr_limit,double xfer_cr_limit, String int_tbl_code, 
-			double product_min_bal) {
+			double product_min_bal,boolean chq_book_flg) {
 		super();
 		this.del_flg = false;
-		this.product_code = product_code;
+		this.productCode = productCode;
 		this.product_desc = product_desc;
 		this.sys_gen_acct_flg = sys_gen_acct_flg;
 		this.product_type = product_type;
@@ -105,6 +107,7 @@ public class WalletProduct {
 		this.product_min_bal = product_min_bal;
 		this.rcre_user_id = "WAYAADMIN";
 		this.rcre_time = LocalDate.now();
+		this.chq_book_flg = chq_book_flg;
 	}
 	
 	

@@ -5,6 +5,6 @@ import org.springframework.http.ResponseEntity;
 
 public interface UserService {
 
-    ResponseEntity createUser(UserPojo userRequest);
+    ResponseEntity<?> createUser(UserPojo userRequest);
 
 }

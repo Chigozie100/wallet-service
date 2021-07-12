@@ -25,7 +25,8 @@ public class SwaggerConfig {
             "admin@wayapaychat.com"
     );
 
-    List<VendorExtension> vendorExtensions = new ArrayList<>();
+    @SuppressWarnings("rawtypes")
+	List<VendorExtension> vendorExtensions = new ArrayList<>();
 
     ApiInfo apiInfo = new ApiInfo(
             "Temporal Wallet Service",

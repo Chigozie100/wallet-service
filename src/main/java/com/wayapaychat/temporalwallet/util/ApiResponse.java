@@ -6,6 +6,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 
+@SuppressWarnings("serial")
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Data
 public class ApiResponse<E> implements Serializable {
@@ -15,8 +16,6 @@ public class ApiResponse<E> implements Serializable {
     private Integer code;
 
     private String message;
-
-//    private String token;
 
     private E data;
     

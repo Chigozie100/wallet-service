@@ -37,5 +37,7 @@ public class ProductDTO {
 	
 	@NotNull
 	private double productMinBalance;
+	
+	private boolean chqAllowedFlg;
 
 }
