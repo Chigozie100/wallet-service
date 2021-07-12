@@ -1,6 +1,8 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,14 +14,19 @@ import org.springframework.stereotype.Service;
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dto.UserDTO;
 import com.wayapaychat.temporalwallet.dto.WalletUserDTO;
+import com.wayapaychat.temporalwallet.entity.Accounts;
+import com.wayapaychat.temporalwallet.entity.Users;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.entity.WalletProduct;
 import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
 import com.wayapaychat.temporalwallet.pojo.UserDetailPojo;
+import com.wayapaychat.temporalwallet.repository.AccountRepository;
+import com.wayapaychat.temporalwallet.repository.UserRepository;
 import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletProductRepository;
 import com.wayapaychat.temporalwallet.repository.WalletUserRepository;
+import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.service.UserAccountService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.ReqIPUtils;
@@ -30,6 +37,12 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Autowired
 	WalletUserRepository walletUserRepository;
+	
+	@Autowired
+    UserRepository userRepository;
+	
+	@Autowired
+    AccountRepository accountRepository;
 
 	@Autowired
 	WalletAccountRepository walletAccountRepository;
@@ -270,4 +283,26 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	}
 
+	@Override
+	public ApiResponse<?> findCustWalletById(Long walletId) {
+		Optional<Users> wallet = userRepository.findById(walletId);
+		if(!wallet.isPresent()) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Failed", null);
+		}
+		ApiResponse<?> resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "Success", wallet.get());
+		return resp;
+	}
+	
+	@Override
+	public ApiResponse<?> findAcctWalletById(Long walletId) {
+		Optional<Users> wallet = userRepository.findById(walletId);
+		if(!wallet.isPresent()) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Failed", null);
+		}
+		List<Accounts> list = accountRepository.findByUser(wallet.get());
+		ApiResponse<?> resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "Success", list);
+		return resp;
+	}
+
+	
 }
