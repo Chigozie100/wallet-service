@@ -10,17 +10,20 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.wayapaychat.temporalwallet.dto.AccountGLDTO;
 import com.wayapaychat.temporalwallet.dto.InterestDTO;
 import com.wayapaychat.temporalwallet.dto.ProductCodeDTO;
 import com.wayapaychat.temporalwallet.dto.ProductDTO;
 import com.wayapaychat.temporalwallet.dto.WalletConfigDTO;
 import com.wayapaychat.temporalwallet.entity.WalletBankConfig;
 import com.wayapaychat.temporalwallet.entity.WalletConfig;
+import com.wayapaychat.temporalwallet.entity.WalletGLAccount;
 import com.wayapaychat.temporalwallet.entity.WalletInterest;
 import com.wayapaychat.temporalwallet.entity.WalletProduct;
 import com.wayapaychat.temporalwallet.entity.WalletProductCode;
 import com.wayapaychat.temporalwallet.repository.WalletBankConfigRepository;
 import com.wayapaychat.temporalwallet.repository.WalletConfigRepository;
+import com.wayapaychat.temporalwallet.repository.WalletGLAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletInterestRepository;
 import com.wayapaychat.temporalwallet.repository.WalletProductCodeRepository;
 import com.wayapaychat.temporalwallet.repository.WalletProductRepository;
@@ -50,6 +53,9 @@ public class ConfigServiceImpl implements ConfigService {
 	
 	@Autowired
 	WalletInterestRepository walletInterestRepo;
+	
+	@Autowired
+	WalletGLAccountRepository walletGLAccountRepo;
 
 	@Override
 	public ResponseEntity<?> createDefaultCode(WalletConfigDTO configPojo) {
@@ -117,8 +123,15 @@ public class ConfigServiceImpl implements ConfigService {
 		if(!validate2) {
 			return new ResponseEntity<>(new ErrorResponse("Product Code Validation Failed"), HttpStatus.BAD_REQUEST);
 		}
+		WalletGLAccount validate3 = walletGLAccountRepo.findByGlSubHeadCode(product.getGlSubHeadCode());
+		if(!validate3.isEntity_cre_flg()) {
+			return new ResponseEntity<>(new ErrorResponse("GL Code Validation Failed"), HttpStatus.BAD_REQUEST);
+		}
+		if(!validate3.getCrncyCode().equals(product.getCurrencyCode())) {
+			return new ResponseEntity<>(new ErrorResponse("GL Code currency mismatch"), HttpStatus.BAD_REQUEST);
+		}
 		WalletProductCode prodx = new WalletProductCode(product.getProductCode(), product.getProductName(), product.getProductType(),
-				product.getCurrencyCode());
+				product.getCurrencyCode(), product.getGlSubHeadCode());
 		try {
 			walletProductCodeRepo.save(prodx);
             return new ResponseEntity<>(new SuccessResponse("Product Code Created Successfully.", prodx), HttpStatus.CREATED);
@@ -224,6 +237,26 @@ public class ConfigServiceImpl implements ConfigService {
         } catch (Exception e) {
             return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
+	}
+
+	@Override
+	public ResponseEntity<?> createParamCOA(AccountGLDTO chat) {
+		boolean validate = paramValidation.validateDefaultCode(chat.getCrncyCode(),"Currency");
+		if(!validate) {
+			return new ResponseEntity<>(new ErrorResponse("Currency Code Validation Failed"), HttpStatus.BAD_REQUEST);
+		}
+		WalletGLAccount account = new WalletGLAccount("0000",chat.getGlName(),chat.getGlCode(), chat.getGlSubHeadCode(), chat.getCrncyCode());
+		try {
+			walletGLAccountRepo.save(account);
+            return new ResponseEntity<>(new SuccessResponse("Account GL Created Successfully.", account), HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+        }
+	}
+	
+	public ResponseEntity<?> ListCOA() {
+		List<WalletGLAccount> wallet = walletGLAccountRepo.findAll();
+		return new ResponseEntity<>(new SuccessResponse("Success", wallet), HttpStatus.OK);
 	}
 }
 

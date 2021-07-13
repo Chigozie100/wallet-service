@@ -6,20 +6,23 @@ import javax.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class ProductCodeDTO {
+public class AccountGLDTO {
+	
+	@NotNull
+	@Size(min=4, max=5)
+	private String solId;
+	
+	@NotNull
+	@Size(min=3, max=3)
+    private String crncyCode;
+	
+	@NotNull
+	@Size(min=5, max=50)
+	private String glName;
 	
 	@NotNull
 	@Size(min=5, max=5)
-	private String productCode;
-	
-	@NotNull
-	private String productName; 
-	
-	@NotNull
-	private String productType;
-	
-	@NotNull
-	private String currencyCode;
+	private String glCode;
 	
 	@NotNull
 	@Size(min=5, max=5)

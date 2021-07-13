@@ -18,12 +18,14 @@ import com.wayapaychat.temporalwallet.entity.Accounts;
 import com.wayapaychat.temporalwallet.entity.Users;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.entity.WalletProduct;
+import com.wayapaychat.temporalwallet.entity.WalletProductCode;
 import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
 import com.wayapaychat.temporalwallet.pojo.UserDetailPojo;
 import com.wayapaychat.temporalwallet.repository.AccountRepository;
 import com.wayapaychat.temporalwallet.repository.UserRepository;
 import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
+import com.wayapaychat.temporalwallet.repository.WalletProductCodeRepository;
 import com.wayapaychat.temporalwallet.repository.WalletProductRepository;
 import com.wayapaychat.temporalwallet.repository.WalletUserRepository;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
@@ -49,6 +51,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Autowired
 	WalletProductRepository walletProductRepository;
+	
+	@Autowired
+	WalletProductCodeRepository walletProductCodeRepository;
 
 	@Autowired
 	AuthUserServiceDAO authService;
@@ -72,6 +77,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		// Default Wallet
 		WalletUser userInfo = new ModelMapper().map(wallet, WalletUser.class);
 		String acct_name = wallet.getFirstName() + " " + wallet.getSurname();
+		WalletProductCode code = walletProductCodeRepository.findByProductCode(wayaProduct);
 		WalletProduct product = walletProductRepository.findByProductCode(wayaProduct);
 		String acctNo = null;
 		Integer rand = reqUtil.getAccountNo();
@@ -112,7 +118,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			WalletAccount account = new WalletAccount();
 			if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 					|| product.getProduct_type().equals("ODA"))) {
-				account = new WalletAccount("0000", "", acctNo, acct_name, userx, "22156", wayaProduct, acct_ownership,
+				account = new WalletAccount("0000", "", acctNo, acct_name, userx, code.getGlSubHeadCode(), wayaProduct, acct_ownership,
 						hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
 						product.getCrncy_code(), product.getProductCode(), product.isChq_book_flg(),
 						product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
@@ -159,7 +165,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 				user.getLastName().toUpperCase(), user.getEmailId(), user.getMobileNo(), acct_name,
 				user.getCustTitleCode().toUpperCase(), user.getCustSex().toUpperCase(), user.getDob(),
 				user.getCustIssueId(), user.getCustExpIssueDate(), LocalDate.now(), user.getCustDebitLimit());
-
+		
+		WalletProductCode code = walletProductCodeRepository.findByProductCode(wayaProduct);
 		WalletProduct product = walletProductRepository.findByProductCode(wayaProduct);
 		String acctNo = null;
 		Integer rand = reqUtil.getAccountNo();
@@ -200,7 +207,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			WalletAccount account = new WalletAccount();
 			if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 					|| product.getProduct_type().equals("ODA"))) {
-				account = new WalletAccount("0000", "", acctNo, acct_name, userx, "22156", wayaProduct, acct_ownership,
+				account = new WalletAccount("0000", "", acctNo, acct_name, userx, code.getGlSubHeadCode(), wayaProduct, acct_ownership,
 						hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
 						product.getCrncy_code(), product.getProductCode(), product.isChq_book_flg(),
 						product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
@@ -225,6 +232,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		if (y != x) {
 			return new ResponseEntity<>(new ErrorResponse("Wallet Data Integity.please contact Admin"), HttpStatus.BAD_REQUEST);
 		} else if (y == x) {
+			WalletProductCode code = walletProductCodeRepository.findByProductCode(wayaProduct);
 			WalletProduct product = walletProductRepository.findByProductCode(wayaProduct);
 			String acctNo = null;
 			String acct_name = y.getFirstName().toUpperCase() + " " + y.getLastName().toUpperCase();
@@ -266,7 +274,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 				WalletAccount account = new WalletAccount();
 				if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 						|| product.getProduct_type().equals("ODA"))) {
-					account = new WalletAccount("0000", "", acctNo, acct_name, y, "22156", wayaProduct, acct_ownership,
+					account = new WalletAccount("0000", "", acctNo, acct_name, y, code.getGlSubHeadCode(), wayaProduct, acct_ownership,
 							hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
 							product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
 							product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),

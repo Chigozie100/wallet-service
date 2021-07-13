@@ -39,15 +39,19 @@ public class WalletProductCode {
 	
 	@Column(nullable = false)
 	private String currencyCode; //Currency
+	
+	@Column(nullable = false)
+	private String glSubHeadCode;
 
 	public WalletProductCode(String productCode, String productName, String productType,
-			String currencyCode) {
+			String currencyCode, String glSubHeadCode) {
 		super();
 		this.del_flg = false;
 		this.productCode = productCode;
 		this.productName = productName;
 		this.productType = productType;
 		this.currencyCode = currencyCode;
+		this.glSubHeadCode = glSubHeadCode;
 	}
 
 	
