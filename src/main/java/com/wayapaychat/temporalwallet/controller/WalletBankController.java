@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.wayapaychat.temporalwallet.dto.AccountGLDTO;
 import com.wayapaychat.temporalwallet.dto.InterestDTO;
 import com.wayapaychat.temporalwallet.dto.ProductCodeDTO;
 import com.wayapaychat.temporalwallet.dto.ProductDTO;
@@ -90,6 +91,12 @@ public class WalletBankController {
     @PostMapping(path = "/create/interest/parameter")
     public ResponseEntity<?> createInterestParameter(@Valid @RequestBody InterestDTO interest) {
         return configService.createInterestParameter(interest);
+    }
+    
+    @ApiOperation(value = "Create a Wallet Account Chart")
+    @PostMapping(path = "/create/gl/coa")
+    public ResponseEntity<?> createCOA(@Valid @RequestBody AccountGLDTO chat) {
+        return configService.createParamCOA(chat);
     }
 
 }
