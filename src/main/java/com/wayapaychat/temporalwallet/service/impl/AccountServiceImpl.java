@@ -169,7 +169,7 @@ public class AccountServiceImpl implements AccountService {
 
 	@Override
 	public ResponseEntity makeDefaultWallet(long userId, String accountNo) {
-		Optional<Users> userx = userRepository.findById(userId);
+		Optional<Users> userx = userRepository.findByUserId(userId);
 		if (!userx.isPresent()) {
 			return new ResponseEntity<>(new ErrorResponse("Invalid User"), HttpStatus.BAD_REQUEST);
 		}
@@ -178,18 +178,25 @@ public class AccountServiceImpl implements AccountService {
 		if (!account.isPresent()) {
 			return new ResponseEntity<>(new ErrorResponse("Invalid Account No"), HttpStatus.BAD_REQUEST);
 		}
+		List<Accounts> acct = accountRepository.findByUser(user);
+		boolean userexist = false;
+		for(Accounts xy : acct) {
+			if(xy.getAccountNo().equals(account.get().getAccountNo())) {
+				userexist = true;
+			}
+		}
 		// Check if account belongs to user
-		if (account.get().getUser() != user) {
+		if (!userexist) {
 			return new ResponseEntity<>(new ErrorResponse("Invalid Account Access"), HttpStatus.BAD_REQUEST);
 		}
 		// Get Default Wallet
-		Accounts defAccount = accountRepository.findByIsDefaultAndUser(true, user);
+		/*Accounts defAccount = accountRepository.findByIsDefaultAndUser(true, user);
 		if (defAccount != null) {
 			defAccount.setDefault(false);
 			accountRepository.save(defAccount);
 		}
 		account.get().setDefault(true);
-		accountRepository.save(account.get());
+		accountRepository.save(account.get());*/
 		return new ResponseEntity<>(new SuccessResponse("Default wallet set", account.get()), HttpStatus.OK);
 
 	}
