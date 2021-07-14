@@ -165,6 +165,11 @@ public class WalletImplementation {
     			LOGGER.info("Error::: {}, {} and {}", "User already Exist",2,3);
     			throw new CustomException("User already Exist", HttpStatus.BAD_REQUEST);
     		}
+    		Optional<Users> mainPhone = userRepository.findByEmailOrPhoneNumber(createWallet.getMobileNo());
+    		if(mainPhone.isPresent()) {
+    			LOGGER.info("Error::: {}, {} and {}", "User already Exist",2,3);
+    			throw new CustomException("User already Exist", HttpStatus.BAD_REQUEST);
+    		}
     		Users us = new Users();
 			us.setCreatedAt(new Date());
 			us.setEmailAddress(createWallet.getEmailAddress());
