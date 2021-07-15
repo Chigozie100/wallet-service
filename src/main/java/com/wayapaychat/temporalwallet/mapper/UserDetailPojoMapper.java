@@ -18,7 +18,8 @@ public class UserDetailPojoMapper implements RowMapper<UserDetailPojo> {
 		String phoneNo = rs.getString("phone_number");
 		boolean is_active = rs.getBoolean("is_active");
 		boolean is_deleted = rs.getBoolean("is_deleted");
-		return new UserDetailPojo(id,email,firstName,surname,phoneNo,is_active,is_deleted);
+		boolean is_corporate = rs.getBoolean("is_corporate");
+		return new UserDetailPojo(id,email,firstName,surname,phoneNo,is_active,is_deleted,is_corporate);
 	}
 
 }
