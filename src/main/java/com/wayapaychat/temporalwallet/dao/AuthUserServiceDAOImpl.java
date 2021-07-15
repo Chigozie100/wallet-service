@@ -27,7 +27,7 @@ public class AuthUserServiceDAOImpl implements AuthUserServiceDAO {
 		UserDetailPojo user = null;
 		StringBuilder query = new StringBuilder();
 		query.append("select id,email,first_name,surname,phone_number,is_active,");
-		query.append("is_deleted from m_users where id = ?");
+		query.append("is_deleted,is_corporate from m_users where id = ?");
 		String sql = query.toString();
 		try {
 			UserDetailPojoMapper rowMapper = new UserDetailPojoMapper();
@@ -45,7 +45,7 @@ public class AuthUserServiceDAOImpl implements AuthUserServiceDAO {
 		List<UserDetailPojo> user = null;
 		StringBuilder query = new StringBuilder();
 		query.append("select id,email,first_name,surname,phone_number,is_active,");
-		query.append("is_deleted from m_users where id = ?");
+		query.append("is_deleted,is_corporate from m_users where id = ?");
 		String sql = query.toString();
 		try {
 			UserDetailPojoMapper rowMapper = new UserDetailPojoMapper();

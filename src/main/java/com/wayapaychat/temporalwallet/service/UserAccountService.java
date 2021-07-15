@@ -1,5 +1,7 @@
 package com.wayapaychat.temporalwallet.service;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 
 import com.wayapaychat.temporalwallet.dto.UserDTO;
@@ -18,5 +20,19 @@ public interface UserAccountService {
 	ApiResponse<?> findCustWalletById(Long walletId);
 	
 	ApiResponse<?> findAcctWalletById(Long walletId);
+	
+	ResponseEntity<?> getListCommissionAccount(List<Integer> ids);
+	
+	ResponseEntity<?> getAccountInfo(String accountNo);
+	
+	ResponseEntity<?> getUserAccountList(long userId);
+	
+	ResponseEntity<?> getAllAccount();
+	
+	ResponseEntity<?> getUserCommissionList(long userId);
+	
+	ResponseEntity<?> makeDefaultWallet(String accountNo);
+	
+	ResponseEntity<?> UserWalletLimit(long userId);
 
 }
