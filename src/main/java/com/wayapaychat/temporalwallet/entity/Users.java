@@ -73,6 +73,18 @@ public class Users {
 		this.emailAddress = emailAddress;
 		this.mobileNo = mobileNo;
 	}
+	
+	public Users(Long userId, Date createdAt, String firstName, String lastName,
+			int savingsProductId, String emailAddress, String mobileNo) {
+		super();
+		this.userId = userId;
+		this.createdAt = createdAt;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.savingsProductId = savingsProductId;
+		this.emailAddress = emailAddress;
+		this.mobileNo = mobileNo;
+	}
 
 	
     
