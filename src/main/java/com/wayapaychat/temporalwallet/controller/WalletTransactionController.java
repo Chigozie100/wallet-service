@@ -5,6 +5,7 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -39,8 +40,8 @@ public class WalletTransactionController {
 	}
 	
 	@ApiOperation(value = "Wallet Account Statement", notes = "Statement of Account")
-	@PostMapping("/statement")
-	public ResponseEntity<?> getStatement(@Valid @PathVariable("accountNumber") String accountNumber) {
+	@GetMapping("/statement/{accountNumber}")
+	public ResponseEntity<?> getStatement(@PathVariable("accountNumber") String accountNumber) {
 		ApiResponse<?> res = transAccountService.getStatement(accountNumber);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);

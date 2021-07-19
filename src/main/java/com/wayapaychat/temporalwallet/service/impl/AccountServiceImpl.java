@@ -53,11 +53,11 @@ public class AccountServiceImpl implements AccountService {
 		if (user == null) {
 			return new ResponseEntity<>(new ErrorResponse("User Id is Invalid"), HttpStatus.BAD_REQUEST);
 		}
-		Optional<Users> y = userRepository.findByEmailAddress(user.getEmail());
+		/*Optional<Users> y = userRepository.findByEmailAddress(user.getEmail());
 		if(y.isPresent()) {
 			//duplicate key value violates unique constraint
 			return new ResponseEntity<>(new ErrorResponse("Duplicate Email Violated"), HttpStatus.BAD_REQUEST);
-		}
+		}*/
 		Optional<Users> x = userRepository.findByUserId(user.getId());
 		if (x.isPresent()) {
 			Users v = x.get();
