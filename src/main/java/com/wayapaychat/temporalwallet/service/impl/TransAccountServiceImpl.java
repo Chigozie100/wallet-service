@@ -113,6 +113,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
 			}
 			Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
+			resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
 			if(!transaction.isPresent()) {
 				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 			}
@@ -162,7 +163,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Long userId = Long.parseLong(keyDebit[0]);
 				WalletUser user = walletUserRepository.findByUserId(userId);
 				BigDecimal AmtVal = new BigDecimal(user.getCust_debit_limit());
-				if (amount.compareTo(AmtVal) == -1) {
+				if (AmtVal.compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
 				}
 				
@@ -191,7 +192,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 
-			double clrbalAmtDr = accountDebit.getClr_bal_amt() + amount.doubleValue();
+			double clrbalAmtDr = accountDebit.getClr_bal_amt() - amount.doubleValue();
 			double cumbalDrAmtDr = accountDebit.getCum_dr_amt() + amount.doubleValue();
 			accountDebit.setLast_tran_id_dr(tranId);
 			accountDebit.setClr_bal_amt(clrbalAmtDr);
