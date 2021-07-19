@@ -13,6 +13,9 @@ import com.wayapaychat.temporalwallet.service.AccountService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.RandomGenerators;
 import com.wayapaychat.temporalwallet.util.SuccessResponse;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -28,6 +31,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@Slf4j
 public class AccountServiceImpl implements AccountService {
 
 	@Autowired
@@ -49,7 +53,12 @@ public class AccountServiceImpl implements AccountService {
 		if (user == null) {
 			return new ResponseEntity<>(new ErrorResponse("User Id is Invalid"), HttpStatus.BAD_REQUEST);
 		}
-		Optional<Users> x = userRepository.findByEmailAddress(user.getEmail());
+		Optional<Users> y = userRepository.findByEmailAddress(user.getEmail());
+		if(y.isPresent()) {
+			//duplicate key value violates unique constraint
+			return new ResponseEntity<>(new ErrorResponse("Duplicate Email Violated"), HttpStatus.BAD_REQUEST);
+		}
+		Optional<Users> x = userRepository.findByUserId(user.getId());
 		if (x.isPresent()) {
 			Users v = x.get();
 			Accounts account = new Accounts();
@@ -74,15 +83,17 @@ public class AccountServiceImpl implements AccountService {
 		// ===============================
 		try {
 
-			Users us = new Users();
-			us.setCreatedAt(new Date());
+			Users us = new Users(user.getId(), new Date(), user.getFirstName(), user.getSurname(),
+					1, user.getEmail(), user.getPhoneNo());
+			/*us.setCreatedAt(new Date());
 			us.setEmailAddress(user.getEmail());
 			us.setFirstName(user.getFirstName());
+			us.setUserId(user.getId());
 			us.setId(0L);
 			us.setLastName(user.getSurname());
 			us.setMobileNo(user.getPhoneNo());
 			us.setSavingsProductId(1);
-			us.setUserId(0L);
+			us.setUserId(0L);*/
 			Users mu = userRepository.save(us);
 			Accounts account = new Accounts();
 			account.setUser(mu);

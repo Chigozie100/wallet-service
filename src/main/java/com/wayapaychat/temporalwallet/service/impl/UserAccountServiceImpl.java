@@ -24,8 +24,6 @@ import com.wayapaychat.temporalwallet.entity.WalletProductCode;
 import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
 import com.wayapaychat.temporalwallet.pojo.UserDetailPojo;
-import com.wayapaychat.temporalwallet.repository.AccountRepository;
-import com.wayapaychat.temporalwallet.repository.UserRepository;
 import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletProductCodeRepository;
 import com.wayapaychat.temporalwallet.repository.WalletProductRepository;
@@ -44,12 +42,6 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Autowired
 	WalletUserRepository walletUserRepository;
-
-	@Autowired
-	UserRepository userRepository;
-
-	@Autowired
-	AccountRepository accountRepository;
 
 	@Autowired
 	WalletAccountRepository walletAccountRepository;
@@ -124,7 +116,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 		try {
 			String hashed_no = reqUtil
-					.encrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
+					.WayaEncrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
 			WalletUser userx = walletUserRepository.save(userInfo);
 
 			WalletAccount account = new WalletAccount();
@@ -143,7 +135,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			if (user.isCorporate() && wallet.is_corporate()) {
 				acctNo = "901" + rand;
 				log.info(acctNo);
-				hashed_no = reqUtil.encrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
+				hashed_no = reqUtil.WayaEncrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
 				acct_name = acct_name + " " + "COMMISSION ACCOUNT";
 				if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 						|| product.getProduct_type().equals("ODA"))) {
@@ -215,7 +207,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 		try {
 			String hashed_no = reqUtil
-					.encrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
+					.WayaEncrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
 			WalletUser userx = walletUserRepository.save(userInfo);
 
 			WalletAccount account = new WalletAccount();
@@ -284,7 +276,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 			try {
 				String hashed_no = reqUtil
-						.encrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
+						.WayaEncrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
 
 				WalletAccount account = new WalletAccount();
 				if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
