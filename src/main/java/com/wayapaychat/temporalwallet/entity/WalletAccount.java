@@ -115,6 +115,8 @@ public class WalletAccount {
 	
 	private String last_tran_id_cr;
 	
+	private boolean walletDefault;
+	
 	@JsonIgnore
 	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="cif_id")  
@@ -123,7 +125,7 @@ public class WalletAccount {
 	public WalletAccount(String sol_id, String accountNo, String acct_name, WalletUser user,
 			String gl_code, String product_code, String acct_ownership, String hashed_no,
 			boolean int_paid_flg, boolean int_coll_flg, String rcre_user_id,
-			LocalDate rcre_time, String acct_crncy_code, String product_type) {
+			LocalDate rcre_time, String acct_crncy_code, String product_type, boolean walletDefault) {
 		super();
 		this.del_flg = false;
 		this.entity_cre_flg = true;  
@@ -148,13 +150,14 @@ public class WalletAccount {
 		this.cum_dr_amt = 0;
 		this.cum_cr_amt = 0;
 		this.user = user;
+		this.walletDefault = walletDefault;
 	}
 
 	public WalletAccount(String sol_id, String bacid,String accountNo, String acct_name, WalletUser user, String gl_code, 
 			String product_code,String acct_ownership,String hashed_no, boolean int_paid_flg,boolean int_coll_flg, 
 			String rcre_user_id, LocalDate rcre_time,String acct_crncy_code,String product_type, 
 			boolean chq_alwd_flg, double cash_dr_limit, double xfer_dr_limit, double cash_cr_limit,
-			double xfer_cr_limit) {
+			double xfer_cr_limit, boolean walletDefault) {
 		super();
 		this.del_flg = false;
 		this.entity_cre_flg = true;
@@ -185,6 +188,7 @@ public class WalletAccount {
 		this.cash_cr_limit = cash_cr_limit;
 		this.xfer_cr_limit = xfer_cr_limit;
 		this.user = user;
+		this.walletDefault = walletDefault;
 	}
 	
 
