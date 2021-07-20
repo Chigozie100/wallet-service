@@ -7,6 +7,7 @@ import com.wayapaychat.temporalwallet.dto.InterestDTO;
 import com.wayapaychat.temporalwallet.dto.ProductCodeDTO;
 import com.wayapaychat.temporalwallet.dto.ProductDTO;
 import com.wayapaychat.temporalwallet.dto.WalletConfigDTO;
+import com.wayapaychat.temporalwallet.dto.WalletTellerDTO;
 
 public interface ConfigService {
 	
@@ -24,5 +25,7 @@ public interface ConfigService {
 	ResponseEntity<?> createInterestParameter(InterestDTO interest);
 	ResponseEntity<?> createParamCOA(AccountGLDTO chat);
 	ResponseEntity<?> ListCOA();
+	ResponseEntity<?> createdTeller(WalletTellerDTO teller);
+	ResponseEntity<?> ListTellersTill();
 
 }

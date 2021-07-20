@@ -10,23 +10,28 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dto.AccountGLDTO;
 import com.wayapaychat.temporalwallet.dto.InterestDTO;
 import com.wayapaychat.temporalwallet.dto.ProductCodeDTO;
 import com.wayapaychat.temporalwallet.dto.ProductDTO;
 import com.wayapaychat.temporalwallet.dto.WalletConfigDTO;
+import com.wayapaychat.temporalwallet.dto.WalletTellerDTO;
 import com.wayapaychat.temporalwallet.entity.WalletBankConfig;
 import com.wayapaychat.temporalwallet.entity.WalletConfig;
 import com.wayapaychat.temporalwallet.entity.WalletGLAccount;
 import com.wayapaychat.temporalwallet.entity.WalletInterest;
 import com.wayapaychat.temporalwallet.entity.WalletProduct;
 import com.wayapaychat.temporalwallet.entity.WalletProductCode;
+import com.wayapaychat.temporalwallet.entity.WalletTeller;
+import com.wayapaychat.temporalwallet.pojo.UserDetailPojo;
 import com.wayapaychat.temporalwallet.repository.WalletBankConfigRepository;
 import com.wayapaychat.temporalwallet.repository.WalletConfigRepository;
 import com.wayapaychat.temporalwallet.repository.WalletGLAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletInterestRepository;
 import com.wayapaychat.temporalwallet.repository.WalletProductCodeRepository;
 import com.wayapaychat.temporalwallet.repository.WalletProductRepository;
+import com.wayapaychat.temporalwallet.repository.WalletTellerRepository;
 import com.wayapaychat.temporalwallet.service.ConfigService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.ParamDefaultValidation;
@@ -56,6 +61,12 @@ public class ConfigServiceImpl implements ConfigService {
 	
 	@Autowired
 	WalletGLAccountRepository walletGLAccountRepo;
+	
+	@Autowired
+	WalletTellerRepository walletTellerRepository;
+	
+	@Autowired
+	AuthUserServiceDAO authUserService;
 
 	@Override
 	public ResponseEntity<?> createDefaultCode(WalletConfigDTO configPojo) {
@@ -257,6 +268,35 @@ public class ConfigServiceImpl implements ConfigService {
 	public ResponseEntity<?> ListCOA() {
 		List<WalletGLAccount> wallet = walletGLAccountRepo.findAll();
 		return new ResponseEntity<>(new SuccessResponse("Success", wallet), HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> createdTeller(WalletTellerDTO teller) {
+		boolean validate = paramValidation.validateDefaultCode(teller.getCrncyCode(),"Currency");
+		if(!validate) {
+			return new ResponseEntity<>(new ErrorResponse("Currency Code Validation Failed"), HttpStatus.BAD_REQUEST);
+		}
+		boolean validate2 = paramValidation.validateDefaultCode(teller.getCashAccountCode(),"Batch Account");
+		if(!validate2) {
+			return new ResponseEntity<>(new ErrorResponse("Batch Account Validation Failed"), HttpStatus.BAD_REQUEST);
+		}
+		UserDetailPojo user = authUserService.AuthUser((teller.getUserId().intValue()));
+		if(!user.is_admin()) {
+			return new ResponseEntity<>(new ErrorResponse("User Admin Validation Failed"), HttpStatus.BAD_REQUEST);
+		}
+		WalletTeller account = new WalletTeller(teller.getSolId(), teller.getCrncyCode(), teller.getUserId(), teller.getCashAccountCode());
+		try {
+			walletTellerRepository.save(account);
+            return new ResponseEntity<>(new SuccessResponse("Teller Till Created Successfully.", account), HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+        }
+	}
+
+	@Override
+	public ResponseEntity<?> ListTellersTill() {
+		List<WalletTeller> teller = walletTellerRepository.findAll();
+		return new ResponseEntity<>(new SuccessResponse("Success", teller), HttpStatus.OK);
 	}
 }
 

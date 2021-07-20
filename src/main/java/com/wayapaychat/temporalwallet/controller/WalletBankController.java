@@ -16,6 +16,7 @@ import com.wayapaychat.temporalwallet.dto.InterestDTO;
 import com.wayapaychat.temporalwallet.dto.ProductCodeDTO;
 import com.wayapaychat.temporalwallet.dto.ProductDTO;
 import com.wayapaychat.temporalwallet.dto.WalletConfigDTO;
+import com.wayapaychat.temporalwallet.dto.WalletTellerDTO;
 import com.wayapaychat.temporalwallet.service.ConfigService;
 
 import io.swagger.annotations.ApiOperation;
@@ -97,6 +98,18 @@ public class WalletBankController {
     @PostMapping(path = "/create/gl/coa")
     public ResponseEntity<?> createCOA(@Valid @RequestBody AccountGLDTO chat) {
         return configService.createParamCOA(chat);
+    }
+    
+    @ApiOperation(value = "Create a Wallet Teller")
+    @PostMapping(path = "/create/teller/till")
+    public ResponseEntity<?> createTeller(@Valid @RequestBody WalletTellerDTO tellerPojo) {
+        return configService.createdTeller(tellerPojo);
+    }
+    
+    @ApiOperation(value = "List Wallet Product Code")
+    @GetMapping(path = "/teller/till")
+    public ResponseEntity<?> getListTellersTill() {
+        return configService.ListTellersTill();
     }
 
 }

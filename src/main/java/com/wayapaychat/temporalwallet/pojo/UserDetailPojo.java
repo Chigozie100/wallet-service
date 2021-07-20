@@ -20,9 +20,11 @@ public class UserDetailPojo {
 	private boolean is_deleted;
 	
 	private boolean is_corporate;
+	
+	private boolean is_admin;
 
 	public UserDetailPojo(Long id, String email, String firstName, String surname, String phoneNo, boolean is_active,
-			boolean is_deleted,boolean is_corporate) {
+			boolean is_deleted, boolean is_corporate, boolean is_admin) {
 		super();
 		this.id = id;
 		this.email = email;
@@ -32,6 +34,7 @@ public class UserDetailPojo {
 		this.is_active = is_active;
 		this.is_deleted = is_deleted;
 		this.is_corporate = is_corporate;
+		this.is_admin = is_admin;
 	}
 	
 

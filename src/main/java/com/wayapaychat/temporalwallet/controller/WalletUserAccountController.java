@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.wayapaychat.temporalwallet.dto.UserDTO;
+import com.wayapaychat.temporalwallet.dto.WalletCashAccountDTO;
 import com.wayapaychat.temporalwallet.dto.WalletUserDTO;
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
@@ -46,6 +47,12 @@ public class WalletUserAccountController {
 		log.info("Request input: {}",user);
         return userAccountService.createUserAccount(user);
     }
+	
+	 @ApiOperation(value = "Create Admin Cash Wallet - (Admin COnsumption Only)", hidden = false)
+	 @PostMapping(path = "/cash/account")
+	 public ResponseEntity<?> createCashAccounts(@Valid @RequestBody WalletCashAccountDTO user) {
+	        return userAccountService.createCashAccount(user);
+	 }
 	
 	@ApiOperation(value = "Create a Wallet")
     @PostMapping(path = "/create-wallet")
@@ -115,6 +122,28 @@ public class WalletUserAccountController {
     @GetMapping(path = "/user/account/{user_id}")
     public ResponseEntity<?> setDefaultWallet(@PathVariable Long user_id) {
         return userAccountService.UserWalletLimit(user_id);
+    }
+    
+    @ApiOperation(value = "Create Cooperate account, this creates a default account and a commission account", notes = "Create Cooperate account, this creates a default account and a commission account")
+	@PostMapping("/create/cooperate/user")
+	public ResponseEntity<?> createCooperateAccount(@RequestBody WalletUserDTO createAccountPojo) {
+    	ResponseEntity<?> res = userAccountService.createUserAccount(createAccountPojo);
+		if (res.getStatusCode() == HttpStatus.NOT_FOUND) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+    
+    @ApiOperation(value = "List all Commission Accounts")
+    @GetMapping(path = "/commission-wallets/all")
+    public ResponseEntity<?> GetAllCommissionAccounts() {
+        return userAccountService.getALLCommissionAccount();
+    }
+	
+	@ApiOperation(value = "Get Wallet Account Info", hidden = false)
+    @GetMapping(path = "/commission/{accountNo}")
+    public ResponseEntity<?> getAcctCommission(@PathVariable String accountNo) {
+        return userAccountService.getAccountCommission(accountNo);
     }
 
 
