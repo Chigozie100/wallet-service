@@ -57,8 +57,8 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Transfer from one User Wallet to another wallet", notes = "Transfer from one Wallet to another wallet for a user this takes customer wallet id and the Beneficiary wallet id, effective from 06/24/2021")
 	@PostMapping("/fund/transfer/wallet")
-	public ResponseEntity<?> handleTransactions(@RequestBody TransferTransactionDTO transactionPojo, @RequestParam("command") String command) {
-		ApiResponse<?> res = transAccountService.makeWalletTransaction(command,transactionPojo);
+	public ResponseEntity<?> handleTransactions(@RequestBody TransferTransactionDTO transactionPojo) {
+		ApiResponse<?> res = transAccountService.makeWalletTransaction("",transactionPojo);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
