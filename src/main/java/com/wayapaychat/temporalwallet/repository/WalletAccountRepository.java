@@ -28,5 +28,8 @@ public interface WalletAccountRepository extends JpaRepository<WalletAccount, Lo
     
     @Query("SELECT u FROM WalletAccount u WHERE u.product_code = (:productCode)" + " AND u.acct_name LIKE ('%COMMISSION%')" + " AND u.accountNo = (:account)")
     Optional<WalletAccount> findByAccountProductCode(String productCode, String account);
+    
+    @Query("SELECT u FROM WalletAccount u WHERE u.user = (:user)" + " AND u.walletDefault = true")
+    Optional<WalletAccount> findByDefaultAccount(WalletUser user);
 
 }

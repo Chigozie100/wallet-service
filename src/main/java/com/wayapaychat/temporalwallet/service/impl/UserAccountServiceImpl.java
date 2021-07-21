@@ -510,4 +510,17 @@ public class UserAccountServiceImpl implements UserAccountService {
 		return new ResponseEntity<>(new SuccessResponse("Wallet Commissions", account), HttpStatus.OK);
 	}
 
+	@Override
+	public ResponseEntity<?> getAccountDefault(Long user_id) {
+		WalletUser user = walletUserRepository.findByUserId(user_id);
+		if (user == null) {
+			return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
+		}
+		Optional<WalletAccount> account = walletAccountRepository.findByDefaultAccount(user);
+		if (!account.isPresent()) {
+			return new ResponseEntity<>(new ErrorResponse("Unable to fetch default account"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(new SuccessResponse("Wallet Default", account), HttpStatus.OK);
+	}
+
 }
