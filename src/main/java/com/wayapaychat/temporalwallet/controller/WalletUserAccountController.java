@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.wayapaychat.temporalwallet.dto.UserDTO;
 import com.wayapaychat.temporalwallet.dto.WalletCashAccountDTO;
+import com.wayapaychat.temporalwallet.dto.WalletEventAccountDTO;
 import com.wayapaychat.temporalwallet.dto.WalletUserDTO;
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
@@ -52,6 +53,12 @@ public class WalletUserAccountController {
 	 @PostMapping(path = "/cash/account")
 	 public ResponseEntity<?> createCashAccounts(@Valid @RequestBody WalletCashAccountDTO user) {
 	        return userAccountService.createCashAccount(user);
+	 }
+	 
+	 @ApiOperation(value = "Create Event Wallet Account - (Admin COnsumption Only)", hidden = false)
+	 @PostMapping(path = "/event/account")
+	 public ResponseEntity<?> createEventAccounts(@Valid @RequestBody WalletEventAccountDTO user) {
+	        return userAccountService.createEventAccount(user);
 	 }
 	
 	@ApiOperation(value = "Create a Wallet")
