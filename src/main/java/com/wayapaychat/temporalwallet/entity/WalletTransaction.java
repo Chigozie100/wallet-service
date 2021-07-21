@@ -69,6 +69,9 @@ public class WalletTransaction {
     @NotNull
     private String tranCrncyCode;
     
+    @Column(nullable = true)
+    private String paymentReference;
+    
     @NotNull
     private String tranGL;
     
@@ -83,7 +86,7 @@ public class WalletTransaction {
 	public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
 			@NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType, 
 			@NotNull String tranNarrate, @NotNull Date tranDate, @NotNull String tranCrncyCode,
-			@NotNull String partTranType, String tranGL) {
+			@NotNull String partTranType, String tranGL,String paymentReference) {
 		super();
 		this.del_flg = false;
 		this.posted_flg = true;
@@ -96,6 +99,7 @@ public class WalletTransaction {
 		this.tranCrncyCode = tranCrncyCode;
 		this.partTranType = partTranType;
 		this.tranGL = tranGL;
+		this.paymentReference = paymentReference;
 	}
     
     

@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
+import com.wayapaychat.temporalwallet.dto.WalletAdminTransferDTO;
+import com.wayapaychat.temporalwallet.dto.WalletTransactionDTO;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
 
@@ -37,6 +39,18 @@ public class WalletTransactionController {
 	@PostMapping("/sendmoney/wallet")
 	public ResponseEntity<?> sendMoney(@Valid @RequestBody TransferTransactionDTO transfer) {
 		ApiResponse<?> res = transAccountService.sendMoney(transfer);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+		log.info("Send Money: {}", transfer);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Send Money to Wallet", notes = "Post Money")
+	@PostMapping("/sendmoney/wallet/customer")
+	public ResponseEntity<?> sendMoneyCustomer(@Valid @RequestBody WalletTransactionDTO transfer) {
+		ApiResponse<?> res = transAccountService.sendMoneyCustomer(transfer);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
@@ -107,6 +121,17 @@ public class WalletTransactionController {
 	@PostMapping("/admin/wallet/funding")
 	public ResponseEntity<?> AdminTransferForUser(@RequestBody() AdminUserTransferDTO walletDto, @RequestParam("command") String command) {
 		ApiResponse<?> res = transAccountService.adminTransferForUser(command, walletDto);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Admin Transfer from Waya to another wallet", notes = "Transfer amount from one wallet to another wallet")
+	@PostMapping("/admin/wallet/payment")
+	public ResponseEntity<?> AdminPaymentService(@RequestBody() WalletAdminTransferDTO walletDto, @RequestParam("command") String command) {
+		ApiResponse<?> res = transAccountService.cashTransferByAdmin(command, walletDto);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }

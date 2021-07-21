@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
+import com.wayapaychat.temporalwallet.dto.WalletAdminTransferDTO;
+import com.wayapaychat.temporalwallet.dto.WalletTransactionDTO;
 import com.wayapaychat.temporalwallet.entity.Transactions;
 import com.wayapaychat.temporalwallet.entity.WalletTransaction;
 import com.wayapaychat.temporalwallet.pojo.TransactionRequest;
@@ -19,6 +21,8 @@ public interface TransAccountService {
 	
 	ApiResponse<?> adminTransferForUser(String command, AdminUserTransferDTO adminTranser);
 	
+	ApiResponse<?> cashTransferByAdmin(String command, WalletAdminTransferDTO adminTranser);
+	
 	ApiResponse<TransactionRequest> transferUserToUser(String command, TransactionRequest request);
 	
 	ApiResponse<Page<WalletTransaction>> findAllTransaction(int page, int size);
@@ -32,6 +36,8 @@ public interface TransAccountService {
 	ApiResponse<?> makeWalletTransaction(String command, TransferTransactionDTO transactionPojo);
 	
 	ApiResponse<?> sendMoney(TransferTransactionDTO transfer);
+	
+	ApiResponse<?> sendMoneyCustomer(WalletTransactionDTO transfer);
 	
 	ApiResponse<?> getStatement(String accountNumber);
 	
