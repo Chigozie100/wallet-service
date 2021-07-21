@@ -87,7 +87,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
 			String tranId = createAdminTransaction(transfer.getAdminUserId(), toAccountNumber, transfer.getTranCrncy(),
-					transfer.getAmount(), tranType, transfer.getTranNarration(), command);
+					transfer.getAmount(), tranType, transfer.getTranNarration(),transfer.getPaymentReference(), command);
 			String[] tranKey = tranId.split(Pattern.quote("|"));
 			if (tranKey[0].equals("DJGO")) {
 				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -110,7 +110,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
 			String tranId = createEventTransaction(transfer.getEventId(), toAccountNumber, transfer.getTranCrncy(),
-					transfer.getAmount(), tranType, transfer.getTranNarration());
+					transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
 			String[] tranKey = tranId.split(Pattern.quote("|"));
 			if (tranKey[0].equals("DJGO")) {
 				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -184,7 +184,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
 			String tranId = createTransaction(fromAccountNumber, toAccountNumber, transactionPojo.getTranCrncy(),
-					transactionPojo.getAmount(), tranType, transactionPojo.getTranNarration());
+					transactionPojo.getAmount(), tranType, transactionPojo.getTranNarration(), transactionPojo.getPaymentReference());
 			String[] tranKey = tranId.split(Pattern.quote("|"));
 			if (tranKey[0].equals("DJGO")) {
 				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -208,7 +208,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
 			String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-					transfer.getAmount(), tranType, transfer.getTranNarration());
+					transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
 			String[] tranKey = tranId.split(Pattern.quote("|"));
 			if (tranKey[0].equals("DJGO")) {
 				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -225,7 +225,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public String createTransaction(String debitAcctNo, String creditAcctNo, String tranCrncy, BigDecimal amount,
-			TransactionTypeEnum tranType, String tranNarration) throws Exception {
+			TransactionTypeEnum tranType, String tranNarration, String paymentRef) throws Exception {
 		try {
 			boolean validate = paramValidation.validateDefaultCode(tranCrncy, "Currency");
 			if (!validate) {
@@ -324,7 +324,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public String createAdminTransaction(String adminUserId, String creditAcctNo, String tranCrncy, BigDecimal amount,
-			TransactionTypeEnum tranType, String tranNarration, String command) throws Exception {
+			TransactionTypeEnum tranType, String tranNarration, String paymentRef, String command) throws Exception {
 		try {
 			
 			boolean validate = paramValidation.validateDefaultCode(tranCrncy, "Currency");
@@ -448,7 +448,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 	
 	public String createEventTransaction(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
-			TransactionTypeEnum tranType, String tranNarration) throws Exception {
+			TransactionTypeEnum tranType, String tranNarration, String paymentRef) throws Exception {
 		try {
 			
 			boolean validate = paramValidation.validateDefaultCode(tranCrncy, "Currency");
@@ -460,7 +460,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				return "DJGO|Event Code Does Not Exist";
 			}
 			WalletEventCharges charge = eventInfo.get();
-			boolean validate2 = paramValidation.validateDefaultCode(charge.getPlaceholder(),"Event");
+			boolean validate2 = paramValidation.validateDefaultCode(charge.getPlaceholder(),"Batch Account");
 			if(!validate2) {
 				return "DJGO|Event Validation Failed";
 			}
