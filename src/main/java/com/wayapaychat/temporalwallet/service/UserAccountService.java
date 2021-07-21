@@ -46,5 +46,7 @@ public interface UserAccountService {
 	ResponseEntity<?> getAccountCommission(String accountNo);
 	
 	ResponseEntity<?> getAccountDefault(Long user_id);
+	
+	ResponseEntity<?> searchAccount(String search);
 
 }
