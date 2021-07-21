@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
+import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
@@ -106,6 +107,17 @@ public class WalletTransactionController {
 	@PostMapping("/admin/wallet/funding")
 	public ResponseEntity<?> AdminTransferForUser(@RequestBody() AdminUserTransferDTO walletDto, @RequestParam("command") String command) {
 		ApiResponse<?> res = transAccountService.adminTransferForUser(command, walletDto);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Event and Service Payment", notes = "Transfer amount from one wallet to another wallet")
+	@PostMapping("/event/charge/payment")
+	public ResponseEntity<?> EventPayment(@RequestBody() EventPaymentDTO walletDto) {
+		ApiResponse<?> res = transAccountService.EventTransferPayment(walletDto);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }

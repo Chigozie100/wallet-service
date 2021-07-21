@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dto.AccountGLDTO;
+import com.wayapaychat.temporalwallet.dto.EventChargeDTO;
 import com.wayapaychat.temporalwallet.dto.InterestDTO;
 import com.wayapaychat.temporalwallet.dto.ProductCodeDTO;
 import com.wayapaychat.temporalwallet.dto.ProductDTO;
@@ -19,6 +20,7 @@ import com.wayapaychat.temporalwallet.dto.WalletConfigDTO;
 import com.wayapaychat.temporalwallet.dto.WalletTellerDTO;
 import com.wayapaychat.temporalwallet.entity.WalletBankConfig;
 import com.wayapaychat.temporalwallet.entity.WalletConfig;
+import com.wayapaychat.temporalwallet.entity.WalletEventCharges;
 import com.wayapaychat.temporalwallet.entity.WalletGLAccount;
 import com.wayapaychat.temporalwallet.entity.WalletInterest;
 import com.wayapaychat.temporalwallet.entity.WalletProduct;
@@ -27,6 +29,7 @@ import com.wayapaychat.temporalwallet.entity.WalletTeller;
 import com.wayapaychat.temporalwallet.pojo.UserDetailPojo;
 import com.wayapaychat.temporalwallet.repository.WalletBankConfigRepository;
 import com.wayapaychat.temporalwallet.repository.WalletConfigRepository;
+import com.wayapaychat.temporalwallet.repository.WalletEventRepository;
 import com.wayapaychat.temporalwallet.repository.WalletGLAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletInterestRepository;
 import com.wayapaychat.temporalwallet.repository.WalletProductCodeRepository;
@@ -67,6 +70,9 @@ public class ConfigServiceImpl implements ConfigService {
 	
 	@Autowired
 	AuthUserServiceDAO authUserService;
+	
+	@Autowired
+	WalletEventRepository walletEventRepository;
 
 	@Override
 	public ResponseEntity<?> createDefaultCode(WalletConfigDTO configPojo) {
@@ -296,7 +302,41 @@ public class ConfigServiceImpl implements ConfigService {
 	@Override
 	public ResponseEntity<?> ListTellersTill() {
 		List<WalletTeller> teller = walletTellerRepository.findAll();
+		if(teller == null) {
+			return new ResponseEntity<>(new ErrorResponse("No teller till exist"), HttpStatus.BAD_REQUEST);
+		}
 		return new ResponseEntity<>(new SuccessResponse("Success", teller), HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> createdEvents(EventChargeDTO event) {
+		boolean validate = paramValidation.validateDefaultCode(event.getCrncyCode(),"Currency");
+		if(!validate) {
+			return new ResponseEntity<>(new ErrorResponse("Currency Code Validation Failed"), HttpStatus.BAD_REQUEST);
+		}
+		boolean validate2 = paramValidation.validateDefaultCode(event.getPlaceholder(),"Batch Account");
+		if(!validate2) {
+			return new ResponseEntity<>(new ErrorResponse("Placeholder Validation Failed"), HttpStatus.BAD_REQUEST);
+		}
+		
+		WalletEventCharges charge = new WalletEventCharges(event.getEventId(), event.getTranAmt(), event.getPlaceholder(),
+				event.isTaxable(), event.getTaxAmt(), event.getTranNarration(), event.isChargeCustomer(), 
+				event.isChargeWaya(), event.getCrncyCode());
+		try {
+			walletEventRepository.save(charge);
+            return new ResponseEntity<>(new SuccessResponse("Event Created Successfully.", charge), HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+        }
+	}
+
+	@Override
+	public ResponseEntity<?> ListEvents() {
+		List<WalletEventCharges> event = walletEventRepository.findAll();
+		if(event == null) {
+			return new ResponseEntity<>(new ErrorResponse("No event exist"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(new SuccessResponse("Success", event), HttpStatus.OK);
 	}
 }
 

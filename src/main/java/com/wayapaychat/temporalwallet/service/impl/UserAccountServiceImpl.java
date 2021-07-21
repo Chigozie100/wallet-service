@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dto.UserDTO;
 import com.wayapaychat.temporalwallet.dto.WalletCashAccountDTO;
+import com.wayapaychat.temporalwallet.dto.WalletEventAccountDTO;
 import com.wayapaychat.temporalwallet.dto.WalletUserDTO;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.entity.WalletProduct;
@@ -311,6 +312,50 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 			WalletAccount account = new WalletAccount();
 			account = new WalletAccount(teller.getSol_id(), teller.getAdminCashAcct(), acctNo, user.getAccountName(),
+					null, code.getGlSubHeadCode(), product.getProductCode(), acct_ownership, hashed_no,
+					product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
+					product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
+					product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
+					product.getXfer_cr_limit(), false);
+			walletAccountRepository.save(account);
+			return new ResponseEntity<>(new SuccessResponse("Office Account created successfully.", account),
+					HttpStatus.CREATED);
+		} catch (Exception e) {
+			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+		}
+	}
+	
+	public ResponseEntity<?> createEventAccount(WalletEventAccountDTO user) {
+
+		boolean validate = paramValidation.validateDefaultCode(user.getPlaceholderCode(), "Batch Account");
+		if (!validate) {
+			return new ResponseEntity<>(new ErrorResponse("Batch Account Validation Failed"), HttpStatus.BAD_REQUEST);
+		}
+
+		boolean validate2 = paramValidation.validateDefaultCode(user.getCrncyCode(), "Currency");
+		if (!validate2) {
+			return new ResponseEntity<>(new ErrorResponse("Currency Code Validation Failed"), HttpStatus.BAD_REQUEST);
+		}
+
+		WalletProduct product = walletProductRepository.findByProductCode(user.getProductCode());
+		if ((!product.getProduct_type().equals("OAB"))) {
+			return new ResponseEntity<>(new ErrorResponse("Product Type Does Not Match"), HttpStatus.BAD_REQUEST);
+		}
+
+		WalletProductCode code = walletProductCodeRepository.findByProductCode(user.getProductCode());
+		if ((!code.getProductType().equals("OAB"))) {
+			return new ResponseEntity<>(new ErrorResponse("Product Type Does Not Match"), HttpStatus.BAD_REQUEST);
+		}
+		
+		String acctNo = product.getCrncy_code() + "0000" + user.getPlaceholderCode();
+		String acct_ownership = "O";
+
+		try {
+			String hashed_no = reqUtil.WayaEncrypt(
+					0L + "|" + acctNo + "|" + user.getProductCode() + "|" + product.getCrncy_code());
+
+			WalletAccount account = new WalletAccount();
+			account = new WalletAccount("0000", user.getPlaceholderCode(), acctNo, user.getAccountName(),
 					null, code.getGlSubHeadCode(), product.getProductCode(), acct_ownership, hashed_no,
 					product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
 					product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),

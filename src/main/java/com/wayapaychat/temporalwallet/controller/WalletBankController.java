@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.wayapaychat.temporalwallet.dto.AccountGLDTO;
+import com.wayapaychat.temporalwallet.dto.EventChargeDTO;
 import com.wayapaychat.temporalwallet.dto.InterestDTO;
 import com.wayapaychat.temporalwallet.dto.ProductCodeDTO;
 import com.wayapaychat.temporalwallet.dto.ProductDTO;
@@ -110,6 +111,18 @@ public class WalletBankController {
     @GetMapping(path = "/teller/till")
     public ResponseEntity<?> getListTellersTill() {
         return configService.ListTellersTill();
+    }
+    
+    @ApiOperation(value = "Create a Wallet Event")
+    @PostMapping(path = "/create/event")
+    public ResponseEntity<?> createEventCharge(@Valid @RequestBody EventChargeDTO eventPojo) {
+        return configService.createdEvents(eventPojo);
+    }
+    
+    @ApiOperation(value = "List Wallet Product Code")
+    @GetMapping(path = "/event/charges")
+    public ResponseEntity<?> getListEventChrg() {
+        return configService.ListEvents();
     }
 
 }

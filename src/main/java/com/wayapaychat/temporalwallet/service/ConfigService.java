@@ -3,6 +3,7 @@ package com.wayapaychat.temporalwallet.service;
 import org.springframework.http.ResponseEntity;
 
 import com.wayapaychat.temporalwallet.dto.AccountGLDTO;
+import com.wayapaychat.temporalwallet.dto.EventChargeDTO;
 import com.wayapaychat.temporalwallet.dto.InterestDTO;
 import com.wayapaychat.temporalwallet.dto.ProductCodeDTO;
 import com.wayapaychat.temporalwallet.dto.ProductDTO;
@@ -27,5 +28,7 @@ public interface ConfigService {
 	ResponseEntity<?> ListCOA();
 	ResponseEntity<?> createdTeller(WalletTellerDTO teller);
 	ResponseEntity<?> ListTellersTill();
+	ResponseEntity<?> createdEvents(EventChargeDTO event);
+	ResponseEntity<?> ListEvents();
 
 }
