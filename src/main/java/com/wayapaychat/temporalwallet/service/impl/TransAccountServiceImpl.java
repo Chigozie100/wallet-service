@@ -19,6 +19,8 @@ import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.WalletAccountStatement;
+import com.wayapaychat.temporalwallet.dto.WalletAdminTransferDTO;
+import com.wayapaychat.temporalwallet.dto.WalletTransactionDTO;
 import com.wayapaychat.temporalwallet.entity.Transactions;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.entity.WalletEventCharges;
@@ -83,6 +85,37 @@ public class TransAccountServiceImpl implements TransAccountService {
 	@Override
 	public ApiResponse<?> adminTransferForUser(String command, AdminUserTransferDTO transfer) {
 		String toAccountNumber = transfer.getCustomerAccountNumber();
+		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
+		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
+		try {
+			String tranId = createAdminTransaction(transfer.getAdminUserId(), toAccountNumber, transfer.getTranCrncy(),
+					transfer.getAmount(), tranType, transfer.getTranNarration(),transfer.getPaymentReference(), command);
+			String[] tranKey = tranId.split(Pattern.quote("|"));
+			if (tranKey[0].equals("DJGO")) {
+				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+			}
+			Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
+			resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+			if (!transaction.isPresent()) {
+				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return resp;
+	}
+	
+	public ApiResponse<?> cashTransferByAdmin(String command, WalletAdminTransferDTO transfer) {
+		Optional<WalletUser> wallet = walletUserRepository.findByEmailOrPhoneNumber(transfer.getEmailOrPhoneNumber());
+		if(!wallet.isPresent()) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE NO DOES NOT EXIST", null);
+		}
+		WalletUser user = wallet.get();
+		Optional<WalletAccount> defaultAcct = walletAccountRepository.findByDefaultAccount(user);
+		if(!defaultAcct.isPresent()) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NO ACCOUNT NUMBER EXIST", null);
+		}
+		String toAccountNumber = defaultAcct.get().getAccountNo();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
@@ -223,6 +256,39 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return resp;
 	}
+	
+	@Override
+	public ApiResponse<?> sendMoneyCustomer(WalletTransactionDTO transfer) {
+		Optional<WalletUser> wallet = walletUserRepository.findByEmailOrPhoneNumber(transfer.getEmailOrPhoneNumber());
+		if(!wallet.isPresent()) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE NO DOES NOT EXIST", null);
+		}
+		WalletUser user = wallet.get();
+		Optional<WalletAccount> defaultAcct = walletAccountRepository.findByDefaultAccount(user);
+		if(!defaultAcct.isPresent()) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NO ACCOUNT NUMBER EXIST", null);
+		}
+		String fromAccountNumber = transfer.getDebitAccountNumber();
+		String toAccountNumber = defaultAcct.get().getAccountNo();
+		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
+		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
+		try {
+			String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+					transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+			String[] tranKey = tranId.split(Pattern.quote("|"));
+			if (tranKey[0].equals("DJGO")) {
+				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+			}
+			Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
+			resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+			if (!transaction.isPresent()) {
+				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return resp;
+	}
 
 	public String createTransaction(String debitAcctNo, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef) throws Exception {
@@ -294,9 +360,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
-					tranNarrate, new Date(), tranCrncy, "D", accountDebit.getGl_code());
+					tranNarrate, new Date(), tranCrncy, "D", accountDebit.getGl_code(),paymentRef);
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
-					tranNarrate, new Date(), tranCrncy, "C", accountCredit.getGl_code());
+					tranNarrate, new Date(), tranCrncy, "C", accountCredit.getGl_code(),paymentRef);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 
@@ -418,9 +484,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
-					tranNarrate, new Date(), tranCrncy, "D", accountDebit.getGl_code());
+					tranNarrate, new Date(), tranCrncy, "D", accountDebit.getGl_code(),paymentRef);
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
-					tranNarrate, new Date(), tranCrncy, "C", accountCredit.getGl_code());
+					tranNarrate, new Date(), tranCrncy, "C", accountCredit.getGl_code(),paymentRef);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 
@@ -550,9 +616,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
-					tranNarrate, new Date(), tranCrncy, "D", accountDebit.getGl_code());
+					tranNarrate, new Date(), tranCrncy, "D", accountDebit.getGl_code(),paymentRef);
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
-					tranNarrate, new Date(), tranCrncy, "C", accountCredit.getGl_code());
+					tranNarrate, new Date(), tranCrncy, "C", accountCredit.getGl_code(),paymentRef);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 
