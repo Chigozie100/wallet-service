@@ -158,6 +158,12 @@ public class WalletUserAccountController {
     public ResponseEntity<?> getAcctDefault(@PathVariable Long user_id) {
         return userAccountService.getAccountDefault(user_id);
     }
+	
+	@ApiOperation(value = "To Search For Account(s) with Phone or Email")
+    @GetMapping(path = "/account/search/{item}")
+    public ResponseEntity<?> ListAllAccounts(@PathVariable String item) {
+        return userAccountService.searchAccount(item);
+    }
 
 
 }

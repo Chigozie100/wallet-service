@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -566,6 +567,27 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Unable to fetch default account"), HttpStatus.BAD_REQUEST);
 		}
 		return new ResponseEntity<>(new SuccessResponse("Wallet Default", account), HttpStatus.OK);
+	}
+	
+	public ResponseEntity<?> searchAccount(String search) {
+		List<WalletUser> user = walletUserRepository.findAll();
+		List<WalletUser> matchingAcct = new ArrayList<WalletUser>();
+		List<WalletAccount> account = new ArrayList<WalletAccount>();
+		matchingAcct = user.stream().filter(str -> str.getMobileNo().trim().contains(search)).collect(Collectors.toList());
+		if (!matchingAcct.isEmpty()) {
+			for(WalletUser x: matchingAcct) {
+				account = walletAccountRepository.findByUser(x);
+			}
+			return new ResponseEntity<>(new SuccessResponse("Account Wallet Search", account), HttpStatus.OK);	
+		}
+		matchingAcct = user.stream().filter(str -> str.getEmailAddress().trim().contains(search)).collect(Collectors.toList());
+		if (!matchingAcct.isEmpty()) {
+			for(WalletUser x: matchingAcct) {
+				account = walletAccountRepository.findByUser(x);
+			}
+			return new ResponseEntity<>(new SuccessResponse("Account Wallet Search", account), HttpStatus.OK);	
+		}
+		return new ResponseEntity<>(new ErrorResponse("Unable to fetch account"), HttpStatus.NOT_FOUND);
 	}
 
 }
