@@ -72,9 +72,10 @@ public class WalletBankController {
     }
     
     @ApiOperation(value = "Get Wallet Product Code")
-    @GetMapping(path = "/product/code/{productCode}")
-    public ResponseEntity<?> getProduct(@PathVariable("productCode") String productCode) {
-        return configService.getProduct(productCode);
+    @GetMapping(path = "/product/code/{productCode}/{glcode}")
+    public ResponseEntity<?> getProduct(@PathVariable("productCode") String productCode,
+    		@PathVariable("glcode") String gl) {
+        return configService.getProduct(productCode,gl);
     }
     
     @ApiOperation(value = "List Wallet Product Code")

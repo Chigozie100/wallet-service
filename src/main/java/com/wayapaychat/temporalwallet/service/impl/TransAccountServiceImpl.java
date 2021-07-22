@@ -376,7 +376,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			// **********************************************
 			String tranId = "";
-			if (tranType.getValue().equalsIgnoreCase("CARD")) {
+			if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 				tranId = tempwallet.SystemGenerateTranId();
 			} else {
 				tranId = tempwallet.GenerateTranId();
@@ -485,7 +485,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			// **********************************************
 			String tranId = "";
-			if (tranType.getValue().equalsIgnoreCase("CARD")) {
+			if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 				tranId = tempwallet.SystemGenerateTranId();
 			} else {
 				tranId = tempwallet.GenerateTranId();
@@ -618,7 +618,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			// **********************************************
 			String tranId = "";
-			if (tranType.getValue().equalsIgnoreCase("CARD")) {
+			if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 				tranId = tempwallet.SystemGenerateTranId();
 			} else {
 				tranId = tempwallet.GenerateTranId();
@@ -750,7 +750,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			
 			//**********************************************
 			String tranId = "";
-			if (tranType.getValue().equalsIgnoreCase("CARD")) {
+			if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 				tranId = tempwallet.SystemGenerateTranId();
 			} else {
 				tranId = tempwallet.GenerateTranId();

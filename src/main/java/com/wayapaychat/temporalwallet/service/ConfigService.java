@@ -20,7 +20,7 @@ public interface ConfigService {
 	ResponseEntity<?> createProduct(ProductCodeDTO product);
 	ResponseEntity<?> ListProduct();
 	ResponseEntity<?> findProduct(Long id);
-	ResponseEntity<?> getProduct(String schm);
+	ResponseEntity<?> getProduct(String schm, String gl);
 	ResponseEntity<?> ListProductCode();
 	ResponseEntity<?> createProductParameter(ProductDTO product);
 	ResponseEntity<?> createInterestParameter(InterestDTO interest);
