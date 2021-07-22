@@ -75,6 +75,12 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Value("${waya.wallet.commissioncode}")
 	private String wayaProductCommission;
+	
+	@Value("${waya.wallet.wayaglCode}")
+	private String wayaGLCode;
+
+	@Value("${waya.wallet.wayacommglCode}")
+	private String wayaCommGLCode;
 
 	public ResponseEntity<?> createUser(UserDTO user) {
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
@@ -93,7 +99,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 				wallet.getEmail(), wallet.getPhoneNo(), acct_name, "", "", new Date(), "", new Date(), LocalDate.now(),
 				5000);
 
-		WalletProductCode code = walletProductCodeRepository.findByProductCode(wayaProduct);
+		WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct,wayaGLCode);
 		WalletProduct product = walletProductRepository.findByProductCode(wayaProduct);
 		String acctNo = null;
 		Integer rand = reqUtil.getAccountNo();
@@ -147,7 +153,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			if (user.isCorporate() && wallet.is_corporate()) {
 				Optional<WalletAccount> acct = walletAccountRepository.findByProductCode(wayaProductCommission);
 				if (!acct.isPresent()) {
-					code = walletProductCodeRepository.findByProductCode(wayaProductCommission);
+					code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission,wayaCommGLCode);
 					product = walletProductRepository.findByProductCode(wayaProductCommission);
 					acctNo = "901" + rand;
 					log.info(acctNo);
@@ -191,7 +197,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 				user.getCustTitleCode().toUpperCase(), user.getCustSex().toUpperCase(), user.getDob(),
 				user.getCustIssueId(), user.getCustExpIssueDate(), LocalDate.now(), user.getCustDebitLimit());
 
-		WalletProductCode code = walletProductCodeRepository.findByProductCode(wayaProduct);
+		WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct,wayaGLCode);
 		WalletProduct product = walletProductRepository.findByProductCode(wayaProduct);
 		String acctNo = null;
 		Integer rand = reqUtil.getAccountNo();
@@ -244,7 +250,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			if (wallet.is_corporate()) {
 				Optional<WalletAccount> acct = walletAccountRepository.findByProductCode(wayaProductCommission);
 				if (!acct.isPresent()) {
-					code = walletProductCodeRepository.findByProductCode(wayaProductCommission);
+					code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission,wayaCommGLCode);
 					product = walletProductRepository.findByProductCode(wayaProductCommission);
 					acctNo = "901" + rand;
 					log.info(acctNo);
@@ -292,7 +298,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Product Type Does Not Match"), HttpStatus.BAD_REQUEST);
 		}
 
-		WalletProductCode code = walletProductCodeRepository.findByProductCode(user.getProductCode());
+		WalletProductCode code = walletProductCodeRepository.findByProductGLCode(user.getProductCode(),wayaGLCode);
 		if ((!code.getProductType().equals("OAB"))) {
 			return new ResponseEntity<>(new ErrorResponse("Product Type Does Not Match"), HttpStatus.BAD_REQUEST);
 		}
@@ -343,7 +349,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Product Type Does Not Match"), HttpStatus.BAD_REQUEST);
 		}
 
-		WalletProductCode code = walletProductCodeRepository.findByProductCode(user.getProductCode());
+		WalletProductCode code = walletProductCodeRepository.findByProductGLCode(user.getProductCode(),wayaGLCode);
 		if ((!code.getProductType().equals("OAB"))) {
 			return new ResponseEntity<>(new ErrorResponse("Product Type Does Not Match"), HttpStatus.BAD_REQUEST);
 		}
@@ -382,7 +388,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Wallet Data Integity.please contact Admin"),
 					HttpStatus.BAD_REQUEST);
 		} else if (y.getEmailAddress().equals(x.getEmailAddress())) {
-			WalletProductCode code = walletProductCodeRepository.findByProductCode(wayaProduct);
+			WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct,wayaGLCode);
 			WalletProduct product = walletProductRepository.findByProductCode(wayaProduct);
 			String acctNo = null;
 			String acct_name = y.getFirstName().toUpperCase() + " " + y.getLastName().toUpperCase();

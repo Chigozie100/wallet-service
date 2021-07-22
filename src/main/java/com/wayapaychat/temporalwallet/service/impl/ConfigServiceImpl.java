@@ -178,9 +178,9 @@ public class ConfigServiceImpl implements ConfigService {
         }
 	}
 	
-	public ResponseEntity<?> getProduct(String schm) {
+	public ResponseEntity<?> getProduct(String schm, String gl) {
 		try {
-			WalletProductCode product = walletProductCodeRepo.findByProductCode(schm);
+			WalletProductCode product = walletProductCodeRepo.findByProductGLCode(schm,gl);
             return new ResponseEntity<>(new SuccessResponse("Success.", product), HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
@@ -202,7 +202,7 @@ public class ConfigServiceImpl implements ConfigService {
 		if(!validate2) {
 			return new ResponseEntity<>(new ErrorResponse("Interest Code Validation Failed"), HttpStatus.BAD_REQUEST);
 		}
-		WalletProductCode xyz = walletProductCodeRepo.findByProductCode(product.getProductCode());
+		WalletProductCode xyz = walletProductCodeRepo.findByProductGLCode(product.getProductCode(), product.getGlCode());
 		WalletProduct prodx = new WalletProduct(product.getProductCode(), xyz.getProductName(), product.isSysGenerate(),
 				xyz.getProductType(), product.isPaidInterest(), product.isCollectInterest(),product.isStaffEnabled(), 
 				product.getFrequency(), product.isPaidCommission(), xyz.getCurrencyCode(), 9999999999.99, 

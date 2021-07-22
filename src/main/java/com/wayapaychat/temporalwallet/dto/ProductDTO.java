@@ -39,5 +39,9 @@ public class ProductDTO {
 	private double productMinBalance;
 	
 	private boolean chqAllowedFlg;
+	
+	@NotNull
+	@Size(min=5, max=10)
+	private String glCode;
 
 }
