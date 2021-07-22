@@ -202,11 +202,16 @@ public class ConfigServiceImpl implements ConfigService {
 		if(!validate2) {
 			return new ResponseEntity<>(new ErrorResponse("Interest Code Validation Failed"), HttpStatus.BAD_REQUEST);
 		}
+		
 		WalletProductCode xyz = walletProductCodeRepo.findByProductGLCode(product.getProductCode(), product.getGlCode());
+		if(xyz == null) {
+			return new ResponseEntity<>(new ErrorResponse("ProductCode and GLCode Does Not Exist"), HttpStatus.BAD_REQUEST);
+		}
 		WalletProduct prodx = new WalletProduct(product.getProductCode(), xyz.getProductName(), product.isSysGenerate(),
 				xyz.getProductType(), product.isPaidInterest(), product.isCollectInterest(),product.isStaffEnabled(), 
 				product.getFrequency(), product.isPaidCommission(), xyz.getCurrencyCode(), 9999999999.99, 
-				9999999999.99, 9999999999.99, 9999999999.99, product.getInterestCode(), product.getProductMinBalance(),product.isChqAllowedFlg());
+				9999999999.99, 9999999999.99, 9999999999.99, product.getInterestCode(), 
+				product.getProductMinBalance(),product.isChqAllowedFlg(),product.getGlCode());
 		try {
 			walletProductRepo.save(prodx);
             return new ResponseEntity<>(new SuccessResponse("Product Parameter Created Successfully.", prodx), HttpStatus.CREATED);
