@@ -492,9 +492,12 @@ public class UserAccountServiceImpl implements UserAccountService {
 		int uId = (int) userId;
 		UserDetailPojo ur = authService.AuthUser(uId);
 		if (ur == null) {
-			return new ResponseEntity<>(new ErrorResponse("User Id is Invalid"), HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>(new ErrorResponse("User Id is Invalid"), HttpStatus.NOT_FOUND);
 		}
 		WalletUser x = walletUserRepository.findByEmailAddress(ur.getEmail());
+		if(x == null) {
+			return new ResponseEntity<>(new ErrorResponse("Wallet User does not exist"), HttpStatus.NOT_FOUND);
+		}
 		List<WalletAccount> accounts = walletAccountRepository.findByUser(x);
 		return new ResponseEntity<>(new SuccessResponse("Success.", accounts), HttpStatus.OK);
 	}
