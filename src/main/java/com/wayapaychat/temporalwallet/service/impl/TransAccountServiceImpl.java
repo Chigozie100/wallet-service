@@ -494,13 +494,17 @@ public class TransAccountServiceImpl implements TransAccountService {
 				return "DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN";
 			}
 			String tranNarrate = "WALLET-" + tranNarration;
+			String tranNarrate1 = "WALLET-" + event.getTranNarration();
 			BigDecimal chargeAmt = event.getTranAmt().add(amount);
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), chargeAmt, tranType,
 					tranNarrate, new Date(), tranCrncy, "D", accountDebit.getGl_code(),paymentRef);
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
 					tranNarrate, new Date(), tranCrncy, "C", accountCredit.getGl_code(),paymentRef);
+			WalletTransaction tranCharge = new WalletTransaction(tranId, chargeTill.getAccountNo(), event.getTranAmt(), tranType,
+					tranNarrate1, new Date(), tranCrncy, "C", chargeTill.getGl_code(),paymentRef);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
+			walletTransactionRepository.saveAndFlush(tranCharge);
 
 			double clrbalAmtDr = accountDebit.getClr_bal_amt() - chargeAmt.doubleValue();
 			double cumbalDrAmtDr = accountDebit.getCum_dr_amt() + amount.doubleValue();

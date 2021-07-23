@@ -18,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
+import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
+import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
 import com.wayapaychat.temporalwallet.dto.UserDTO;
 import com.wayapaychat.temporalwallet.dto.WalletCashAccountDTO;
 import com.wayapaychat.temporalwallet.dto.WalletEventAccountDTO;
@@ -76,7 +78,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Value("${waya.wallet.commissioncode}")
 	private String wayaProductCommission;
-	
+
 	@Value("${waya.wallet.wayaglCode}")
 	private String wayaGLCode;
 
@@ -95,13 +97,13 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 		// Default Wallet
 		// WalletUser userInfo = new ModelMapper().map(wallet, WalletUser.class);
-		String acct_name = wallet.getFirstName() + " " + wallet.getSurname();
-		WalletUser userInfo = new WalletUser("0000", user.getUserId(), wallet.getFirstName(), wallet.getSurname(),
-				wallet.getEmail(), wallet.getPhoneNo(), acct_name, "", "", new Date(), "", new Date(), LocalDate.now(),
-				5000);
+		String acct_name = wallet.getFirstName().toUpperCase() + " " + wallet.getSurname().toUpperCase();
+		WalletUser userInfo = new WalletUser("0000", user.getUserId(), wallet.getFirstName().toUpperCase(),
+				wallet.getSurname().toUpperCase(), wallet.getEmail(), wallet.getPhoneNo(), acct_name, "", "",
+				new Date(), "", new Date(), LocalDate.now(), 50000);
 
-		WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct,wayaGLCode);
-		WalletProduct product = walletProductRepository.findByProductCode(wayaProduct,wayaGLCode);
+		WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
+		WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
 		String acctNo = null;
 		Integer rand = reqUtil.getAccountNo();
 		if (rand == 0) {
@@ -113,17 +115,17 @@ public class UserAccountServiceImpl implements UserAccountService {
 			acct_ownership = "C";
 			if (product.getProduct_type().equals("SBA")) {
 				acctNo = "201" + rand;
-				if(acctNo.length() < 10) {
+				if (acctNo.length() < 10) {
 					acctNo = StringUtils.rightPad(acctNo, 10, "0");
 				}
 			} else if (product.getProduct_type().equals("CAA")) {
 				acctNo = "501" + rand;
-				if(acctNo.length() < 10) {
+				if (acctNo.length() < 10) {
 					acctNo = StringUtils.rightPad(acctNo, 10, "0");
 				}
 			} else if (product.getProduct_type().equals("ODA")) {
 				acctNo = "401" + rand;
-				if(acctNo.length() < 10) {
+				if (acctNo.length() < 10) {
 					acctNo = StringUtils.rightPad(acctNo, 10, "0");
 				}
 			}
@@ -132,17 +134,17 @@ public class UserAccountServiceImpl implements UserAccountService {
 			acct_ownership = "E";
 			if (product.getProduct_type().equals("SBA")) {
 				acctNo = "291" + rand;
-				if(acctNo.length() < 10) {
+				if (acctNo.length() < 10) {
 					acctNo = StringUtils.rightPad(acctNo, 10, "0");
 				}
 			} else if (product.getProduct_type().equals("CAA")) {
 				acctNo = "591" + rand;
-				if(acctNo.length() < 10) {
+				if (acctNo.length() < 10) {
 					acctNo = StringUtils.rightPad(acctNo, 10, "0");
 				}
 			} else if (product.getProduct_type().equals("ODA")) {
 				acctNo = "491" + rand;
-				if(acctNo.length() < 10) {
+				if (acctNo.length() < 10) {
 					acctNo = StringUtils.rightPad(acctNo, 10, "0");
 				}
 			}
@@ -172,10 +174,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 			if (user.isCorporate() && wallet.is_corporate()) {
 				Optional<WalletAccount> acct = walletAccountRepository.findByProductCode(wayaProductCommission);
 				if (!acct.isPresent()) {
-					code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission,wayaCommGLCode);
-					product = walletProductRepository.findByProductCode(wayaProductCommission,wayaCommGLCode);
+					code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission, wayaCommGLCode);
+					product = walletProductRepository.findByProductCode(wayaProductCommission, wayaCommGLCode);
 					acctNo = "901" + rand;
-					if(acctNo.length() < 10) {
+					if (acctNo.length() < 10) {
 						acctNo = StringUtils.rightPad(acctNo, 10, "0");
 					}
 					log.info(acctNo);
@@ -188,7 +190,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 								wayaProductCommission, acct_ownership, hashed_no, product.isInt_paid_flg(),
 								product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 								product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
-								product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(), false);
+								product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(),
+								false);
 					}
 					walletAccountRepository.save(caccount);
 				}
@@ -219,8 +222,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 				user.getCustTitleCode().toUpperCase(), user.getCustSex().toUpperCase(), user.getDob(),
 				user.getCustIssueId(), user.getCustExpIssueDate(), LocalDate.now(), user.getCustDebitLimit());
 
-		WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct,wayaGLCode);
-		WalletProduct product = walletProductRepository.findByProductCode(wayaProduct,wayaGLCode);
+		WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
+		WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
 		String acctNo = null;
 		Integer rand = reqUtil.getAccountNo();
 		if (rand == 0) {
@@ -232,17 +235,17 @@ public class UserAccountServiceImpl implements UserAccountService {
 			acct_ownership = "C";
 			if (product.getProduct_type().equals("SBA")) {
 				acctNo = "201" + rand;
-				if(acctNo.length() < 10) {
+				if (acctNo.length() < 10) {
 					acctNo = StringUtils.rightPad(acctNo, 10, "0");
 				}
 			} else if (product.getProduct_type().equals("CAA")) {
 				acctNo = "501" + rand;
-				if(acctNo.length() < 10) {
+				if (acctNo.length() < 10) {
 					acctNo = StringUtils.rightPad(acctNo, 10, "0");
 				}
 			} else if (product.getProduct_type().equals("ODA")) {
 				acctNo = "401" + rand;
-				if(acctNo.length() < 10) {
+				if (acctNo.length() < 10) {
 					acctNo = StringUtils.rightPad(acctNo, 10, "0");
 				}
 			}
@@ -251,17 +254,17 @@ public class UserAccountServiceImpl implements UserAccountService {
 			acct_ownership = "E";
 			if (product.getProduct_type().equals("SBA")) {
 				acctNo = "291" + rand;
-				if(acctNo.length() < 10) {
+				if (acctNo.length() < 10) {
 					acctNo = StringUtils.rightPad(acctNo, 10, "0");
 				}
 			} else if (product.getProduct_type().equals("CAA")) {
 				acctNo = "591" + rand;
-				if(acctNo.length() < 10) {
+				if (acctNo.length() < 10) {
 					acctNo = StringUtils.rightPad(acctNo, 10, "0");
 				}
 			} else if (product.getProduct_type().equals("ODA")) {
 				acctNo = "491" + rand;
-				if(acctNo.length() < 10) {
+				if (acctNo.length() < 10) {
 					acctNo = StringUtils.rightPad(acctNo, 10, "0");
 				}
 			}
@@ -290,10 +293,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 			if (wallet.is_corporate()) {
 				Optional<WalletAccount> acct = walletAccountRepository.findByProductCode(wayaProductCommission);
 				if (!acct.isPresent()) {
-					code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission,wayaCommGLCode);
-					product = walletProductRepository.findByProductCode(wayaProductCommission,wayaCommGLCode);
+					code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission, wayaCommGLCode);
+					product = walletProductRepository.findByProductCode(wayaProductCommission, wayaCommGLCode);
 					acctNo = "901" + rand;
-					if(acctNo.length() < 10) {
+					if (acctNo.length() < 10) {
 						acctNo = StringUtils.rightPad(acctNo, 10, "0");
 					}
 					log.info(acctNo);
@@ -306,13 +309,106 @@ public class UserAccountServiceImpl implements UserAccountService {
 								wayaProductCommission, acct_ownership, hashed_no, product.isInt_paid_flg(),
 								product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 								product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
-								product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(), false);
+								product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(),
+								false);
 					}
 					walletAccountRepository.save(caccount);
 				}
 
 			}
 			return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
+					HttpStatus.CREATED);
+		} catch (Exception e) {
+			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	public ResponseEntity<?> modifyUserAccount(UserAccountDTO user) {
+		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
+		if (existingUser == null) {
+			return new ResponseEntity<>(new ErrorResponse("Wallet User does not exists"), HttpStatus.NOT_FOUND);
+		}
+		int userId = user.getUserId().intValue();
+		UserDetailPojo wallet = authService.AuthUser(userId);
+		if (wallet.is_deleted()) {
+			return new ResponseEntity<>(new ErrorResponse("Auth User has been deleted"), HttpStatus.BAD_REQUEST);
+		}
+		WalletUser existingEmail = walletUserRepository.findByEmailAddress(user.getNewEmailId());
+		if (existingEmail != null) {
+			return new ResponseEntity<>(new ErrorResponse("Email already used on Wallet User Account"),
+					HttpStatus.NOT_FOUND);
+		}
+		WalletUser existingPhone = walletUserRepository.findByMobileNo(user.getNewMobileNo());
+		if (existingPhone != null) {
+			return new ResponseEntity<>(new ErrorResponse("PhoneNo already used on Wallet User Account"),
+					HttpStatus.NOT_FOUND);
+		}
+		// User Update
+		existingUser.setCust_debit_limit(user.getNewCustDebitLimit());
+		existingUser.setEmailAddress(user.getNewEmailId());
+		existingUser.setMobileNo(user.getNewMobileNo());
+		existingUser.setCust_exp_issue_date(user.getNewCustExpIssueDate());
+		existingUser.setCust_issue_id(user.getNewCustIssueId());
+		// Default Wallet
+		try {
+			walletUserRepository.save(existingUser);
+			WalletAccount account = walletAccountRepository.findByAccountNo(user.getOldDefaultAcctNo());
+			if (account == null) {
+				return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"), HttpStatus.NOT_FOUND);
+			}
+			account.setWalletDefault(false);
+			walletAccountRepository.save(account);
+			WalletAccount caccount = walletAccountRepository.findByAccountNo(user.getNewDefaultAcctNo());
+			if (caccount == null) {
+				return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"), HttpStatus.NOT_FOUND);
+			}
+			caccount.setWalletDefault(true);
+			walletAccountRepository.save(caccount);
+			return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
+					HttpStatus.CREATED);
+		} catch (Exception e) {
+			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	public ResponseEntity<?> UserAccountAccess(AdminAccountRestrictionDTO user) {
+		// Default Wallet
+		try {
+			WalletAccount account = walletAccountRepository.findByAccountNo(user.getCustomerAccountNumber());
+			if (account == null) {
+				return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"), HttpStatus.NOT_FOUND);
+			}
+			if (user.isAcctfreez()) {
+				if (user.getFreezCode().equalsIgnoreCase("D")) {
+					account.setFrez_code(user.getFreezCode());
+					account.setFrez_reason_code(user.getFreezReason());
+				} else if (user.getFreezCode().equalsIgnoreCase("C")) {
+					account.setFrez_code(user.getFreezCode());
+					account.setFrez_reason_code(user.getFreezReason());
+				} else if (user.getFreezCode().equalsIgnoreCase("T")) {
+					account.setFrez_code(user.getFreezCode());
+					account.setFrez_reason_code(user.getFreezReason());
+				} else {
+					return new ResponseEntity<>(new ErrorResponse("Enter Correct Code"), HttpStatus.NOT_FOUND);
+				}
+			}
+			if (user.isAcctClosed()) {
+				if (account.getClr_bal_amt() == 0) {
+					account.setAcct_cls_date(LocalDate.now());
+					account.setAcct_cls_flg(true);
+				} else {
+					return new ResponseEntity<>(
+							new ErrorResponse("Account balance must be equal to zero before it can be closed"),
+							HttpStatus.NOT_FOUND);
+				}
+			}
+			if (user.isAmountRestrict()) {
+				double acctAmt = account.getLien_amt() + user.getLienAmount().doubleValue();
+				account.setLien_amt(acctAmt);
+				account.setLien_reason(user.getLienReason());
+			}
+			walletAccountRepository.save(account);
+			return new ResponseEntity<>(new SuccessResponse("Account updated successfully.", account),
 					HttpStatus.CREATED);
 		} catch (Exception e) {
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
@@ -336,12 +432,13 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("User Not Admin"), HttpStatus.BAD_REQUEST);
 		}
 
-		WalletProduct product = walletProductRepository.findByProductCode(user.getProductCode(),user.getProductGL());
+		WalletProduct product = walletProductRepository.findByProductCode(user.getProductCode(), user.getProductGL());
 		if ((!product.getProduct_type().equals("OAB"))) {
 			return new ResponseEntity<>(new ErrorResponse("Product Type Does Not Match"), HttpStatus.BAD_REQUEST);
 		}
 
-		WalletProductCode code = walletProductCodeRepository.findByProductGLCode(user.getProductCode(),user.getProductGL());
+		WalletProductCode code = walletProductCodeRepository.findByProductGLCode(user.getProductCode(),
+				user.getProductGL());
 		if ((!code.getProductType().equals("OAB"))) {
 			return new ResponseEntity<>(new ErrorResponse("Product Type Does Not Match"), HttpStatus.BAD_REQUEST);
 		}
@@ -374,7 +471,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 	}
-	
+
 	public ResponseEntity<?> createEventAccount(WalletEventAccountDTO user) {
 
 		boolean validate = paramValidation.validateDefaultCode(user.getPlaceholderCode(), "Batch Account");
@@ -387,26 +484,27 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Currency Code Validation Failed"), HttpStatus.BAD_REQUEST);
 		}
 
-		WalletProduct product = walletProductRepository.findByProductCode(user.getProductCode(),user.getProductGL());
+		WalletProduct product = walletProductRepository.findByProductCode(user.getProductCode(), user.getProductGL());
 		if ((!product.getProduct_type().equals("OAB"))) {
 			return new ResponseEntity<>(new ErrorResponse("Product Type Does Not Match"), HttpStatus.BAD_REQUEST);
 		}
 
-		WalletProductCode code = walletProductCodeRepository.findByProductGLCode(user.getProductCode(),user.getProductGL());
+		WalletProductCode code = walletProductCodeRepository.findByProductGLCode(user.getProductCode(),
+				user.getProductGL());
 		if ((!code.getProductType().equals("OAB"))) {
 			return new ResponseEntity<>(new ErrorResponse("Product Type Does Not Match"), HttpStatus.BAD_REQUEST);
 		}
-		
+
 		String acctNo = product.getCrncy_code() + "0000" + user.getPlaceholderCode();
 		String acct_ownership = "O";
 
 		try {
-			String hashed_no = reqUtil.WayaEncrypt(
-					0L + "|" + acctNo + "|" + user.getProductCode() + "|" + product.getCrncy_code());
+			String hashed_no = reqUtil
+					.WayaEncrypt(0L + "|" + acctNo + "|" + user.getProductCode() + "|" + product.getCrncy_code());
 
 			WalletAccount account = new WalletAccount();
-			account = new WalletAccount("0000", user.getPlaceholderCode(), acctNo, user.getAccountName(),
-					null, code.getGlSubHeadCode(), product.getProductCode(), acct_ownership, hashed_no,
+			account = new WalletAccount("0000", user.getPlaceholderCode(), acctNo, user.getAccountName(), null,
+					code.getGlSubHeadCode(), product.getProductCode(), acct_ownership, hashed_no,
 					product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
 					product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
 					product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
@@ -431,8 +529,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Wallet Data Integity.please contact Admin"),
 					HttpStatus.BAD_REQUEST);
 		} else if (y.getEmailAddress().equals(x.getEmailAddress())) {
-			WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct,wayaGLCode);
-			WalletProduct product = walletProductRepository.findByProductCode(wayaProduct,wayaGLCode);
+			WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
+			WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
 			String acctNo = null;
 			String acct_name = y.getFirstName().toUpperCase() + " " + y.getLastName().toUpperCase();
 			Integer rand = reqUtil.getAccountNo();
@@ -446,17 +544,17 @@ public class UserAccountServiceImpl implements UserAccountService {
 				acct_ownership = "C";
 				if (product.getProduct_type().equals("SBA")) {
 					acctNo = "201" + rand;
-					if(acctNo.length() < 10) {
+					if (acctNo.length() < 10) {
 						acctNo = StringUtils.rightPad(acctNo, 10, "0");
 					}
 				} else if (product.getProduct_type().equals("CAA")) {
 					acctNo = "501" + rand;
-					if(acctNo.length() < 10) {
+					if (acctNo.length() < 10) {
 						acctNo = StringUtils.rightPad(acctNo, 10, "0");
 					}
 				} else if (product.getProduct_type().equals("ODA")) {
 					acctNo = "401" + rand;
-					if(acctNo.length() < 10) {
+					if (acctNo.length() < 10) {
 						acctNo = StringUtils.rightPad(acctNo, 10, "0");
 					}
 				}
@@ -465,17 +563,17 @@ public class UserAccountServiceImpl implements UserAccountService {
 				acct_ownership = "E";
 				if (product.getProduct_type().equals("SBA")) {
 					acctNo = "291" + rand;
-					if(acctNo.length() < 10) {
+					if (acctNo.length() < 10) {
 						acctNo = StringUtils.rightPad(acctNo, 10, "0");
 					}
 				} else if (product.getProduct_type().equals("CAA")) {
 					acctNo = "591" + rand;
-					if(acctNo.length() < 10) {
+					if (acctNo.length() < 10) {
 						acctNo = StringUtils.rightPad(acctNo, 10, "0");
 					}
 				} else if (product.getProduct_type().equals("ODA")) {
 					acctNo = "491" + rand;
-					if(acctNo.length() < 10) {
+					if (acctNo.length() < 10) {
 						acctNo = StringUtils.rightPad(acctNo, 10, "0");
 					}
 				}
@@ -495,7 +593,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 							acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 							LocalDate.now(), product.getCrncy_code(), product.getProduct_type(),
 							product.isChq_book_flg(), product.getCash_dr_limit(), product.getXfer_dr_limit(),
-							product.getCash_cr_limit(), product.getXfer_cr_limit(),false);
+							product.getCash_cr_limit(), product.getXfer_cr_limit(), false);
 				}
 				walletAccountRepository.save(account);
 				return new ResponseEntity<>(new SuccessResponse("Account Created Successfully.", account),
@@ -503,8 +601,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 			} catch (Exception e) {
 				return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 			}
+		} else {
+			return new ResponseEntity<>(new ErrorResponse("Default Wallet has not been created.please contact Admin"),
+					HttpStatus.NOT_FOUND);
 		}
-		return null;
 
 	}
 
@@ -562,7 +662,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("User Id is Invalid"), HttpStatus.NOT_FOUND);
 		}
 		WalletUser x = walletUserRepository.findByEmailAddress(ur.getEmail());
-		if(x == null) {
+		if (x == null) {
 			return new ResponseEntity<>(new ErrorResponse("Wallet User does not exist"), HttpStatus.NOT_FOUND);
 		}
 		List<WalletAccount> accounts = walletAccountRepository.findByUser(x);
@@ -619,7 +719,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> getAccountCommission(String accountNo) {
-		Optional<WalletAccount> account = walletAccountRepository.findByAccountProductCode(wayaProductCommission, accountNo);
+		Optional<WalletAccount> account = walletAccountRepository.findByAccountProductCode(wayaProductCommission,
+				accountNo);
 		if (!account.isPresent()) {
 			return new ResponseEntity<>(new ErrorResponse("Unable to fetch account"), HttpStatus.BAD_REQUEST);
 		}
@@ -638,24 +739,26 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 		return new ResponseEntity<>(new SuccessResponse("Wallet Default", account), HttpStatus.OK);
 	}
-	
+
 	public ResponseEntity<?> searchAccount(String search) {
 		List<WalletUser> user = walletUserRepository.findAll();
 		List<WalletUser> matchingAcct = new ArrayList<WalletUser>();
 		List<WalletAccount> account = new ArrayList<WalletAccount>();
-		matchingAcct = user.stream().filter(str -> str.getMobileNo().trim().contains(search)).collect(Collectors.toList());
+		matchingAcct = user.stream().filter(str -> str.getMobileNo().trim().contains(search))
+				.collect(Collectors.toList());
 		if (!matchingAcct.isEmpty()) {
-			for(WalletUser x: matchingAcct) {
+			for (WalletUser x : matchingAcct) {
 				account = walletAccountRepository.findByUser(x);
 			}
-			return new ResponseEntity<>(new SuccessResponse("Account Wallet Search", account), HttpStatus.OK);	
+			return new ResponseEntity<>(new SuccessResponse("Account Wallet Search", account), HttpStatus.OK);
 		}
-		matchingAcct = user.stream().filter(str -> str.getEmailAddress().trim().contains(search)).collect(Collectors.toList());
+		matchingAcct = user.stream().filter(str -> str.getEmailAddress().trim().contains(search))
+				.collect(Collectors.toList());
 		if (!matchingAcct.isEmpty()) {
-			for(WalletUser x: matchingAcct) {
+			for (WalletUser x : matchingAcct) {
 				account = walletAccountRepository.findByUser(x);
 			}
-			return new ResponseEntity<>(new SuccessResponse("Account Wallet Search", account), HttpStatus.OK);	
+			return new ResponseEntity<>(new SuccessResponse("Account Wallet Search", account), HttpStatus.OK);
 		}
 		return new ResponseEntity<>(new ErrorResponse("Unable to fetch account"), HttpStatus.NOT_FOUND);
 	}
