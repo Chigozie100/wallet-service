@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 
+import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
 import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
 import com.wayapaychat.temporalwallet.dto.UserDTO;
 import com.wayapaychat.temporalwallet.dto.WalletCashAccountDTO;
@@ -51,5 +52,7 @@ public interface UserAccountService {
 	ResponseEntity<?> searchAccount(String search);
 	
 	ResponseEntity<?> modifyUserAccount(UserAccountDTO user);
+	
+	ResponseEntity<?> UserAccountAccess(AdminAccountRestrictionDTO user);
 
 }

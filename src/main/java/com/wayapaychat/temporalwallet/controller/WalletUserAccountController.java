@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
 import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
 import com.wayapaychat.temporalwallet.dto.UserDTO;
 import com.wayapaychat.temporalwallet.dto.WalletCashAccountDTO;
@@ -68,7 +69,27 @@ public class WalletUserAccountController {
     @PostMapping(path = "/user/account/modify")
     public ResponseEntity<?> createUserAccount(@Valid @RequestBody UserAccountDTO user) {
 		log.info("Request input: {}",user);
-        return userAccountService.modifyUserAccount(user);
+		ResponseEntity<?> res = userAccountService.modifyUserAccount(user);
+		if (res.getStatusCode() == HttpStatus.NOT_FOUND) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }else if(res.getStatusCode() == HttpStatus.BAD_REQUEST) {
+        	return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+		return new ResponseEntity<>(res, HttpStatus.OK);
+        //return userAccountService.modifyUserAccount(user);
+    }
+	
+	@ApiOperation(value = "Delete,Pause and Block User Account", hidden = false)
+    @PostMapping(path = "/user/account/access")
+    public ResponseEntity<?> postAccountRestriction(@Valid @RequestBody AdminAccountRestrictionDTO user) {
+		log.info("Request input: {}",user);
+		ResponseEntity<?> res = userAccountService.UserAccountAccess(user);
+		if (res.getStatusCode() == HttpStatus.NOT_FOUND) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }else if(res.getStatusCode() == HttpStatus.BAD_REQUEST) {
+        	return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+		return new ResponseEntity<>(res, HttpStatus.OK);
     }
 	
 	 @ApiOperation(value = "Create Admin Cash Wallet - (Admin COnsumption Only)", hidden = false)

@@ -117,6 +117,8 @@ public class WalletAccount {
 	
 	private boolean walletDefault;
 	
+	private String lien_reason;
+	
 	@JsonIgnore
 	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="cif_id")  

@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
+import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
 import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
 import com.wayapaychat.temporalwallet.dto.UserDTO;
 import com.wayapaychat.temporalwallet.dto.WalletCashAccountDTO;
@@ -364,6 +365,50 @@ public class UserAccountServiceImpl implements UserAccountService {
 			caccount.setWalletDefault(true);
 			walletAccountRepository.save(caccount);
 			return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
+					HttpStatus.CREATED);
+		} catch (Exception e) {
+			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	public ResponseEntity<?> UserAccountAccess(AdminAccountRestrictionDTO user) {
+		// Default Wallet
+		try {
+			WalletAccount account = walletAccountRepository.findByAccountNo(user.getCustomerAccountNumber());
+			if (account == null) {
+				return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"), HttpStatus.NOT_FOUND);
+			}
+			if (user.isAcctfreez()) {
+				if (user.getFreezCode().equalsIgnoreCase("D")) {
+					account.setFrez_code(user.getFreezCode());
+					account.setFrez_reason_code(user.getFreezReason());
+				} else if (user.getFreezCode().equalsIgnoreCase("C")) {
+					account.setFrez_code(user.getFreezCode());
+					account.setFrez_reason_code(user.getFreezReason());
+				} else if (user.getFreezCode().equalsIgnoreCase("T")) {
+					account.setFrez_code(user.getFreezCode());
+					account.setFrez_reason_code(user.getFreezReason());
+				} else {
+					return new ResponseEntity<>(new ErrorResponse("Enter Correct Code"), HttpStatus.NOT_FOUND);
+				}
+			}
+			if (user.isAcctClosed()) {
+				if (account.getClr_bal_amt() == 0) {
+					account.setAcct_cls_date(LocalDate.now());
+					account.setAcct_cls_flg(true);
+				} else {
+					return new ResponseEntity<>(
+							new ErrorResponse("Account balance must be equal to zero before it can be closed"),
+							HttpStatus.NOT_FOUND);
+				}
+			}
+			if (user.isAmountRestrict()) {
+				double acctAmt = account.getLien_amt() + user.getLienAmount().doubleValue();
+				account.setLien_amt(acctAmt);
+				account.setLien_reason(user.getLienReason());
+			}
+			walletAccountRepository.save(account);
+			return new ResponseEntity<>(new SuccessResponse("Account updated successfully.", account),
 					HttpStatus.CREATED);
 		} catch (Exception e) {
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
