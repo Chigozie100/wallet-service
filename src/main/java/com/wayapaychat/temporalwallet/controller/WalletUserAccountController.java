@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
 import com.wayapaychat.temporalwallet.dto.UserDTO;
 import com.wayapaychat.temporalwallet.dto.WalletCashAccountDTO;
 import com.wayapaychat.temporalwallet.dto.WalletEventAccountDTO;
@@ -39,32 +40,74 @@ public class WalletUserAccountController {
     @PostMapping(path = "/create-user")
     public ResponseEntity<?> createUser(@Valid @RequestBody UserDTO user) {
 		log.info("Request input: {}",user);
-        return userAccountService.createUser(user);
+		ResponseEntity<?> res = userAccountService.createUser(user);
+		if (res.getStatusCode() == HttpStatus.NOT_FOUND) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }else if(res.getStatusCode() == HttpStatus.BAD_REQUEST) {
+        	return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);        
+        //return userAccountService.createUser(user);
     }
 	
 	@ApiOperation(value = "Create User Account", hidden = false)
     @PostMapping(path = "/user/account")
     public ResponseEntity<?> createUserAccount(@Valid @RequestBody WalletUserDTO user) {
 		log.info("Request input: {}",user);
-        return userAccountService.createUserAccount(user);
+		ResponseEntity<?> res = userAccountService.createUserAccount(user);
+		if (res.getStatusCode() == HttpStatus.NOT_FOUND) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }else if(res.getStatusCode() == HttpStatus.BAD_REQUEST) {
+        	return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+		return new ResponseEntity<>(res, HttpStatus.OK);
+        //return userAccountService.createUserAccount(user);
+    }
+	
+	@ApiOperation(value = "Modify User Account", hidden = false)
+    @PostMapping(path = "/user/account/modify")
+    public ResponseEntity<?> createUserAccount(@Valid @RequestBody UserAccountDTO user) {
+		log.info("Request input: {}",user);
+        return userAccountService.modifyUserAccount(user);
     }
 	
 	 @ApiOperation(value = "Create Admin Cash Wallet - (Admin COnsumption Only)", hidden = false)
 	 @PostMapping(path = "/cash/account")
 	 public ResponseEntity<?> createCashAccounts(@Valid @RequestBody WalletCashAccountDTO user) {
-	        return userAccountService.createCashAccount(user);
+		 ResponseEntity<?> res = userAccountService.createCashAccount(user);
+			if (res.getStatusCode() == HttpStatus.NOT_FOUND) {
+	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+	        }else if(res.getStatusCode() == HttpStatus.BAD_REQUEST) {
+	        	return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+	        }
+			return new ResponseEntity<>(res, HttpStatus.OK);
+	        //return userAccountService.createCashAccount(user);
 	 }
 	 
 	 @ApiOperation(value = "Create Event Wallet Account - (Admin COnsumption Only)", hidden = false)
 	 @PostMapping(path = "/event/account")
 	 public ResponseEntity<?> createEventAccounts(@Valid @RequestBody WalletEventAccountDTO user) {
-	        return userAccountService.createEventAccount(user);
+		 ResponseEntity<?> res = userAccountService.createEventAccount(user);
+			if (res.getStatusCode() == HttpStatus.NOT_FOUND) {
+	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+	        }else if(res.getStatusCode() == HttpStatus.BAD_REQUEST) {
+	        	return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+	        }
+			return new ResponseEntity<>(res, HttpStatus.OK);
+	        //return userAccountService.createEventAccount(user);
 	 }
 	
 	@ApiOperation(value = "Create a Wallet")
     @PostMapping(path = "/create-wallet")
     public ResponseEntity<?> creteAccount(@Valid @RequestBody AccountPojo2 accountPojo) {
-        return userAccountService.createAccount(accountPojo);
+		ResponseEntity<?> res = userAccountService.createAccount(accountPojo);
+		if (res.getStatusCode() == HttpStatus.NOT_FOUND) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }else if(res.getStatusCode() == HttpStatus.BAD_REQUEST) {
+        	return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+		return new ResponseEntity<>(res, HttpStatus.OK);
+        //return userAccountService.createAccount(accountPojo);
     }
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
@@ -137,6 +180,8 @@ public class WalletUserAccountController {
     	ResponseEntity<?> res = userAccountService.createUserAccount(createAccountPojo);
 		if (res.getStatusCode() == HttpStatus.NOT_FOUND) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }else if(res.getStatusCode() == HttpStatus.BAD_REQUEST) {
+        	return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>(res, HttpStatus.OK);
 	}

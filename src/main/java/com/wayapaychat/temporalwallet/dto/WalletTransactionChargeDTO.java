@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.dto;
 
 import java.math.BigDecimal;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -9,21 +10,27 @@ import lombok.Data;
 @Data
 public class WalletTransactionChargeDTO {
 	
-	@NotNull
-	@Size(min=10, max=10)
+	//@NotNull
+	//@Size(min=10, max=10)
+	@NotBlank(message = "Account must not Null or Blank")
+	@Size(min=10, max=10, message = "Account must be 10 digit")
 	private String debitAccountNumber;
     
-	@NotNull
-	@Size(min=10, max=10)
+	//@NotNull
+	//@Size(min=10, max=10)
+	@NotBlank(message = "Account must not Null or Blank")
+	@Size(min=10, max=10, message = "Account must be 10 digit")
     private String benefAccountNumber;
    
 	@NotNull
     private BigDecimal amount;
     
-	@NotNull
+	//@NotNull
+	@NotBlank(message = "tranType must not Null or Blank")
     private String tranType;
     
-	@NotNull
+	//@NotNull
+	@NotBlank(message = "tranCrncy must not Null or Blank")
 	@Size(min=3, max=5)
     private String tranCrncy;
 	

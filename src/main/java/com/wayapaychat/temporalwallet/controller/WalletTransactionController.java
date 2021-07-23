@@ -41,7 +41,7 @@ public class WalletTransactionController {
 	public ResponseEntity<?> sendMoney(@Valid @RequestBody TransferTransactionDTO transfer) {
 		ApiResponse<?> res = transAccountService.sendMoney(transfer);
 		if (!res.getStatus()) {
-            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
 		log.info("Send Money: {}", transfer);
         return new ResponseEntity<>(res, HttpStatus.OK);
