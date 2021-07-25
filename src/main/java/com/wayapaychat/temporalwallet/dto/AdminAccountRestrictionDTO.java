@@ -18,12 +18,12 @@ public class AdminAccountRestrictionDTO {
 	@NotNull
 	private boolean isAcctfreez;
 	
-	@NotBlank(message = "FreezCode must not Null or Blank")
-	@Size(min=1, max=1, message = "Freeze can either be D=DEBIT FREEZE,C=CREDIT FREEZE and T= TOTAL FREEZE")
+	//@NotBlank(message = "FreezCode must not Null or Blank")
+	//@Size(min=1, max=1, message = "Freeze can either be D=DEBIT FREEZE,C=CREDIT FREEZE and T= TOTAL FREEZE")
 	private String freezCode; //Pause = DEBIT/CREDIT Block =TOTAL FREEZ
 	
-	@NotBlank(message = "FreezReason must not be Null or Blank")
-	@Size(min=10, max=50, message = "FreezReason must be aleast 10 character")
+	//@NotBlank(message = "FreezReason must not be Null or Blank")
+	//@Size(min=10, max=50, message = "FreezReason must be aleast 10 character")
 	private String freezReason;
 	
 	@NotNull
@@ -32,11 +32,11 @@ public class AdminAccountRestrictionDTO {
 	@NotNull
 	private boolean isAmountRestrict;
 	
-	@NotNull
+	//@NotNull
 	private BigDecimal lienAmount;
 	
-	@NotBlank(message = "LienReason must not be Null or Blank")
-	@Size(min=10, max=50, message = "LienReason must be aleast 10 character")
+	//@NotBlank(message = "LienReason must not be Null or Blank")
+	//@Size(min=10, max=50, message = "LienReason must be aleast 10 character")
 	private String lienReason;
 
 }
