@@ -525,6 +525,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 		WalletUser y = walletUserRepository.findByUserId(accountPojo.getUserId());
 		WalletUser x = walletUserRepository.findByEmailAddress(user.getEmail());
+		if(x == null && y == null) {
+			return new ResponseEntity<>(new ErrorResponse("Default Wallet Not Created"),
+					HttpStatus.BAD_REQUEST);
+		}
 		if (!y.getEmailAddress().equals(x.getEmailAddress())) {
 			return new ResponseEntity<>(new ErrorResponse("Wallet Data Integity.please contact Admin"),
 					HttpStatus.BAD_REQUEST);
