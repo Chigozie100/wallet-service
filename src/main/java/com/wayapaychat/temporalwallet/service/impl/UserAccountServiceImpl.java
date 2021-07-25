@@ -372,6 +372,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 	}
 
 	public ResponseEntity<?> UserAccountAccess(AdminAccountRestrictionDTO user) {
+		WalletUser userDelete = null;
 		// Default Wallet
 		try {
 			WalletAccount account = walletAccountRepository.findByAccountNo(user.getCustomerAccountNumber());
@@ -396,6 +397,14 @@ public class UserAccountServiceImpl implements UserAccountService {
 				if (account.getClr_bal_amt() == 0) {
 					account.setAcct_cls_date(LocalDate.now());
 					account.setAcct_cls_flg(true);
+					userDelete = walletUserRepository.findByAccount(account);
+					String email = userDelete.getEmailAddress() + userDelete.getId();
+					String phone = userDelete.getMobileNo() +  userDelete.getId();
+					Long userId = 1000000000L + userDelete.getUserId();
+					userDelete.setEmailAddress(email);
+					userDelete.setMobileNo(phone);
+					userDelete.setUserId(userId);
+					userDelete.setDel_flg(true);
 				} else {
 					return new ResponseEntity<>(
 							new ErrorResponse("Account balance must be equal to zero before it can be closed"),
@@ -408,6 +417,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 				account.setLien_reason(user.getLienReason());
 			}
 			walletAccountRepository.save(account);
+			walletUserRepository.save(userDelete);
 			return new ResponseEntity<>(new SuccessResponse("Account updated successfully.", account),
 					HttpStatus.CREATED);
 		} catch (Exception e) {

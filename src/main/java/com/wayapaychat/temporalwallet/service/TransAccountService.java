@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.service;
 
 import org.springframework.data.domain.Page;
 
+import com.wayapaychat.temporalwallet.dto.AdminLocalTransferDTO;
 import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
@@ -37,6 +38,8 @@ public interface TransAccountService {
 	ApiResponse<?> makeWalletTransaction(String command, TransferTransactionDTO transactionPojo);
 	
 	ApiResponse<?> sendMoney(TransferTransactionDTO transfer);
+	
+	ApiResponse<?> AdminsendMoney(AdminLocalTransferDTO transfer);
 	
 	ApiResponse<?> sendMoneyCustomer(WalletTransactionDTO transfer);
 	
