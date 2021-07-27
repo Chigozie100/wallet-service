@@ -379,6 +379,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 			if (account == null) {
 				return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"), HttpStatus.NOT_FOUND);
 			}
+			userDelete = walletUserRepository.findByAccount(account);
+			if(account.isAcct_cls_flg() && userDelete.isDel_flg()) {
+				return new ResponseEntity<>(new SuccessResponse("Wallet Account Deleted Successfully"), HttpStatus.OK);
+			}
 			if (user.isAcctfreez()) {
 				if (user.getFreezCode().equalsIgnoreCase("D")) {
 					account.setFrez_code(user.getFreezCode());
@@ -397,10 +401,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 				if (account.getClr_bal_amt() == 0) {
 					account.setAcct_cls_date(LocalDate.now());
 					account.setAcct_cls_flg(true);
-					userDelete = walletUserRepository.findByAccount(account);
 					String email = userDelete.getEmailAddress() + userDelete.getId();
 					String phone = userDelete.getMobileNo() +  userDelete.getId();
-					Long userId = 1000000000L + userDelete.getUserId();
+					Long userId = 1000000000L + userDelete.getUserId() + userDelete.getId();
 					userDelete.setEmailAddress(email);
 					userDelete.setMobileNo(phone);
 					userDelete.setUserId(userId);
