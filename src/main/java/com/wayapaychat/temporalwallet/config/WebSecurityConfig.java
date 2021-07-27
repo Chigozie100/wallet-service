@@ -42,8 +42,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests().antMatchers(
                 "/wallet/create/account", "/api/userjdbc/register/jdbc/add"
                 ,"/wallet/get/default/wallet/open/**","/wallet/create/cooperate/user", 
-                "/api/users/register/admin", "/api/users/welcome").permitAll()
-                //.antMatchers("/api/v1/bank/**","/wallet/create-wallet","/wallet/accounts/**","/api/v1/wallet/**","/wallet/**").permitAll()
+                "/api/v1/wallet/user/account","/api/v1/wallet/create/cooperate/user","/api/users/register/admin", "/api/users/welcome").permitAll()
+                //For Test Purpose
+                //.antMatchers("/api/v1/bank/**","/wallet/create-wallet","/api/v1/wallet/**","/wallet/**").permitAll()
                 .antMatchers("/v2/api-docs", "/configuration/**", "/swagger*/**","/actuator/**", "/webjars/**").permitAll()
                 // all other requests need to be authenticated
                 .anyRequest().authenticated().and()

@@ -75,6 +75,8 @@ public class WalletTransaction {
     @NotNull
     private String tranGL;
     
+	private String relatedTransId;
+    
     @CreationTimestamp
     @ApiModelProperty(hidden = true)
     private LocalDateTime createdAt;
