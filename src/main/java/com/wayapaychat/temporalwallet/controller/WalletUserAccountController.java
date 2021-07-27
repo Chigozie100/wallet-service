@@ -41,13 +41,7 @@ public class WalletUserAccountController {
     @PostMapping(path = "/create-user")
     public ResponseEntity<?> createUser(@Valid @RequestBody UserDTO user) {
 		log.info("Request input: {}",user);
-		ResponseEntity<?> res = userAccountService.createUser(user);
-		if (res.getStatusCode() == HttpStatus.NOT_FOUND) {
-            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
-        }else if(res.getStatusCode() == HttpStatus.BAD_REQUEST) {
-        	return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-        }
-        return new ResponseEntity<>(res, HttpStatus.OK);        
+		return userAccountService.createUser(user);       
         //return userAccountService.createUser(user);
     }
 	
@@ -55,13 +49,7 @@ public class WalletUserAccountController {
     @PostMapping(path = "/user/account")
     public ResponseEntity<?> createUserAccount(@Valid @RequestBody WalletUserDTO user) {
 		log.info("Request input: {}",user);
-		ResponseEntity<?> res = userAccountService.createUserAccount(user);
-		if (res.getStatusCode() == HttpStatus.NOT_FOUND) {
-            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
-        }else if(res.getStatusCode() == HttpStatus.BAD_REQUEST) {
-        	return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-        }
-		return new ResponseEntity<>(res, HttpStatus.OK);
+		return userAccountService.createUserAccount(user);
         //return userAccountService.createUserAccount(user);
     }
 	
@@ -69,13 +57,7 @@ public class WalletUserAccountController {
     @PostMapping(path = "/user/account/modify")
     public ResponseEntity<?> createUserAccount(@Valid @RequestBody UserAccountDTO user) {
 		log.info("Request input: {}",user);
-		ResponseEntity<?> res = userAccountService.modifyUserAccount(user);
-		if (res.getStatusCode() == HttpStatus.NOT_FOUND) {
-            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
-        }else if(res.getStatusCode() == HttpStatus.BAD_REQUEST) {
-        	return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-        }
-		return new ResponseEntity<>(res, HttpStatus.OK);
+		return userAccountService.modifyUserAccount(user);
         //return userAccountService.modifyUserAccount(user);
     }
 	
@@ -83,51 +65,27 @@ public class WalletUserAccountController {
     @PostMapping(path = "/user/account/access")
     public ResponseEntity<?> postAccountRestriction(@Valid @RequestBody AdminAccountRestrictionDTO user) {
 		log.info("Request input: {}",user);
-		ResponseEntity<?> res = userAccountService.UserAccountAccess(user);
-		if (res.getStatusCode() == HttpStatus.NOT_FOUND) {
-            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
-        }else if(res.getStatusCode() == HttpStatus.BAD_REQUEST) {
-        	return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-        }
-		return new ResponseEntity<>(res, HttpStatus.OK);
+		return userAccountService.UserAccountAccess(user);
     }
 	
 	 @ApiOperation(value = "Create Admin Cash Wallet - (Admin COnsumption Only)", hidden = false)
 	 @PostMapping(path = "/cash/account")
 	 public ResponseEntity<?> createCashAccounts(@Valid @RequestBody WalletCashAccountDTO user) {
-		 ResponseEntity<?> res = userAccountService.createCashAccount(user);
-			if (res.getStatusCode() == HttpStatus.NOT_FOUND) {
-	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
-	        }else if(res.getStatusCode() == HttpStatus.BAD_REQUEST) {
-	        	return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-	        }
-			return new ResponseEntity<>(res, HttpStatus.OK);
+		 return userAccountService.createCashAccount(user);
 	        //return userAccountService.createCashAccount(user);
 	 }
 	 
 	 @ApiOperation(value = "Create Event Wallet Account - (Admin COnsumption Only)", hidden = false)
 	 @PostMapping(path = "/event/account")
 	 public ResponseEntity<?> createEventAccounts(@Valid @RequestBody WalletEventAccountDTO user) {
-		 ResponseEntity<?> res = userAccountService.createEventAccount(user);
-			if (res.getStatusCode() == HttpStatus.NOT_FOUND) {
-	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
-	        }else if(res.getStatusCode() == HttpStatus.BAD_REQUEST) {
-	        	return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-	        }
-			return new ResponseEntity<>(res, HttpStatus.OK);
+		 return userAccountService.createEventAccount(user);
 	        //return userAccountService.createEventAccount(user);
 	 }
 	
 	@ApiOperation(value = "Create a Wallet")
     @PostMapping(path = "/create-wallet")
     public ResponseEntity<?> creteAccount(@Valid @RequestBody AccountPojo2 accountPojo) {
-		ResponseEntity<?> res = userAccountService.createAccount(accountPojo);
-		if (res.getStatusCode() == HttpStatus.NOT_FOUND) {
-            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
-        }else if(res.getStatusCode() == HttpStatus.BAD_REQUEST) {
-        	return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-        }
-		return new ResponseEntity<>(res, HttpStatus.OK);
+		return userAccountService.createAccount(accountPojo);
         //return userAccountService.createAccount(accountPojo);
     }
 	
@@ -198,13 +156,7 @@ public class WalletUserAccountController {
     @ApiOperation(value = "Create Cooperate account, this creates a default account and a commission account", notes = "Create Cooperate account, this creates a default account and a commission account")
 	@PostMapping("/create/cooperate/user")
 	public ResponseEntity<?> createCooperateAccount(@RequestBody WalletUserDTO createAccountPojo) {
-    	ResponseEntity<?> res = userAccountService.createUserAccount(createAccountPojo);
-		if (res.getStatusCode() == HttpStatus.NOT_FOUND) {
-            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
-        }else if(res.getStatusCode() == HttpStatus.BAD_REQUEST) {
-        	return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-        }
-        return new ResponseEntity<>(res, HttpStatus.OK);
+    	return userAccountService.createUserAccount(createAccountPojo);
 	}
     
     @ApiOperation(value = "List all Commission Accounts")
