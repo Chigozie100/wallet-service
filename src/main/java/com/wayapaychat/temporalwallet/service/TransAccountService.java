@@ -1,10 +1,13 @@
 package com.wayapaychat.temporalwallet.service;
 
+import java.text.ParseException;
+
 import org.springframework.data.domain.Page;
 
 import com.wayapaychat.temporalwallet.dto.AdminLocalTransferDTO;
 import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
+import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.WalletAdminTransferDTO;
 import com.wayapaychat.temporalwallet.dto.WalletTransactionChargeDTO;
@@ -48,6 +51,8 @@ public interface TransAccountService {
 	ApiResponse<?> EventTransferPayment(EventPaymentDTO eventPay);
 	
 	ApiResponse<?> sendMoneyCharge(WalletTransactionChargeDTO transfer);
+	
+	ApiResponse<?> TranReversePayment(ReverseTransactionDTO reverseDto) throws ParseException;
 	
 
 }

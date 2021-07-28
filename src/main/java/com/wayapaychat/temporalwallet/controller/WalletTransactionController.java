@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.wayapaychat.temporalwallet.dto.AdminLocalTransferDTO;
 import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
+import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.WalletAdminTransferDTO;
 import com.wayapaychat.temporalwallet.dto.WalletTransactionChargeDTO;
@@ -107,11 +108,11 @@ public class WalletTransactionController {
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-	@ApiOperation(value = "Find Transaction By Account Number pagable", notes = "find transaction by Account Number pagable")
-	@GetMapping("/find/by/account/number")
-	public ResponseEntity<?> findByAccountNumber(@RequestParam("accountNumber") String accountNumber, @RequestParam(defaultValue = "0") int page,
+	@ApiOperation(value = "To Fetch Transactions By Account Number", notes = "find transaction by Account Number pagable")
+	@GetMapping("/find/transactions/{accountNo}")
+	public ResponseEntity<?> findTransactionAccountNo(@RequestParam("accountNo") String accountNo, @RequestParam(defaultValue = "0") int page,
 	        @RequestParam(defaultValue = "10") int size){
-		ApiResponse<?> res = transAccountService.findByAccountNumber(page, size, accountNumber);
+		ApiResponse<?> res = transAccountService.findByAccountNumber(page, size, accountNo);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
@@ -119,9 +120,9 @@ public class WalletTransactionController {
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-	@ApiOperation(value = "Find Transaction By Wallet Id pagable", notes = "find transaction by Wallet Id pagable")
-	@GetMapping("/find/by/wallet/id")
-	public ResponseEntity<?> findWalletId(@RequestParam("walletId") Long walletId, @RequestParam(defaultValue = "0") int page,
+	@ApiOperation(value = "Fetch Transaction By Wallet Id", notes = "find transaction by Wallet Id pagable")
+	@GetMapping("/find/transactions/{walletId}")
+	public ResponseEntity<?> findWalletTransaction(@RequestParam("walletId") Long walletId, @RequestParam(defaultValue = "0") int page,
 	        @RequestParam(defaultValue = "10") int size) {
 		ApiResponse<?> res = transAccountService.getTransactionByWalletId(page, size, walletId);
 		if (!res.getStatus()) {
@@ -132,8 +133,8 @@ public class WalletTransactionController {
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Find All Transaction pagable", notes = "find all transaction pagable")
-	@GetMapping("/find/all")
-	public ResponseEntity<?> findAll(@RequestParam(defaultValue = "0") int page,
+	@GetMapping("/find/all/transactions")
+	public ResponseEntity<?> findAllTransaction(@RequestParam(defaultValue = "0") int page,
 	        @RequestParam(defaultValue = "10") int size) {
 		ApiResponse<?> res = transAccountService.findAllTransaction(page, size);
 		if (!res.getStatus()) {
@@ -173,6 +174,26 @@ public class WalletTransactionController {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Admin Transaction Reversal", notes = "Transfer amount from one wallet to another wallet")
+	@PostMapping("/transaction/reverse")
+	public ResponseEntity<?> PaymentReversal(@RequestBody() ReverseTransactionDTO reverseDto) {
+		ApiResponse<?> res;
+		try {
+			res = transAccountService.TranReversePayment(reverseDto);
+			if (!res.getStatus()) {
+	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+	        }
+	        return new ResponseEntity<>(res, HttpStatus.OK);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
+			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+		}
+		
 	}
 
 }
