@@ -871,6 +871,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 		ArrayList<String> account = new ArrayList<String>();
 
 		if (d1.compareTo(d2) == 0) {
+			List<WalletTransaction> transRe = walletTransactionRepository.findByRevTrans(reverseDto.getTranId(),
+					reverseDate, reverseDto.getTranCrncy());
+			if (!transRe.isEmpty()) {
+				return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "TRANSACTION ALREADY REVERSED", null);
+			}
 			List<WalletTransaction> transpo = walletTransactionRepository.findByTransaction(reverseDto.getTranId(),
 					reverseDate, reverseDto.getTranCrncy());
 			if (transpo.isEmpty()) {
