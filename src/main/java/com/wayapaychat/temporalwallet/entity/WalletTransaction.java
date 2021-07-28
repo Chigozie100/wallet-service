@@ -1,8 +1,8 @@
 package com.wayapaychat.temporalwallet.entity;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -64,7 +64,7 @@ public class WalletTransaction {
     private String tranNarrate;
     
     @NotNull
-    private Date tranDate;
+    private LocalDate tranDate;
     
     @NotNull
     private String tranCrncyCode;
@@ -87,7 +87,7 @@ public class WalletTransaction {
 
 	public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
 			@NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType, 
-			@NotNull String tranNarrate, @NotNull Date tranDate, @NotNull String tranCrncyCode,
+			@NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
 			@NotNull String partTranType, String tranGL,String paymentReference) {
 		super();
 		this.del_flg = false;
@@ -102,6 +102,26 @@ public class WalletTransaction {
 		this.partTranType = partTranType;
 		this.tranGL = tranGL;
 		this.paymentReference = paymentReference;
+	}
+	
+	public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
+			@NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType, 
+			@NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
+			@NotNull String partTranType, String tranGL, String paymentReference, String relatedTransId) {
+		super();
+		this.del_flg = false;
+		this.posted_flg = true;
+		this.tranId = tranId;
+		this.acctNum = acctNum;
+		this.tranAmount = tranAmount;
+		this.tranType = tranType;
+		this.tranNarrate = tranNarrate;
+		this.tranDate = tranDate;
+		this.tranCrncyCode = tranCrncyCode;
+		this.partTranType = partTranType;
+		this.tranGL = tranGL;
+		this.paymentReference = paymentReference;
+		this.relatedTransId = relatedTransId;
 	}
     
     

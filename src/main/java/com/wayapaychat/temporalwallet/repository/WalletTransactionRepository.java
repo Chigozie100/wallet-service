@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.repository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,4 +22,11 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 	Optional<List<WalletTransaction>> findByTranIdIgnoreCase(@Param("value") String value);
 	
 	Page<WalletTransaction> findAllByAcctNum(String accountNumber, Pageable pageable);
+	
+	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.tranId) = UPPER(:tranId) " + " AND u.del_flg = false" + " AND u.tranCrncyCode = UPPER(:tranCrncy)" + " AND u.tranDate = (:tranDate)")
+	List<WalletTransaction> findByTransaction(String tranId, LocalDate tranDate, String tranCrncy);
+	
+	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.tranId) = UPPER(:tranId) " + " AND u.del_flg = false" + " AND u.tranCrncyCode = UPPER(:tranCrncy)" + " AND u.tranDate = (:tranDate)" + " AND u.acctNum = UPPER(:accountNo)")
+	WalletTransaction findByAcctNumTran(String accountNo, String tranId, LocalDate tranDate, String tranCrncy);
+	
 }
