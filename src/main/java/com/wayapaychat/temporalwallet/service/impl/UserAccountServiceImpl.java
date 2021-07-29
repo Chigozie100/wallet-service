@@ -810,4 +810,13 @@ public class UserAccountServiceImpl implements UserAccountService {
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESSFUL TRANSACTION STATEMENT", account);
 	}
 
+	@Override
+	public ResponseEntity<?> getListWayaAccount() {
+		List<WalletAccount> account = walletAccountRepository.findByWayaAccount();
+		if (account.isEmpty()) {
+			return new ResponseEntity<>(new ErrorResponse("NO WAYA ACCOUNT"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(new SuccessResponse("LIST WAYA ACCOUNT", account), HttpStatus.OK);
+	}
+
 }
