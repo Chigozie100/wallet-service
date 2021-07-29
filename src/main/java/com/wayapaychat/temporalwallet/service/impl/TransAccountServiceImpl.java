@@ -37,6 +37,8 @@ import com.wayapaychat.temporalwallet.entity.WalletTeller;
 import com.wayapaychat.temporalwallet.entity.WalletTransaction;
 import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.enumm.TransactionTypeEnum;
+import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
+import com.wayapaychat.temporalwallet.pojo.MyData;
 import com.wayapaychat.temporalwallet.pojo.TransactionRequest;
 import com.wayapaychat.temporalwallet.pojo.UserDetailPojo;
 import com.wayapaychat.temporalwallet.pojo.WalletToWalletDto;
@@ -82,6 +84,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Autowired
 	AuthUserServiceDAO authService;
+	
+	@Autowired
+	private TokenImpl tokenService;
 
 	@Override
 	public ApiResponse<TransactionRequest> makeTransaction(String command, TransactionRequest request) {
@@ -429,11 +434,15 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (tranId.equals("")) {
 				return "DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN";
 			}
+			MyData tokenData = tokenService.getUserInformation();
+			String email = tokenData != null ? tokenData.getEmail() : "";
+			String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+			
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef);
+					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef,userId,email);
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef);
+					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef,userId,email);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 
@@ -540,15 +549,19 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (tranId.equals("")) {
 				return "DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN";
 			}
+			MyData tokenData = tokenService.getUserInformation();
+			String email = tokenData != null ? tokenData.getEmail() : "";
+			String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+			
 			String tranNarrate = "WALLET-" + tranNarration;
 			String tranNarrate1 = "WALLET-" + event.getTranNarration();
 			BigDecimal chargeAmt = event.getTranAmt().add(amount);
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), chargeAmt,
-					tranType, tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef);
+					tranType, tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef,userId,email);
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef);
+					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef,userId,email);
 			WalletTransaction tranCharge = new WalletTransaction(tranId, chargeTill.getAccountNo(), event.getTranAmt(),
-					tranType, tranNarrate1, LocalDate.now(), tranCrncy, "C", chargeTill.getGl_code(), paymentRef);
+					tranType, tranNarrate1, LocalDate.now(), tranCrncy, "C", chargeTill.getGl_code(), paymentRef,userId,email);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 			walletTransactionRepository.saveAndFlush(tranCharge);
@@ -679,11 +692,16 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (tranId.equals("")) {
 				return "DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN";
 			}
+			
+			MyData tokenData = tokenService.getUserInformation();
+			String email = tokenData != null ? tokenData.getEmail() : "";
+			String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+			
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef);
+					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email);
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef);
+					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 
@@ -812,11 +830,15 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (tranId.equals("")) {
 				return "DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN";
 			}
+			MyData tokenData = tokenService.getUserInformation();
+			String email = tokenData != null ? tokenData.getEmail() : "";
+			String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+			
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef);
+					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email);
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef);
+					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 
@@ -925,10 +947,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	public void PostReverse(WalletTransaction trans) {
 		WalletAccount RevAcct = walletAccountRepository.findByAccountNo(trans.getAcctNum());
+		
+		MyData tokenData = tokenService.getUserInformation();
+		String email = tokenData != null ? tokenData.getEmail() : "";
+		String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
 
 		WalletTransaction tranrev = new WalletTransaction(trans.getTranId(), trans.getAcctNum(), trans.getTranAmount(),
 				trans.getTranType(), trans.getTranNarrate(), LocalDate.now(), trans.getTranCrncyCode(),
-				trans.getPartTranType(), trans.getTranGL(), trans.getPaymentReference(), trans.getRelatedTransId());
+				trans.getPartTranType(), trans.getTranGL(), trans.getPaymentReference(), trans.getRelatedTransId(),userId, email);
 		walletTransactionRepository.saveAndFlush(tranrev);
 
 		if (trans.getPartTranType().equalsIgnoreCase("D")) {
