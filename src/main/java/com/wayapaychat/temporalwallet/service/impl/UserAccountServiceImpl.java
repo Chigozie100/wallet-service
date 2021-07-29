@@ -18,6 +18,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
+import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
+import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
 import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
 import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
 import com.wayapaychat.temporalwallet.dto.UserDTO;
@@ -72,6 +74,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Autowired
 	WalletTellerRepository walletTellerRepository;
+
+	@Autowired
+	TemporalWalletDAO tempwallet;
 
 	@Value("${waya.wallet.productcode}")
 	private String wayaProduct;
@@ -333,42 +338,59 @@ public class UserAccountServiceImpl implements UserAccountService {
 		if (wallet.is_deleted()) {
 			return new ResponseEntity<>(new ErrorResponse("Auth User has been deleted"), HttpStatus.BAD_REQUEST);
 		}
-		WalletUser existingEmail = walletUserRepository.findByEmailAddress(user.getNewEmailId());
-		if (existingEmail != null) {
-			return new ResponseEntity<>(new ErrorResponse("Email already used on Wallet User Account"),
-					HttpStatus.NOT_FOUND);
+		if (!user.getNewEmailId().isBlank() && !user.getNewEmailId().isEmpty()) {
+			WalletUser existingEmail = walletUserRepository.findByEmailAddress(user.getNewEmailId());
+			if (existingEmail != null) {
+				return new ResponseEntity<>(new ErrorResponse("Email already used on Wallet User Account"),
+						HttpStatus.NOT_FOUND);
+			}
+			existingUser.setEmailAddress(user.getNewEmailId());
 		}
-		WalletUser existingPhone = walletUserRepository.findByMobileNo(user.getNewMobileNo());
-		if (existingPhone != null) {
-			return new ResponseEntity<>(new ErrorResponse("PhoneNo already used on Wallet User Account"),
-					HttpStatus.NOT_FOUND);
+		if (!user.getNewMobileNo().isBlank() && !user.getNewMobileNo().isEmpty()) {
+			WalletUser existingPhone = walletUserRepository.findByMobileNo(user.getNewMobileNo());
+			if (existingPhone != null) {
+				return new ResponseEntity<>(new ErrorResponse("PhoneNo already used on Wallet User Account"),
+						HttpStatus.NOT_FOUND);
+			}
+			existingUser.setMobileNo(user.getNewMobileNo());
 		}
 		// User Update
-		existingUser.setCust_debit_limit(user.getNewCustDebitLimit());
-		existingUser.setEmailAddress(user.getNewEmailId());
-		existingUser.setMobileNo(user.getNewMobileNo());
-		existingUser.setCust_exp_issue_date(user.getNewCustExpIssueDate());
-		existingUser.setCust_issue_id(user.getNewCustIssueId());
-		// Default Wallet
-		try {
-			walletUserRepository.save(existingUser);
-			WalletAccount account = walletAccountRepository.findByAccountNo(user.getOldDefaultAcctNo());
-			if (account == null) {
-				return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"), HttpStatus.NOT_FOUND);
-			}
-			account.setWalletDefault(false);
-			walletAccountRepository.save(account);
-			WalletAccount caccount = walletAccountRepository.findByAccountNo(user.getNewDefaultAcctNo());
-			if (caccount == null) {
-				return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"), HttpStatus.NOT_FOUND);
-			}
-			caccount.setWalletDefault(true);
-			walletAccountRepository.save(caccount);
-			return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
-					HttpStatus.CREATED);
-		} catch (Exception e) {
-			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+		if (user.getNewCustIssueId().isBlank() && user.getNewCustIssueId().isEmpty()) {
+			existingUser.setCust_debit_limit(user.getNewCustDebitLimit());
 		}
+		if (user.getNewCustExpIssueDate() != null) {
+			existingUser.setCust_exp_issue_date(user.getNewCustExpIssueDate());
+		}
+		if (user.getNewCustDebitLimit() != 0) {
+			existingUser.setCust_issue_id(user.getNewCustIssueId());
+		}
+		// Default Wallet
+		walletUserRepository.save(existingUser);
+		if ((!user.getOldDefaultAcctNo().isBlank() || !user.getOldDefaultAcctNo().isEmpty())
+				&& (!user.getNewDefaultAcctNo().isEmpty() || !user.getNewDefaultAcctNo().isBlank())) {
+			try {
+				WalletAccount account = walletAccountRepository.findByAccountNo(user.getOldDefaultAcctNo());
+				if (account == null) {
+					return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"),
+							HttpStatus.NOT_FOUND);
+				}
+				account.setWalletDefault(false);
+				walletAccountRepository.save(account);
+				WalletAccount caccount = walletAccountRepository.findByAccountNo(user.getNewDefaultAcctNo());
+				if (caccount == null) {
+					return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"),
+							HttpStatus.NOT_FOUND);
+				}
+				caccount.setWalletDefault(true);
+				walletAccountRepository.save(caccount);
+				return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
+						HttpStatus.CREATED);
+			} catch (Exception e) {
+				return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+			}
+		}
+		return new ResponseEntity<>(new SuccessResponse("Successfully Update Without No Account Affected"),
+				HttpStatus.OK);
 	}
 
 	public ResponseEntity<?> UserAccountAccess(AdminAccountRestrictionDTO user) {
@@ -380,7 +402,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 				return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"), HttpStatus.NOT_FOUND);
 			}
 			userDelete = walletUserRepository.findByAccount(account);
-			if(account.isAcct_cls_flg() && userDelete.isDel_flg()) {
+			if (account.isAcct_cls_flg() && userDelete.isDel_flg()) {
 				return new ResponseEntity<>(new SuccessResponse("Wallet Account Deleted Successfully"), HttpStatus.OK);
 			}
 			if (user.isAcctfreez()) {
@@ -402,7 +424,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 					account.setAcct_cls_date(LocalDate.now());
 					account.setAcct_cls_flg(true);
 					String email = userDelete.getEmailAddress() + userDelete.getId();
-					String phone = userDelete.getMobileNo() +  userDelete.getId();
+					String phone = userDelete.getMobileNo() + userDelete.getId();
 					Long userId = 1000000000L + userDelete.getUserId() + userDelete.getId();
 					userDelete.setEmailAddress(email);
 					userDelete.setMobileNo(phone);
@@ -538,9 +560,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 		WalletUser y = walletUserRepository.findByUserId(accountPojo.getUserId());
 		WalletUser x = walletUserRepository.findByEmailAddress(user.getEmail());
-		if(x == null && y == null) {
-			return new ResponseEntity<>(new ErrorResponse("Default Wallet Not Created"),
-					HttpStatus.BAD_REQUEST);
+		if (x == null && y == null) {
+			return new ResponseEntity<>(new ErrorResponse("Default Wallet Not Created"), HttpStatus.BAD_REQUEST);
 		}
 		if (!y.getEmailAddress().equals(x.getEmailAddress())) {
 			return new ResponseEntity<>(new ErrorResponse("Wallet Data Integity.please contact Admin"),
@@ -778,6 +799,15 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new SuccessResponse("Account Wallet Search", account), HttpStatus.OK);
 		}
 		return new ResponseEntity<>(new ErrorResponse("Unable to fetch account"), HttpStatus.NOT_FOUND);
+	}
+
+	@Override
+	public ApiResponse<?> fetchTransaction(String acctNo) {
+		List<AccountStatementDTO> account = tempwallet.fetchTransaction(acctNo);
+		if (account.isEmpty()) {
+			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "IMBALANCE TRANSACTION", null);
+		}
+		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESSFUL TRANSACTION STATEMENT", account);
 	}
 
 }

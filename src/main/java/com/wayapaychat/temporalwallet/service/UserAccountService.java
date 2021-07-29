@@ -54,5 +54,7 @@ public interface UserAccountService {
 	ResponseEntity<?> modifyUserAccount(UserAccountDTO user);
 	
 	ResponseEntity<?> UserAccountAccess(AdminAccountRestrictionDTO user);
+	
+	ApiResponse<?> fetchTransaction(String acctNo);
 
 }

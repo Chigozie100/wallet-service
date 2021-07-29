@@ -84,11 +84,16 @@ public class WalletTransaction {
     @CreationTimestamp
     @ApiModelProperty(hidden = true)
     private LocalDateTime updatedAt;
+    
+    private String createdBy;
+    
+    private String createdEmail;
 
 	public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
 			@NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType, 
 			@NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
-			@NotNull String partTranType, String tranGL,String paymentReference) {
+			@NotNull String partTranType, String tranGL,String paymentReference, 
+			String createdBy, String createdEmail) {
 		super();
 		this.del_flg = false;
 		this.posted_flg = true;
@@ -102,12 +107,15 @@ public class WalletTransaction {
 		this.partTranType = partTranType;
 		this.tranGL = tranGL;
 		this.paymentReference = paymentReference;
+		this.createdBy = createdBy;
+		this.createdEmail = createdEmail;
 	}
 	
 	public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
 			@NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType, 
 			@NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
-			@NotNull String partTranType, String tranGL, String paymentReference, String relatedTransId) {
+			@NotNull String partTranType, String tranGL, String paymentReference, String relatedTransId,
+			String createdBy, String createdEmail) {
 		super();
 		this.del_flg = false;
 		this.posted_flg = true;
@@ -122,6 +130,8 @@ public class WalletTransaction {
 		this.tranGL = tranGL;
 		this.paymentReference = paymentReference;
 		this.relatedTransId = relatedTransId;
+		this.createdBy = createdBy;
+		this.createdEmail = createdEmail;
 	}
     
     

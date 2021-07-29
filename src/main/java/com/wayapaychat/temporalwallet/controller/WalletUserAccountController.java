@@ -182,6 +182,16 @@ public class WalletUserAccountController {
     public ResponseEntity<?> ListAllAccounts(@PathVariable String item) {
         return userAccountService.searchAccount(item);
     }
+	
+	@ApiOperation(value = "Generate Account Statement")
+    @GetMapping(path = "/admin/account/statement/{accountNo}")
+    public ResponseEntity<?> GenerateAccountStatement(@PathVariable String accountNo) {
+        ApiResponse<?> res = userAccountService.fetchTransaction(accountNo);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
 
 
 }
