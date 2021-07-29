@@ -117,6 +117,12 @@ public class WalletUserAccountController {
         return userAccountService.getListCommissionAccount(ids);
     }
 	
+	@ApiOperation(value = "List all waya Accounts")
+    @GetMapping(path = "/waya/account")
+    public ResponseEntity<?> ListAllWayaAccount() {
+        return userAccountService.getListWayaAccount();
+    }
+	
 	@ApiOperation(value = "Get Wallet Account Info", hidden = false)
     @GetMapping(path = "/info/{accountNo}")
     public ResponseEntity<?> getAcctInfo(@PathVariable String accountNo) {

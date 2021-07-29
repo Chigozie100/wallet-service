@@ -31,6 +31,8 @@ public interface UserAccountService {
 	
 	ResponseEntity<?> getListCommissionAccount(List<Integer> ids);
 	
+	ResponseEntity<?> getListWayaAccount();
+	
 	ResponseEntity<?> getAccountInfo(String accountNo);
 	
 	ResponseEntity<?> getUserAccountList(long userId);
