@@ -5,6 +5,7 @@ import java.util.Date;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.wayapaychat.temporalwallet.dto.AdminLocalTransferDTO;
 import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
+import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
@@ -44,6 +46,18 @@ public class WalletTransactionController {
 	@PostMapping("/sendmoney/wallet")
 	public ResponseEntity<?> sendMoney(@Valid @RequestBody TransferTransactionDTO transfer) {
 		ApiResponse<?> res = transAccountService.sendMoney(transfer);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+		log.info("Send Money: {}", transfer);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Send Money to Wallet", notes = "Post Money")
+	@PostMapping("/fund/bank/account")
+	public ResponseEntity<?> fundBank(@Valid @RequestBody BankPaymentDTO transfer) {
+		ApiResponse<?> res = transAccountService.BankTransferPayment(transfer);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
@@ -200,11 +214,13 @@ public class WalletTransactionController {
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Admin to Fetch all Reversal", notes = "Transfer amount from one wallet to another wallet")
-	@PostMapping("/reverse/report")
-	public ResponseEntity<?> PaymentRevReReport(@RequestParam("date") Date date) {
+	@GetMapping("/reverse/report")
+	public ResponseEntity<?> PaymentRevReReport(@RequestParam("fromdate") 
+	   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate, 
+			@RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate) {
 		ApiResponse<?> res;
 		try {
-			res = transAccountService.TranRevALLReport(date);
+			res = transAccountService.TranRevALLReport(fromdate, todate);
 			if (!res.getStatus()) {
 	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
 	        }

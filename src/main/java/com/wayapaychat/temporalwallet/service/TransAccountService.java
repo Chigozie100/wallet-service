@@ -7,6 +7,7 @@ import org.springframework.data.domain.Page;
 
 import com.wayapaychat.temporalwallet.dto.AdminLocalTransferDTO;
 import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
+import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
@@ -55,7 +56,9 @@ public interface TransAccountService {
 	
 	ApiResponse<?> TranReversePayment(ReverseTransactionDTO reverseDto) throws ParseException;
 	
-	ApiResponse<?> TranRevALLReport(Date date);
+	ApiResponse<?> TranRevALLReport(Date date, Date todate);
+	
+	ApiResponse<?> BankTransferPayment(BankPaymentDTO transfer);
 	
 
 }
