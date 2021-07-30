@@ -976,4 +976,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 	}
 
+	@Override
+	public ApiResponse<?> TranRevALLReport(Date date) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

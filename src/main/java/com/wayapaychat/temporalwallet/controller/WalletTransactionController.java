@@ -1,5 +1,7 @@
 package com.wayapaychat.temporalwallet.controller;
 
+import java.util.Date;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -183,6 +185,26 @@ public class WalletTransactionController {
 		ApiResponse<?> res;
 		try {
 			res = transAccountService.TranReversePayment(reverseDto);
+			if (!res.getStatus()) {
+	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+	        }
+	        return new ResponseEntity<>(res, HttpStatus.OK);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
+			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+		}
+		
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Admin to Fetch all Reversal", notes = "Transfer amount from one wallet to another wallet")
+	@PostMapping("/reverse/report")
+	public ResponseEntity<?> PaymentRevReReport(@RequestParam("date") Date date) {
+		ApiResponse<?> res;
+		try {
+			res = transAccountService.TranRevALLReport(date);
 			if (!res.getStatus()) {
 	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
 	        }
