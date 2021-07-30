@@ -54,7 +54,7 @@ public class WalletTransactionController {
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-	@ApiOperation(value = "Send Money to Wallet", notes = "Post Money")
+	@ApiOperation(value = "Send Money to commercial bank", notes = "Post Money")
 	@PostMapping("/fund/bank/account")
 	public ResponseEntity<?> fundBank(@Valid @RequestBody BankPaymentDTO transfer) {
 		ApiResponse<?> res = transAccountService.BankTransferPayment(transfer);
