@@ -1,6 +1,7 @@
 package com.wayapaychat.temporalwallet.service;
 
 import java.text.ParseException;
+import java.util.Date;
 
 import org.springframework.data.domain.Page;
 
@@ -53,6 +54,8 @@ public interface TransAccountService {
 	ApiResponse<?> sendMoneyCharge(WalletTransactionChargeDTO transfer);
 	
 	ApiResponse<?> TranReversePayment(ReverseTransactionDTO reverseDto) throws ParseException;
+	
+	ApiResponse<?> TranRevALLReport(Date date);
 	
 
 }
