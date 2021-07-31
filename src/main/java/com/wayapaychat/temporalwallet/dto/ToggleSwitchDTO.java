@@ -5,9 +5,7 @@ import lombok.Data;
 @Data
 public class ToggleSwitchDTO {
 	
-	private boolean offPrevSwitch;
-	
-	private boolean onNewSwitch;
+	private boolean onSwitch;
 	
 	private String prevSwitchCode;
 	

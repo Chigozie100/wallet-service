@@ -1,4 +1,4 @@
-package com.wayapaychat.temporalwallet.controller;
+/*package com.wayapaychat.temporalwallet.controller;
 
 import com.wayapaychat.temporalwallet.pojo.AccountPojo;
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
@@ -76,3 +76,4 @@ public class AccountController {
     }
 
 }
+*/

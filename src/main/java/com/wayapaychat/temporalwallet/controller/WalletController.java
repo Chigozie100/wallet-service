@@ -1,4 +1,4 @@
-package com.wayapaychat.temporalwallet.controller;
+/*package com.wayapaychat.temporalwallet.controller;
 
 import java.util.List;
 
@@ -221,3 +221,4 @@ public class WalletController {
         return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 }
+*/
