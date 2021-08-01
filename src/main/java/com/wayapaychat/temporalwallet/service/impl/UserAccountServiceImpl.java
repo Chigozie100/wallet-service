@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
+import com.wayapaychat.temporalwallet.dto.AccountToggleDTO;
 import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
 import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
 import com.wayapaychat.temporalwallet.dto.UserDTO;
@@ -374,6 +375,45 @@ public class UserAccountServiceImpl implements UserAccountService {
 					return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"),
 							HttpStatus.NOT_FOUND);
 				}
+				account.setWalletDefault(false);
+				walletAccountRepository.save(account);
+				WalletAccount caccount = walletAccountRepository.findByAccountNo(user.getNewDefaultAcctNo());
+				if (caccount == null) {
+					return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"),
+							HttpStatus.NOT_FOUND);
+				}
+				caccount.setWalletDefault(true);
+				walletAccountRepository.save(caccount);
+				return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
+						HttpStatus.CREATED);
+			} catch (Exception e) {
+				return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+			}
+		}
+		return new ResponseEntity<>(new SuccessResponse("Successfully Update Without No Account Affected"),
+				HttpStatus.OK);
+	}
+	
+	public ResponseEntity<?> ToggleAccount(AccountToggleDTO user) {
+		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
+		if (existingUser == null) {
+			return new ResponseEntity<>(new ErrorResponse("Wallet User does not exists"), HttpStatus.NOT_FOUND);
+		}
+		int userId = user.getUserId().intValue();
+		UserDetailPojo wallet = authService.AuthUser(userId);
+		if (wallet.is_deleted()) {
+			return new ResponseEntity<>(new ErrorResponse("Auth User has been deleted"), HttpStatus.BAD_REQUEST);
+		}
+		// Default Wallet
+		walletUserRepository.save(existingUser);
+		if ((!user.getNewDefaultAcctNo().isEmpty() && !user.getNewDefaultAcctNo().isBlank())) {
+			try {
+				Optional<WalletAccount> accountDef = walletAccountRepository.findByDefaultAccount(existingUser);
+				if (!accountDef.isPresent()) {
+					return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"),
+							HttpStatus.NOT_FOUND);
+				}
+				WalletAccount account = accountDef.get();
 				account.setWalletDefault(false);
 				walletAccountRepository.save(account);
 				WalletAccount caccount = walletAccountRepository.findByAccountNo(user.getNewDefaultAcctNo());

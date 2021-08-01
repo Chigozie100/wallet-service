@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.wayapaychat.temporalwallet.dto.AccountToggleDTO;
 import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
 import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
 import com.wayapaychat.temporalwallet.dto.UserDTO;
@@ -58,6 +59,14 @@ public class WalletUserAccountController {
     public ResponseEntity<?> createUserAccount(@Valid @RequestBody UserAccountDTO user) {
 		log.info("Request input: {}",user);
 		return userAccountService.modifyUserAccount(user);
+        //return userAccountService.modifyUserAccount(user);
+    }
+	
+	@ApiOperation(value = "Account Toggle", hidden = false)
+    @PostMapping(path = "/user/account/toggle")
+    public ResponseEntity<?> createAccountToggle(@Valid @RequestBody AccountToggleDTO user) {
+		log.info("Request input: {}",user);
+		return userAccountService.ToggleAccount(user);
         //return userAccountService.modifyUserAccount(user);
     }
 	
