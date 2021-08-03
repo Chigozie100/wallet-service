@@ -4,11 +4,15 @@ import java.text.ParseException;
 import java.util.Date;
 
 import org.springframework.data.domain.Page;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.wayapaychat.temporalwallet.dto.AdminLocalTransferDTO;
 import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
+import com.wayapaychat.temporalwallet.dto.BulkTransactionCreationDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
+import com.wayapaychat.temporalwallet.dto.OfficeTransferDTO;
+import com.wayapaychat.temporalwallet.dto.OfficeUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.WalletAdminTransferDTO;
@@ -43,6 +47,14 @@ public interface TransAccountService {
 	ApiResponse<?> makeWalletTransaction(String command, TransferTransactionDTO transactionPojo);
 	
 	ApiResponse<?> sendMoney(TransferTransactionDTO transfer);
+	
+	ApiResponse<?> OfficialMoneyTransfer(OfficeTransferDTO transfer);
+	
+	ApiResponse<?> OfficialUserTransfer(OfficeUserTransferDTO transfer);
+	
+	ApiResponse<?> createBulkTransaction(BulkTransactionCreationDTO bulk);
+	
+	ApiResponse<?> createBulkExcelTrans(MultipartFile file);
 	
 	ApiResponse<?> AdminsendMoney(AdminLocalTransferDTO transfer);
 	
