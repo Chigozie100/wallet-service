@@ -218,9 +218,11 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 		int userId = user.getUserId().intValue();
 		UserDetailPojo wallet = authService.AuthUser(userId);
+		
 		if (wallet == null) {
 			return new ResponseEntity<>(new ErrorResponse("Auth User ID does not exists"), HttpStatus.BAD_REQUEST);
 		}
+		log.info("Is it a corporate User: {}",wallet.is_corporate());
 		// Default Wallet
 		String acct_name = user.getFirstName().toUpperCase() + " " + user.getLastName().toUpperCase();
 		WalletUser userInfo = new WalletUser(user.getSolId(), user.getUserId(), user.getFirstName().toUpperCase(),
@@ -297,7 +299,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			WalletAccount caccount = new WalletAccount();
 			// Commission Wallet
 			if (wallet.is_corporate()) {
-				Optional<WalletAccount> acct = walletAccountRepository.findByProductCode(wayaProductCommission);
+				Optional<WalletAccount> acct = walletAccountRepository.findByAccountUser(userx);
 				if (!acct.isPresent()) {
 					code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission, wayaCommGLCode);
 					product = walletProductRepository.findByProductCode(wayaProductCommission, wayaCommGLCode);

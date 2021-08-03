@@ -20,7 +20,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 
 @RestController
-@RequestMapping("/wallet")
+@RequestMapping("/api/v1/switch")
 public class SwitchAccountController {
 
 	@Autowired
@@ -29,7 +29,7 @@ public class SwitchAccountController {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Create Switch for Toggle", notes = "Toggle Off/No")
-	@PostMapping("/switch")
+	@PostMapping("/wallet")
 	public ResponseEntity<?> switchOperator(@RequestBody CreateSwitchDTO switchWallet) {
 		return switchWalletService.CreateWalletOperator(switchWallet);
 	}
@@ -37,25 +37,25 @@ public class SwitchAccountController {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Toggle Switch", notes = "Toggle Off/No")
-	@PutMapping("/switch/toggle")
+	@PutMapping("/wallet/toggle")
 	public ResponseEntity<?> switchToggle(@RequestBody ToggleSwitchDTO switchWallet) {
 		return switchWalletService.UpdateSwitche(switchWallet);
 	}
 
 	@ApiOperation(value = "List Switches", notes = "Toggle Off/No")
-	@GetMapping("/switch")
+	@GetMapping("/wallet")
 	public ResponseEntity<?> ListSwitchOperator() {
 		return switchWalletService.ListAllSwitches();
 	}
 	
 	@ApiOperation(value = "List Switches", notes = "Toggle Off/No")
-	@GetMapping("/switch/{identity}")
+	@GetMapping("/wallet/{identity}")
 	public ResponseEntity<?> GetSwitchOperator(@PathVariable("identity") String identity) {
 		return switchWalletService.GetSwitch(identity);
 	}
 	
 	@ApiOperation(value = "List Switches", notes = "Toggle Off/No")
-	@DeleteMapping("/switch/{id}")
+	@DeleteMapping("/wallet/{id}")
 	public ResponseEntity<?> DeleteSwitchOperator(@PathVariable("id") Long id) {
 		return switchWalletService.DeleteSwitches(id);
 	}
