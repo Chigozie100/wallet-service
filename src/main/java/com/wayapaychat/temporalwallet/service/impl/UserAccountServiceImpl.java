@@ -6,13 +6,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import org.apache.commons.lang.StringUtils;
 
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -751,8 +748,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> getAllAccount() {
-		Pageable paging = PageRequest.of(0, 10);
-		Page<WalletAccount> pagedResult = walletAccountRepository.findAll(paging);
+		List<WalletAccount> pagedResult = walletAccountRepository.findAll();
 		return new ResponseEntity<>(new SuccessResponse("Success.", pagedResult), HttpStatus.OK);
 	}
 
