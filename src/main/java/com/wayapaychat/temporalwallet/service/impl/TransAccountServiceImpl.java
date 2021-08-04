@@ -18,13 +18,17 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.AdminLocalTransferDTO;
 import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
+import com.wayapaychat.temporalwallet.dto.BulkTransactionCreationDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
+import com.wayapaychat.temporalwallet.dto.OfficeTransferDTO;
+import com.wayapaychat.temporalwallet.dto.OfficeUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.WalletAccountStatement;
@@ -282,6 +286,52 @@ public class TransAccountServiceImpl implements TransAccountService {
 	public ApiResponse<?> sendMoney(TransferTransactionDTO transfer) {
 		String fromAccountNumber = transfer.getDebitAccountNumber();
 		String toAccountNumber = transfer.getBenefAccountNumber();
+		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
+		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
+		try {
+			String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+					transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+			String[] tranKey = tranId.split(Pattern.quote("|"));
+			if (tranKey[0].equals("DJGO")) {
+				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+			}
+			Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
+			resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+			if (!transaction.isPresent()) {
+				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return resp;
+	}
+	
+	public ApiResponse<?> OfficialMoneyTransfer(OfficeTransferDTO transfer) {
+		String fromAccountNumber = transfer.getOfficeDebitAccount();
+		String toAccountNumber = transfer.getOfficeCreditAccount();
+		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
+		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
+		try {
+			String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+					transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+			String[] tranKey = tranId.split(Pattern.quote("|"));
+			if (tranKey[0].equals("DJGO")) {
+				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+			}
+			Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
+			resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+			if (!transaction.isPresent()) {
+				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return resp;
+	}
+	
+	public ApiResponse<?> OfficialUserTransfer(OfficeUserTransferDTO transfer) {
+		String fromAccountNumber = transfer.getOfficeDebitAccount();
+		String toAccountNumber = transfer.getCustomerCreditAccount();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
@@ -1146,6 +1196,18 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO REPORT SPECIFIED DATE", null);
 		}
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "REVERSAL REPORT SUCCESSFULLY", transaction);
+	}
+
+	@Override
+	public ApiResponse<?> createBulkTransaction(BulkTransactionCreationDTO bulk) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public ApiResponse<?> createBulkExcelTrans(MultipartFile file) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }
