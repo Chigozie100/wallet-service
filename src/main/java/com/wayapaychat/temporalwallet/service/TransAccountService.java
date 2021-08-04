@@ -70,6 +70,8 @@ public interface TransAccountService {
 	
 	ApiResponse<?> TranRevALLReport(Date date, Date todate);
 	
+	ApiResponse<?> statementReport(Date fromdate, Date todate,String acctNo);
+	
 	ApiResponse<?> BankTransferPayment(BankPaymentDTO transfer);
 	
 
