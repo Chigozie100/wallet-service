@@ -263,6 +263,7 @@ public class WalletTransactionController {
 		}
 		
 	}
+	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Waya Admin to create multiple transaction", notes = "Transfer amount from one wallet to another wallet")
 	@PostMapping("/transfer/bulk-transaction")
@@ -288,5 +289,28 @@ public class WalletTransactionController {
 		log.info("Send Money: {}", file);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
+	
+	
+	@ApiOperation(value = "For Admin to view all waya transaction", notes = "To view all transaction for wallet/waya")
+	@GetMapping("/admin/statement/{acctNo}")
+	public ResponseEntity<?> StatementReport(@RequestParam("fromdate") 
+	   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate, 
+			@RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
+			@PathVariable("acctNo") String acctNo) {
+		ApiResponse<?> res;
+		try {
+			res = transAccountService.statementReport(fromdate, todate, acctNo);
+			if (!res.getStatus()) {
+	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+	        }
+	        return new ResponseEntity<>(res, HttpStatus.OK);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
+			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+		}
+		
+	}
 
 }

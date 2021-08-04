@@ -1,27 +1,35 @@
 package com.wayapaychat.temporalwallet.util;
 
-import lombok.extern.slf4j.Slf4j;
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.ss.util.CellReference;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.multipart.MultipartFile;
-
-import com.wayapaychat.temporalwallet.dto.BulkTransactionCreationDTO;
-import com.wayapaychat.temporalwallet.dto.BulkTransactionExcelDTO;
-import com.wayapaychat.temporalwallet.dto.ExcelTransactionCreationDTO;
-import com.wayapaychat.temporalwallet.dto.UserTransactionDTO;
-import com.wayapaychat.temporalwallet.exception.CustomException;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.DataFormatter;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellReference;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.wayapaychat.temporalwallet.dto.BulkTransactionExcelDTO;
+import com.wayapaychat.temporalwallet.dto.ExcelTransactionCreationDTO;
+import com.wayapaychat.temporalwallet.exception.CustomException;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ExcelHelper {
@@ -109,6 +117,18 @@ public class ExcelHelper {
                             break;
                         case "E":
                         	pojo.setTranType(defaultStringCell(cell));
+                            break;
+                        case "F":
+                        	pojo.setTranCrncy(defaultStringCell(cell));
+                            break;
+                        case "G":
+                        	pojo.setTranNarration(defaultStringCell(cell));
+                            break;
+                        case "H":
+                        	pojo.setPaymentReference(defaultStringCell(cell));
+                            break;
+                        case "I":
+                        	pojo.setOfficeAccountNo(defaultStringCell(cell));
                             break;
                         default:
                             break;
