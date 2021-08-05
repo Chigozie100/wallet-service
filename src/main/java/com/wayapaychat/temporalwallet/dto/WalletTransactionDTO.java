@@ -15,7 +15,7 @@ public class WalletTransactionDTO {
 	@NotBlank(message = "Account must not Null or Blank")
 	@Size(min=10, max=10, message = "Account must be 10 digit")
 	private String debitAccountNumber;
-    
+	    
 	//@NotNull
 	@NotBlank(message = "Email must not be Null or Blank")
 	@Size(min=1, max=50)
