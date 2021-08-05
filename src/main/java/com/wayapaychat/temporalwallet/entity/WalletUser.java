@@ -14,6 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -27,7 +28,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "m_wallet_user")
+@Table(name = "m_wallet_user", uniqueConstraints = {
+        @UniqueConstraint(name = "UniqueEmailAndPhoneNumberAndDelFlg", columnNames = {"userId", "mobileNo", "emailAddress", "del_flg"})})
 public class WalletUser {
 
 	@Id
@@ -48,10 +50,12 @@ public class WalletUser {
 
 	private String lastName;
 
-	@Column(unique = true, nullable = false)
+	//@Column(unique = true, nullable = false)
+	@Column(nullable = false)
 	private String emailAddress;
 
-	@Column(unique = true, nullable = false)
+	//@Column(unique = true, nullable = false)
+	@Column(nullable = false)
 	private String mobileNo;
 	
 	private String cust_name;
