@@ -192,7 +192,7 @@ public class WalletUserAccountController {
         return userAccountService.getAccountDefault(user_id);
     }
 	
-	@ApiOperation(value = "To Search For Account(s) with Phone or Email")
+	@ApiOperation(value = "To Search For Account(s) with Phone or Email or WayaID")
     @GetMapping(path = "/account/search/{item}")
     public ResponseEntity<?> ListAllAccounts(@PathVariable String item) {
         return userAccountService.searchAccount(item);

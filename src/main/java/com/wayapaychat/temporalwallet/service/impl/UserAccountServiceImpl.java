@@ -339,7 +339,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Auth User has been deleted"), HttpStatus.BAD_REQUEST);
 		}
 		if (!user.getNewEmailId().isBlank() && !user.getNewEmailId().isEmpty()) {
-			WalletUser existingEmail = walletUserRepository.findByEmailAddress(user.getNewEmailId());
+			WalletUser existingEmail = walletUserRepository.findByEmailAddress(user.getNewEmailId(),user.getUserId());
 			if (existingEmail != null) {
 				return new ResponseEntity<>(new ErrorResponse("Email already used on Wallet User Account"),
 						HttpStatus.NOT_FOUND);
@@ -347,7 +347,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			existingUser.setEmailAddress(user.getNewEmailId());
 		}
 		if (!user.getNewMobileNo().isBlank() && !user.getNewMobileNo().isEmpty()) {
-			WalletUser existingPhone = walletUserRepository.findByMobileNo(user.getNewMobileNo());
+			WalletUser existingPhone = walletUserRepository.findByMobileNo(user.getNewMobileNo(),user.getUserId());
 			if (existingPhone != null) {
 				return new ResponseEntity<>(new ErrorResponse("PhoneNo already used on Wallet User Account"),
 						HttpStatus.NOT_FOUND);
@@ -598,7 +598,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Auth User ID does not exist"), HttpStatus.BAD_REQUEST);
 		}
 		WalletUser y = walletUserRepository.findByUserId(accountPojo.getUserId());
-		WalletUser x = walletUserRepository.findByEmailAddress(user.getEmail());
+		WalletUser x = walletUserRepository.findByEmailAddress(user.getEmail(), accountPojo.getUserId());
 		if (x == null && y == null) {
 			return new ResponseEntity<>(new ErrorResponse("Default Wallet Not Created"), HttpStatus.BAD_REQUEST);
 		}
@@ -738,7 +738,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		if (ur == null) {
 			return new ResponseEntity<>(new ErrorResponse("User Id is Invalid"), HttpStatus.NOT_FOUND);
 		}
-		WalletUser x = walletUserRepository.findByEmailAddress(ur.getEmail());
+		WalletUser x = walletUserRepository.findByEmailAddress(ur.getEmail(), userId);
 		if (x == null) {
 			return new ResponseEntity<>(new ErrorResponse("Wallet User does not exist"), HttpStatus.NOT_FOUND);
 		}
@@ -819,6 +819,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 	public ResponseEntity<?> searchAccount(String search) {
 		List<WalletUser> user = walletUserRepository.findAll();
 		List<WalletUser> matchingAcct = new ArrayList<WalletUser>();
+		List<WalletUser> matchingAcct2 = new ArrayList<WalletUser>();
 		List<WalletAccount> account = new ArrayList<WalletAccount>();
 		matchingAcct = user.stream().filter(str -> str.getMobileNo().trim().contains(search))
 				.collect(Collectors.toList());
@@ -832,6 +833,18 @@ public class UserAccountServiceImpl implements UserAccountService {
 				.collect(Collectors.toList());
 		if (!matchingAcct.isEmpty()) {
 			for (WalletUser x : matchingAcct) {
+				account = walletAccountRepository.findByUser(x);
+			}
+			return new ResponseEntity<>(new SuccessResponse("Account Wallet Search", account), HttpStatus.OK);
+		}
+		
+		for(WalletUser col : user) {
+			if(col.getUserId() == Long.valueOf(search)) {
+				matchingAcct2.add(col);
+			}
+		}
+		if (!matchingAcct2.isEmpty()) {
+			for (WalletUser x : matchingAcct2) {
 				account = walletAccountRepository.findByUser(x);
 			}
 			return new ResponseEntity<>(new SuccessResponse("Account Wallet Search", account), HttpStatus.OK);

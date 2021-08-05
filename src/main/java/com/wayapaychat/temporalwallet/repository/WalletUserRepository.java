@@ -13,11 +13,13 @@ import com.wayapaychat.temporalwallet.entity.WalletUser;
 @Repository
 public interface WalletUserRepository extends JpaRepository<WalletUser, Long> {
 	
-	WalletUser findByEmailAddress(String email);
+	@Query(value = "SELECT u FROM WalletUser u " + "WHERE UPPER(u.emailAddress) = UPPER(:email) " + " AND u.userId = (:userId) " + " AND u.del_flg = false")
+	WalletUser findByEmailAddress(String email, Long userId);
 	
 	WalletUser findByUserId(Long userId);
 	
-	WalletUser findByMobileNo(String phone);
+	@Query(value = "SELECT u FROM WalletUser u " + "WHERE UPPER(u.mobileNo) = UPPER(:phone) " + " AND u.userId = (:userId) " + " AND u.del_flg = false")
+	WalletUser findByMobileNo(String phone, Long userId);
 	
 	WalletUser findByAccount(WalletAccount account);
 	
