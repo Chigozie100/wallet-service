@@ -50,12 +50,10 @@ public class WalletUser {
 
 	private String lastName;
 
-	//@Column(unique = true, nullable = false)
-	@Column(nullable = false)
+	@Column(unique = true, nullable = false)
 	private String emailAddress;
 
-	//@Column(unique = true, nullable = false)
-	@Column(nullable = false)
+	@Column(unique = true, nullable = false)
 	private String mobileNo;
 	
 	private String cust_name;
