@@ -1,6 +1,7 @@
 package com.wayapaychat.temporalwallet.dao;
 
-
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,10 +15,11 @@ import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.mapper.AccountStatementMapper;
 
 import lombok.extern.slf4j.Slf4j;
+
 @Repository
 @Slf4j
 public class TemporalWalletDAOImpl implements TemporalWalletDAO {
-	
+
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 
@@ -53,9 +55,9 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		}
 		return count;
 	}
-	
+
 	public String GetSecurityTest(String account) {
-		String sql = "select user_id||'|'||account_no||'|'||product_code||'|'||acct_crncy_code  "; 
+		String sql = "select user_id||'|'||account_no||'|'||product_code||'|'||acct_crncy_code  ";
 		sql = sql + "as record from m_wallet_account a,m_wallet_user b where b.id = a.cif_id  ";
 		sql = sql + "and account_no = ? ";
 		String count = null;
@@ -67,7 +69,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		}
 		return count;
 	}
-	
+
 	public List<AccountStatementDTO> fetchTransaction(String acctNo) {
 		List<AccountStatementDTO> accountList = new ArrayList<>();
 		StringBuilder query = new StringBuilder();
@@ -87,6 +89,64 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 			log.error("An error Occured: Cause: {} \r\n Message: {}", ex.getCause(), ex.getMessage());
 			return null;
 		}
+	}
+
+	public int PaymenttranInsert(String event, String debitAccountNo, String creditAccountNo, BigDecimal amount,
+			String paymentReference) {
+		Integer record = 0;
+		StringBuilder query = new StringBuilder();
+		Object[] params = null;
+		if (event.isBlank() || event.isEmpty()) {
+			query.append("INSERT INTO m_accounts_transaction(debit_account_no,credit_account_no,");
+			query.append("tran_date,tran_amount,payment_reference)  ");
+			query.append("VALUES(?,?,?,?,?)");
+			params = new Object[] { debitAccountNo.trim().toUpperCase(), creditAccountNo.trim().toUpperCase(),
+					LocalDate.now(), amount, paymentReference.trim().toUpperCase() };
+		} else {
+			query.append("INSERT INTO m_accounts_transaction(event_id,credit_account_no,");
+			query.append("tran_date,tran_amount,payment_reference)  ");
+			query.append("VALUES(?,?,?,?,?)");
+			params = new Object[] { event.trim().toUpperCase(),
+					creditAccountNo.trim().toUpperCase(), LocalDate.now(), amount,
+					paymentReference.trim().toUpperCase() };
+		}
+		String sql = query.toString();
+		try {
+			int x = jdbcTemplate.update(sql, params);
+			if (x == 1) {
+				log.info("ACCOUNT TRANSACTION TABLE INSERTED SUCCESSFUL: {}", x);
+				record = x;
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			log.error(ex.getMessage());
+			if(ex.getMessage().contains("duplicate")) {
+				record = 2;
+			}
+		}
+
+		return record;
+
+	}
+	
+	public void updateTransaction(String paymentReference, BigDecimal amount) {
+		StringBuilder query = new StringBuilder();
+		Object[] params = null;
+			query.append("Update m_accounts_transaction set processed_flg = 'Y' ");
+			query.append("WHERE tran_date = ? AND tran_amount = ? AND payment_reference = ? ");
+			params = new Object[] { paymentReference.trim().toUpperCase(), amount,
+					LocalDate.now() };
+		String sql = query.toString();
+		try {
+			int x = jdbcTemplate.update(sql, params);
+			if (x == 1) {
+				log.info("ACCOUNT TRANSACTION TABLE UPDATED SUCCESSFUL: {}", x);
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			log.error(ex.getMessage());
+		}
+		
 	}
 
 }

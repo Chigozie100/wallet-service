@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.dao;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
@@ -16,5 +17,9 @@ public interface TemporalWalletDAO {
 	String GetSecurityTest(String account);
 	
 	List<AccountStatementDTO> fetchTransaction(String acctNo);
+	
+	int PaymenttranInsert(String event, String debitAccountNo, String creditAccountNo, BigDecimal amount,
+			String paymentReference);
+	void updateTransaction(String paymentReference, BigDecimal amount);
 
 }
