@@ -134,8 +134,8 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		Object[] params = null;
 			query.append("Update m_accounts_transaction set processed_flg = 'Y' ");
 			query.append("WHERE tran_date = ? AND tran_amount = ? AND payment_reference = ? ");
-			params = new Object[] { paymentReference.trim().toUpperCase(), amount,
-					LocalDate.now() };
+			params = new Object[] { LocalDate.now(),amount, paymentReference.trim().toUpperCase()
+					 };
 		String sql = query.toString();
 		try {
 			int x = jdbcTemplate.update(sql, params);
