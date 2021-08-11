@@ -187,7 +187,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 				log.info("Transaction ID Response: {}", tranId);
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				tempwallet.updateTransaction(transfer.getPaymentReference(), transfer.getAmount());
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
 				log.info("Transaction Response: {}", resp.toString());
 				if (!transaction.isPresent()) {
@@ -832,7 +831,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 	public String createEventTransaction(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef) throws Exception {
 		try {
-
+			log.info("START TRANSACTION");
+			String tranCount = tempwallet.transactionCount(paymentRef, creditAcctNo);
+			if(!tranCount.isBlank()) {
+				return "tranCount";
+			}
 			boolean validate = paramValidation.validateDefaultCode(tranCrncy, "Currency");
 			if (!validate) {
 				return "DJGO|Currency Code Validation Failed";
@@ -944,7 +947,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 			log.info("TRANSACTION CREATION DEBIT: {} WITH CREDIT: {}", tranDebit.toString(), tranCredit.toString());
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
-
+			tempwallet.updateTransaction(paymentRef, amount, tranId);
+			
 			double clrbalAmtDr = accountDebit.getClr_bal_amt() - amount.doubleValue();
 			double cumbalDrAmtDr = accountDebit.getCum_dr_amt() + amount.doubleValue();
 			accountDebit.setLast_tran_id_dr(tranId);
@@ -960,6 +964,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			accountCredit.setCum_cr_amt(cumbalCrAmtCr);
 			accountCredit.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(accountCredit);
+			log.info("END TRANSACTION");
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();

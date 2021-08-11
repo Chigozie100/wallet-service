@@ -129,12 +129,12 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 
 	}
 	
-	public void updateTransaction(String paymentReference, BigDecimal amount) {
+	public void updateTransaction(String paymentReference, BigDecimal amount, String tranId) {
 		StringBuilder query = new StringBuilder();
 		Object[] params = null;
-			query.append("Update m_accounts_transaction set processed_flg = 'Y' ");
+			query.append("Update m_accounts_transaction set processed_flg = 'Y',tran_id = ?  ");
 			query.append("WHERE tran_date = ? AND tran_amount = ? AND payment_reference = ? ");
-			params = new Object[] { LocalDate.now(),amount, paymentReference.trim().toUpperCase()
+			params = new Object[] { tranId.trim().toUpperCase(),LocalDate.now(),amount, paymentReference.trim().toUpperCase()
 					 };
 		String sql = query.toString();
 		try {
@@ -147,6 +147,23 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 			log.error(ex.getMessage());
 		}
 		
+	}
+	
+	public String transactionCount(String paymentReference, String accountNo) {
+		StringBuilder query = new StringBuilder();
+		String count = "";
+		query.append("SELECT tran_id FROM m_accounts_transaction WHERE processed_flg = 'Y' ");
+		query.append("AND payment_reference = ? AND credit_account_no = ? AND tran_date = ?");
+		String sql = query.toString();
+		try {
+			Object[] params = new Object[] { paymentReference.trim().toUpperCase(), 
+					accountNo.trim().toUpperCase(), LocalDate.now()};
+			count = jdbcTemplate.queryForObject(sql, String.class, params);
+			log.info("TOTAL TRANSACTION COUNT: {}", count);
+		} catch (Exception ex) {
+			log.error(ex.getMessage());
+		}
+		return count;
 	}
 
 }

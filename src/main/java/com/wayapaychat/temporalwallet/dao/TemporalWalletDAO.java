@@ -20,6 +20,9 @@ public interface TemporalWalletDAO {
 	
 	int PaymenttranInsert(String event, String debitAccountNo, String creditAccountNo, BigDecimal amount,
 			String paymentReference);
-	void updateTransaction(String paymentReference, BigDecimal amount);
+	
+	void updateTransaction(String paymentReference, BigDecimal amount, String tranId);
+	
+	String transactionCount(String paymentReference, String accountNo);
 
 }
