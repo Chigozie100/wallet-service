@@ -10,7 +10,7 @@ import lombok.Data;
 public class EventPaymentDTO {
 	
 	@NotNull
-	@Size(min=6, max=10)
+	@Size(min=6, max=30)
 	private String eventId;
     
 	@NotNull

@@ -11,7 +11,7 @@ import lombok.Data;
 public class EventChargeDTO {
 	
 	@NotNull
-	@Size(min=6, max=10)
+	@Size(min=6, max=30)
 	private String eventId;
 	
 	private BigDecimal tranAmt;
