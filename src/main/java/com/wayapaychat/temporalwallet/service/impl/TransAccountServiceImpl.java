@@ -235,8 +235,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public ApiResponse<Page<WalletTransaction>> findAllTransaction(int page, int size) {
-		Pageable paging = PageRequest.of(page, size);
-		Page<WalletTransaction> transaction = walletTransactionRepository.findAll(paging);
+		//Pageable paging = PageRequest.of(page, size);
+		//Page<WalletTransaction> transaction = walletTransactionRepository.findAll(paging);
+		Page<WalletTransaction> transaction = walletTransactionRepository.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
 		if (transaction == null) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "UNABLE TO GENERATE STATEMENT", null);
 		}
