@@ -120,7 +120,7 @@ public class WalletBankController {
         return configService.createdEvents(eventPojo);
     }
     
-    @ApiOperation(value = "List Wallet Product Code")
+    @ApiOperation(value = "List Wallet Event")
     @GetMapping(path = "/event/charges")
     public ResponseEntity<?> getListEventChrg() {
         return configService.ListEvents();
