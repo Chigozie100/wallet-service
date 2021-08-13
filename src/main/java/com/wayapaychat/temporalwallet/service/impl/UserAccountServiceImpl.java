@@ -861,7 +861,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 	public ApiResponse<?> fetchTransaction(String acctNo) {
 		List<AccountStatementDTO> account = tempwallet.fetchTransaction(acctNo);
 		if (account.isEmpty()) {
-			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "IMBALANCE TRANSACTION", null);
+			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO TRANSACTION RECORD", null);
 		}
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESSFUL TRANSACTION STATEMENT", account);
 	}
