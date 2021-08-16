@@ -333,6 +333,17 @@ public class TransAccountServiceImpl implements TransAccountService {
 		String fromAccountNumber = transfer.getOfficeDebitAccount();
 		String toAccountNumber = transfer.getOfficeCreditAccount();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
+		
+		List<WalletTransaction> transRef = walletTransactionRepository.findByReference(transfer.getPaymentReference(), LocalDate.now(),transfer.getTranCrncy());
+		if(!transRef.isEmpty()) {
+			Optional<WalletTransaction> ret = transRef.stream()
+					.filter(code -> code.getPaymentReference().equals(transfer.getPaymentReference()))
+					.findAny();
+			if (ret.isPresent()) {
+				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Duplicate Payment Reference on the same Day", null);
+			}
+		}
+		
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
 			String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
@@ -356,6 +367,17 @@ public class TransAccountServiceImpl implements TransAccountService {
 		String fromAccountNumber = transfer.getOfficeDebitAccount();
 		String toAccountNumber = transfer.getCustomerCreditAccount();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
+		
+		List<WalletTransaction> transRef = walletTransactionRepository.findByReference(transfer.getPaymentReference(), LocalDate.now(),transfer.getTranCrncy());
+		if(!transRef.isEmpty()) {
+			Optional<WalletTransaction> ret = transRef.stream()
+					.filter(code -> code.getPaymentReference().equals(transfer.getPaymentReference()))
+					.findAny();
+			if (ret.isPresent()) {
+				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Duplicate Payment Reference on the same Day", null);
+			}
+		}
+		
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
 			String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
