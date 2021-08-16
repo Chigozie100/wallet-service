@@ -454,6 +454,16 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Override
 	public ApiResponse<?> sendMoneyCustomer(WalletTransactionDTO transfer) {
+		List<WalletTransaction> transRef = walletTransactionRepository.findByReference(transfer.getPaymentReference(), LocalDate.now(),transfer.getTranCrncy());
+		if(!transRef.isEmpty()) {
+			Optional<WalletTransaction> ret = transRef.stream()
+					.filter(code -> code.getPaymentReference().equals(transfer.getPaymentReference()))
+					.findAny();
+			if (ret.isPresent()) {
+				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Duplicate Payment Reference on the same Day", null);
+			}
+		}
+		
 		Optional<WalletUser> wallet = walletUserRepository.findByEmailOrPhoneNumber(transfer.getEmailOrPhoneNumber());
 		if (!wallet.isPresent()) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE NO DOES NOT EXIST", null);
