@@ -1235,6 +1235,15 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "REVERSAL REPORT SUCCESSFULLY", transaction);
 	}
+	
+	@Override
+	public ApiResponse<?> TranALLReverseReport() {
+		List<WalletTransaction> transaction = walletTransactionRepository.findByAllReverse();
+		if (transaction.isEmpty()) {
+			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO REPORT SPECIFIED DATE", null);
+		}
+		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "REVERSAL REPORT SUCCESSFULLY", transaction);
+	}
 
 	@Override
 	public ApiResponse<?> createBulkTransaction(BulkTransactionCreationDTO bulkList) {
