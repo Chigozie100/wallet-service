@@ -28,7 +28,7 @@ public class AdminLocalTransferDTO {
     
 	//@NotNull
 	@NotBlank(message = "tranType must not Null or Blank")
-	@Size(min=1, max=1, message = "tranType can either be CARD,LOCAL,MONEY and BANK")
+	@Size(min=3, max=10, message = "tranType can either be CASH,CARD,LOCAL,MONEY and BANK")
     private String tranType;
     
 	//@NotNull
