@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.dto;
 
 import java.math.BigDecimal;
 
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -19,6 +20,7 @@ public class AdminUserTransferDTO {
     private String customerAccountNumber;
    
 	@NotNull
+	@Min(value = 1, message ="Amount must be greater than zero")
     private BigDecimal amount;
     
 	@NotNull
