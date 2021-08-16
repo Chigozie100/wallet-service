@@ -10,7 +10,7 @@ import javax.validation.constraints.Size;
 import lombok.Data;
 
 @Data
-public class AdminLocalTransferDTO {
+public class CommissionTransferDTO {
 	
 	@NotNull(message = "Admin User Id must be Entered")
 	private Long userId;
