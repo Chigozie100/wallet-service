@@ -74,7 +74,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		List<AccountStatementDTO> accountList = new ArrayList<>();
 		StringBuilder query = new StringBuilder();
 		query.append("Select tran_date,tran_type,created_at,created_email,email_address,");
-		query.append("mobile_no, account_no,tran_amount,tran_narrate,");
+		query.append("mobile_no,a.account_no,tran_amount,tran_narrate,");
 		query.append("(CASE WHEN part_tran_type = 'D' THEN 'DEBIT' WHEN part_tran_type = 'C' THEN 'CREDIT'");
 		query.append(" ELSE 'Unknown' END) debit_credit ");
 		query.append("from m_wallet_account a, m_wallet_transaction b,m_wallet_user c ");

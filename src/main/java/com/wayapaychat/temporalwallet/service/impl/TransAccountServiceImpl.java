@@ -381,7 +381,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID USER ID", null);
 		}
 		if (!user.is_admin()) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "USER ID IS NOT AN ADMIN", null);
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "USER ID PERFORMING OPERATION IS NOT AN ADMIN", null);
 		}
 		String fromAccountNumber = transfer.getDebitAccountNumber();
 		String toAccountNumber = transfer.getBenefAccountNumber();
