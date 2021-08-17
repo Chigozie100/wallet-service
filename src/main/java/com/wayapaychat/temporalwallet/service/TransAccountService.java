@@ -67,6 +67,8 @@ public interface TransAccountService {
 	
 	ApiResponse<?> EventTransferPayment(EventPaymentDTO eventPay);
 	
+	ApiResponse<?> EventCommissionPayment(EventPaymentDTO eventPay);
+	
 	ApiResponse<?> sendMoneyCharge(WalletTransactionChargeDTO transfer);
 	
 	ApiResponse<?> TranReversePayment(ReverseTransactionDTO reverseDto) throws ParseException;
