@@ -438,6 +438,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	public ResponseEntity<?> UserAccountAccess(AdminAccountRestrictionDTO user) {
 		WalletUser userDelete = null;
+		List<String> accountL = new ArrayList<>();
 		// Default Wallet
 		try {
 			WalletAccount account = walletAccountRepository.findByAccountNo(user.getCustomerAccountNumber());
@@ -447,6 +448,12 @@ public class UserAccountServiceImpl implements UserAccountService {
 			userDelete = walletUserRepository.findByAccount(account);
 			if (account.isAcct_cls_flg() && userDelete.isDel_flg()) {
 				return new ResponseEntity<>(new SuccessResponse("Wallet Account Deleted Successfully"), HttpStatus.OK);
+			}
+			List<WalletAccount> accountList = walletAccountRepository.findByUser(userDelete);
+			for(WalletAccount acct : accountList) {
+				if(acct.isAcct_cls_flg() && acct.getClr_bal_amt() != 0) {
+					accountL.add(acct.getAccountNo());
+				}
 			}
 			if (user.isAcctfreez()) {
 				if (user.getFreezCode().equalsIgnoreCase("D")) {
@@ -462,7 +469,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 					return new ResponseEntity<>(new ErrorResponse("Enter Correct Code"), HttpStatus.NOT_FOUND);
 				}
 			}
-			if (user.isAcctClosed()) {
+			if (user.isAcctClosed() && accountL.isEmpty()) {
 				if (account.getClr_bal_amt() == 0) {
 					account.setAcct_cls_date(LocalDate.now());
 					account.setAcct_cls_flg(true);
@@ -478,6 +485,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 							new ErrorResponse("Account balance must be equal to zero before it can be closed"),
 							HttpStatus.NOT_FOUND);
 				}
+			}else {
+				return new ResponseEntity<>(
+						new ErrorResponse("All User Accounts balance must be equal to zero before it can be closed"),
+						HttpStatus.NOT_FOUND);
 			}
 			if (user.isAmountRestrict()) {
 				double acctAmt = account.getLien_amt() + user.getLienAmount().doubleValue();
