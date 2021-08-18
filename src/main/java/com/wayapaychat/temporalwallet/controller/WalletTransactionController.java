@@ -145,13 +145,13 @@ public class WalletTransactionController {
 	}
 	
 	@ApiOperation(value = "Wallet Account Statement", notes = "Statement of Account")
-	@GetMapping("/statement/{accountNumber}")
-	public ResponseEntity<?> getStatement(@PathVariable("accountNumber") String accountNumber) {
-		ApiResponse<?> res = transAccountService.getStatement(accountNumber);
+	@GetMapping("/statement/{accountNo}")
+	public ResponseEntity<?> getStatement(@PathVariable("accountNo") String accountNo) {
+		ApiResponse<?> res = transAccountService.getStatement(accountNo);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
-		log.info("Statement of account: {}", accountNumber);
+		log.info("Statement of account: {}", accountNo);
         return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 	

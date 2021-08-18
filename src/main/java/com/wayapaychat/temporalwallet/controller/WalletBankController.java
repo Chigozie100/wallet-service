@@ -84,6 +84,12 @@ public class WalletBankController {
         return configService.ListProductCode();
     }
     
+    @ApiOperation(value = "List Account Products")
+    @GetMapping(path = "/product/account")
+    public ResponseEntity<?> ListProductAccount() {
+        return configService.ListAccountProductCode();
+    }
+    
     @ApiOperation(value = "Create a Wallet Product Code")
     @PostMapping(path = "/create/product/parameter")
     public ResponseEntity<?> createProductParameter(@Valid @RequestBody ProductDTO product) {

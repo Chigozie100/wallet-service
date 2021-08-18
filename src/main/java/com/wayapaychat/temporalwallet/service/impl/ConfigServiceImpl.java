@@ -191,6 +191,11 @@ public class ConfigServiceImpl implements ConfigService {
 		List<WalletProductCode> wallet = walletProductCodeRepo.findAll();
 		return new ResponseEntity<>(new SuccessResponse("Success", wallet), HttpStatus.OK);
 	}
+	
+	public ResponseEntity<?> ListAccountProductCode() {
+		List<WalletProductCode> wallet = walletProductCodeRepo.findByAllProduct();
+		return new ResponseEntity<>(new SuccessResponse("Success", wallet), HttpStatus.OK);
+	}
 
 	@Override
 	public ResponseEntity<?> createProductParameter(ProductDTO product) {

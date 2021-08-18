@@ -22,6 +22,7 @@ public interface ConfigService {
 	ResponseEntity<?> findProduct(Long id);
 	ResponseEntity<?> getProduct(String schm, String gl);
 	ResponseEntity<?> ListProductCode();
+	ResponseEntity<?> ListAccountProductCode();
 	ResponseEntity<?> createProductParameter(ProductDTO product);
 	ResponseEntity<?> createInterestParameter(InterestDTO interest);
 	ResponseEntity<?> createParamCOA(AccountGLDTO chat);

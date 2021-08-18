@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 
+import com.wayapaychat.temporalwallet.dto.AccountProductDTO;
 import com.wayapaychat.temporalwallet.dto.AccountToggleDTO;
 import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
 import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
@@ -26,6 +27,8 @@ public interface UserAccountService {
 	
 	ResponseEntity<?> createAccount(AccountPojo2 accountPojo);
 	
+	ResponseEntity<?> createAccountProduct(AccountProductDTO accountPojo);
+	
 	ApiResponse<?> findCustWalletById(Long walletId);
 	
 	ApiResponse<?> findAcctWalletById(Long walletId);
@@ -35,6 +38,8 @@ public interface UserAccountService {
 	ResponseEntity<?> getListWayaAccount();
 	
 	ResponseEntity<?> getAccountInfo(String accountNo);
+	
+	ResponseEntity<?> fetchAccountDetail(String accountNo);
 	
 	ResponseEntity<?> getUserAccountList(long userId);
 	

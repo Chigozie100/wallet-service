@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.wayapaychat.temporalwallet.dto.AccountProductDTO;
 import com.wayapaychat.temporalwallet.dto.AccountToggleDTO;
 import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
 import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
@@ -93,8 +94,15 @@ public class WalletUserAccountController {
 	
 	@ApiOperation(value = "Create a Wallet")
     @PostMapping(path = "/create-wallet")
-    public ResponseEntity<?> creteAccount(@Valid @RequestBody AccountPojo2 accountPojo) {
+    public ResponseEntity<?> createAccount(@Valid @RequestBody AccountPojo2 accountPojo) {
 		return userAccountService.createAccount(accountPojo);
+        //return userAccountService.createAccount(accountPojo);
+    }
+	
+	@ApiOperation(value = "Create a Wallet")
+    @PostMapping(path = "/account/product")
+    public ResponseEntity<?> createProductAccount(@Valid @RequestBody AccountProductDTO accountPojo) {
+		return userAccountService.createAccountProduct(accountPojo);
         //return userAccountService.createAccount(accountPojo);
     }
 	
@@ -136,6 +144,12 @@ public class WalletUserAccountController {
     @GetMapping(path = "/info/{accountNo}")
     public ResponseEntity<?> getAcctInfo(@PathVariable String accountNo) {
         return userAccountService.getAccountInfo(accountNo);
+    }
+	
+	@ApiOperation(value = "Get Wallet Selected Account Detail", hidden = false)
+    @GetMapping(path = "/account/{accountNo}")
+    public ResponseEntity<?> GetAcctDetail(@PathVariable String accountNo) {
+        return userAccountService.fetchAccountDetail(accountNo);
     }
 
     @ApiOperation(value = "Get User list of wallets", hidden = false)
