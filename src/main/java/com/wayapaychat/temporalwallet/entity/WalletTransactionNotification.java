@@ -49,4 +49,15 @@ public class WalletTransactionNotification {
     private LocalDateTime deliveredSmsDate;
     //Acct:**3923\r\nDR:N20000.00\r\nDesc:ATM WITHDRAWAL BY EMMANUEL NJOKU\r\nDT:26/JUL/21 16:23PM\r\nBal:N1,314.81CR\r\nHelp:08030907963\r\nDial*755*03# for a loan
 
+	public WalletTransactionNotification(String debitAccountNo, String creditAccountNo,
+			String tranMessage, String debitMobileNo, String creditMobileNo) {
+		super();
+		this.debitAccountNo = debitAccountNo;
+		this.creditAccountNo = creditAccountNo;
+		this.tranMessage = tranMessage;
+		this.debitMobileNo = debitMobileNo;
+		this.creditMobileNo = creditMobileNo;
+		this.createdSmsDate = LocalDateTime.now();
+	}
+    
 }

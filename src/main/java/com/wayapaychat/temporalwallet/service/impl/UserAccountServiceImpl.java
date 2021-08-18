@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -17,6 +18,8 @@ import org.springframework.stereotype.Service;
 
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
+import com.wayapaychat.temporalwallet.dto.AccountDetailDTO;
+import com.wayapaychat.temporalwallet.dto.AccountProductDTO;
 import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
 import com.wayapaychat.temporalwallet.dto.AccountToggleDTO;
 import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
@@ -685,6 +688,105 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 
 	}
+	
+	public ResponseEntity<?> createAccountProduct(AccountProductDTO accountPojo) {
+		int userId = (int) accountPojo.getUserId();
+		UserDetailPojo user = authService.AuthUser(userId);
+		if (user == null) {
+			return new ResponseEntity<>(new ErrorResponse("Auth User ID does not exist"), HttpStatus.BAD_REQUEST);
+		}
+		WalletProductCode fProduct = walletProductCodeRepository.findByProduct(accountPojo.getProductCode());
+		if (fProduct == null) {
+			return new ResponseEntity<>(new ErrorResponse("Product Code does not exist"), HttpStatus.BAD_REQUEST);
+		}
+		WalletUser y = walletUserRepository.findByUserId(accountPojo.getUserId());
+		WalletUser x = walletUserRepository.findByEmailAddress(user.getEmail());
+		if (x == null && y == null) {
+			return new ResponseEntity<>(new ErrorResponse("Default Wallet Not Created"), HttpStatus.BAD_REQUEST);
+		}
+		if (!y.getEmailAddress().equals(x.getEmailAddress())) {
+			return new ResponseEntity<>(new ErrorResponse("Wallet Data Integity.please contact Admin"),
+					HttpStatus.BAD_REQUEST);
+		} else if (y.getEmailAddress().equals(x.getEmailAddress())) {
+			WalletProductCode code = walletProductCodeRepository.findByProductGLCode(fProduct.getProductCode(), fProduct.getGlSubHeadCode());
+			WalletProduct product = walletProductRepository.findByProductCode(fProduct.getProductCode(), fProduct.getGlSubHeadCode());
+			String acctNo = null;
+			String acct_name = y.getFirstName().toUpperCase() + " " + y.getLastName().toUpperCase();
+			Integer rand = reqUtil.getAccountNo();
+			if (rand == 0) {
+				return new ResponseEntity<>(new ErrorResponse("Unable to generate Wallet Account"),
+						HttpStatus.BAD_REQUEST);
+			}
+			String acct_ownership = null;
+			if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+					|| product.getProduct_type().equals("ODA")) && !product.isStaff_product_flg()) {
+				acct_ownership = "C";
+				if (product.getProduct_type().equals("SBA")) {
+					acctNo = "201" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
+				} else if (product.getProduct_type().equals("CAA")) {
+					acctNo = "501" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
+				} else if (product.getProduct_type().equals("ODA")) {
+					acctNo = "401" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
+				}
+			} else if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+					|| product.getProduct_type().equals("ODA")) && product.isStaff_product_flg()) {
+				acct_ownership = "E";
+				if (product.getProduct_type().equals("SBA")) {
+					acctNo = "291" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
+				} else if (product.getProduct_type().equals("CAA")) {
+					acctNo = "591" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
+				} else if (product.getProduct_type().equals("ODA")) {
+					acctNo = "491" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
+				}
+			} else if ((product.getProduct_type().equals("OAB"))) {
+				acct_ownership = "O";
+				acctNo = product.getCrncy_code() + "0000" + rand;
+			}
+
+			try {
+				String hashed_no = reqUtil
+						.WayaEncrypt(userId + "|" + acctNo + "|" + fProduct.getProductCode() + "|" + product.getCrncy_code());
+
+				WalletAccount account = new WalletAccount();
+				if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+						|| product.getProduct_type().equals("ODA"))) {
+					account = new WalletAccount("0000", "", acctNo, acct_name, y, code.getGlSubHeadCode(), fProduct.getProductCode(),
+							acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
+							LocalDate.now(), product.getCrncy_code(), product.getProduct_type(),
+							product.isChq_book_flg(), product.getCash_dr_limit(), product.getXfer_dr_limit(),
+							product.getCash_cr_limit(), product.getXfer_cr_limit(), false);
+				}
+				walletAccountRepository.save(account);
+				return new ResponseEntity<>(new SuccessResponse("Account Created Successfully.", account),
+						HttpStatus.CREATED);
+			} catch (Exception e) {
+				return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+			}
+		} else {
+			return new ResponseEntity<>(new ErrorResponse("Default Wallet has not been created.please contact Admin"),
+					HttpStatus.NOT_FOUND);
+		}
+
+	}
+
 
 	@Override
 	public ApiResponse<?> findCustWalletById(Long walletId) {
@@ -729,6 +831,14 @@ public class UserAccountServiceImpl implements UserAccountService {
 	@Override
 	public ResponseEntity<?> getAccountInfo(String accountNo) {
 		WalletAccount account = walletAccountRepository.findByAccountNo(accountNo);
+		return new ResponseEntity<>(new SuccessResponse("Success.", account), HttpStatus.OK);
+	}
+	
+	public ResponseEntity<?> fetchAccountDetail(String accountNo) {
+		WalletAccount acct = walletAccountRepository.findByAccountNo(accountNo);
+		AccountDetailDTO account = new AccountDetailDTO(acct.getId(), acct.getSol_id(), 
+				acct.getAccountNo(), acct.getAcct_name(), acct.getProduct_code(),
+				new BigDecimal(acct.getClr_bal_amt()), acct.getAcct_crncy_code(), acct.isWalletDefault());
 		return new ResponseEntity<>(new SuccessResponse("Success.", account), HttpStatus.OK);
 	}
 

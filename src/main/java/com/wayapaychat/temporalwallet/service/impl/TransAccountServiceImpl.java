@@ -672,6 +672,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			accountCredit.setCum_cr_amt(cumbalCrAmtCr);
 			accountCredit.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(accountCredit);
+			//WalletTransactionNotification notify = new WalletTransactionNotification(debitAcctNo, creditAcctNo, String tranMessage, String debitMobileNo, String creditMobileNo)
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
