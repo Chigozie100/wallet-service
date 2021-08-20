@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.service;
 
+import java.util.Date;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
@@ -66,6 +67,8 @@ public interface UserAccountService {
 	ResponseEntity<?> UserAccountAccess(AdminAccountRestrictionDTO user);
 	
 	ApiResponse<?> fetchTransaction(String acctNo);
+	
+	ApiResponse<?> fetchFilterTransaction(String acctNo, Date fromdate, Date todate);
 	
 	ApiResponse<?> fetchRecentTransaction(Long user_id);
 

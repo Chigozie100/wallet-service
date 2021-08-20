@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.service.impl;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -987,6 +988,17 @@ public class UserAccountServiceImpl implements UserAccountService {
 	@Override
 	public ApiResponse<?> fetchTransaction(String acctNo) {
 		List<AccountStatementDTO> account = tempwallet.fetchTransaction(acctNo);
+		if (account.isEmpty()) {
+			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO TRANSACTION RECORD", null);
+		}
+		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESSFUL TRANSACTION STATEMENT", account);
+	}
+	
+	@Override
+	public ApiResponse<?> fetchFilterTransaction(String acctNo, Date fromdate, Date todate) {
+		LocalDate fromDate = fromdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		LocalDate toDate = todate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		List<AccountStatementDTO> account = tempwallet.fetchFilterTransaction(acctNo, fromDate, toDate);
 		if (account.isEmpty()) {
 			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO TRANSACTION RECORD", null);
 		}
