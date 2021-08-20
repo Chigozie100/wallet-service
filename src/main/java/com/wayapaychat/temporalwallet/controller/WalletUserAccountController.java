@@ -1,10 +1,12 @@
 package com.wayapaychat.temporalwallet.controller;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.wayapaychat.temporalwallet.dto.AccountProductDTO;
@@ -216,6 +219,18 @@ public class WalletUserAccountController {
     @GetMapping(path = "/admin/account/statement/{accountNo}")
     public ResponseEntity<?> GenerateAccountStatement(@PathVariable String accountNo) {
         ApiResponse<?> res = userAccountService.fetchTransaction(accountNo);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+	
+	@ApiOperation(value = "Generate Account Statement by tran Date")
+    @GetMapping(path = "/account/statement/{accountNo}")
+    public ResponseEntity<?> FilterAccountStatement(@PathVariable String accountNo,
+    		@RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate, 
+			@RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate) {
+        ApiResponse<?> res = userAccountService.fetchFilterTransaction(accountNo,fromdate,todate);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }

@@ -195,8 +195,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 			} else {
 				if (intRec == 2) {
-				   return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unable to process duplicate transaction", null);
-				}else {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+							"Unable to process duplicate transaction", null);
+				} else {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
 				}
 			}
@@ -205,12 +206,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return resp;
 	}
-	
+
 	@Override
 	public ApiResponse<?> EventCommissionPayment(EventPaymentDTO transfer) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
 		WalletAccount acctComm = walletAccountRepository.findByAccountNo(transfer.getCustomerAccountNumber());
-		if(!acctComm.getGl_code().equals("SB901")) {
+		if (!acctComm.getGl_code().equals("SB901")) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NOT COMMISSION WALLET", null);
 		}
 		String toAccountNumber = transfer.getCustomerAccountNumber();
@@ -236,8 +237,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 			} else {
 				if (intRec == 2) {
-				   return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unable to process duplicate transaction", null);
-				}else {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+							"Unable to process duplicate transaction", null);
+				} else {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
 				}
 			}
@@ -277,9 +279,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public ApiResponse<Page<WalletTransaction>> findAllTransaction(int page, int size) {
-		//Pageable paging = PageRequest.of(page, size);
-		//Page<WalletTransaction> transaction = walletTransactionRepository.findAll(paging);
-		Page<WalletTransaction> transaction = walletTransactionRepository.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
+		// Pageable paging = PageRequest.of(page, size);
+		// Page<WalletTransaction> transaction =
+		// walletTransactionRepository.findAll(paging);
+		Page<WalletTransaction> transaction = walletTransactionRepository
+				.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
 		if (transaction == null) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "UNABLE TO GENERATE STATEMENT", null);
 		}
@@ -313,9 +317,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 		if (account == null) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		}
-		Pageable sortedByName = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC,"createdAt"));
+		Pageable sortedByName = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 		Page<WalletTransaction> transaction = walletTransactionRepository.findAllByAcctNum(accountNumber, sortedByName);
-		//Page<WalletTransaction> transaction = walletTransactionRepository.findAll(PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt")));
+		// Page<WalletTransaction> transaction =
+		// walletTransactionRepository.findAll(PageRequest.of(page, size,
+		// Sort.by(Sort.Direction.DESC, "createdAt")));
 		if (transaction == null) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "UNABLE TO GENERATE STATEMENT", null);
 		}
@@ -375,17 +381,18 @@ public class TransAccountServiceImpl implements TransAccountService {
 		String fromAccountNumber = transfer.getOfficeDebitAccount();
 		String toAccountNumber = transfer.getOfficeCreditAccount();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
-		
-		List<WalletTransaction> transRef = walletTransactionRepository.findByReference(transfer.getPaymentReference(), LocalDate.now(),transfer.getTranCrncy());
-		if(!transRef.isEmpty()) {
+
+		List<WalletTransaction> transRef = walletTransactionRepository.findByReference(transfer.getPaymentReference(),
+				LocalDate.now(), transfer.getTranCrncy());
+		if (!transRef.isEmpty()) {
 			Optional<WalletTransaction> ret = transRef.stream()
-					.filter(code -> code.getPaymentReference().equals(transfer.getPaymentReference()))
-					.findAny();
+					.filter(code -> code.getPaymentReference().equals(transfer.getPaymentReference())).findAny();
 			if (ret.isPresent()) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Duplicate Payment Reference on the same Day", null);
+				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+						"Duplicate Payment Reference on the same Day", null);
 			}
 		}
-		
+
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
 			String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
@@ -409,17 +416,18 @@ public class TransAccountServiceImpl implements TransAccountService {
 		String fromAccountNumber = transfer.getOfficeDebitAccount();
 		String toAccountNumber = transfer.getCustomerCreditAccount();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
-		
-		List<WalletTransaction> transRef = walletTransactionRepository.findByReference(transfer.getPaymentReference(), LocalDate.now(),transfer.getTranCrncy());
-		if(!transRef.isEmpty()) {
+
+		List<WalletTransaction> transRef = walletTransactionRepository.findByReference(transfer.getPaymentReference(),
+				LocalDate.now(), transfer.getTranCrncy());
+		if (!transRef.isEmpty()) {
 			Optional<WalletTransaction> ret = transRef.stream()
-					.filter(code -> code.getPaymentReference().equals(transfer.getPaymentReference()))
-					.findAny();
+					.filter(code -> code.getPaymentReference().equals(transfer.getPaymentReference())).findAny();
 			if (ret.isPresent()) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Duplicate Payment Reference on the same Day", null);
+				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+						"Duplicate Payment Reference on the same Day", null);
 			}
 		}
-		
+
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
 			String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
@@ -445,7 +453,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID USER ID", null);
 		}
 		if (!user.is_admin()) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "USER ID PERFORMING OPERATION IS NOT AN ADMIN", null);
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "USER ID PERFORMING OPERATION IS NOT AN ADMIN",
+					null);
 		}
 		String fromAccountNumber = transfer.getDebitAccountNumber();
 		String toAccountNumber = transfer.getBenefAccountNumber();
@@ -468,27 +477,28 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return resp;
 	}
-	
+
 	public ApiResponse<?> AdminCommissionMoney(CommissionTransferDTO transfer) {
 		UserDetailPojo user = authService.AuthUser(transfer.getUserId().intValue());
 		if (user == null) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID USER ID", null);
 		}
 		if (!user.is_admin()) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "USER ID PERFORMING OPERATION IS NOT AN ADMIN", null);
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "USER ID PERFORMING OPERATION IS NOT AN ADMIN",
+					null);
 		}
 		WalletAccount acctComm = walletAccountRepository.findByAccountNo(transfer.getDebitAccountNumber());
-		if(!acctComm.getGl_code().equals("SB901")) {
+		if (!acctComm.getGl_code().equals("SB901")) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NOT COMMISSION WALLET", null);
 		}
 		WalletAccount acctDef = walletAccountRepository.findByAccountNo(transfer.getDebitAccountNumber());
-		if(!acctDef.isWalletDefault()) {
+		if (!acctDef.isWalletDefault()) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NOT DEFAULT WALLET", null);
 		}
 		String fromAccountNumber = transfer.getDebitAccountNumber();
 		String toAccountNumber = transfer.getBenefAccountNumber();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
-		
+
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
 			String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
@@ -535,16 +545,17 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Override
 	public ApiResponse<?> sendMoneyCustomer(WalletTransactionDTO transfer) {
-		List<WalletTransaction> transRef = walletTransactionRepository.findByReference(transfer.getPaymentReference(), LocalDate.now(),transfer.getTranCrncy());
-		if(!transRef.isEmpty()) {
+		List<WalletTransaction> transRef = walletTransactionRepository.findByReference(transfer.getPaymentReference(),
+				LocalDate.now(), transfer.getTranCrncy());
+		if (!transRef.isEmpty()) {
 			Optional<WalletTransaction> ret = transRef.stream()
-					.filter(code -> code.getPaymentReference().equals(transfer.getPaymentReference()))
-					.findAny();
+					.filter(code -> code.getPaymentReference().equals(transfer.getPaymentReference())).findAny();
 			if (ret.isPresent()) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Duplicate Payment Reference on the same Day", null);
+				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+						"Duplicate Payment Reference on the same Day", null);
 			}
 		}
-		
+
 		Optional<WalletUser> wallet = walletUserRepository.findByEmailOrPhoneNumber(transfer.getEmailOrPhoneNumber());
 		if (!wallet.isPresent()) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE NO DOES NOT EXIST", null);
@@ -631,8 +642,43 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 			}
+
+			// Token Fetch
+			MyData tokenData = tokenService.getUserInformation();
+			String email = tokenData != null ? tokenData.getEmail() : "";
+			String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+			// **********************************************
+
 			// AUth Security check
 			// **********************************************
+			if (!accountDebit.getAcct_ownership().equals("O")) {
+				if (accountDebit.isAcct_cls_flg())
+					return "DJGO|DEBIT ACCOUNT IS CLOSED";
+				if (accountDebit.getFrez_code().equals("D"))
+					return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				if (accountDebit.getLien_amt() != 0) {
+					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
+					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
+						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+					}
+					if (new BigDecimal(oustbal).compareTo(amount) == -1) {
+						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+					}
+				}
+
+				BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
+				if (userLim.compareTo(amount) == -1) {
+					return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
+				}
+			}
+
+			if (!accountCredit.getAcct_ownership().equals("O")) {
+				if (accountCredit.isAcct_cls_flg())
+					return "DJGO|CREDIT ACCOUNT IS CLOSED";
+
+				if (accountCredit.getFrez_code().equals("C"))
+					return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+			}
 
 			// **********************************************
 			String tranId = "";
@@ -644,9 +690,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (tranId.equals("")) {
 				return "DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN";
 			}
-			MyData tokenData = tokenService.getUserInformation();
-			String email = tokenData != null ? tokenData.getEmail() : "";
-			String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
 
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
@@ -672,7 +715,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 			accountCredit.setCum_cr_amt(cumbalCrAmtCr);
 			accountCredit.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(accountCredit);
-			//WalletTransactionNotification notify = new WalletTransactionNotification(debitAcctNo, creditAcctNo, String tranMessage, String debitMobileNo, String creditMobileNo)
+			// WalletTransactionNotification notify = new
+			// WalletTransactionNotification(debitAcctNo, creditAcctNo, String tranMessage,
+			// String debitMobileNo, String creditMobileNo)
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -748,10 +793,43 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 			}
-			// AUth Security check
+			// Token Fetch
+			MyData tokenData = tokenService.getUserInformation();
+			String email = tokenData != null ? tokenData.getEmail() : "";
+			String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
 			// **********************************************
 
+			// AUth Security check
 			// **********************************************
+			if (!accountDebit.getAcct_ownership().equals("O")) {
+				if (accountDebit.isAcct_cls_flg())
+					return "DJGO|DEBIT ACCOUNT IS CLOSED";
+				if (accountDebit.getFrez_code().equals("D"))
+					return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				if (accountDebit.getLien_amt() != 0) {
+					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
+					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
+						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+					}
+					if (new BigDecimal(oustbal).compareTo(amount) == -1) {
+						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+					}
+				}
+
+				BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
+				if (userLim.compareTo(amount) == -1) {
+					return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
+				}
+			}
+
+			if (!accountCredit.getAcct_ownership().equals("O")) {
+				if (accountCredit.isAcct_cls_flg())
+					return "DJGO|CREDIT ACCOUNT IS CLOSED";
+
+				if (accountCredit.getFrez_code().equals("C"))
+					return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+			}
+
 			String tranId = "";
 			if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 				tranId = tempwallet.SystemGenerateTranId();
@@ -761,9 +839,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (tranId.equals("")) {
 				return "DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN";
 			}
-			MyData tokenData = tokenService.getUserInformation();
-			String email = tokenData != null ? tokenData.getEmail() : "";
-			String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+			// MyData tokenData = tokenService.getUserInformation();
+			// String email = tokenData != null ? tokenData.getEmail() : "";
+			// String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
 
 			String tranNarrate = "WALLET-" + tranNarration;
 			String tranNarrate1 = "WALLET-" + event.getTranNarration();
@@ -894,8 +972,43 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 			}
+
+			// Token Fetch
+			MyData tokenData = tokenService.getUserInformation();
+			String email = tokenData != null ? tokenData.getEmail() : "";
+			String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+			// **********************************************
+
 			// AUth Security check
 			// **********************************************
+			if (!accountDebit.getAcct_ownership().equals("O")) {
+				if (accountDebit.isAcct_cls_flg())
+					return "DJGO|DEBIT ACCOUNT IS CLOSED";
+				if (accountDebit.getFrez_code().equals("D"))
+					return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				if (accountDebit.getLien_amt() != 0) {
+					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
+					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
+						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+					}
+					if (new BigDecimal(oustbal).compareTo(amount) == -1) {
+						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+					}
+				}
+
+				BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
+				if (userLim.compareTo(amount) == -1) {
+					return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
+				}
+			}
+
+			if (!accountCredit.getAcct_ownership().equals("O")) {
+				if (accountCredit.isAcct_cls_flg())
+					return "DJGO|CREDIT ACCOUNT IS CLOSED";
+
+				if (accountCredit.getFrez_code().equals("C"))
+					return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+			}
 
 			// **********************************************
 			String tranId = "";
@@ -908,9 +1021,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 				return "DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN";
 			}
 
-			MyData tokenData = tokenService.getUserInformation();
-			String email = tokenData != null ? tokenData.getEmail() : "";
-			String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+			// MyData tokenData = tokenService.getUserInformation();
+			// String email = tokenData != null ? tokenData.getEmail() : "";
+			// String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
 
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
@@ -949,7 +1062,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		try {
 			log.info("START TRANSACTION");
 			String tranCount = tempwallet.transactionCount(paymentRef, creditAcctNo);
-			if(!tranCount.isBlank()) {
+			if (!tranCount.isBlank()) {
 				return "tranCount";
 			}
 			boolean validate = paramValidation.validateDefaultCode(tranCrncy, "Currency");
@@ -1033,8 +1146,43 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 			}
+
+			// Token Fetch
+			MyData tokenData = tokenService.getUserInformation();
+			String email = tokenData != null ? tokenData.getEmail() : "";
+			String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+			// **********************************************
+
 			// AUth Security check
 			// **********************************************
+			if (!accountDebit.getAcct_ownership().equals("O")) {
+				if (accountDebit.isAcct_cls_flg())
+					return "DJGO|DEBIT ACCOUNT IS CLOSED";
+				if (accountDebit.getFrez_code().equals("D"))
+					return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				if (accountDebit.getLien_amt() != 0) {
+					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
+					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
+						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+					}
+					if (new BigDecimal(oustbal).compareTo(amount) == -1) {
+						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+					}
+				}
+
+				BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
+				if (userLim.compareTo(amount) == -1) {
+					return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
+				}
+			}
+
+			if (!accountCredit.getAcct_ownership().equals("O")) {
+				if (accountCredit.isAcct_cls_flg())
+					return "DJGO|CREDIT ACCOUNT IS CLOSED";
+
+				if (accountCredit.getFrez_code().equals("C"))
+					return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+			}
 
 			// **********************************************
 			// Account Transaction Locks
@@ -1050,9 +1198,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (tranId.equals("")) {
 				return "DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN";
 			}
-			MyData tokenData = tokenService.getUserInformation();
-			String email = tokenData != null ? tokenData.getEmail() : "";
-			String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+			// MyData tokenData = tokenService.getUserInformation();
+			// String email = tokenData != null ? tokenData.getEmail() : "";
+			// String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
 
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
@@ -1064,7 +1212,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 			tempwallet.updateTransaction(paymentRef, amount, tranId);
-			
+
 			double clrbalAmtDr = accountDebit.getClr_bal_amt() - amount.doubleValue();
 			double cumbalDrAmtDr = accountDebit.getCum_dr_amt() + amount.doubleValue();
 			accountDebit.setLast_tran_id_dr(tranId);
@@ -1088,13 +1236,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 
 	}
-	
+
 	public String createEventCommission(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef) throws Exception {
 		try {
 			log.info("START TRANSACTION");
 			String tranCount = tempwallet.transactionCount(paymentRef, creditAcctNo);
-			if(!tranCount.isBlank()) {
+			if (!tranCount.isBlank()) {
 				return "tranCount";
 			}
 			boolean validate = paramValidation.validateDefaultCode(tranCrncy, "Currency");
@@ -1178,8 +1326,42 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 			}
+			// Token Fetch
+			MyData tokenData = tokenService.getUserInformation();
+			String email = tokenData != null ? tokenData.getEmail() : "";
+			String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+			// **********************************************
+
 			// AUth Security check
 			// **********************************************
+			if (!accountDebit.getAcct_ownership().equals("O")) {
+				if (accountDebit.isAcct_cls_flg())
+					return "DJGO|DEBIT ACCOUNT IS CLOSED";
+				if (accountDebit.getFrez_code().equals("D"))
+					return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				if (accountDebit.getLien_amt() != 0) {
+					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
+					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
+						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+					}
+					if (new BigDecimal(oustbal).compareTo(amount) == -1) {
+						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+					}
+				}
+
+				BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
+				if (userLim.compareTo(amount) == -1) {
+					return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
+				}
+			}
+
+			if (!accountCredit.getAcct_ownership().equals("O")) {
+				if (accountCredit.isAcct_cls_flg())
+					return "DJGO|CREDIT ACCOUNT IS CLOSED";
+
+				if (accountCredit.getFrez_code().equals("C"))
+					return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+			}
 
 			// **********************************************
 			// Account Transaction Locks
@@ -1195,9 +1377,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (tranId.equals("")) {
 				return "DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN";
 			}
-			MyData tokenData = tokenService.getUserInformation();
-			String email = tokenData != null ? tokenData.getEmail() : "";
-			String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+			// MyData tokenData = tokenService.getUserInformation();
+			// String email = tokenData != null ? tokenData.getEmail() : "";
+			// String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
 
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
@@ -1209,7 +1391,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 			tempwallet.updateTransaction(paymentRef, amount, tranId);
-			
+
 			double clrbalAmtDr = accountDebit.getClr_bal_amt() - amount.doubleValue();
 			double cumbalDrAmtDr = accountDebit.getCum_dr_amt() + amount.doubleValue();
 			accountDebit.setLast_tran_id_dr(tranId);
@@ -1319,8 +1501,42 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 			}
+			// Token Fetch
+			MyData tokenData = tokenService.getUserInformation();
+			String email = tokenData != null ? tokenData.getEmail() : "";
+			String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+			// **********************************************
+
 			// AUth Security check
 			// **********************************************
+			if (!accountDebit.getAcct_ownership().equals("O")) {
+				if (accountDebit.isAcct_cls_flg())
+					return "DJGO|DEBIT ACCOUNT IS CLOSED";
+				if (accountDebit.getFrez_code().equals("D"))
+					return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				if (accountDebit.getLien_amt() != 0) {
+					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
+					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
+						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+					}
+					if (new BigDecimal(oustbal).compareTo(amount) == -1) {
+						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+					}
+				}
+
+				BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
+				if (userLim.compareTo(amount) == -1) {
+					return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
+				}
+			}
+
+			if (!accountCredit.getAcct_ownership().equals("O")) {
+				if (accountCredit.isAcct_cls_flg())
+					return "DJGO|CREDIT ACCOUNT IS CLOSED";
+
+				if (accountCredit.getFrez_code().equals("C"))
+					return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+			}
 
 			// **********************************************
 			// Account Transaction Locks
@@ -1336,9 +1552,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (tranId.equals("")) {
 				return "DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN";
 			}
-			MyData tokenData = tokenService.getUserInformation();
-			String email = tokenData != null ? tokenData.getEmail() : "";
-			String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+			// MyData tokenData = tokenService.getUserInformation();
+			// String email = tokenData != null ? tokenData.getEmail() : "";
+			// String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
 
 			String tranNarrate = "WALLET-" + tranNarration + " TO:" + bk;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
@@ -1494,7 +1710,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "REVERSAL REPORT SUCCESSFULLY", transaction);
 	}
-	
+
 	@Override
 	public ApiResponse<?> TranALLReverseReport() {
 		List<WalletTransaction> transaction = walletTransactionRepository.findByAllReverse();
@@ -1576,6 +1792,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return "DJGO|BENEFICIARY ACCOUNT: " + mUser.getCustomerAccountNo() + " DOES NOT EXIST";
 				creditList.add(accountCredit);
 				amount = amount.add(mUser.getAmount());
+				
+				if (!accountCredit.getAcct_ownership().equals("O")) {
+					if (accountCredit.isAcct_cls_flg())
+						return "DJGO|CREDIT ACCOUNT IS CLOSED";
+
+					if (accountCredit.getFrez_code().equals("C"))
+						return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+				}
 			}
 			if (accountDebit == null || creditList == null) {
 				return "DJGO|DEBIT ACCOUNT OR BENEFICIARY ACCOUNT DOES NOT EXIST";
@@ -1623,8 +1847,34 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 			}
+			// Token Fetch
+			MyData tokenData = tokenService.getUserInformation();
+			String email = tokenData != null ? tokenData.getEmail() : "";
+			String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+			// **********************************************
+
 			// AUth Security check
 			// **********************************************
+			if (!accountDebit.getAcct_ownership().equals("O")) {
+				if (accountDebit.isAcct_cls_flg())
+					return "DJGO|DEBIT ACCOUNT IS CLOSED";
+				if (accountDebit.getFrez_code().equals("D"))
+					return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				if (accountDebit.getLien_amt() != 0) {
+					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
+					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
+						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+					}
+					if (new BigDecimal(oustbal).compareTo(amount) == -1) {
+						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+					}
+				}
+
+				BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
+				if (userLim.compareTo(amount) == -1) {
+					return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
+				}
+			}
 
 			// **********************************************
 			String tranId = "";
@@ -1636,9 +1886,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (tranId.equals("")) {
 				return "DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN";
 			}
-			MyData tokenData = tokenService.getUserInformation();
-			String email = tokenData != null ? tokenData.getEmail() : "";
-			String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+			// MyData tokenData = tokenService.getUserInformation();
+			// String email = tokenData != null ? tokenData.getEmail() : "";
+			// String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
 
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
@@ -1749,14 +1999,48 @@ public class TransAccountServiceImpl implements TransAccountService {
 						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 					}
 				}
-				// AUth Security check
-				// **********************************************
-
-				// **********************************************
-
+				// Token Fetch
 				MyData tokenData = tokenService.getUserInformation();
 				String email = tokenData != null ? tokenData.getEmail() : "";
 				String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+				// **********************************************
+
+				// AUth Security check
+				// **********************************************
+				if (!accountDebit.getAcct_ownership().equals("O")) {
+					if (accountDebit.isAcct_cls_flg())
+						return "DJGO|DEBIT ACCOUNT IS CLOSED";
+					if (accountDebit.getFrez_code().equals("D"))
+						return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+					if (accountDebit.getLien_amt() != 0) {
+						double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
+						if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
+							return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+						}
+						if (new BigDecimal(oustbal).compareTo(amount) == -1) {
+							return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+						}
+					}
+
+					BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
+					if (userLim.compareTo(amount) == -1) {
+						return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
+					}
+				}
+
+				if (!accountCredit.getAcct_ownership().equals("O")) {
+					if (accountCredit.isAcct_cls_flg())
+						return "DJGO|CREDIT ACCOUNT IS CLOSED";
+
+					if (accountCredit.getFrez_code().equals("C"))
+						return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+				}
+
+				// **********************************************
+
+				//MyData tokenData = tokenService.getUserInformation();
+				//String email = tokenData != null ? tokenData.getEmail() : "";
+				//String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
 
 				String tranNarrate = "WALLET-" + mUser.getTranNarration();
 				WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount,
