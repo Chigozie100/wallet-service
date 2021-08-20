@@ -221,6 +221,16 @@ public class WalletUserAccountController {
         }
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
+	
+	@ApiOperation(value = "Recent Transaction Details for User Accounts")
+    @GetMapping(path = "/recent/accounts/transaction/{user_id}")
+    public ResponseEntity<?> GenerateRecentTransaction(@PathVariable Long user_id) {
+        ApiResponse<?> res = userAccountService.fetchRecentTransaction(user_id);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
 
 
 }

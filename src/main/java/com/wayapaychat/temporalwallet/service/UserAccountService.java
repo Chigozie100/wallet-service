@@ -66,5 +66,7 @@ public interface UserAccountService {
 	ResponseEntity<?> UserAccountAccess(AdminAccountRestrictionDTO user);
 	
 	ApiResponse<?> fetchTransaction(String acctNo);
+	
+	ApiResponse<?> fetchRecentTransaction(Long user_id);
 
 }

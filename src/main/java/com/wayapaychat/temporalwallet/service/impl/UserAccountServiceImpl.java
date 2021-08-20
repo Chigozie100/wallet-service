@@ -842,15 +842,21 @@ public class UserAccountServiceImpl implements UserAccountService {
 	@Override
 	public ResponseEntity<?> getAccountInfo(String accountNo) {
 		WalletAccount account = walletAccountRepository.findByAccountNo(accountNo);
-		return new ResponseEntity<>(new SuccessResponse("Success.", account), HttpStatus.OK);
+		if (account == null) {
+			return new ResponseEntity<>(new ErrorResponse("Invalid Account"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(new SuccessResponse("Success", account), HttpStatus.OK);
 	}
 	
 	public ResponseEntity<?> fetchAccountDetail(String accountNo) {
 		WalletAccount acct = walletAccountRepository.findByAccountNo(accountNo);
+		if (acct == null) {
+			return new ResponseEntity<>(new ErrorResponse("Invalid Account"), HttpStatus.NOT_FOUND);
+		}
 		AccountDetailDTO account = new AccountDetailDTO(acct.getId(), acct.getSol_id(), 
 				acct.getAccountNo(), acct.getAcct_name(), acct.getProduct_code(),
 				new BigDecimal(acct.getClr_bal_amt()), acct.getAcct_crncy_code(), acct.isWalletDefault());
-		return new ResponseEntity<>(new SuccessResponse("Success.", account), HttpStatus.OK);
+		return new ResponseEntity<>(new SuccessResponse("Success", account), HttpStatus.OK);
 	}
 
 	@Override
@@ -985,6 +991,27 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO TRANSACTION RECORD", null);
 		}
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESSFUL TRANSACTION STATEMENT", account);
+	}
+	
+	@Override
+	public ApiResponse<?> fetchRecentTransaction(Long user_id) {
+		WalletUser user = walletUserRepository.findByUserId(user_id);
+		if (user == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "USER ID DOES NOT EXIST", null);
+		}
+		List<WalletAccount> accountList = walletAccountRepository.findByUser(user);
+		if (accountList.isEmpty()) {
+			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO ACCOUNT FOR USER ID", null);
+		}
+		List<AccountStatementDTO> statement = new ArrayList<>();
+		for(WalletAccount acct : accountList) {
+		    List<AccountStatementDTO> account = tempwallet.recentTransaction(acct.getAccountNo());
+		    statement.addAll(account);
+		}
+		if (statement.isEmpty()) {
+			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO TRANSACTION RECORD", null);
+		}
+		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "RECENT TRANSACTION", statement);
 	}
 
 	@Override
