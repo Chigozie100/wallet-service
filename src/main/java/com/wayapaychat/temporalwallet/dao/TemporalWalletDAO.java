@@ -24,5 +24,7 @@ public interface TemporalWalletDAO {
 	void updateTransaction(String paymentReference, BigDecimal amount, String tranId);
 	
 	String transactionCount(String paymentReference, String accountNo);
+	
+	List<AccountStatementDTO> recentTransaction(String acctNo);
 
 }
