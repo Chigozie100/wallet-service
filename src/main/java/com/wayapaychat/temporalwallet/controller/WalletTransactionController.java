@@ -32,6 +32,7 @@ import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.WalletAdminTransferDTO;
 import com.wayapaychat.temporalwallet.dto.WalletTransactionChargeDTO;
 import com.wayapaychat.temporalwallet.dto.WalletTransactionDTO;
+import com.wayapaychat.temporalwallet.dto.WayaTradeDTO;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
 
@@ -236,6 +237,17 @@ public class WalletTransactionController {
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Trade and Service Payment", notes = "Transfer amount from one wallet to another wallet")
+	@PostMapping("/event/trade/payment")
+	public ResponseEntity<?> BuySellPayment(@RequestBody() WayaTradeDTO walletDto) {
+		ApiResponse<?> res = transAccountService.EventBuySellPayment(walletDto);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Event and Service Payment", notes = "Transfer amount from one wallet to another wallet")
 	@PostMapping("/admin/commission/payment")
 	public ResponseEntity<?> CommissiomPaymentAdmin(@RequestBody() EventPaymentDTO walletDto) {
@@ -258,7 +270,6 @@ public class WalletTransactionController {
 	        }
 	        return new ResponseEntity<>(res, HttpStatus.OK);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
 			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
@@ -280,7 +291,6 @@ public class WalletTransactionController {
 	        }
 	        return new ResponseEntity<>(res, HttpStatus.OK);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
 			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
@@ -300,7 +310,6 @@ public class WalletTransactionController {
 	        }
 	        return new ResponseEntity<>(res, HttpStatus.OK);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
 			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
@@ -349,7 +358,6 @@ public class WalletTransactionController {
 	        }
 	        return new ResponseEntity<>(res, HttpStatus.OK);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
 			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);

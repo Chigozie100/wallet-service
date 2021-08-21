@@ -41,7 +41,7 @@ public class TransferTransactionDTO {
     private String tranNarration;
 	
 	//@NotNull
-	@NotBlank(message = "tranNarration must not Null or Blank")
+	@NotBlank(message = "paymentReference must not Null or Blank")
 	@Size(min=3, max=50, message = "paymentReference must be aleast 3 alphanumeric")
 	private String paymentReference;
 
