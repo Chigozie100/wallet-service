@@ -81,7 +81,7 @@ public class SwitchWalletServiceImpl implements SwitchWalletService {
 	@Override
 	public ResponseEntity<?> DeleteSwitches(Long id) {
 		Optional<SwitchWallet> checkSwitchExist = switchWalletRepository.findById(id);
-		if (checkSwitchExist.isPresent()) {
+		if (!checkSwitchExist.isPresent()) {
 			return new ResponseEntity<>(new ErrorResponse("Unable to duplicate switch code"), HttpStatus.BAD_REQUEST);
 		}
 		SwitchWallet walletSwt = checkSwitchExist.get();
