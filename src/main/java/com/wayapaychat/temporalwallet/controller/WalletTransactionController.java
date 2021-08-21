@@ -237,7 +237,7 @@ public class WalletTransactionController {
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-	@ApiOperation(value = "Event and Service Payment", notes = "Transfer amount from one wallet to another wallet")
+	@ApiOperation(value = "Trade and Service Payment", notes = "Transfer amount from one wallet to another wallet")
 	@PostMapping("/event/trade/payment")
 	public ResponseEntity<?> BuySellPayment(@RequestBody() WayaTradeDTO walletDto) {
 		ApiResponse<?> res = transAccountService.EventBuySellPayment(walletDto);
@@ -270,7 +270,6 @@ public class WalletTransactionController {
 	        }
 	        return new ResponseEntity<>(res, HttpStatus.OK);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
 			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
@@ -311,7 +310,6 @@ public class WalletTransactionController {
 	        }
 	        return new ResponseEntity<>(res, HttpStatus.OK);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
 			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
