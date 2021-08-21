@@ -41,6 +41,7 @@ import com.wayapaychat.temporalwallet.dto.WalletAccountStatement;
 import com.wayapaychat.temporalwallet.dto.WalletAdminTransferDTO;
 import com.wayapaychat.temporalwallet.dto.WalletTransactionChargeDTO;
 import com.wayapaychat.temporalwallet.dto.WalletTransactionDTO;
+import com.wayapaychat.temporalwallet.dto.WayaTradeDTO;
 import com.wayapaychat.temporalwallet.entity.Transactions;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.entity.WalletEventCharges;
@@ -119,17 +120,29 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
-			String tranId = createAdminTransaction(transfer.getAdminUserId(), toAccountNumber, transfer.getTranCrncy(),
-					transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-					command);
-			String[] tranKey = tranId.split(Pattern.quote("|"));
-			if (tranKey[0].equals("DJGO")) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
-			}
-			Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
-			resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
-			if (!transaction.isPresent()) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+			int intRec = tempwallet.PaymenttranInsert("ADMINTIL", "", toAccountNumber, transfer.getAmount(),
+					transfer.getPaymentReference());
+			if (intRec == 1) {
+				String tranId = createAdminTransaction(transfer.getAdminUserId(), toAccountNumber,
+						transfer.getTranCrncy(), transfer.getAmount(), tranType, transfer.getTranNarration(),
+						transfer.getPaymentReference(), command);
+				String[] tranKey = tranId.split(Pattern.quote("|"));
+				if (tranKey[0].equals("DJGO")) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+				}
+				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+						.findByTranIdIgnoreCase(tranId);
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				if (!transaction.isPresent()) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+				}
+			} else {
+				if (intRec == 2) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+							"Unable to process duplicate transaction", null);
+				} else {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -151,17 +164,29 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
-			String tranId = createAdminTransaction(transfer.getAdminUserId(), toAccountNumber, transfer.getTranCrncy(),
-					transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-					command);
-			String[] tranKey = tranId.split(Pattern.quote("|"));
-			if (tranKey[0].equals("DJGO")) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
-			}
-			Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
-			resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
-			if (!transaction.isPresent()) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+			int intRec = tempwallet.PaymenttranInsert("ADMINTIL", "", toAccountNumber, transfer.getAmount(),
+					transfer.getPaymentReference());
+			if (intRec == 1) {
+				String tranId = createAdminTransaction(transfer.getAdminUserId(), toAccountNumber,
+						transfer.getTranCrncy(), transfer.getAmount(), tranType, transfer.getTranNarration(),
+						transfer.getPaymentReference(), command);
+				String[] tranKey = tranId.split(Pattern.quote("|"));
+				if (tranKey[0].equals("DJGO")) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+				}
+				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+						.findByTranIdIgnoreCase(tranId);
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				if (!transaction.isPresent()) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+				}
+			} else {
+				if (intRec == 2) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+							"Unable to process duplicate transaction", null);
+				} else {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -206,6 +231,44 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return resp;
 	}
+	
+	public ApiResponse<?> EventBuySellPayment(WayaTradeDTO transfer) {
+		log.info("Transaction Request Creation: {}", transfer.toString());
+		String toAccountNumber = transfer.getBenefAccountNumber();
+		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("CARD");
+		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
+		try {
+			int intRec = tempwallet.PaymenttranInsert(transfer.getEventId(), "", toAccountNumber, transfer.getAmount(),
+					transfer.getPaymentReference());
+			if (intRec == 1) {
+				String tranId = createEventTransaction(transfer.getEventId(), toAccountNumber, transfer.getTranCrncy(),
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+				String[] tranKey = tranId.split(Pattern.quote("|"));
+				if (tranKey[0].equals("DJGO")) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+				}
+				log.info("Transaction ID Response: {}", tranId);
+				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+						.findByTranIdIgnoreCase(tranId);
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				log.info("Transaction Response: {}", resp.toString());
+				if (!transaction.isPresent()) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+				}
+			} else {
+				if (intRec == 2) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+							"Unable to process duplicate transaction", null);
+				} else {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return resp;
+	}
+
 
 	@Override
 	public ApiResponse<?> EventCommissionPayment(EventPaymentDTO transfer) {
@@ -254,17 +317,29 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("CARD");
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
-			String tranId = BankTransactionPay("BANKPMT", toAccountNumber, transfer.getTranCrncy(),
-					transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-					transfer.getBankName());
-			String[] tranKey = tranId.split(Pattern.quote("|"));
-			if (tranKey[0].equals("DJGO")) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
-			}
-			Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
-			resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
-			if (!transaction.isPresent()) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+			int intRec = tempwallet.PaymenttranInsert("BANKPMT", "", toAccountNumber, transfer.getAmount(),
+					transfer.getPaymentReference());
+			if (intRec == 1) {
+				String tranId = BankTransactionPay("BANKPMT", toAccountNumber, transfer.getTranCrncy(),
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
+						transfer.getBankName());
+				String[] tranKey = tranId.split(Pattern.quote("|"));
+				if (tranKey[0].equals("DJGO")) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+				}
+				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+						.findByTranIdIgnoreCase(tranId);
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				if (!transaction.isPresent()) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+				}
+			} else {
+				if (intRec == 2) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+							"Unable to process duplicate transaction", null);
+				} else {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -335,17 +410,29 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transactionPojo.getTranType());
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
-			String tranId = createTransaction(fromAccountNumber, toAccountNumber, transactionPojo.getTranCrncy(),
-					transactionPojo.getAmount(), tranType, transactionPojo.getTranNarration(),
-					transactionPojo.getPaymentReference());
-			String[] tranKey = tranId.split(Pattern.quote("|"));
-			if (tranKey[0].equals("DJGO")) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
-			}
-			Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
-			resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
-			if (!transaction.isPresent()) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+			int intRec = tempwallet.PaymenttranInsert("", fromAccountNumber, toAccountNumber,
+					transactionPojo.getAmount(), transactionPojo.getPaymentReference());
+			if (intRec == 1) {
+				String tranId = createTransaction(fromAccountNumber, toAccountNumber, transactionPojo.getTranCrncy(),
+						transactionPojo.getAmount(), tranType, transactionPojo.getTranNarration(),
+						transactionPojo.getPaymentReference());
+				String[] tranKey = tranId.split(Pattern.quote("|"));
+				if (tranKey[0].equals("DJGO")) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+				}
+				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+						.findByTranIdIgnoreCase(tranId);
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				if (!transaction.isPresent()) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+				}
+			} else {
+				if (intRec == 2) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+							"Unable to process duplicate transaction", null);
+				} else {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -360,16 +447,28 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
-			String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-					transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
-			String[] tranKey = tranId.split(Pattern.quote("|"));
-			if (tranKey[0].equals("DJGO")) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
-			}
-			Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
-			resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
-			if (!transaction.isPresent()) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+			int intRec = tempwallet.PaymenttranInsert("", fromAccountNumber, toAccountNumber, transfer.getAmount(),
+					transfer.getPaymentReference());
+			if (intRec == 1) {
+				String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+				String[] tranKey = tranId.split(Pattern.quote("|"));
+				if (tranKey[0].equals("DJGO")) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+				}
+				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+						.findByTranIdIgnoreCase(tranId);
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				if (!transaction.isPresent()) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+				}
+			} else {
+				if (intRec == 2) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+							"Unable to process duplicate transaction", null);
+				} else {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -395,16 +494,28 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
-			String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-					transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
-			String[] tranKey = tranId.split(Pattern.quote("|"));
-			if (tranKey[0].equals("DJGO")) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
-			}
-			Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
-			resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
-			if (!transaction.isPresent()) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+			int intRec = tempwallet.PaymenttranInsert("", fromAccountNumber, toAccountNumber, transfer.getAmount(),
+					transfer.getPaymentReference());
+			if (intRec == 1) {
+				String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+				String[] tranKey = tranId.split(Pattern.quote("|"));
+				if (tranKey[0].equals("DJGO")) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+				}
+				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+						.findByTranIdIgnoreCase(tranId);
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				if (!transaction.isPresent()) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+				}
+			} else {
+				if (intRec == 2) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+							"Unable to process duplicate transaction", null);
+				} else {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -430,16 +541,28 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
-			String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-					transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
-			String[] tranKey = tranId.split(Pattern.quote("|"));
-			if (tranKey[0].equals("DJGO")) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
-			}
-			Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
-			resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
-			if (!transaction.isPresent()) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+			int intRec = tempwallet.PaymenttranInsert("", fromAccountNumber, toAccountNumber, transfer.getAmount(),
+					transfer.getPaymentReference());
+			if (intRec == 1) {
+				String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+				String[] tranKey = tranId.split(Pattern.quote("|"));
+				if (tranKey[0].equals("DJGO")) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+				}
+				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+						.findByTranIdIgnoreCase(tranId);
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				if (!transaction.isPresent()) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+				}
+			} else {
+				if (intRec == 2) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+							"Unable to process duplicate transaction", null);
+				} else {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -461,17 +584,29 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
-			String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-					transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
-			String[] tranKey = tranId.split(Pattern.quote("|"));
-			if (tranKey[0].equals("DJGO")) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+			int intRec = tempwallet.PaymenttranInsert("", fromAccountNumber, toAccountNumber, transfer.getAmount(),
+					transfer.getPaymentReference());
+			if (intRec == 1) {
+				String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+				String[] tranKey = tranId.split(Pattern.quote("|"));
+				if (tranKey[0].equals("DJGO")) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+				}
+				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+						.findByTranIdIgnoreCase(tranId);
+				if (!transaction.isPresent()) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+				}
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction.get());
+			} else {
+				if (intRec == 2) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+							"Unable to process duplicate transaction", null);
+				} else {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+				}
 			}
-			Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
-			if (!transaction.isPresent()) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
-			}
-			resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction.get());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -501,17 +636,29 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
-			String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-					transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
-			String[] tranKey = tranId.split(Pattern.quote("|"));
-			if (tranKey[0].equals("DJGO")) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+			int intRec = tempwallet.PaymenttranInsert("", fromAccountNumber, toAccountNumber, transfer.getAmount(),
+					transfer.getPaymentReference());
+			if (intRec == 1) {
+				String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+				String[] tranKey = tranId.split(Pattern.quote("|"));
+				if (tranKey[0].equals("DJGO")) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+				}
+				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+						.findByTranIdIgnoreCase(tranId);
+				if (!transaction.isPresent()) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+				}
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction.get());
+			} else {
+				if (intRec == 2) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+							"Unable to process duplicate transaction", null);
+				} else {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+				}
 			}
-			Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
-			if (!transaction.isPresent()) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
-			}
-			resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction.get());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -525,18 +672,30 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
-			String tranId = createChargeTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-					transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-					transfer.getEventChargeId());
-			String[] tranKey = tranId.split(Pattern.quote("|"));
-			if (tranKey[0].equals("DJGO")) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+			int intRec = tempwallet.PaymenttranInsert("", fromAccountNumber, toAccountNumber, transfer.getAmount(),
+					transfer.getPaymentReference());
+			if (intRec == 1) {
+				String tranId = createChargeTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
+						transfer.getEventChargeId());
+				String[] tranKey = tranId.split(Pattern.quote("|"));
+				if (tranKey[0].equals("DJGO")) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+				}
+				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+						.findByTranIdIgnoreCase(tranId);
+				if (!transaction.isPresent()) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+				}
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction.get());
+			} else {
+				if (intRec == 2) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+							"Unable to process duplicate transaction", null);
+				} else {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+				}
 			}
-			Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
-			if (!transaction.isPresent()) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
-			}
-			resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction.get());
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -570,16 +729,28 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
-			String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-					transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
-			String[] tranKey = tranId.split(Pattern.quote("|"));
-			if (tranKey[0].equals("DJGO")) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
-			}
-			Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
-			resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
-			if (!transaction.isPresent()) {
-				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+			int intRec = tempwallet.PaymenttranInsert("", fromAccountNumber, toAccountNumber, transfer.getAmount(),
+					transfer.getPaymentReference());
+			if (intRec == 1) {
+				String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+				String[] tranKey = tranId.split(Pattern.quote("|"));
+				if (tranKey[0].equals("DJGO")) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+				}
+				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+						.findByTranIdIgnoreCase(tranId);
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				if (!transaction.isPresent()) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+				}
+			} else {
+				if (intRec == 2) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+							"Unable to process duplicate transaction", null);
+				} else {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -590,6 +761,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 	public String createTransaction(String debitAcctNo, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef) throws Exception {
 		try {
+			log.info("START TRANSACTION");
+			String tranCount = tempwallet.transactionCount(paymentRef, creditAcctNo);
+			if (!tranCount.isBlank()) {
+				return "tranCount";
+			}
 			boolean validate = paramValidation.validateDefaultCode(tranCrncy, "Currency");
 			if (!validate) {
 				return "DJGO|Currency Code Validation Failed";
@@ -699,6 +875,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					email);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
+			tempwallet.updateTransaction(paymentRef, amount, tranId);
 
 			double clrbalAmtDr = accountDebit.getClr_bal_amt() - amount.doubleValue();
 			double cumbalDrAmtDr = accountDebit.getCum_dr_amt() + amount.doubleValue();
@@ -718,6 +895,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// WalletTransactionNotification notify = new
 			// WalletTransactionNotification(debitAcctNo, creditAcctNo, String tranMessage,
 			// String debitMobileNo, String creditMobileNo)
+			log.info("END TRANSACTION");
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -730,6 +908,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef, String eventCharge)
 			throws Exception {
 		try {
+			log.info("START TRANSACTION");
+			String tranCount = tempwallet.transactionCount(paymentRef, creditAcctNo);
+			if (!tranCount.isBlank()) {
+				return "tranCount";
+			}
 			boolean validate = paramValidation.validateDefaultCode(tranCrncy, "Currency");
 			if (!validate) {
 				return "DJGO|Currency Code Validation Failed";
@@ -858,6 +1041,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 			walletTransactionRepository.saveAndFlush(tranCharge);
+			tempwallet.updateTransaction(paymentRef, amount, tranId);
 
 			double clrbalAmtDr = accountDebit.getClr_bal_amt() - chargeAmt.doubleValue();
 			double cumbalDrAmtDr = accountDebit.getCum_dr_amt() + amount.doubleValue();
@@ -882,6 +1066,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			chargeTill.setCum_cr_amt(cumbalCrAmtChg);
 			chargeTill.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(chargeTill);
+			log.info("END TRANSACTION");
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -893,6 +1078,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 	public String createAdminTransaction(String adminUserId, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef, String command) throws Exception {
 		try {
+			log.info("START TRANSACTION");
+			String tranCount = tempwallet.transactionCount(paymentRef, creditAcctNo);
+			if (!tranCount.isBlank()) {
+				return "tranCount";
+			}
 
 			boolean validate = paramValidation.validateDefaultCode(tranCrncy, "Currency");
 			if (!validate) {
@@ -1033,6 +1223,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					email);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
+			tempwallet.updateTransaction(paymentRef, amount, tranId);
 
 			double clrbalAmtDr = accountDebit.getClr_bal_amt() - amount.doubleValue();
 			double cumbalDrAmtDr = accountDebit.getCum_dr_amt() + amount.doubleValue();
@@ -1049,6 +1240,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			accountCredit.setCum_cr_amt(cumbalCrAmtCr);
 			accountCredit.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(accountCredit);
+			log.info("END TRANSACTION");
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1419,6 +1611,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 	public String BankTransactionPay(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef, String bk) throws Exception {
 		try {
+			log.info("START TRANSACTION");
+			String tranCount = tempwallet.transactionCount(paymentRef, creditAcctNo);
+			if (!tranCount.isBlank()) {
+				return "tranCount";
+			}
 
 			boolean validate = paramValidation.validateDefaultCode(tranCrncy, "Currency");
 			if (!validate) {
@@ -1564,6 +1761,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					email);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
+			tempwallet.updateTransaction(paymentRef, amount, tranId);
 
 			double clrbalAmtDr = accountDebit.getClr_bal_amt() - amount.doubleValue();
 			double cumbalDrAmtDr = accountDebit.getCum_dr_amt() + amount.doubleValue();
@@ -1580,6 +1778,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			accountCredit.setCum_cr_amt(cumbalCrAmtCr);
 			accountCredit.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(accountCredit);
+			log.info("END TRANSACTION");
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1792,7 +1991,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return "DJGO|BENEFICIARY ACCOUNT: " + mUser.getCustomerAccountNo() + " DOES NOT EXIST";
 				creditList.add(accountCredit);
 				amount = amount.add(mUser.getAmount());
-				
+
 				if (!accountCredit.getAcct_ownership().equals("O")) {
 					if (accountCredit.isAcct_cls_flg())
 						return "DJGO|CREDIT ACCOUNT IS CLOSED";
@@ -2038,9 +2237,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				// **********************************************
 
-				//MyData tokenData = tokenService.getUserInformation();
-				//String email = tokenData != null ? tokenData.getEmail() : "";
-				//String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+				// MyData tokenData = tokenService.getUserInformation();
+				// String email = tokenData != null ? tokenData.getEmail() : "";
+				// String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
 
 				String tranNarrate = "WALLET-" + mUser.getTranNarration();
 				WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount,
