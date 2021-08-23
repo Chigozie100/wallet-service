@@ -231,7 +231,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return resp;
 	}
-	
+
 	public ApiResponse<?> EventBuySellPayment(WayaTradeDTO transfer) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
 		String toAccountNumber = transfer.getBenefAccountNumber();
@@ -268,7 +268,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return resp;
 	}
-
 
 	@Override
 	public ApiResponse<?> EventCommissionPayment(EventPaymentDTO transfer) {
@@ -830,8 +829,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (!accountDebit.getAcct_ownership().equals("O")) {
 				if (accountDebit.isAcct_cls_flg())
 					return "DJGO|DEBIT ACCOUNT IS CLOSED";
-				if (accountDebit.getFrez_code().equals("D"))
-					return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				log.info("Debit Account is: {}", accountDebit.getAccountNo());
+				log.info("Debit Account Freeze Code is: {}", accountDebit.getFrez_code());
+				if (accountDebit.getFrez_code() != null) {
+					if (accountDebit.getFrez_code().equals("D"))
+						return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				}
+				
 				if (accountDebit.getLien_amt() != 0) {
 					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
 					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
@@ -852,8 +856,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 				if (accountCredit.isAcct_cls_flg())
 					return "DJGO|CREDIT ACCOUNT IS CLOSED";
 
-				if (accountCredit.getFrez_code().equals("C"))
-					return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+				log.info("Credit Account is: {}", accountCredit.getAccountNo());
+				log.info("Credit Account Freeze Code is: {}", accountCredit.getFrez_code());
+				if (accountCredit.getFrez_code() != null) {
+					if (accountCredit.getFrez_code().equals("C"))
+						return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+				}
 			}
 
 			// **********************************************
@@ -987,8 +995,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (!accountDebit.getAcct_ownership().equals("O")) {
 				if (accountDebit.isAcct_cls_flg())
 					return "DJGO|DEBIT ACCOUNT IS CLOSED";
-				if (accountDebit.getFrez_code().equals("D"))
-					return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				log.info("Debit Account is: {}", accountDebit.getAccountNo());
+				log.info("Debit Account Freeze Code is: {}", accountDebit.getFrez_code());
+				if (accountDebit.getFrez_code() != null) {
+					if (accountDebit.getFrez_code().equals("D"))
+						return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				}
+				
 				if (accountDebit.getLien_amt() != 0) {
 					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
 					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
@@ -1009,8 +1022,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 				if (accountCredit.isAcct_cls_flg())
 					return "DJGO|CREDIT ACCOUNT IS CLOSED";
 
-				if (accountCredit.getFrez_code().equals("C"))
-					return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+				log.info("Credit Account is: {}", accountCredit.getAccountNo());
+				log.info("Credit Account Freeze Code is: {}", accountCredit.getFrez_code());
+				if (accountCredit.getFrez_code() != null) {
+					if (accountCredit.getFrez_code().equals("C"))
+						return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+				}
 			}
 
 			String tranId = "";
@@ -1174,8 +1191,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (!accountDebit.getAcct_ownership().equals("O")) {
 				if (accountDebit.isAcct_cls_flg())
 					return "DJGO|DEBIT ACCOUNT IS CLOSED";
-				if (accountDebit.getFrez_code().equals("D"))
-					return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				log.info("Debit Account is: {}", accountDebit.getAccountNo());
+				log.info("Debit Account Freeze Code is: {}", accountDebit.getFrez_code());
+				if (accountDebit.getFrez_code() != null) {
+					if (accountDebit.getFrez_code().equals("D"))
+						return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				}
+				
 				if (accountDebit.getLien_amt() != 0) {
 					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
 					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
@@ -1196,8 +1218,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 				if (accountCredit.isAcct_cls_flg())
 					return "DJGO|CREDIT ACCOUNT IS CLOSED";
 
-				if (accountCredit.getFrez_code().equals("C"))
-					return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+				log.info("Credit Account is: {}", accountCredit.getAccountNo());
+				log.info("Credit Account Freeze Code is: {}", accountCredit.getFrez_code());
+				if (accountCredit.getFrez_code() != null) {
+					if (accountCredit.getFrez_code().equals("C"))
+						return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+				}
 			}
 
 			// **********************************************
@@ -1350,8 +1376,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (!accountDebit.getAcct_ownership().equals("O")) {
 				if (accountDebit.isAcct_cls_flg())
 					return "DJGO|DEBIT ACCOUNT IS CLOSED";
-				if (accountDebit.getFrez_code().equals("D"))
-					return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				log.info("Debit Account is: {}", accountDebit.getAccountNo());
+				log.info("Debit Account Freeze Code is: {}", accountDebit.getFrez_code());
+				if (accountDebit.getFrez_code() != null) {
+					if (accountDebit.getFrez_code().equals("D"))
+						return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				}
+				
 				if (accountDebit.getLien_amt() != 0) {
 					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
 					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
@@ -1372,8 +1403,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 				if (accountCredit.isAcct_cls_flg())
 					return "DJGO|CREDIT ACCOUNT IS CLOSED";
 
-				if (accountCredit.getFrez_code().equals("C"))
-					return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+				log.info("Credit Account is: {}", accountCredit.getAccountNo());
+				log.info("Credit Account Freeze Code is: {}", accountCredit.getFrez_code());
+				if (accountCredit.getFrez_code() != null) {
+					if (accountCredit.getFrez_code().equals("C"))
+						return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+				}
 			}
 
 			// **********************************************
@@ -1529,8 +1564,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (!accountDebit.getAcct_ownership().equals("O")) {
 				if (accountDebit.isAcct_cls_flg())
 					return "DJGO|DEBIT ACCOUNT IS CLOSED";
-				if (accountDebit.getFrez_code().equals("D"))
-					return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				log.info("Debit Account is: {}", accountDebit.getAccountNo());
+				log.info("Debit Account Freeze Code is: {}", accountDebit.getFrez_code());
+				if (accountDebit.getFrez_code() != null) {
+					if (accountDebit.getFrez_code().equals("D"))
+						return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				}
+				
 				if (accountDebit.getLien_amt() != 0) {
 					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
 					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
@@ -1551,8 +1591,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 				if (accountCredit.isAcct_cls_flg())
 					return "DJGO|CREDIT ACCOUNT IS CLOSED";
 
-				if (accountCredit.getFrez_code().equals("C"))
-					return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+				log.info("Credit Account is: {}", accountCredit.getAccountNo());
+				log.info("Credit Account Freeze Code is: {}", accountCredit.getFrez_code());
+				if (accountCredit.getFrez_code() != null) {
+					if (accountCredit.getFrez_code().equals("C"))
+						return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+				}
 			}
 
 			// **********************************************
@@ -1709,8 +1753,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (!accountDebit.getAcct_ownership().equals("O")) {
 				if (accountDebit.isAcct_cls_flg())
 					return "DJGO|DEBIT ACCOUNT IS CLOSED";
-				if (accountDebit.getFrez_code().equals("D"))
-					return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				log.info("Debit Account is: {}", accountDebit.getAccountNo());
+				log.info("Debit Account Freeze Code is: {}", accountDebit.getFrez_code());
+				if (accountDebit.getFrez_code() != null) {
+					if (accountDebit.getFrez_code().equals("D"))
+						return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				}
 				if (accountDebit.getLien_amt() != 0) {
 					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
 					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
@@ -1730,9 +1778,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (!accountCredit.getAcct_ownership().equals("O")) {
 				if (accountCredit.isAcct_cls_flg())
 					return "DJGO|CREDIT ACCOUNT IS CLOSED";
-
-				if (accountCredit.getFrez_code().equals("C"))
-					return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+				
+				log.info("Credit Account is: {}", accountCredit.getAccountNo());
+				log.info("Credit Account Freeze Code is: {}", accountCredit.getFrez_code());
+				if (accountCredit.getFrez_code() != null) {
+					if (accountCredit.getFrez_code().equals("C"))
+						return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+				}
 			}
 
 			// **********************************************
@@ -1996,8 +2048,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 					if (accountCredit.isAcct_cls_flg())
 						return "DJGO|CREDIT ACCOUNT IS CLOSED";
 
-					if (accountCredit.getFrez_code().equals("C"))
-						return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+					log.info("Credit Account is: {}", accountCredit.getAccountNo());
+					log.info("Credit Account Freeze Code is: {}", accountCredit.getFrez_code());
+					if (accountCredit.getFrez_code() != null) {
+						if (accountCredit.getFrez_code().equals("C"))
+							return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+					}
 				}
 			}
 			if (accountDebit == null || creditList == null) {
@@ -2057,8 +2113,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (!accountDebit.getAcct_ownership().equals("O")) {
 				if (accountDebit.isAcct_cls_flg())
 					return "DJGO|DEBIT ACCOUNT IS CLOSED";
-				if (accountDebit.getFrez_code().equals("D"))
-					return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				log.info("Debit Account is: {}", accountDebit.getAccountNo());
+				log.info("Debit Account Freeze Code is: {}", accountDebit.getFrez_code());
+				if (accountDebit.getFrez_code() != null) {
+					if (accountDebit.getFrez_code().equals("D"))
+						return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+				}
+				
 				if (accountDebit.getLien_amt() != 0) {
 					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
 					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
@@ -2209,8 +2270,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 				if (!accountDebit.getAcct_ownership().equals("O")) {
 					if (accountDebit.isAcct_cls_flg())
 						return "DJGO|DEBIT ACCOUNT IS CLOSED";
-					if (accountDebit.getFrez_code().equals("D"))
-						return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+					log.info("Debit Account is: {}", accountDebit.getAccountNo());
+					log.info("Debit Account Freeze Code is: {}", accountDebit.getFrez_code());
+					if (accountDebit.getFrez_code() != null) {
+						if (accountDebit.getFrez_code().equals("D"))
+							return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+					}
+					
 					if (accountDebit.getLien_amt() != 0) {
 						double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
 						if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
@@ -2231,8 +2297,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 					if (accountCredit.isAcct_cls_flg())
 						return "DJGO|CREDIT ACCOUNT IS CLOSED";
 
-					if (accountCredit.getFrez_code().equals("C"))
-						return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+					log.info("Credit Account is: {}", accountCredit.getAccountNo());
+					log.info("Credit Account Freeze Code is: {}", accountCredit.getFrez_code());
+					if (accountCredit.getFrez_code() != null) {
+						if (accountCredit.getFrez_code().equals("C"))
+							return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+					}
 				}
 
 				// **********************************************
