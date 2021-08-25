@@ -438,6 +438,24 @@ public class UserAccountServiceImpl implements UserAccountService {
 	}
 
 	public ResponseEntity<?> UserAccountAccess(AdminAccountRestrictionDTO user) {
+		if(!user.isAcctClosed()) {
+			
+		}else if(!user.isAcctfreez()) {
+			if(!user.getFreezCode().isBlank() && !user.getFreezCode().isEmpty()) {
+				return new ResponseEntity<>(new ErrorResponse("Freeze Code should not be entered"), HttpStatus.NOT_FOUND);
+			}
+			if(!user.getFreezReason().isBlank() && !user.getFreezReason().isEmpty()) {
+				return new ResponseEntity<>(new ErrorResponse("Freeze Reason should not be entered"), HttpStatus.NOT_FOUND);
+			}			
+		}else if(!user.isAmountRestrict()) {
+			if(!user.getLienReason().isBlank() && !user.getLienReason().isEmpty()) {
+				return new ResponseEntity<>(new ErrorResponse("Lien Reason should not be entered"), HttpStatus.NOT_FOUND);
+			}
+			if(user.getLienAmount().compareTo(BigDecimal.ZERO) != 0 && user.getLienAmount().compareTo(BigDecimal.ZERO) != 0) {
+				return new ResponseEntity<>(new ErrorResponse("Lien Amount should not be entered"), HttpStatus.NOT_FOUND);
+			}
+		}
+		
 		WalletUser userDelete = null;
 		List<String> accountL = new ArrayList<>();
 		// Default Wallet
@@ -446,16 +464,19 @@ public class UserAccountServiceImpl implements UserAccountService {
 			if (account == null) {
 				return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"), HttpStatus.NOT_FOUND);
 			}
+			
 			userDelete = walletUserRepository.findByAccount(account);
 			if (account.isAcct_cls_flg() && userDelete.isDel_flg()) {
 				return new ResponseEntity<>(new SuccessResponse("Wallet Account Deleted Successfully"), HttpStatus.OK);
 			}
+			
 			List<WalletAccount> accountList = walletAccountRepository.findByUser(userDelete);
 			for(WalletAccount acct : accountList) {
 				if(acct.isAcct_cls_flg() && acct.getClr_bal_amt() != 0) {
 					accountL.add(acct.getAccountNo());
 				}
 			}
+			
 			if (user.isAcctfreez()) {
 				if (user.getFreezCode().equalsIgnoreCase("D")) {
 					account.setFrez_code(user.getFreezCode());
