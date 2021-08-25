@@ -12,8 +12,10 @@ import org.springframework.stereotype.Service;
 
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dto.AccountGLDTO;
+import com.wayapaychat.temporalwallet.dto.ChargeDTO;
 import com.wayapaychat.temporalwallet.dto.EventChargeDTO;
 import com.wayapaychat.temporalwallet.dto.InterestDTO;
+import com.wayapaychat.temporalwallet.dto.ModifyChargeDTO;
 import com.wayapaychat.temporalwallet.dto.ProductCodeDTO;
 import com.wayapaychat.temporalwallet.dto.ProductDTO;
 import com.wayapaychat.temporalwallet.dto.WalletConfigDTO;
@@ -26,6 +28,7 @@ import com.wayapaychat.temporalwallet.entity.WalletInterest;
 import com.wayapaychat.temporalwallet.entity.WalletProduct;
 import com.wayapaychat.temporalwallet.entity.WalletProductCode;
 import com.wayapaychat.temporalwallet.entity.WalletTeller;
+import com.wayapaychat.temporalwallet.entity.WalletTransactionCharge;
 import com.wayapaychat.temporalwallet.pojo.UserDetailPojo;
 import com.wayapaychat.temporalwallet.repository.WalletBankConfigRepository;
 import com.wayapaychat.temporalwallet.repository.WalletConfigRepository;
@@ -35,6 +38,7 @@ import com.wayapaychat.temporalwallet.repository.WalletInterestRepository;
 import com.wayapaychat.temporalwallet.repository.WalletProductCodeRepository;
 import com.wayapaychat.temporalwallet.repository.WalletProductRepository;
 import com.wayapaychat.temporalwallet.repository.WalletTellerRepository;
+import com.wayapaychat.temporalwallet.repository.WalletTransactionChargeRepository;
 import com.wayapaychat.temporalwallet.service.ConfigService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.ParamDefaultValidation;
@@ -73,6 +77,9 @@ public class ConfigServiceImpl implements ConfigService {
 	
 	@Autowired
 	WalletEventRepository walletEventRepository;
+	
+	@Autowired
+	WalletTransactionChargeRepository walletTransactionChargeRepository;
 
 	@Override
 	public ResponseEntity<?> createDefaultCode(WalletConfigDTO configPojo) {
@@ -339,14 +346,122 @@ public class ConfigServiceImpl implements ConfigService {
             return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
 	}
+	
+	@Override
+	public ResponseEntity<?> createCharge(ChargeDTO event) {
+		
+		if(event.getFixedAmount() != 0 && event.getFixedPercent() != 0) {
+			return new ResponseEntity<>(new ErrorResponse("Both can't be maintained. Maintain either fixed Amount or Percent"), HttpStatus.BAD_REQUEST);
+		}
+		
+		switch (event.getChargePerMode()) {
+		  case "TRANSAC":
+		    break;
+		  case "DAILY":
+		    break;
+		  case "MONTHLY":
+		    break;
+		  case "QUATERLY":
+			break;
+		  case "YEARLY":
+			break;
+		  default:
+			  return new ResponseEntity<>(new ErrorResponse("Charge PER mode doesn't exist"), HttpStatus.BAD_REQUEST);
+		}
+		
+		boolean validate = paramValidation.validateDefaultCode(event.getCurrencyCode(),"Currency");
+		if(!validate) {
+			return new ResponseEntity<>(new ErrorResponse("Currency Code Validation Failed"), HttpStatus.BAD_REQUEST);
+		}
+		
+		Optional<WalletEventCharges> wCharge = walletEventRepository.findByEventId(event.getChargeEvent());
+		if(!wCharge.isPresent()) {
+			return new ResponseEntity<>(new ErrorResponse("Event Validation Failed"), HttpStatus.BAD_REQUEST);
+		}
+		
+		WalletTransactionCharge EventCharge = new WalletTransactionCharge(event.getChargeName(), event.getCurrencyCode(), event.getFixedAmount(), event.getFixedPercent(),
+				event.getChargePerMode(), event.isTaxable(), event.getChargeEvent());
+		try {
+			WalletTransactionCharge charge = walletTransactionChargeRepository.save(EventCharge);
+            return new ResponseEntity<>(new SuccessResponse("Transaction Charge Created Successfully.", charge), HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+        }
+	}
+	
+	@Override
+	public ResponseEntity<?> updateTranCharge(ModifyChargeDTO event, Long chargeId) {
+		
+		if(event.getFixedAmount() != 0 && event.getFixedPercent() != 0) {
+			return new ResponseEntity<>(new ErrorResponse("Both can't be maintained. Maintain either fixed Amount or Percent"), HttpStatus.BAD_REQUEST);
+		}
+		
+		switch (event.getChargePerMode()) {
+		  case "TRANSAC":
+		    break;
+		  case "DAILY":
+		    break;
+		  case "MONTHLY":
+		    break;
+		  case "QUATERLY":
+			break;
+		  case "YEARLY":
+			break;
+		  default:
+			  return new ResponseEntity<>(new ErrorResponse("Charge PER mode doesn't exist"), HttpStatus.BAD_REQUEST);
+		}
+		
+		Optional<WalletEventCharges> wCharge = walletEventRepository.findByEventId(event.getChargeEvent());
+		if(!wCharge.isPresent()) {
+			return new ResponseEntity<>(new ErrorResponse("Event Validation Failed"), HttpStatus.BAD_REQUEST);
+		}
+		
+		Optional<WalletTransactionCharge> EventCharge = walletTransactionChargeRepository.findById(chargeId);
+		if(!EventCharge.isPresent()) {
+			return new ResponseEntity<>(new ErrorResponse("Invalid Charge ID"), HttpStatus.BAD_REQUEST);
+		}
+		WalletTransactionCharge eventchg = EventCharge.get();
+		try {
+			eventchg.setChargeEvent(event.getChargeEvent());
+			eventchg.setChargePerMode(event.getChargePerMode());
+			eventchg.setFixedAmount(event.getFixedAmount());
+			eventchg.setFixedPercent(event.getFixedPercent());
+			eventchg.setDeleted(event.isTaxable());
+			WalletTransactionCharge charge = walletTransactionChargeRepository.save(eventchg);
+            return new ResponseEntity<>(new SuccessResponse("Transaction Charge Created Successfully.", charge), HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+        }
+	}
 
 	@Override
 	public ResponseEntity<?> ListEvents() {
 		List<WalletEventCharges> event = walletEventRepository.findAll();
 		if(event == null) {
+			return new ResponseEntity<>(new ErrorResponse("No Charge exist"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(new SuccessResponse("Success", event), HttpStatus.OK);
+	}
+	
+	@Override
+	public ResponseEntity<?> ListTranCharge() {
+		List<WalletTransactionCharge> event = walletTransactionChargeRepository.findAll();
+		if(event == null) {
 			return new ResponseEntity<>(new ErrorResponse("No event exist"), HttpStatus.BAD_REQUEST);
 		}
 		return new ResponseEntity<>(new SuccessResponse("Success", event), HttpStatus.OK);
+	}
+	
+	public ResponseEntity<?> findTranCharge(Long id) {
+		try {
+			Optional<WalletTransactionCharge> charge = walletTransactionChargeRepository.findById(id);
+			if(!charge.isPresent()) {
+				return new ResponseEntity<>(new ErrorResponse("Invalid Charge Id"), HttpStatus.BAD_REQUEST);
+			}
+            return new ResponseEntity<>(new SuccessResponse("Success.", charge.get()), HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+        }
 	}
 }
 
