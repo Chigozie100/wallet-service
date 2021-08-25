@@ -170,7 +170,7 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "To Fetch Transactions By Account Number", notes = "find transaction by Account Number pagable")
 	@GetMapping("/find/transactions/{accountNo}")
-	public ResponseEntity<?> findTransactionAccountNo(@RequestParam("accountNo") String accountNo, @RequestParam(defaultValue = "0") int page,
+	public ResponseEntity<?> findTransactionAccountNo(@PathVariable("accountNo") String accountNo, @RequestParam(defaultValue = "0") int page,
 	        @RequestParam(defaultValue = "10") int size){
 		ApiResponse<?> res = transAccountService.findByAccountNumber(page, size, accountNo);
 		if (!res.getStatus()) {
@@ -181,8 +181,8 @@ public class WalletTransactionController {
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Fetch Transaction By Wallet Id", notes = "find transaction by Wallet Id pagable")
-	@GetMapping("/find/transactions/{walletId}")
-	public ResponseEntity<?> findWalletTransaction(@RequestParam("walletId") Long walletId, @RequestParam(defaultValue = "0") int page,
+	@GetMapping("/get/transactions/{walletId}")
+	public ResponseEntity<?> findWalletTransaction(@PathVariable("walletId") Long walletId, @RequestParam(defaultValue = "0") int page,
 	        @RequestParam(defaultValue = "10") int size) {
 		ApiResponse<?> res = transAccountService.getTransactionByWalletId(page, size, walletId);
 		if (!res.getStatus()) {
