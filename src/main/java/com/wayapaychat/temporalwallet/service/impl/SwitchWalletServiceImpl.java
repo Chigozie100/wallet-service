@@ -50,16 +50,21 @@ public class SwitchWalletServiceImpl implements SwitchWalletService {
 	@Override
 	public ResponseEntity<?> UpdateSwitche(ToggleSwitchDTO toggle) {
 		
-		Optional<SwitchWallet> checkSwitchPrev = switchWalletRepository.findBySwitchCode(toggle.getPrevSwitchCode());
-		if (!checkSwitchPrev.isPresent()) {
-			return new ResponseEntity<>(new ErrorResponse("PREVIOUS SWITCH DOES NOT EXIST"), HttpStatus.BAD_REQUEST);
-		}
 		Optional<SwitchWallet> checkSwitchNew = switchWalletRepository.findBySwitchCode(toggle.getNewSwitchCode());
-		if (!checkSwitchPrev.isPresent()) {
+		if (!checkSwitchNew.isPresent()) {
 			return new ResponseEntity<>(new ErrorResponse("NEW SWITCH DOES NOT EXIST"), HttpStatus.BAD_REQUEST);
 		}
+		SwitchWallet walletSwt = null;
+		List<SwitchWallet> checkSwitchPrev = switchWalletRepository.findBySwitchIdent(checkSwitchNew.get().getSwitchIdentity());
+		if (!checkSwitchPrev.isEmpty()) {
+			for(SwitchWallet checkSwt : checkSwitchPrev) {
+				if(!checkSwt.getSwitchCode().equalsIgnoreCase(checkSwitchNew.get().getSwitchCode())) {
+					walletSwt = checkSwt;
+				}
+			}
+		}
 		try {
-			SwitchWallet walletSwtPrev = checkSwitchPrev.get();
+			SwitchWallet walletSwtPrev = walletSwt;
 			if(walletSwtPrev.getSwitchCodeTime() != null) {
 			walletSwtPrev.setLastSwitchTime(walletSwtPrev.getSwitchCodeTime());
 			}

@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import com.wayapaychat.temporalwallet.dto.AccountProductDTO;
 import com.wayapaychat.temporalwallet.dto.AccountToggleDTO;
 import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
+import com.wayapaychat.temporalwallet.dto.OfficialAccountDTO;
 import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
 import com.wayapaychat.temporalwallet.dto.UserDTO;
 import com.wayapaychat.temporalwallet.dto.WalletCashAccountDTO;
@@ -27,6 +28,8 @@ public interface UserAccountService {
 	ResponseEntity<?> createEventAccount(WalletEventAccountDTO user);
 	
 	ResponseEntity<?> createAccount(AccountPojo2 accountPojo);
+	
+	ResponseEntity<?> createOfficialAccount(OfficialAccountDTO account);
 	
 	ResponseEntity<?> createAccountProduct(AccountProductDTO accountPojo);
 	

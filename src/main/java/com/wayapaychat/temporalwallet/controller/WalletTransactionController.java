@@ -74,7 +74,7 @@ public class WalletTransactionController {
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-	@ApiOperation(value = "To transfer money from one waya official account to another", notes = "Post Money")
+	@ApiOperation(value = "To transfer money from one waya official account to user wallet", notes = "Post Money")
 	@PostMapping("/official/user/transfer")
 	public ResponseEntity<?> OfficialUserMoney(@Valid @RequestBody OfficeUserTransferDTO transfer) {
 		ApiResponse<?> res = transAccountService.OfficialUserTransfer(transfer);
