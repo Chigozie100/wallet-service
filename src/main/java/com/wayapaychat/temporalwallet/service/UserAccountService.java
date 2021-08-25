@@ -71,5 +71,7 @@ public interface UserAccountService {
 	ApiResponse<?> fetchFilterTransaction(String acctNo, Date fromdate, Date todate);
 	
 	ApiResponse<?> fetchRecentTransaction(Long user_id);
+	
+	ResponseEntity<?> getListWalletAccount();
 
 }
