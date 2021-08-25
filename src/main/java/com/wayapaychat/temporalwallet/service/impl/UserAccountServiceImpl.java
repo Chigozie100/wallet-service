@@ -1055,5 +1055,14 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 		return new ResponseEntity<>(new SuccessResponse("LIST WAYA ACCOUNT", account), HttpStatus.OK);
 	}
+	
+	@Override
+	public ResponseEntity<?> getListWalletAccount() {
+		List<WalletAccount> account = walletAccountRepository.findByWalletAccount();
+		if (account.isEmpty()) {
+			return new ResponseEntity<>(new ErrorResponse("NO WAYA ACCOUNT"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(new SuccessResponse("LIST WAYA ACCOUNT", account), HttpStatus.OK);
+	}
 
 }

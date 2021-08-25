@@ -246,6 +246,12 @@ public class WalletUserAccountController {
         }
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
+	
+	@ApiOperation(value = "List all wallet accounts")
+    @GetMapping(path = "/wallet/account")
+    public ResponseEntity<?> ListAllWalletAccount() {
+        return userAccountService.getListWalletAccount();
+    }
 
 
 }

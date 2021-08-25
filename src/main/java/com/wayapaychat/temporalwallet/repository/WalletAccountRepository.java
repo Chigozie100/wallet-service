@@ -34,5 +34,8 @@ public interface WalletAccountRepository extends JpaRepository<WalletAccount, Lo
     
     @Query("SELECT u FROM WalletAccount u WHERE u.product_type = ('OAB')" + " AND u.del_flg = false")
     List<WalletAccount> findByWayaAccount();
+    
+    @Query("SELECT u FROM WalletAccount u WHERE u.product_type != ('OAB')" + " AND u.del_flg = false")
+    List<WalletAccount> findByWalletAccount();
 
 }

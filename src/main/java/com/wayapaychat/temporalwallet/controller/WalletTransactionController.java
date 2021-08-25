@@ -364,5 +364,26 @@ public class WalletTransactionController {
 		}
 		
 	}
+	
+	@ApiOperation(value = "For Client to view all waya transaction", notes = "To view all transaction for wallet/waya")
+	@GetMapping("/client/statement/{acctNo}")
+	public ResponseEntity<?> StatementClient(@RequestParam("fromdate") 
+	   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate, 
+			@RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
+			@PathVariable("acctNo") String acctNo) {
+		ApiResponse<?> res;
+		try {
+			res = transAccountService.statementReport(fromdate, todate, acctNo);
+			if (!res.getStatus()) {
+	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+	        }
+	        return new ResponseEntity<>(res, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
+			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+		}
+		
+	}
 
 }
