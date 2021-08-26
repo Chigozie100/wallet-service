@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.wayapaychat.temporalwallet.dto.AccountProductDTO;
 import com.wayapaychat.temporalwallet.dto.AccountToggleDTO;
 import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
+import com.wayapaychat.temporalwallet.dto.OfficialAccountDTO;
 import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
 import com.wayapaychat.temporalwallet.dto.UserDTO;
 import com.wayapaychat.temporalwallet.dto.WalletCashAccountDTO;
@@ -100,6 +101,20 @@ public class WalletUserAccountController {
     public ResponseEntity<?> createAccount(@Valid @RequestBody AccountPojo2 accountPojo) {
 		return userAccountService.createAccount(accountPojo);
         //return userAccountService.createAccount(accountPojo);
+    }
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Create a wallet account")
+    @PostMapping(path = "/official/user/account")
+    public ResponseEntity<?> createUserAccount(@Valid @RequestBody AccountPojo2 accountPojo) {
+		return userAccountService.createAccount(accountPojo);
+    }
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Create a waya official account")
+    @PostMapping(path = "/official/waya/account")
+    public ResponseEntity<?> createOfficialAccount(@Valid @RequestBody OfficialAccountDTO account) {
+		return userAccountService.createOfficialAccount(account);
     }
 	
 	@ApiOperation(value = "Create a Wallet")

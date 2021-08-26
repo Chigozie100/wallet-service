@@ -777,8 +777,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 			// Check for account security
 			log.info(accountDebit.getHashed_no());
-			String compareDebit = tempwallet.GetSecurityTest(debitAcctNo);
-			log.info(compareDebit);
+			//String compareDebit = tempwallet.GetSecurityTest(debitAcctNo);
+			//log.info(compareDebit);
 			String secureDebit = reqIPUtils.WayaDecrypt(accountDebit.getHashed_no());
 			log.info(secureDebit);
 			String[] keyDebit = secureDebit.split(Pattern.quote("|"));
@@ -789,8 +789,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 
 			log.info(accountCredit.getHashed_no());
-			String compareCredit = tempwallet.GetSecurityTest(creditAcctNo);
-			log.info(compareCredit);
+			//String compareCredit = tempwallet.GetSecurityTest(creditAcctNo);
+			//log.info(compareCredit);
 			String secureCredit = reqIPUtils.WayaDecrypt(accountCredit.getHashed_no());
 			log.info(secureCredit);
 			String[] keyCredit = secureCredit.split(Pattern.quote("|"));
@@ -1956,6 +1956,17 @@ public class TransAccountServiceImpl implements TransAccountService {
 		LocalDate fromDate = fromdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 		LocalDate toDate = todate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 		List<WalletTransaction> transaction = walletTransactionRepository.findByReverse(fromDate, toDate);
+		if (transaction.isEmpty()) {
+			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO REPORT SPECIFIED DATE", null);
+		}
+		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "REVERSAL REPORT SUCCESSFULLY", transaction);
+	}
+	
+	@Override
+	public ApiResponse<?> PaymentTransAccountReport(Date fromdate, Date todate, String accountNo) {
+		LocalDate fromDate = fromdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		LocalDate toDate = todate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		List<WalletTransaction> transaction = walletTransactionRepository.findByAccountReverse(fromDate, toDate, accountNo);
 		if (transaction.isEmpty()) {
 			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO REPORT SPECIFIED DATE", null);
 		}

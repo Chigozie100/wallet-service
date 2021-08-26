@@ -74,7 +74,7 @@ public class WalletTransactionController {
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-	@ApiOperation(value = "To transfer money from one waya official account to another", notes = "Post Money")
+	@ApiOperation(value = "To transfer money from one waya official account to user wallet", notes = "Post Money")
 	@PostMapping("/official/user/transfer")
 	public ResponseEntity<?> OfficialUserMoney(@Valid @RequestBody OfficeUserTransferDTO transfer) {
 		ApiResponse<?> res = transAccountService.OfficialUserTransfer(transfer);
@@ -286,6 +286,28 @@ public class WalletTransactionController {
 		ApiResponse<?> res;
 		try {
 			res = transAccountService.TranRevALLReport(fromdate, todate);
+			if (!res.getStatus()) {
+	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+	        }
+	        return new ResponseEntity<>(res, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
+			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+		}
+		
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "To Fetch client Reverse", notes = "Transfer amount from one wallet to another wallet")
+	@GetMapping("/transaction/reverse/{accountNo}")
+	public ResponseEntity<?> PaymentTransReport(@RequestParam("fromdate") 
+	   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate, 
+			@RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
+			@PathVariable("accountNo") String accountNo) {
+		ApiResponse<?> res;
+		try {
+			res = transAccountService.PaymentTransAccountReport(fromdate, todate, accountNo);
 			if (!res.getStatus()) {
 	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
 	        }

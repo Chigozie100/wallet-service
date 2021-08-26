@@ -78,6 +78,8 @@ public interface TransAccountService {
 	
 	ApiResponse<?> TranRevALLReport(Date date, Date todate);
 	
+	ApiResponse<?> PaymentTransAccountReport(Date date, Date todate, String accountNo);
+	
 	ApiResponse<?> TranALLReverseReport();
 	
 	ApiResponse<?> statementReport(Date fromdate, Date todate,String acctNo);

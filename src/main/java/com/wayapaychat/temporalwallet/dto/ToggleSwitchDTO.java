@@ -7,8 +7,6 @@ public class ToggleSwitchDTO {
 	
 	private boolean onSwitch;
 	
-	private String prevSwitchCode;
-	
 	private String newSwitchCode;
 
 }
