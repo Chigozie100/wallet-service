@@ -40,7 +40,7 @@ public class ExcelHelper {
     public static List<String> PRIVATE_USER_HEADERS = Arrays.asList("ACCOUNT", "PHONE_NUMBER", "EMAIL", "AMOUNT", "TRANTYPE", 
     		"TRANCRNCY", "TRANNARRATION", "PAYMENTREF", "OFFICEACCOUNT" );
 
-    static String SHEET = "Users";
+    static String SHEET = "Transaction";
     static Pattern alphabetsPattern = Pattern.compile("^[a-zA-Z]*$");
     static Pattern numericPattern = Pattern.compile("^[0-9]*$");
     static Pattern emailPattern = Pattern.compile("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\." + "[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@"
@@ -104,7 +104,7 @@ public class ExcelHelper {
                     String colName = CellReference.convertNumToColString(cell.getColumnIndex()).toUpperCase();
                     switch (colName) {
                         case "A":
-                            pojo.setCustomerAccountNo(validateAndPassStringValue(cell, cellIdx, rowNumber));
+                            pojo.setCustomerAccountNo(defaultStringCell(cell));
                             break;
                         case "B":
                             pojo.setPhoneNumber(validateStringNumericOnly(cell, cellIdx, rowNumber));
@@ -197,6 +197,22 @@ public class ExcelHelper {
     private static String defaultStringCell(final Cell cell) {
         return dataFormatter.formatCellValue(cell).trim();
     }
+    
+    private static String validateStringNumericOnly(Cell cell, int cellNumber, int rowNumber) {
+    	   String cellValue = null;
+    	   try {
+    	      double d = cell.getNumericCellValue();
+    	      cellValue = String.format("%.0f", d);
+    	   }catch(IllegalStateException | NumberFormatException ex) {
+    	      cellValue = dataFormatter.formatCellValue(cell).trim();
+    	   }
+    	    boolean val = numericPattern.matcher(cellValue).find();
+    	    if(!val) {
+    	        String errorMessage = String.format("Invalid Numeric Cell Value Passed in row %s, cell %s", rowNumber + 1, cellNumber + 1);
+    	        throw new CustomException(errorMessage, HttpStatus.EXPECTATION_FAILED);
+    	    }
+    	    return cellValue;
+    	}
 
     private static String validateAndPassStringValue(Cell cell, int cellNumber, int rowNumber){
         String cellValue =  dataFormatter.formatCellValue(cell).trim();
@@ -213,16 +229,6 @@ public class ExcelHelper {
         Matcher matcher = emailPattern.matcher(cellValue);
         if(!matcher.matches()){
             String errorMessage = String.format("Invalid Email Cell Value Passed in row %s, cell %s", rowNumber + 1, cellNumber + 1);
-            throw new CustomException(errorMessage, HttpStatus.EXPECTATION_FAILED);
-        }
-        return cellValue;
-    }
-
-    private static String validateStringNumericOnly(Cell cell, int cellNumber, int rowNumber) {
-        String cellValue =  dataFormatter.formatCellValue(cell).trim();
-        boolean val = numericPattern.matcher(cellValue).find();
-        if(!val) {
-            String errorMessage = String.format("Invalid Numeric Cell Value Passed in row %s, cell %s", rowNumber + 1, cellNumber + 1);
             throw new CustomException(errorMessage, HttpStatus.EXPECTATION_FAILED);
         }
         return cellValue;
