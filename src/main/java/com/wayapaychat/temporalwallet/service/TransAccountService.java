@@ -7,12 +7,14 @@ import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
 import com.wayapaychat.temporalwallet.dto.AdminLocalTransferDTO;
 import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.BulkTransactionCreationDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionTransferDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
+import com.wayapaychat.temporalwallet.dto.NonWayaPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.OfficeTransferDTO;
 import com.wayapaychat.temporalwallet.dto.OfficeUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
@@ -42,6 +44,8 @@ public interface TransAccountService {
 	ApiResponse<Page<WalletTransaction>> findAllTransaction(int page, int size);
 	
 	ApiResponse<List<WalletTransaction>> findClientTransaction(String tranId);
+	
+	ApiResponse<List<AccountStatementDTO>> ReportTransaction(String accountNo);
 	
 	ApiResponse<Page<WalletTransaction>> getTransactionByWalletId(int page, int size, Long walletId);
 	
@@ -92,6 +96,8 @@ public interface TransAccountService {
 	ApiResponse<?> statementReport(Date fromdate, Date todate,String acctNo);
 	
 	ApiResponse<?> BankTransferPayment(BankPaymentDTO transfer);
+	
+	ApiResponse<?> EventNonPayment(NonWayaPaymentDTO transfer);
 	
 
 }

@@ -26,10 +26,12 @@ public class AccountStatementDTO {
 	private String tranNarration;
 	
 	private String debitCredit;
+	
+	private String tranId;
 
 	public AccountStatementDTO(Date transactionDate, String tranType, Date transactionTime, String senderEmail,
 			String receiverEmail, String phoneNo, String accountNo, double tranAmount, String tranNarration,
-			String debitCredit) {
+			String debitCredit, String tranId) {
 		super();
 		this.transactionDate = transactionDate;
 		this.tranType = tranType;
@@ -41,6 +43,7 @@ public class AccountStatementDTO {
 		this.tranAmount = tranAmount;
 		this.tranNarration = tranNarration;
 		this.debitCredit = debitCredit;
+		this.tranId = tranId;
 	}
 	
 

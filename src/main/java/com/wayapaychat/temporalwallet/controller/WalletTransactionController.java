@@ -25,6 +25,7 @@ import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.BulkTransactionCreationDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionTransferDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
+import com.wayapaychat.temporalwallet.dto.NonWayaPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.OfficeTransferDTO;
 import com.wayapaychat.temporalwallet.dto.OfficeUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
@@ -214,6 +215,16 @@ public class WalletTransactionController {
         return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 	
+	@ApiOperation(value = "Report Account Transaction Statement")
+    @GetMapping(path = "/official/account/statement/{accountNo}")
+    public ResponseEntity<?> GetAccountStatement(@PathVariable String accountNo) {
+        ApiResponse<?> res = transAccountService.ReportTransaction(accountNo);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Admin Transfer from Waya to another wallet", notes = "Transfer amount from one wallet to another wallet")
 	@PostMapping("/admin/wallet/funding")
@@ -252,6 +263,17 @@ public class WalletTransactionController {
 	@PostMapping("/event/trade/payment")
 	public ResponseEntity<?> BuySellPayment(@RequestBody() WayaTradeDTO walletDto) {
 		ApiResponse<?> res = transAccountService.EventBuySellPayment(walletDto);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Non-Waya Payment", notes = "Transfer amount from user wallet to Non-waya")
+	@PostMapping("/non-waya/transaction/payment")
+	public ResponseEntity<?> NonWayaPayment(@RequestBody() NonWayaPaymentDTO walletDto) {
+		ApiResponse<?> res = transAccountService.EventNonPayment(walletDto);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }

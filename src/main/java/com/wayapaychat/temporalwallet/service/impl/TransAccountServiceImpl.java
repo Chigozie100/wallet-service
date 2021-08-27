@@ -24,6 +24,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
+import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
 import com.wayapaychat.temporalwallet.dto.AdminLocalTransferDTO;
 import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
@@ -32,6 +33,7 @@ import com.wayapaychat.temporalwallet.dto.BulkTransactionExcelDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionTransferDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.ExcelTransactionCreationDTO;
+import com.wayapaychat.temporalwallet.dto.NonWayaPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.OfficeTransferDTO;
 import com.wayapaychat.temporalwallet.dto.OfficeUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
@@ -231,6 +233,43 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return resp;
 	}
+	
+	public ApiResponse<?> EventNonPayment(NonWayaPaymentDTO transfer) {
+		log.info("Transaction Request Creation: {}", transfer.toString());
+		String toAccountNumber = transfer.getCustomerDebitAccountNo();
+		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("CARD");
+		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
+		try {
+			int intRec = tempwallet.PaymenttranInsert("NONWAYAPT", "", toAccountNumber, transfer.getAmount(),
+					transfer.getPaymentReference());
+			if (intRec == 1) {
+				String tranId = createEventTransaction("NONWAYAPT", toAccountNumber, transfer.getTranCrncy(),
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+				String[] tranKey = tranId.split(Pattern.quote("|"));
+				if (tranKey[0].equals("DJGO")) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+				}
+				log.info("Transaction ID Response: {}", tranId);
+				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+						.findByTranIdIgnoreCase(tranId);
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				log.info("Transaction Response: {}", resp.toString());
+				if (!transaction.isPresent()) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+				}
+			} else {
+				if (intRec == 2) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+							"Unable to process duplicate transaction", null);
+				} else {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return resp;
+	}
 
 	public ApiResponse<?> EventBuySellPayment(WayaTradeDTO transfer) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
@@ -371,6 +410,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "UNABLE TO GENERATE STATEMENT", null);
 		}
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", transaction.get());
+	}
+	
+	public ApiResponse<List<AccountStatementDTO>> ReportTransaction(String accountNo) {
+		List<AccountStatementDTO> transaction = tempwallet.TransactionReport(accountNo);
+		if (transaction == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "UNABLE TO GENERATE STATEMENT", null);
+		}
+		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", transaction);
 	}
 
 	@Override

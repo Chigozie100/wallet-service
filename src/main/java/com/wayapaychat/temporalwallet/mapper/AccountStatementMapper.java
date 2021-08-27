@@ -22,8 +22,13 @@ public class AccountStatementMapper implements RowMapper<AccountStatementDTO> {
 		double tranAmount = rs.getDouble("tran_amount"); 
 		String tranNarration = rs.getString("tran_narrate");
 		String debitCredit = rs.getString("debit_credit");
+		String tranId = rs.getString("tran_id");
+		//return new AccountStatementDTO(transactionDate, tranType, transactionTime, senderEmail,
+		//		receiverEmail, phoneNo, accountNo, tranAmount, tranNarration, debitCredit, tranId);
+		
 		return new AccountStatementDTO(transactionDate, tranType, transactionTime, senderEmail,
-				receiverEmail, phoneNo, accountNo, tranAmount, tranNarration, debitCredit);
+				receiverEmail, phoneNo, accountNo, tranAmount, tranNarration,
+				debitCredit, tranId);
 	}
 
 }
