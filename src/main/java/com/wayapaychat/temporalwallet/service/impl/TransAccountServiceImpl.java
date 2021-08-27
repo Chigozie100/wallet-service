@@ -363,6 +363,15 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", transaction);
 	}
+	
+	public ApiResponse<List<WalletTransaction>> findClientTransaction(String tranId) {
+		Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+				.findByTranIdIgnoreCase(tranId);
+		if (!transaction.isPresent()) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "UNABLE TO GENERATE STATEMENT", null);
+		}
+		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", transaction.get());
+	}
 
 	@Override
 	public ApiResponse<Page<WalletTransaction>> getTransactionByWalletId(int page, int size, Long walletId) {

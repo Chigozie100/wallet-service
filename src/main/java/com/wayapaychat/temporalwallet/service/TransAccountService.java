@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.service;
 
 import java.text.ParseException;
 import java.util.Date;
+import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.web.multipart.MultipartFile;
@@ -39,6 +40,8 @@ public interface TransAccountService {
 	ApiResponse<TransactionRequest> transferUserToUser(String command, TransactionRequest request);
 	
 	ApiResponse<Page<WalletTransaction>> findAllTransaction(int page, int size);
+	
+	ApiResponse<List<WalletTransaction>> findClientTransaction(String tranId);
 	
 	ApiResponse<Page<WalletTransaction>> getTransactionByWalletId(int page, int size, Long walletId);
 	
