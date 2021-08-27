@@ -204,6 +204,17 @@ public class WalletTransactionController {
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Find Transaction by tranId", notes = "find client transaction")
+	@GetMapping("/account/transactions/{tranId}")
+	public ResponseEntity<?> findClientTransaction(@PathVariable("tranId") String tranId) {
+		ApiResponse<?> res = transAccountService.findClientTransaction(tranId);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Admin Transfer from Waya to another wallet", notes = "Transfer amount from one wallet to another wallet")
 	@PostMapping("/admin/wallet/funding")
 	public ResponseEntity<?> AdminTransferForUser(@RequestBody() AdminUserTransferDTO walletDto, @RequestParam("command") String command) {
@@ -308,6 +319,46 @@ public class WalletTransactionController {
 		ApiResponse<?> res;
 		try {
 			res = transAccountService.PaymentTransAccountReport(fromdate, todate, accountNo);
+			if (!res.getStatus()) {
+	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+	        }
+	        return new ResponseEntity<>(res, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
+			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+		}
+		
+	}
+	
+	
+	@ApiOperation(value = "To Fetch Official Transaction activities", notes = "Transfer amount from one wallet to another wallet")
+	@GetMapping("/official/transaction/{wayaNo}")
+	public ResponseEntity<?> PaymentWayaReport(@RequestParam("fromdate") 
+	   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate, 
+			@RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
+			@PathVariable("wayaNo") String wayaNo) {
+		ApiResponse<?> res;
+		try {
+			res = transAccountService.PaymentAccountTrans(fromdate, todate, wayaNo);
+			if (!res.getStatus()) {
+	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+	        }
+	        return new ResponseEntity<>(res, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
+			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+		}
+		
+	}
+	
+	@ApiOperation(value = "To List Official Transaction activities", notes = "Transfer amount from one wallet to another wallet")
+	@GetMapping("/official/transaction")
+	public ResponseEntity<?> PaymentOffWaya() {
+		ApiResponse<?> res;
+		try {
+			res = transAccountService.PaymentOffTrans();
 			if (!res.getStatus()) {
 	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
 	        }

@@ -363,6 +363,15 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", transaction);
 	}
+	
+	public ApiResponse<List<WalletTransaction>> findClientTransaction(String tranId) {
+		Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+				.findByTranIdIgnoreCase(tranId);
+		if (!transaction.isPresent()) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "UNABLE TO GENERATE STATEMENT", null);
+		}
+		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", transaction.get());
+	}
 
 	@Override
 	public ApiResponse<Page<WalletTransaction>> getTransactionByWalletId(int page, int size, Long walletId) {
@@ -1971,6 +1980,26 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO REPORT SPECIFIED DATE", null);
 		}
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "REVERSAL REPORT SUCCESSFULLY", transaction);
+	}
+	
+	@Override
+	public ApiResponse<?> PaymentAccountTrans(Date fromdate, Date todate, String wayaNo) {
+		LocalDate fromDate = fromdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		LocalDate toDate = todate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		List<WalletTransaction> transaction = walletTransactionRepository.findByOfficialAccount(fromDate, toDate, wayaNo);
+		if (transaction.isEmpty()) {
+			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO REPORT SPECIFIED DATE", null);
+		}
+		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "OFFICIAL ACCOUNT SUCCESSFULLY", transaction);
+	}
+	
+	@Override
+	public ApiResponse<?> PaymentOffTrans() {
+		List<WalletTransaction> transaction = walletTransactionRepository.findByAccountOfficial();
+		if (transaction.isEmpty()) {
+			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO REPORT SPECIFIED DATE", null);
+		}
+		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "OFFICIAL ACCOUNT SUCCESSFULLY", transaction);
 	}
 
 	@Override
