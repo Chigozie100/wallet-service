@@ -24,15 +24,17 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Getter
 @Setter
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "m_wallet_transaction" , uniqueConstraints = {
         @UniqueConstraint(name = "UniqueTranIdAndAcctNumberAndDelFlgAndDate", 
-        		columnNames = {"tranId", "acctNum", "del_flg","tranDate"})})
+        		columnNames = {"tranId", "acctNum", "del_flg","tranDate","tranPart"})})
 public class WalletTransaction {
 	
 	@Id
@@ -66,14 +68,17 @@ public class WalletTransaction {
     @NotNull
     private LocalDate tranDate;
     
-    @NotNull
+    @Column(nullable = false)
     private String tranCrncyCode;
     
     @Column(nullable = true)
     private String paymentReference;
     
-    @NotNull
+    @Column(nullable = false)
     private String tranGL;
+    
+    @Column(nullable = true)
+    private Integer tranPart;
     
 	private String relatedTransId;
     
@@ -93,7 +98,7 @@ public class WalletTransaction {
 			@NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType, 
 			@NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
 			@NotNull String partTranType, String tranGL,String paymentReference, 
-			String createdBy, String createdEmail) {
+			String createdBy, String createdEmail,Integer tranPart) {
 		super();
 		this.del_flg = false;
 		this.posted_flg = true;
@@ -109,13 +114,14 @@ public class WalletTransaction {
 		this.paymentReference = paymentReference;
 		this.createdBy = createdBy;
 		this.createdEmail = createdEmail;
+		this.tranPart = tranPart;
 	}
 	
 	public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
 			@NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType, 
 			@NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
 			@NotNull String partTranType, String tranGL, String paymentReference, String relatedTransId,
-			String createdBy, String createdEmail) {
+			String createdBy, String createdEmail,Integer tranPart) {
 		super();
 		this.del_flg = false;
 		this.posted_flg = true;
@@ -132,6 +138,7 @@ public class WalletTransaction {
 		this.relatedTransId = relatedTransId;
 		this.createdBy = createdBy;
 		this.createdEmail = createdEmail;
+		this.tranPart = tranPart;
 	}
     
     

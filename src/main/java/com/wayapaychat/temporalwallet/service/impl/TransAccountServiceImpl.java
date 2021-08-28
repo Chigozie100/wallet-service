@@ -816,6 +816,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	public String createTransaction(String debitAcctNo, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef) throws Exception {
 		try {
+			int n = 1;
 			log.info("START TRANSACTION");
 			String tranCount = tempwallet.transactionCount(paymentRef, creditAcctNo);
 			if (!tranCount.isBlank()) {
@@ -933,10 +934,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email);
+					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,n);
+			
+			n = n + 1;
+			
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId,
-					email);
+					email,n);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 			tempwallet.updateTransaction(paymentRef, amount, tranId);
@@ -972,6 +976,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef, String eventCharge)
 			throws Exception {
 		try {
+			
+			int n = 1;
 			log.info("START TRANSACTION");
 			String tranCount = tempwallet.transactionCount(paymentRef, creditAcctNo);
 			if (!tranCount.isBlank()) {
@@ -1104,13 +1110,17 @@ public class TransAccountServiceImpl implements TransAccountService {
 			BigDecimal chargeAmt = event.getTranAmt().add(amount);
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), chargeAmt,
 					tranType, tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef,
-					userId, email);
+					userId, email,n);
+			
+			n = n + 1;
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId,
-					email);
+					email,n);
+			
+			n = n + 1;
 			WalletTransaction tranCharge = new WalletTransaction(tranId, chargeTill.getAccountNo(), event.getTranAmt(),
 					tranType, tranNarrate1, LocalDate.now(), tranCrncy, "C", chargeTill.getGl_code(), paymentRef,
-					userId, email);
+					userId, email,n);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 			walletTransactionRepository.saveAndFlush(tranCharge);
@@ -1151,6 +1161,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	public String createAdminTransaction(String adminUserId, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef, String command) throws Exception {
 		try {
+			int n = 1;
 			log.info("START TRANSACTION");
 			String tranCount = tempwallet.transactionCount(paymentRef, creditAcctNo);
 			if (!tranCount.isBlank()) {
@@ -1299,10 +1310,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email);
+					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,n);
+			
+			n = n + 1;
+			
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId,
-					email);
+					email,n);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 			tempwallet.updateTransaction(paymentRef, amount, tranId);
@@ -1334,6 +1348,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	public String createEventTransaction(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef) throws Exception {
 		try {
+			int n = 1;
 			log.info("START TRANSACTION");
 			String tranCount = tempwallet.transactionCount(paymentRef, creditAcctNo);
 			if (!tranCount.isBlank()) {
@@ -1487,10 +1502,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email);
+					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,n);
+			
+			n = n + 1;
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId,
-					email);
+					email,n);
 			log.info("TRANSACTION CREATION DEBIT: {} WITH CREDIT: {}", tranDebit.toString(), tranCredit.toString());
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
@@ -1523,6 +1540,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	public String createEventCommission(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef) throws Exception {
 		try {
+			int n = 1;
 			log.info("START TRANSACTION");
 			String tranCount = tempwallet.transactionCount(paymentRef, creditAcctNo);
 			if (!tranCount.isBlank()) {
@@ -1675,10 +1693,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email);
+					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,n);
+			
+			n = n + 1;
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId,
-					email);
+					email,n);
 			log.info("TRANSACTION CREATION DEBIT: {} WITH CREDIT: {}", tranDebit.toString(), tranCredit.toString());
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
@@ -1711,6 +1731,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	public String BankTransactionPay(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef, String bk) throws Exception {
 		try {
+			int n = 1;
 			log.info("START TRANSACTION");
 			String tranCount = tempwallet.transactionCount(paymentRef, creditAcctNo);
 			if (!tranCount.isBlank()) {
@@ -1863,10 +1884,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			String tranNarrate = "WALLET-" + tranNarration + " TO:" + bk;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email);
+					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,n);
+			
+			n = n + 1;
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId,
-					email);
+					email,n);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 			tempwallet.updateTransaction(paymentRef, amount, tranId);
@@ -1952,6 +1975,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				tranId = tempwallet.GenerateTranId();
 			}
 			for (int i = 0; i < account.size(); i++) {
+				int n = 1;
 				WalletTransaction trans1 = walletTransactionRepository.findByAcctNumTran(account.get(i),
 						reverseDto.getTranId(), reverseDate, reverseDto.getTranCrncy());
 				if (trans1.getPartTranType().equalsIgnoreCase("D")) {
@@ -1965,7 +1989,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 				trans1.setTranType(tranType);
 				trans1.setTranId(tranId);
 				trans1.setTranDate(LocalDate.now());
-				PostReverse(trans1);
+				PostReverse(trans1,n);
+				n++;
 			}
 			List<WalletTransaction> statement = walletTransactionRepository.findByTransaction(tranId, LocalDate.now(),
 					reverseDto.getTranCrncy());
@@ -1975,7 +2000,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 	}
 
-	public void PostReverse(WalletTransaction trans) {
+	public void PostReverse(WalletTransaction trans, Integer n) {
 		WalletAccount RevAcct = walletAccountRepository.findByAccountNo(trans.getAcctNum());
 
 		MyData tokenData = tokenService.getUserInformation();
@@ -1985,7 +2010,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		WalletTransaction tranrev = new WalletTransaction(trans.getTranId(), trans.getAcctNum(), trans.getTranAmount(),
 				trans.getTranType(), trans.getTranNarrate(), LocalDate.now(), trans.getTranCrncyCode(),
 				trans.getPartTranType(), trans.getTranGL(), trans.getPaymentReference(), trans.getRelatedTransId(),
-				userId, email);
+				userId, email,n);
 		walletTransactionRepository.saveAndFlush(tranrev);
 
 		if (trans.getPartTranType().equalsIgnoreCase("D")) {
@@ -2116,6 +2141,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	public String createBulkTransaction(String debitAcctNo, String tranCrncy, Set<UserTransactionDTO> usersList,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef) throws Exception {
 		try {
+			int n = 1;
 			boolean validate = paramValidation.validateDefaultCode(tranCrncy, "Currency");
 			if (!validate) {
 				return "DJGO|Currency Code Validation Failed";
@@ -2239,15 +2265,17 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email);
+					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,n);
 
 			List<WalletTransaction> tranMultCredit = new ArrayList<WalletTransaction>();
 			for (UserTransactionDTO mUser : usersList) {
+				n = n + 1;
 				WalletAccount acctcdt = walletAccountRepository.findByAccountNo(mUser.getCustomerAccountNo());
 				WalletTransaction tranCredit = new WalletTransaction(tranId, acctcdt.getAccountNo(), mUser.getAmount(),
 						tranType, tranNarrate, LocalDate.now(), tranCrncy, "C", acctcdt.getGl_code(), paymentRef,
-						userId, email);
+						userId, email,n);
 				tranMultCredit.add(tranCredit);
+				n++;
 			}
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAll(tranMultCredit);
@@ -2291,7 +2319,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (tranId.equals("")) {
 				return "DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN";
 			}
+			int n = 1;
 			for (ExcelTransactionCreationDTO mUser : usersList) {
+				log.info("Process Transaction: {}", mUser.toString());
 				boolean validate = paramValidation.validateDefaultCode(mUser.getTranCrncy(), "Currency");
 				if (!validate) {
 					return "DJGO|Currency Code Validation Failed";
@@ -2299,8 +2329,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 				TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(mUser.getTranType());
 				// Does account exist
 				WalletAccount accountDebit = walletAccountRepository.findByAccountNo(mUser.getOfficeAccountNo());
+				log.info("DEBIT: {}", accountDebit.toString());
 				BigDecimal amount = mUser.getAmount();
 				WalletAccount accountCredit = walletAccountRepository.findByAccountNo(mUser.getCustomerAccountNo());
+				log.info("CREDIT: {}", accountCredit.toString());
 				if (accountDebit == null || accountCredit == null) {
 					return "DJGO|DEBIT ACCOUNT OR BENEFICIARY ACCOUNT DOES NOT EXIST";
 				}
@@ -2401,14 +2433,18 @@ public class TransAccountServiceImpl implements TransAccountService {
 				String tranNarrate = "WALLET-" + mUser.getTranNarration();
 				WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount,
 						tranType, tranNarrate, LocalDate.now(), mUser.getTranCrncy(), "D", accountDebit.getGl_code(),
-						mUser.getPaymentReference(), userId, email);
+						mUser.getPaymentReference(), userId, email,n);
+				
+				n = n + 1;
 
 				WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(),
 						mUser.getAmount(), tranType, tranNarrate, LocalDate.now(), mUser.getTranCrncy(), "C",
-						accountCredit.getGl_code(), mUser.getPaymentReference(), userId, email);
+						accountCredit.getGl_code(), mUser.getPaymentReference(), userId, email,n);
 
 				// walletTransactionRepository.saveAndFlush(tranDebit);
 				// walletTransactionRepository.saveAll(tranMultCredit);
+				log.info("Debit Transaction: {}", tranDebit.toString());
+				log.info("Credit Transaction: {}", tranCredit.toString());
 				tranMultCR.add(tranCredit);
 				tranMultDR.add(tranDebit);
 
@@ -2429,6 +2465,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				accountCredit.setLast_tran_date(LocalDate.now());
 				// walletAccountRepository.saveAndFlush(accountCredit);
 				acctMultCredit.add(accountCredit);
+				n++;
 			}
 			walletTransactionRepository.saveAll(tranMultDR);
 			walletTransactionRepository.saveAll(tranMultCR);
