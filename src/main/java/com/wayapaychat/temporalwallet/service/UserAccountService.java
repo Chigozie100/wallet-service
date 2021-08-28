@@ -5,11 +5,15 @@ import java.util.List;
 
 import org.springframework.http.ResponseEntity;
 
+import com.wayapaychat.temporalwallet.dto.AccountCloseDTO;
+import com.wayapaychat.temporalwallet.dto.AccountFreezeDTO;
+import com.wayapaychat.temporalwallet.dto.AccountLienDTO;
 import com.wayapaychat.temporalwallet.dto.AccountProductDTO;
 import com.wayapaychat.temporalwallet.dto.AccountToggleDTO;
 import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
 import com.wayapaychat.temporalwallet.dto.OfficialAccountDTO;
 import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
+import com.wayapaychat.temporalwallet.dto.UserAccountDelete;
 import com.wayapaychat.temporalwallet.dto.UserDTO;
 import com.wayapaychat.temporalwallet.dto.WalletCashAccountDTO;
 import com.wayapaychat.temporalwallet.dto.WalletEventAccountDTO;
@@ -76,5 +80,13 @@ public interface UserAccountService {
 	ApiResponse<?> fetchRecentTransaction(Long user_id);
 	
 	ResponseEntity<?> getListWalletAccount();
+	
+	ResponseEntity<?> AccountAccessDelete(UserAccountDelete user);
+	
+	ResponseEntity<?> AccountAccessPause(AccountFreezeDTO user);
+	
+	ResponseEntity<?> AccountAccessClosure(AccountCloseDTO user);
+	
+	ResponseEntity<?> AccountAccessLien(AccountLienDTO user);
 
 }

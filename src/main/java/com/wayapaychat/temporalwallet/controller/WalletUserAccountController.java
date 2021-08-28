@@ -17,11 +17,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.wayapaychat.temporalwallet.dto.AccountCloseDTO;
+import com.wayapaychat.temporalwallet.dto.AccountFreezeDTO;
+import com.wayapaychat.temporalwallet.dto.AccountLienDTO;
 import com.wayapaychat.temporalwallet.dto.AccountProductDTO;
 import com.wayapaychat.temporalwallet.dto.AccountToggleDTO;
 import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
 import com.wayapaychat.temporalwallet.dto.OfficialAccountDTO;
 import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
+import com.wayapaychat.temporalwallet.dto.UserAccountDelete;
 import com.wayapaychat.temporalwallet.dto.UserDTO;
 import com.wayapaychat.temporalwallet.dto.WalletCashAccountDTO;
 import com.wayapaychat.temporalwallet.dto.WalletEventAccountDTO;
@@ -80,6 +84,34 @@ public class WalletUserAccountController {
     public ResponseEntity<?> postAccountRestriction(@Valid @RequestBody AdminAccountRestrictionDTO user) {
 		log.info("Request input: {}",user);
 		return userAccountService.UserAccountAccess(user);
+    }
+	
+	@ApiOperation(value = "Delete User Account", hidden = false)
+    @PostMapping(path = "/user/account/delete")
+    public ResponseEntity<?> postAccountUser(@Valid @RequestBody UserAccountDelete user) {
+		log.info("Request input: {}",user);
+		return userAccountService.AccountAccessDelete(user);
+    }
+	
+	@ApiOperation(value = "Pause Account", hidden = false)
+    @PostMapping(path = "/account/pause")
+    public ResponseEntity<?> postAccountPause(@Valid @RequestBody AccountFreezeDTO user) {
+		log.info("Request input: {}",user);
+		return userAccountService.AccountAccessPause(user);
+    }
+	
+	@ApiOperation(value = "Delete Account", hidden = false)
+    @PostMapping(path = "/account/closure")
+    public ResponseEntity<?> postAccountClosure(@Valid @RequestBody AccountCloseDTO user) {
+		log.info("Request input: {}",user);
+		return userAccountService.AccountAccessClosure(user);
+    }
+	
+	@ApiOperation(value = "Transaction account block", hidden = false)
+    @PostMapping(path = "/account/block/transaction")
+    public ResponseEntity<?> postAccountLien(@Valid @RequestBody AccountLienDTO user) {
+		log.info("Request input: {}",user);
+		return userAccountService.AccountAccessLien(user);
     }
 	
 	 @ApiOperation(value = "Create Admin Cash Wallet - (Admin COnsumption Only)", hidden = false)

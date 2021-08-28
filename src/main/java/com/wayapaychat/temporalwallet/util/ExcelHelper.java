@@ -214,7 +214,8 @@ public class ExcelHelper {
     	    return cellValue;
     	}
 
-    private static String validateAndPassStringValue(Cell cell, int cellNumber, int rowNumber){
+    @SuppressWarnings("unused")
+	private static String validateAndPassStringValue(Cell cell, int cellNumber, int rowNumber){
         String cellValue =  dataFormatter.formatCellValue(cell).trim();
         boolean val = alphabetsPattern.matcher(cellValue).find();
         if(!cellValue.isBlank() && val && cellValue.length() >= 2){
