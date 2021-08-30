@@ -281,6 +281,17 @@ public class WalletTransactionController {
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Non-Waya Redeem", notes = "Transfer amount from user wallet to Non-waya")
+	@PostMapping("/non-waya/transaction/redeem")
+	public ResponseEntity<?> NonWayaRedeem(@RequestBody() NonWayaPaymentDTO walletDto) {
+		ApiResponse<?> res = transAccountService.EventNonRedeem(walletDto);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Event and Service Payment", notes = "Transfer amount from one wallet to another wallet")
 	@PostMapping("/admin/commission/payment")
 	public ResponseEntity<?> CommissiomPaymentAdmin(@RequestBody() EventPaymentDTO walletDto) {
