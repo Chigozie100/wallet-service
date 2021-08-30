@@ -99,5 +99,7 @@ public interface TransAccountService {
 	
 	ApiResponse<?> EventNonPayment(NonWayaPaymentDTO transfer);
 	
+	ApiResponse<?> EventNonRedeem(NonWayaPaymentDTO transfer);
+	
 
 }
