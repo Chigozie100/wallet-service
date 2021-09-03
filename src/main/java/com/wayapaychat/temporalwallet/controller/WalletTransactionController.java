@@ -23,6 +23,7 @@ import com.wayapaychat.temporalwallet.dto.AdminLocalTransferDTO;
 import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.BulkTransactionCreationDTO;
+import com.wayapaychat.temporalwallet.dto.ClientComTransferDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionTransferDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.NonWayaPaymentDTO;
@@ -115,6 +116,18 @@ public class WalletTransactionController {
 	@PostMapping("/admin/commission/transfer")
 	public ResponseEntity<?> AdminCommissionMoney(@Valid @RequestBody CommissionTransferDTO transfer) {
 		ApiResponse<?> res = transAccountService.AdminCommissionMoney(transfer);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+		log.info("Send Money: {}", transfer);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Admin Send Money from Commission to Default Wallet", notes = "Post Money")
+	@PostMapping("/client/commission/transfer")
+	public ResponseEntity<?> CommissionMoney(@Valid @RequestBody ClientComTransferDTO transfer) {
+		ApiResponse<?> res = transAccountService.ClientCommissionMoney(transfer);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }

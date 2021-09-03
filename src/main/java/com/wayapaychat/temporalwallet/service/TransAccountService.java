@@ -12,6 +12,7 @@ import com.wayapaychat.temporalwallet.dto.AdminLocalTransferDTO;
 import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.BulkTransactionCreationDTO;
+import com.wayapaychat.temporalwallet.dto.ClientComTransferDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionTransferDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.NonWayaPaymentDTO;
@@ -67,7 +68,9 @@ public interface TransAccountService {
 	
 	ApiResponse<?> AdminsendMoney(AdminLocalTransferDTO transfer);
 	
-	ApiResponse<?> AdminCommissionMoney(CommissionTransferDTO transfer);	
+	ApiResponse<?> AdminCommissionMoney(CommissionTransferDTO transfer);
+	
+	ApiResponse<?> ClientCommissionMoney(ClientComTransferDTO transfer);
 	
 	ApiResponse<?> sendMoneyCustomer(WalletTransactionDTO transfer);
 	
