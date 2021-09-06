@@ -100,8 +100,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	public ResponseEntity<?> createUser(UserDTO user) {
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
-		if (existingUser != null) {
-			return new ResponseEntity<>(new ErrorResponse("Wallet User already exists"), HttpStatus.BAD_REQUEST);
+		if (existingUser == null) {
+			return new ResponseEntity<>(new ErrorResponse("Wallet User Does not exists"), HttpStatus.BAD_REQUEST);
 		}
 		int userId = (int) user.getUserId();
 		UserDetailPojo wallet = authService.AuthUser(userId);
@@ -123,47 +123,70 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Unable to generate Wallet Account"), HttpStatus.BAD_REQUEST);
 		}
 		String acct_ownership = null;
-		if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
-				|| product.getProduct_type().equals("ODA")) && !product.isStaff_product_flg()) {
-			acct_ownership = "C";
-			if (product.getProduct_type().equals("SBA")) {
-				acctNo = "201" + rand;
-				if (acctNo.length() < 10) {
-					acctNo = StringUtils.rightPad(acctNo, 10, "0");
+		if (!existingUser.getCust_sex().equals("S")) {
+			if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+					|| product.getProduct_type().equals("ODA")) && !product.isStaff_product_flg()) {
+				acct_ownership = "C";
+				if (product.getProduct_type().equals("SBA")) {
+					acctNo = "201" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
+				} else if (product.getProduct_type().equals("CAA")) {
+					acctNo = "501" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
+				} else if (product.getProduct_type().equals("ODA")) {
+					acctNo = "401" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
 				}
-			} else if (product.getProduct_type().equals("CAA")) {
-				acctNo = "501" + rand;
-				if (acctNo.length() < 10) {
-					acctNo = StringUtils.rightPad(acctNo, 10, "0");
+			} else if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+					|| product.getProduct_type().equals("ODA")) && product.isStaff_product_flg()) {
+				acct_ownership = "E";
+				if (product.getProduct_type().equals("SBA")) {
+					acctNo = "291" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
+				} else if (product.getProduct_type().equals("CAA")) {
+					acctNo = "591" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
+				} else if (product.getProduct_type().equals("ODA")) {
+					acctNo = "491" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
 				}
-			} else if (product.getProduct_type().equals("ODA")) {
-				acctNo = "401" + rand;
-				if (acctNo.length() < 10) {
-					acctNo = StringUtils.rightPad(acctNo, 10, "0");
+			} else if ((product.getProductCode() == "OAB")) {
+				acct_ownership = "O";
+				acctNo = product.getCrncy_code() + "0000" + rand;
+			}
+		} else {
+			if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+					|| product.getProduct_type().equals("ODA")) && !product.isStaff_product_flg()) {
+				acct_ownership = "C";
+				if (product.getProduct_type().equals("SBA")) {
+					acctNo = "701" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
+				} else if (product.getProduct_type().equals("CAA")) {
+					acctNo = "101" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
+				} else if (product.getProduct_type().equals("ODA")) {
+					acctNo = "717" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
 				}
 			}
-		} else if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
-				|| product.getProduct_type().equals("ODA")) && product.isStaff_product_flg()) {
-			acct_ownership = "E";
-			if (product.getProduct_type().equals("SBA")) {
-				acctNo = "291" + rand;
-				if (acctNo.length() < 10) {
-					acctNo = StringUtils.rightPad(acctNo, 10, "0");
-				}
-			} else if (product.getProduct_type().equals("CAA")) {
-				acctNo = "591" + rand;
-				if (acctNo.length() < 10) {
-					acctNo = StringUtils.rightPad(acctNo, 10, "0");
-				}
-			} else if (product.getProduct_type().equals("ODA")) {
-				acctNo = "491" + rand;
-				if (acctNo.length() < 10) {
-					acctNo = StringUtils.rightPad(acctNo, 10, "0");
-				}
-			}
-		} else if ((product.getProductCode() == "OAB")) {
-			acct_ownership = "O";
-			acctNo = product.getCrncy_code() + "0000" + rand;
 		}
 
 		try {
@@ -189,9 +212,16 @@ public class UserAccountServiceImpl implements UserAccountService {
 				if (!acct.isPresent()) {
 					code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission, wayaCommGLCode);
 					product = walletProductRepository.findByProductCode(wayaProductCommission, wayaCommGLCode);
-					acctNo = "901" + rand;
-					if (acctNo.length() < 10) {
-						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					if (!existingUser.getCust_sex().equals("S")) {
+						acctNo = "901" + rand;
+						if (acctNo.length() < 10) {
+							acctNo = StringUtils.rightPad(acctNo, 10, "0");
+						}
+					} else {
+						acctNo = "621" + rand;
+						if (acctNo.length() < 10) {
+							acctNo = StringUtils.rightPad(acctNo, 10, "0");
+						}
 					}
 					log.info(acctNo);
 					hashed_no = reqUtil.WayaEncrypt(
@@ -245,47 +275,70 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Unable to generate Wallet Account"), HttpStatus.BAD_REQUEST);
 		}
 		String acct_ownership = null;
-		if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
-				|| product.getProduct_type().equals("ODA")) && !product.isStaff_product_flg()) {
-			acct_ownership = "C";
-			if (product.getProduct_type().equals("SBA")) {
-				acctNo = "201" + rand;
-				if (acctNo.length() < 10) {
-					acctNo = StringUtils.rightPad(acctNo, 10, "0");
+		if (!user.getCustSex().equals("S")) {
+			if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+					|| product.getProduct_type().equals("ODA")) && !product.isStaff_product_flg()) {
+				acct_ownership = "C";
+				if (product.getProduct_type().equals("SBA")) {
+					acctNo = "201" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
+				} else if (product.getProduct_type().equals("CAA")) {
+					acctNo = "501" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
+				} else if (product.getProduct_type().equals("ODA")) {
+					acctNo = "401" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
 				}
-			} else if (product.getProduct_type().equals("CAA")) {
-				acctNo = "501" + rand;
-				if (acctNo.length() < 10) {
-					acctNo = StringUtils.rightPad(acctNo, 10, "0");
+			} else if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+					|| product.getProduct_type().equals("ODA")) && product.isStaff_product_flg()) {
+				acct_ownership = "E";
+				if (product.getProduct_type().equals("SBA")) {
+					acctNo = "291" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
+				} else if (product.getProduct_type().equals("CAA")) {
+					acctNo = "591" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
+				} else if (product.getProduct_type().equals("ODA")) {
+					acctNo = "491" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
 				}
-			} else if (product.getProduct_type().equals("ODA")) {
-				acctNo = "401" + rand;
-				if (acctNo.length() < 10) {
-					acctNo = StringUtils.rightPad(acctNo, 10, "0");
+			} else if ((product.getProductCode() == "OAB")) {
+				acct_ownership = "O";
+				acctNo = product.getCrncy_code() + "0000" + rand;
+			}
+		} else {
+			if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+					|| product.getProduct_type().equals("ODA")) && !product.isStaff_product_flg()) {
+				acct_ownership = "C";
+				if (product.getProduct_type().equals("SBA")) {
+					acctNo = "701" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
+				} else if (product.getProduct_type().equals("CAA")) {
+					acctNo = "101" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
+				} else if (product.getProduct_type().equals("ODA")) {
+					acctNo = "717" + rand;
+					if (acctNo.length() < 10) {
+						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					}
 				}
 			}
-		} else if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
-				|| product.getProduct_type().equals("ODA")) && product.isStaff_product_flg()) {
-			acct_ownership = "E";
-			if (product.getProduct_type().equals("SBA")) {
-				acctNo = "291" + rand;
-				if (acctNo.length() < 10) {
-					acctNo = StringUtils.rightPad(acctNo, 10, "0");
-				}
-			} else if (product.getProduct_type().equals("CAA")) {
-				acctNo = "591" + rand;
-				if (acctNo.length() < 10) {
-					acctNo = StringUtils.rightPad(acctNo, 10, "0");
-				}
-			} else if (product.getProduct_type().equals("ODA")) {
-				acctNo = "491" + rand;
-				if (acctNo.length() < 10) {
-					acctNo = StringUtils.rightPad(acctNo, 10, "0");
-				}
-			}
-		} else if ((product.getProductCode() == "OAB")) {
-			acct_ownership = "O";
-			acctNo = product.getCrncy_code() + "0000" + rand;
 		}
 
 		try {
@@ -310,9 +363,16 @@ public class UserAccountServiceImpl implements UserAccountService {
 				if (!acct.isPresent()) {
 					code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission, wayaCommGLCode);
 					product = walletProductRepository.findByProductCode(wayaProductCommission, wayaCommGLCode);
-					acctNo = "901" + rand;
-					if (acctNo.length() < 10) {
-						acctNo = StringUtils.rightPad(acctNo, 10, "0");
+					if (!user.getCustSex().equals("S")) {
+						acctNo = "901" + rand;
+						if (acctNo.length() < 10) {
+							acctNo = StringUtils.rightPad(acctNo, 10, "0");
+						}
+					} else {
+						acctNo = "621" + rand;
+						if (acctNo.length() < 10) {
+							acctNo = StringUtils.rightPad(acctNo, 10, "0");
+						}
 					}
 					log.info(acctNo);
 					hashed_no = reqUtil.WayaEncrypt(
@@ -1219,18 +1279,16 @@ public class UserAccountServiceImpl implements UserAccountService {
 			if (account == null) {
 				return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"), HttpStatus.NOT_FOUND);
 			}
-			
+
 			if (account.isAcct_cls_flg() && account.getClr_bal_amt() != 0) {
 				return new ResponseEntity<>(
 						new ErrorResponse("Account balance must be equal to zero before it can be closed"),
 						HttpStatus.NOT_FOUND);
 			} else {
-				if(account.isAcct_cls_flg())
-				return new ResponseEntity<>(
-						new ErrorResponse("Account already closed"),
-						HttpStatus.NOT_FOUND);
+				if (account.isAcct_cls_flg())
+					return new ResponseEntity<>(new ErrorResponse("Account already closed"), HttpStatus.NOT_FOUND);
 			}
-			
+
 			if (account.getClr_bal_amt() == 0) {
 				account.setAcct_cls_date(LocalDate.now());
 				account.setAcct_cls_flg(true);
@@ -1252,19 +1310,18 @@ public class UserAccountServiceImpl implements UserAccountService {
 		try {
 			if (user.getLienAmount().compareTo(BigDecimal.ZERO) != 0
 					&& user.getLienAmount().compareTo(BigDecimal.ZERO) != 0) {
-				return new ResponseEntity<>(new ErrorResponse("Lien Amount should not be 0"),
-						HttpStatus.NOT_FOUND);
+				return new ResponseEntity<>(new ErrorResponse("Lien Amount should not be 0"), HttpStatus.NOT_FOUND);
 			}
-			
+
 			WalletAccount account = walletAccountRepository.findByAccountNo(user.getCustomerAccountNo());
 			if (account == null) {
 				return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"), HttpStatus.NOT_FOUND);
 			}
-			
+
 			double acctAmt = account.getLien_amt() + user.getLienAmount().doubleValue();
 			account.setLien_amt(acctAmt);
 			account.setLien_reason(user.getLienReason());
-			
+
 			walletAccountRepository.save(account);
 			return new ResponseEntity<>(new SuccessResponse("Account closed successfully.", account), HttpStatus.OK);
 		} catch (Exception e) {
