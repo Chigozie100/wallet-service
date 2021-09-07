@@ -300,16 +300,24 @@ public class WalletUserAccountController {
         return userAccountService.getListWalletAccount();
     }
 	
-	@ApiOperation(value = "Get Wallet Default Account", hidden = false)
+	@ApiOperation(value = "Get simulated Account", hidden = false)
     @GetMapping(path = "/simulated/{user_id}")
     public ResponseEntity<?> GetAcctSimulated(@PathVariable Long user_id) {
         return userAccountService.getAccountSimulated(user_id);
     }
 	
-	@ApiOperation(value = "List all wallet accounts")
+	@ApiOperation(value = "List all simulated accounts")
     @GetMapping(path = "/simulated/account")
     public ResponseEntity<?> ListAllSimulatedAccount() {
         return userAccountService.getListSimulatedAccount();
+    }
+	
+	@ApiOperation(value = "Create a Simulated User", hidden = false)
+    @PostMapping(path = "simulated/account")
+    public ResponseEntity<?> createSIMUser(@Valid @RequestBody UserDTO user) {
+		log.info("Request input: {}",user);
+		return userAccountService.createUser(user);       
+        //return userAccountService.createUser(user);
     }
 
 
