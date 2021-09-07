@@ -1329,5 +1329,33 @@ public class UserAccountServiceImpl implements UserAccountService {
 					HttpStatus.BAD_REQUEST);
 		}
 	}
+	
+	public ResponseEntity<?> getAccountSimulated(Long user_id) {
+		WalletUser user = walletUserRepository.findBySimulated(user_id);
+		if (user == null) {
+			return new ResponseEntity<>(new ErrorResponse("Invalid User ID OR Not Simulated"), HttpStatus.BAD_REQUEST);
+		}
+		Optional<WalletAccount> account = walletAccountRepository.findByDefaultAccount(user);
+		if (!account.isPresent()) {
+			return new ResponseEntity<>(new ErrorResponse("Unable to fetch simulated account"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(new SuccessResponse("Simulated Account", account), HttpStatus.OK);
+	}
+	
+	public ResponseEntity<?> getListSimulatedAccount() {
+		List<WalletUser> user = walletUserRepository.findBySimulated();
+		if (user == null) {
+			return new ResponseEntity<>(new ErrorResponse("Not Simulated User"), HttpStatus.BAD_REQUEST);
+		}
+		List<WalletAccount> account = new ArrayList<>();
+		for(WalletUser mUser : user) {
+		  WalletAccount mAccount = walletAccountRepository.findBySimulatedAccount(mUser);
+		  account.add(mAccount);
+		}
+		if (account.isEmpty()) {
+			return new ResponseEntity<>(new ErrorResponse("NO SIMULATED ACCOUNT"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(new SuccessResponse("LIST SIMULATED ACCOUNT", account), HttpStatus.OK);
+	}
 
 }

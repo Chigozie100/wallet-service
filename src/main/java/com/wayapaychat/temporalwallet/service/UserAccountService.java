@@ -88,5 +88,9 @@ public interface UserAccountService {
 	ResponseEntity<?> AccountAccessClosure(AccountCloseDTO user);
 	
 	ResponseEntity<?> AccountAccessLien(AccountLienDTO user);
+	
+	ResponseEntity<?> getAccountSimulated(Long user_id);
+	
+	ResponseEntity<?> getListSimulatedAccount();
 
 }
