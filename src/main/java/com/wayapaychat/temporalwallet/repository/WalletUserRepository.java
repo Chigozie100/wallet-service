@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -26,5 +27,11 @@ public interface WalletUserRepository extends JpaRepository<WalletUser, Long> {
 	@Query(value = "SELECT u FROM WalletUser u " + "WHERE (UPPER(u.emailAddress) = UPPER(:value) OR "
 			+ "u.mobileNo LIKE CONCAT('%', :value)) AND u.del_flg = false")
 	Optional<WalletUser> findByEmailOrPhoneNumber(@Param("value") String value);
+	
+	@Query(value = "SELECT u FROM WalletUser u " + "WHERE (u.userId) = (:Id) " + " AND u.cust_sex = ('S') " + " AND u.del_flg = false")
+	WalletUser findBySimulated(Long Id);
+	
+	@Query(value = "SELECT u FROM WalletUser u " + "WHERE u.cust_sex = ('S') " + " AND u.del_flg = false")
+	List<WalletUser> findBySimulated();
 
 }

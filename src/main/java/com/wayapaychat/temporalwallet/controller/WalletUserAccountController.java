@@ -299,6 +299,18 @@ public class WalletUserAccountController {
     public ResponseEntity<?> ListAllWalletAccount() {
         return userAccountService.getListWalletAccount();
     }
+	
+	@ApiOperation(value = "Get Wallet Default Account", hidden = false)
+    @GetMapping(path = "/simulated/{user_id}")
+    public ResponseEntity<?> GetAcctSimulated(@PathVariable Long user_id) {
+        return userAccountService.getAccountSimulated(user_id);
+    }
+	
+	@ApiOperation(value = "List all wallet accounts")
+    @GetMapping(path = "/simulated/account")
+    public ResponseEntity<?> ListAllSimulatedAccount() {
+        return userAccountService.getListSimulatedAccount();
+    }
 
 
 }

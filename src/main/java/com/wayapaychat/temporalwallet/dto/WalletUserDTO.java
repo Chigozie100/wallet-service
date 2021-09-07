@@ -32,7 +32,7 @@ public class WalletUserDTO {
 	private String emailId;
 	
 	@NotNull
-	@Size(min=13, max=20)
+	@Size(min=5, max=20)
 	private String mobileNo;
 	
 	@NotNull
