@@ -314,10 +314,9 @@ public class WalletUserAccountController {
 	
 	@ApiOperation(value = "Create a Simulated User", hidden = false)
     @PostMapping(path = "simulated/account")
-    public ResponseEntity<?> createSIMUser(@Valid @RequestBody UserDTO user) {
+    public ResponseEntity<?> createSIMUser(@Valid @RequestBody AccountPojo2 user) {
 		log.info("Request input: {}",user);
-		return userAccountService.createUser(user);       
-        //return userAccountService.createUser(user);
+		return userAccountService.createAccount(user);
     }
 
 
