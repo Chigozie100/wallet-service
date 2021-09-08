@@ -1347,11 +1347,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		if (user == null) {
 			return new ResponseEntity<>(new ErrorResponse("Not Simulated User"), HttpStatus.BAD_REQUEST);
 		}
-		List<WalletAccount> account = new ArrayList<>();
-		for(WalletUser mUser : user) {
-		  WalletAccount mAccount = walletAccountRepository.findBySimulatedAccount(mUser);
-		  account.add(mAccount);
-		}
+		List<WalletAccount> account = walletAccountRepository.findBySimulatedAccount();
 		if (account.isEmpty()) {
 			return new ResponseEntity<>(new ErrorResponse("NO SIMULATED ACCOUNT"), HttpStatus.BAD_REQUEST);
 		}
