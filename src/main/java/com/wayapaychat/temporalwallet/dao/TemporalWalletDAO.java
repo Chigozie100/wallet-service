@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
+import com.wayapaychat.temporalwallet.dto.AccountTransChargeDTO;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 
 public interface TemporalWalletDAO {
@@ -31,5 +32,7 @@ public interface TemporalWalletDAO {
 	List<AccountStatementDTO> recentTransaction(String acctNo);
 	
 	List<AccountStatementDTO> TransactionReport(String acctNo);
+	
+	List<AccountTransChargeDTO> TransChargeReport();
 
 }

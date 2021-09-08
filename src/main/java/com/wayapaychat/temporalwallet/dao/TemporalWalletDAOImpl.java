@@ -11,8 +11,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
+import com.wayapaychat.temporalwallet.dto.AccountTransChargeDTO;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.mapper.AccountStatementMapper;
+import com.wayapaychat.temporalwallet.mapper.AccountTransChargeMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -152,6 +154,50 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 			AccountStatementMapper rowMapper = new AccountStatementMapper();
 			Object[] params = new Object[] { acctNo.trim().toUpperCase() };
 			accountList = jdbcTemplate.query(sql, rowMapper, params);
+			return accountList;
+		} catch (Exception ex) {
+			log.error("An error Occured: Cause: {} \r\n Message: {}", ex.getCause(), ex.getMessage());
+			return null;
+		}
+	}
+	
+	public List<AccountTransChargeDTO> TransChargeReport() {
+		List<AccountTransChargeDTO> accountList = new ArrayList<>();
+		StringBuilder query = new StringBuilder();
+		query.append("SELECT a.tran_date,a.tran_type,a.created_at,a.created_email,a.email_address,");
+		query.append("a.mobile_no,a.account_no,a.tran_amount,a.tran_narrate,a.tran_id,a.debit_credit,");
+		query.append("b.account_no as credit_account, b.tran_amount as credit_amount, b.email_address as credit_email,");
+		query.append("b.mobile_no as credit_mobile_no,b.debit_credit as credit_debit,c.tran_amount as credit_charge  ");
+		query.append("From ");
+		query.append("(Select tran_date,tran_type,created_at,created_email,email_address,");
+		query.append("mobile_no,a.account_no,tran_amount,tran_narrate,tran_id,");
+		query.append("(CASE WHEN part_tran_type = 'D' THEN 'DEBIT' WHEN part_tran_type = 'C' THEN 'CREDIT'");
+		query.append(" ELSE 'Unknown' END) debit_credit ");
+		query.append("from m_wallet_account a, m_wallet_transaction b,m_wallet_user c ");
+		query.append("where a.account_no = b.acct_num and a.cif_id = c.id AND part_tran_type = 'D'  ");
+		query.append("and tran_id in (SELECT tran_id FROM m_wallet_transaction WHERE trangl in ('52310','52306'))  ");
+		query.append("order by tran_id desc) a,  ");
+		query.append("(Select tran_date,tran_type,created_at,created_email,email_address,");
+		query.append("mobile_no,a.account_no,tran_amount,tran_narrate,tran_id,");
+		query.append("(CASE WHEN part_tran_type = 'D' THEN 'DEBIT' WHEN part_tran_type = 'C' THEN 'CREDIT'");
+		query.append(" ELSE 'Unknown' END) debit_credit ");
+		query.append("from m_wallet_account a, m_wallet_transaction b,m_wallet_user c ");
+		query.append("where a.account_no = b.acct_num and a.cif_id = c.id AND part_tran_type = 'C' AND product_type !='OAB'  ");
+		query.append("and tran_id in (SELECT tran_id FROM m_wallet_transaction WHERE trangl in ('52310','52306'))  ");
+		query.append("order by tran_id desc) b,  ");
+		query.append("(Select tran_date,tran_type,created_at,created_email,email_address,");
+		query.append("mobile_no,a.account_no,tran_amount,tran_narrate,tran_id,");
+		query.append("(CASE WHEN part_tran_type = 'D' THEN 'DEBIT' WHEN part_tran_type = 'C' THEN 'CREDIT'");
+		query.append(" ELSE 'Unknown' END) debit_credit ");
+		query.append("from m_wallet_account a, m_wallet_transaction b,m_wallet_user c ");
+		query.append("where a.account_no = b.acct_num and a.cif_id = c.id AND part_tran_type = 'C' AND product_type ='OAB'  ");
+		query.append("and tran_id in (SELECT tran_id FROM m_wallet_transaction WHERE trangl in ('52310','52306'))  ");
+		query.append("order by tran_id desc) c  ");
+		query.append("WHERE a.tran_id = b.tran_id AND a.tran_id = c.tran_id AND c.tran_id = b.tran_id");
+		String sql = query.toString();
+		try {
+			AccountTransChargeMapper rowMapper = new AccountTransChargeMapper();
+			accountList = jdbcTemplate.query(sql, rowMapper);
 			return accountList;
 		} catch (Exception ex) {
 			log.error("An error Occured: Cause: {} \r\n Message: {}", ex.getCause(), ex.getMessage());

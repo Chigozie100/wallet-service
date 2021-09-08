@@ -104,5 +104,7 @@ public interface TransAccountService {
 	
 	ApiResponse<?> EventNonRedeem(NonWayaPaymentDTO transfer);
 	
+	ApiResponse<?> TranChargeReport();
+	
 
 }
