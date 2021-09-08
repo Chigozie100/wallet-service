@@ -208,6 +208,12 @@ public class WalletUserAccountController {
         return userAccountService.getUserAccountList(user_id);
     }
     
+    @ApiOperation(value = "List User wallets", hidden = false)
+    @GetMapping(path = "/admin/user/accounts/{user_id}")
+    public ResponseEntity<?> GetListAccount(@PathVariable long user_id) {
+        return userAccountService.ListUserAccount(user_id);
+    }
+    
     @ApiOperation(value = "Get All Wallets - (Admin COnsumption Only)", hidden = false)
     @GetMapping(path = "/all-wallets")
     public ResponseEntity<?> getAllAccounts() {

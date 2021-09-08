@@ -92,5 +92,7 @@ public interface UserAccountService {
 	ResponseEntity<?> getAccountSimulated(Long user_id);
 	
 	ResponseEntity<?> getListSimulatedAccount();
+	
+	ResponseEntity<?> ListUserAccount(long userId);
 
 }
