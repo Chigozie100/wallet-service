@@ -911,10 +911,15 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 		}
 
-		Optional<WalletUser> wallet = walletUserRepository.findByEmailOrPhoneNumber(transfer.getEmailOrPhoneNumber());
+		Optional<WalletUser> wallet = walletUserRepository.findByEmailOrPhoneNumber(transfer.getEmailOrPhoneNumberOrUserId());
 		if (!wallet.isPresent()) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE NO DOES NOT EXIST", null);
+			Long userId = Long.valueOf(transfer.getEmailOrPhoneNumberOrUserId());
+			wallet = walletUserRepository.findUserId(userId);
+			if (!wallet.isPresent()) {
+			   return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE OR ID DOES NOT EXIST", null);
+			}
 		}
+			
 		WalletUser user = wallet.get();
 		Optional<WalletAccount> defaultAcct = walletAccountRepository.findByDefaultAccount(user);
 		if (!defaultAcct.isPresent()) {

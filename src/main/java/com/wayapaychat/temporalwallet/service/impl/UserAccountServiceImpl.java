@@ -1263,7 +1263,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			} else {
 				return new ResponseEntity<>(new ErrorResponse("Enter Correct Code"), HttpStatus.NOT_FOUND);
 			}
-
+			walletAccountRepository.save(account);
 			return new ResponseEntity<>(new SuccessResponse("Account Freeze successfully.", account), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage() + " : " + e.getMessage()),
