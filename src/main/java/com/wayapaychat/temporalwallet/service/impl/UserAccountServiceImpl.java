@@ -27,6 +27,7 @@ import com.wayapaychat.temporalwallet.dto.AccountProductDTO;
 import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
 import com.wayapaychat.temporalwallet.dto.AccountToggleDTO;
 import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
+import com.wayapaychat.temporalwallet.dto.NewWalletAccount;
 import com.wayapaychat.temporalwallet.dto.OfficialAccountDTO;
 import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
 import com.wayapaychat.temporalwallet.dto.UserAccountDelete;
@@ -964,6 +965,29 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Wallet User does not exist"), HttpStatus.NOT_FOUND);
 		}
 		List<WalletAccount> accounts = walletAccountRepository.findByUser(x);
+		return new ResponseEntity<>(new SuccessResponse("Success.", accounts), HttpStatus.OK);
+	}
+	
+	public ResponseEntity<?> ListUserAccount(long userId) {
+		int uId = (int) userId;
+		UserDetailPojo ur = authService.AuthUser(uId);
+		if (ur == null) {
+			return new ResponseEntity<>(new ErrorResponse("User Id is Invalid"), HttpStatus.NOT_FOUND);
+		}
+		WalletUser x = walletUserRepository.findByEmailAddress(ur.getEmail());
+		if (x == null) {
+			return new ResponseEntity<>(new ErrorResponse("Wallet User does not exist"), HttpStatus.NOT_FOUND);
+		}
+		List<NewWalletAccount> accounts = new ArrayList<>();
+		List<WalletAccount> listAcct = walletAccountRepository.findByUser(x);
+		if (listAcct == null) {
+			return new ResponseEntity<>(new ErrorResponse("Account List Does Not Exist"), HttpStatus.NOT_FOUND);
+		}
+		for(WalletAccount wAcct : listAcct) {
+			NewWalletAccount mAcct = new NewWalletAccount(wAcct, userId);
+			accounts.add(mAcct);
+		}
+		
 		return new ResponseEntity<>(new SuccessResponse("Success.", accounts), HttpStatus.OK);
 	}
 
