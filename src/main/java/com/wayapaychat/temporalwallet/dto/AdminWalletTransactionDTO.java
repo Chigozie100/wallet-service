@@ -22,7 +22,7 @@ public class AdminWalletTransactionDTO {
 	//@NotNull
 	@NotBlank(message = "Email must not be Null or Blank")
 	@Size(min=1, max=50)
-    private String emailOrPhoneNumber;
+    private String emailOrPhoneNumberOrUserId;
    
 	@NotNull
 	@Min(value = 1, message ="Amount must be greater than zero")

@@ -19,6 +19,9 @@ public interface WalletUserRepository extends JpaRepository<WalletUser, Long> {
 	
 	WalletUser findByUserId(Long userId);
 	
+	@Query(value = "SELECT u FROM WalletUser u " + "WHERE (u.userId) = (:Id) " + " AND u.del_flg = false")
+	Optional<WalletUser> findUserId(Long Id);
+	
 	//@Query(value = "SELECT u FROM WalletUser u " + "WHERE UPPER(u.mobileNo) = UPPER(:phone) " + " AND u.userId = (:userId) " + " AND u.del_flg = false")
 	WalletUser findByMobileNo(String phone);
 	
