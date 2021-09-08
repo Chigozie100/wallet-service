@@ -1308,8 +1308,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 	@Override
 	public ResponseEntity<?> AccountAccessLien(AccountLienDTO user) {
 		try {
-			if (user.getLienAmount().compareTo(BigDecimal.ZERO) != 0
-					&& user.getLienAmount().compareTo(BigDecimal.ZERO) != 0) {
+			if (user.getLienAmount().compareTo(BigDecimal.ZERO) == 0) {
 				return new ResponseEntity<>(new ErrorResponse("Lien Amount should not be 0"), HttpStatus.NOT_FOUND);
 			}
 

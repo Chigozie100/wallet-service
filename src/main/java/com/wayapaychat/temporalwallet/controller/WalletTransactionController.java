@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.wayapaychat.temporalwallet.dto.AdminLocalTransferDTO;
 import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
+import com.wayapaychat.temporalwallet.dto.AdminWalletTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.BulkTransactionCreationDTO;
 import com.wayapaychat.temporalwallet.dto.ClientComTransferDTO;
@@ -152,6 +153,18 @@ public class WalletTransactionController {
 	@PostMapping("/sendmoney/wallet/customer")
 	public ResponseEntity<?> sendMoneyCustomer(@Valid @RequestBody WalletTransactionDTO transfer) {
 		ApiResponse<?> res = transAccountService.sendMoneyCustomer(transfer);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+		log.info("Send Money: {}", transfer);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Admin Send Money to Wallet", notes = "Admin Post Money")
+	@PostMapping("/admin/sendmoney/customer")
+	public ResponseEntity<?> AdminSendMoney(@Valid @RequestBody AdminWalletTransactionDTO transfer) {
+		ApiResponse<?> res = transAccountService.AdminSendMoneyCustomer(transfer);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
