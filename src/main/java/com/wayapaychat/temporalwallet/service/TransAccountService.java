@@ -10,6 +10,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
 import com.wayapaychat.temporalwallet.dto.AdminLocalTransferDTO;
 import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
+import com.wayapaychat.temporalwallet.dto.AdminWalletTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.BulkTransactionCreationDTO;
 import com.wayapaychat.temporalwallet.dto.ClientComTransferDTO;
@@ -73,6 +74,8 @@ public interface TransAccountService {
 	ApiResponse<?> ClientCommissionMoney(ClientComTransferDTO transfer);
 	
 	ApiResponse<?> sendMoneyCustomer(WalletTransactionDTO transfer);
+	
+	ApiResponse<?> AdminSendMoneyCustomer(AdminWalletTransactionDTO transfer);
 	
 	ApiResponse<?> getStatement(String accountNumber);
 	
