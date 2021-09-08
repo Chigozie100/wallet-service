@@ -504,5 +504,24 @@ public class WalletTransactionController {
 		}
 		
 	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Admin Transaction Charge Report", notes = "Charge Report")
+	@GetMapping("/transaction/charge/report")
+	public ResponseEntity<?> PaymentChargeReport() {
+		ApiResponse<?> res;
+		try {
+			res = transAccountService.TranChargeReport();
+			if (!res.getStatus()) {
+	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+	        }
+	        return new ResponseEntity<>(res, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
+			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+		}
+		
+	}
 
 }
