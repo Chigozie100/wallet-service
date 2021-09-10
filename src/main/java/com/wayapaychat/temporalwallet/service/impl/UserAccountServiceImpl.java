@@ -993,7 +993,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> getAllAccount() {
-		List<WalletAccount> pagedResult = walletAccountRepository.findAll();
+		//List<WalletAccount> pagedResult = walletAccountRepository.findAll();
+		List<WalletAccount> pagedResult = walletAccountRepository.findByWalletAccount();
 		return new ResponseEntity<>(new SuccessResponse("Success.", pagedResult), HttpStatus.OK);
 	}
 
