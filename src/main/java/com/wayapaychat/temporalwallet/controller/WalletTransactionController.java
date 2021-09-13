@@ -25,6 +25,7 @@ import com.wayapaychat.temporalwallet.dto.AdminWalletTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.BulkTransactionCreationDTO;
 import com.wayapaychat.temporalwallet.dto.ClientComTransferDTO;
+import com.wayapaychat.temporalwallet.dto.ClientWalletTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionTransferDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.NonWayaPaymentDTO;
@@ -165,6 +166,18 @@ public class WalletTransactionController {
 	@PostMapping("/admin/sendmoney/customer")
 	public ResponseEntity<?> AdminSendMoney(@Valid @RequestBody AdminWalletTransactionDTO transfer) {
 		ApiResponse<?> res = transAccountService.AdminSendMoneyCustomer(transfer);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+		log.info("Send Money: {}", transfer);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Client Send Money to Wallet", notes = "Client Post Money")
+	@PostMapping("/client/sendmoney/customer")
+	public ResponseEntity<?> ClientSendMoney(@Valid @RequestBody ClientWalletTransactionDTO transfer) {
+		ApiResponse<?> res = transAccountService.ClientSendMoneyCustomer(transfer);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }

@@ -33,6 +33,7 @@ import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.BulkTransactionCreationDTO;
 import com.wayapaychat.temporalwallet.dto.BulkTransactionExcelDTO;
 import com.wayapaychat.temporalwallet.dto.ClientComTransferDTO;
+import com.wayapaychat.temporalwallet.dto.ClientWalletTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionTransferDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.ExcelTransactionCreationDTO;
@@ -899,6 +900,68 @@ public class TransAccountServiceImpl implements TransAccountService {
 	
 	@Override
 	public ApiResponse<?> AdminSendMoneyCustomer(AdminWalletTransactionDTO transfer) {
+		// check for admin
+		List<WalletTransaction> transRef = walletTransactionRepository.findByReference(transfer.getPaymentReference(),
+				LocalDate.now(), transfer.getTranCrncy());
+		if (!transRef.isEmpty()) {
+			Optional<WalletTransaction> ret = transRef.stream()
+					.filter(code -> code.getPaymentReference().equals(transfer.getPaymentReference())).findAny();
+			if (ret.isPresent()) {
+				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+						"Duplicate Payment Reference on the same Day", null);
+			}
+		}
+
+		Optional<WalletUser> wallet = walletUserRepository.findByEmailOrPhoneNumber(transfer.getEmailOrPhoneNumberOrUserId());
+		if (!wallet.isPresent()) {
+			Long userId = Long.valueOf(transfer.getEmailOrPhoneNumberOrUserId());
+			wallet = walletUserRepository.findUserId(userId);
+			if (!wallet.isPresent()) {
+			   return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE OR ID DOES NOT EXIST", null);
+			}
+		}
+			
+		WalletUser user = wallet.get();
+		Optional<WalletAccount> defaultAcct = walletAccountRepository.findByDefaultAccount(user);
+		if (!defaultAcct.isPresent()) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NO ACCOUNT NUMBER EXIST", null);
+		}
+		String fromAccountNumber = transfer.getDebitAccountNumber();
+		String toAccountNumber = defaultAcct.get().getAccountNo();
+		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
+		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
+		try {
+			int intRec = tempwallet.PaymenttranInsert("", fromAccountNumber, toAccountNumber, transfer.getAmount(),
+					transfer.getPaymentReference());
+			if (intRec == 1) {
+				String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+				String[] tranKey = tranId.split(Pattern.quote("|"));
+				if (tranKey[0].equals("DJGO")) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+				}
+				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+						.findByTranIdIgnoreCase(tranId);
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				if (!transaction.isPresent()) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+				}
+			} else {
+				if (intRec == 2) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+							"Unable to process duplicate transaction", null);
+				} else {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return resp;
+	}
+	
+	@Override
+	public ApiResponse<?> ClientSendMoneyCustomer(ClientWalletTransactionDTO transfer) {
 		// check for admin
 		List<WalletTransaction> transRef = walletTransactionRepository.findByReference(transfer.getPaymentReference(),
 				LocalDate.now(), transfer.getTranCrncy());
