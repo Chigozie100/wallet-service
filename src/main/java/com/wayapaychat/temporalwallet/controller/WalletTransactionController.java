@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.controller;
 
 import java.util.Date;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +40,7 @@ import com.wayapaychat.temporalwallet.dto.WalletTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.WayaTradeDTO;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
+import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
 
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -52,6 +54,14 @@ public class WalletTransactionController {
 	
 	@Autowired
 	TransAccountService transAccountService;
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "External Wallet Payment", notes = "Post Money")
+	@PostMapping("/external/payment/{userId}")
+	public ResponseEntity<?> ExternalSendMoney(HttpServletRequest request, @Valid @RequestBody CardRequestPojo transfer, @PathVariable("userId") Long userId) {
+		return transAccountService.PostExternalMoney(request, transfer, userId);
+        
+	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Send Money to Wallet", notes = "Post Money")
