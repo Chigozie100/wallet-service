@@ -4,7 +4,10 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
@@ -28,6 +31,7 @@ import com.wayapaychat.temporalwallet.dto.WalletTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.WayaTradeDTO;
 import com.wayapaychat.temporalwallet.entity.Transactions;
 import com.wayapaychat.temporalwallet.entity.WalletTransaction;
+import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
 import com.wayapaychat.temporalwallet.pojo.TransactionRequest;
 import com.wayapaychat.temporalwallet.pojo.WalletToWalletDto;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
@@ -59,6 +63,8 @@ public interface TransAccountService {
 	ApiResponse<?> makeWalletTransaction(String command, TransferTransactionDTO transactionPojo);
 	
 	ApiResponse<?> sendMoney(TransferTransactionDTO transfer);
+	
+	ResponseEntity<?> PostExternalMoney(HttpServletRequest request, CardRequestPojo transfer, Long userId);
 	
 	ApiResponse<?> OfficialMoneyTransfer(OfficeTransferDTO transfer);
 	

@@ -13,12 +13,15 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -57,6 +60,7 @@ import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.enumm.TransactionTypeEnum;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
+import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
 import com.wayapaychat.temporalwallet.pojo.MyData;
 import com.wayapaychat.temporalwallet.pojo.TransactionRequest;
 import com.wayapaychat.temporalwallet.pojo.UserDetailPojo;
@@ -107,6 +111,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Autowired
 	private TokenImpl tokenService;
+	
+	@Autowired
+	ExternalServiceProxyImpl userDataService;
 
 	@Override
 	public ApiResponse<TransactionRequest> makeTransaction(String command, TransactionRequest request) {
@@ -570,6 +577,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 			e.printStackTrace();
 		}
 		return resp;
+	}
+	
+	@Override
+	public ResponseEntity<?> PostExternalMoney(HttpServletRequest request, CardRequestPojo transfer, Long userId) {
+		return userDataService.getCardPayment(request, transfer, userId);
+		//return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION PROCESSED", mCard);
 	}
 
 	public ApiResponse<?> OfficialMoneyTransfer(OfficeTransferDTO transfer) {
