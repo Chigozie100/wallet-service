@@ -12,6 +12,7 @@ import com.wayapaychat.temporalwallet.dto.AccountProductDTO;
 import com.wayapaychat.temporalwallet.dto.AccountToggleDTO;
 import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
 import com.wayapaychat.temporalwallet.dto.OfficialAccountDTO;
+import com.wayapaychat.temporalwallet.dto.SecureDTO;
 import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
 import com.wayapaychat.temporalwallet.dto.UserAccountDelete;
 import com.wayapaychat.temporalwallet.dto.UserDTO;
@@ -94,5 +95,7 @@ public interface UserAccountService {
 	ResponseEntity<?> getListSimulatedAccount();
 	
 	ResponseEntity<?> ListUserAccount(long userId);
+	
+	ResponseEntity<?> AccountLookUp(String account, SecureDTO secureKey);
 
 }

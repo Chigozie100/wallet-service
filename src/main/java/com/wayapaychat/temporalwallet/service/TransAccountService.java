@@ -19,6 +19,7 @@ import com.wayapaychat.temporalwallet.dto.BulkTransactionCreationDTO;
 import com.wayapaychat.temporalwallet.dto.ClientComTransferDTO;
 import com.wayapaychat.temporalwallet.dto.ClientWalletTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionTransferDTO;
+import com.wayapaychat.temporalwallet.dto.DirectTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.NonWayaPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.OfficeTransferDTO;
@@ -63,6 +64,8 @@ public interface TransAccountService {
 	ApiResponse<?> makeWalletTransaction(String command, TransferTransactionDTO transactionPojo);
 	
 	ApiResponse<?> sendMoney(TransferTransactionDTO transfer);
+	
+	ApiResponse<?> VirtuPaymentMoney(DirectTransactionDTO transfer);
 	
 	ResponseEntity<?> PostExternalMoney(HttpServletRequest request, CardRequestPojo transfer, Long userId);
 	

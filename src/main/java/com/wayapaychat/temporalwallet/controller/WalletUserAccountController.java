@@ -24,6 +24,7 @@ import com.wayapaychat.temporalwallet.dto.AccountProductDTO;
 import com.wayapaychat.temporalwallet.dto.AccountToggleDTO;
 import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
 import com.wayapaychat.temporalwallet.dto.OfficialAccountDTO;
+import com.wayapaychat.temporalwallet.dto.SecureDTO;
 import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
 import com.wayapaychat.temporalwallet.dto.UserAccountDelete;
 import com.wayapaychat.temporalwallet.dto.UserDTO;
@@ -176,6 +177,14 @@ public class WalletUserAccountController {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+	
+	
+	@ApiOperation(value = "Account LookUp", notes = "Find Virtual Account")
+	@PostMapping("/account/lookup/{accountNo}")
+	public ResponseEntity<?> AccountLook(@PathVariable("accountNo") String accountNo,
+			@Valid @RequestBody SecureDTO key ) {
+		return userAccountService.AccountLookUp(accountNo, key);
 	}
 	
 	@ApiOperation(value = "Get List of Commission Accounts")
