@@ -29,6 +29,7 @@ import com.wayapaychat.temporalwallet.dto.AccountToggleDTO;
 import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
 import com.wayapaychat.temporalwallet.dto.NewWalletAccount;
 import com.wayapaychat.temporalwallet.dto.OfficialAccountDTO;
+import com.wayapaychat.temporalwallet.dto.SecureDTO;
 import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
 import com.wayapaychat.temporalwallet.dto.UserAccountDelete;
 import com.wayapaychat.temporalwallet.dto.UserDTO;
@@ -1376,6 +1377,21 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("NO SIMULATED ACCOUNT"), HttpStatus.BAD_REQUEST);
 		}
 		return new ResponseEntity<>(new SuccessResponse("LIST SIMULATED ACCOUNT", account), HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> AccountLookUp(String account, SecureDTO secureKey) {
+		
+		if(!secureKey.getKey().equals("yYSowX0uQVUZpNnkY28fREx0ayq+WsbEfm2s7ukn4+RHw1yxGODamMcLPH3R7lBD+Tmyw/FvCPG6yLPfuvbJVA==")) {
+			return new ResponseEntity<>(new ErrorResponse("INVALID KEY"), HttpStatus.BAD_REQUEST);
+		}
+		
+		com.wayapaychat.temporalwallet.dto.AccountLookUp mAccount = tempwallet.GetAccountLookUp(account);
+		if (mAccount == null) {
+			return new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT"), HttpStatus.BAD_REQUEST);
+		}
+		
+		return new ResponseEntity<>(new SuccessResponse("ACCOUNT SEARCH", mAccount), HttpStatus.OK);
 	}
 
 }

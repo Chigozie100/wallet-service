@@ -82,6 +82,8 @@ public class WalletUser {
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	@JoinColumn(name="cif_id")
     private List<WalletAccount> account;
+	
+	private boolean isVirtualAccount = false;
 
 	public WalletUser(String sol_id, Long userId, String firstName,
 			String lastName, String emailAddress, String mobileNo, String cust_name, String cust_title_code,

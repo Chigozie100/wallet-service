@@ -38,6 +38,7 @@ import com.wayapaychat.temporalwallet.dto.BulkTransactionExcelDTO;
 import com.wayapaychat.temporalwallet.dto.ClientComTransferDTO;
 import com.wayapaychat.temporalwallet.dto.ClientWalletTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionTransferDTO;
+import com.wayapaychat.temporalwallet.dto.DirectTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.ExcelTransactionCreationDTO;
 import com.wayapaychat.temporalwallet.dto.NonWayaPaymentDTO;
@@ -53,6 +54,7 @@ import com.wayapaychat.temporalwallet.dto.WalletTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.WayaTradeDTO;
 import com.wayapaychat.temporalwallet.entity.Transactions;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
+import com.wayapaychat.temporalwallet.entity.WalletAcountVirtual;
 import com.wayapaychat.temporalwallet.entity.WalletEventCharges;
 import com.wayapaychat.temporalwallet.entity.WalletTeller;
 import com.wayapaychat.temporalwallet.entity.WalletTransaction;
@@ -66,6 +68,7 @@ import com.wayapaychat.temporalwallet.pojo.TransactionRequest;
 import com.wayapaychat.temporalwallet.pojo.UserDetailPojo;
 import com.wayapaychat.temporalwallet.pojo.WalletToWalletDto;
 import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
+import com.wayapaychat.temporalwallet.repository.WalletAcountVirtualRepository;
 import com.wayapaychat.temporalwallet.repository.WalletEventRepository;
 import com.wayapaychat.temporalwallet.repository.WalletTellerRepository;
 import com.wayapaychat.temporalwallet.repository.WalletTransactionRepository;
@@ -87,6 +90,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Autowired
 	WalletAccountRepository walletAccountRepository;
+	
+	@Autowired
+	WalletAcountVirtualRepository walletAcountVirtualRepository;
 
 	@Autowired
 	ReqIPUtils reqIPUtils;
@@ -565,6 +571,69 @@ public class TransAccountServiceImpl implements TransAccountService {
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
+			} else {
+				if (intRec == 2) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+							"Unable to process duplicate transaction", null);
+				} else {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return resp;
+	}
+	
+	@Override
+	public ApiResponse<?> VirtuPaymentMoney(DirectTransactionDTO transfer) {
+		log.info("Transaction Request Creation: {}", transfer.toString());
+		
+		if(!transfer.getSecureKey().equals("yYSowX0uQVUZpNnkY28fREx0ayq+WsbEfm2s7ukn4+RHw1yxGODamMcLPH3R7lBD+Tmyw/FvCPG6yLPfuvbJVA==")) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED KEY", null);
+		}
+		
+		WalletAcountVirtual mvirt = walletAcountVirtualRepository.findByIdAccount(transfer.getVId(), transfer.getVAccountNo());
+		if(mvirt == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED VIRTUAL ACCOUNT", null);
+		}
+		Long userId = Long.parseLong(mvirt.getUserId());
+		log.info("USER ID: "+ userId);
+		WalletUser user = walletUserRepository.findByUserId(userId);
+		if(user == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED VIRTUAL ACCOUNT", null);
+		}
+		Optional<WalletAccount> account = walletAccountRepository.findByDefaultAccount(user);
+		if(!account.isPresent()) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NO DEFAULT WALLET FOR VIRTUAL ACCOUNT", null);
+		}
+		WalletAccount mAccount = account.get();
+		String toAccountNumber = mAccount.getAccountNo();
+		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("BANK");
+		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
+		try {
+			int intRec = tempwallet.PaymenttranInsert(transfer.getEventId(), "", toAccountNumber, transfer.getAmount(),
+					transfer.getPaymentReference());
+			if (intRec == 1) {
+				String tranId = createEventTransaction(transfer.getEventId(), toAccountNumber, transfer.getTranCrncy(),
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+				String[] tranKey = tranId.split(Pattern.quote("|"));
+				if (tranKey[0].equals("DJGO")) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+				}
+				log.info("Transaction ID Response: {}", tranId);
+				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+						.findByTranIdIgnoreCase(tranId);
+				
+				if (!transaction.isPresent()) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+				}
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				log.info("Transaction Response: {}", resp.toString());
+				BigDecimal newAmount = mvirt.getActualBalance().add(transfer.getAmount());
+				mvirt.setActualBalance(newAmount);
+				walletAcountVirtualRepository.save(mvirt);
+				
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -1750,6 +1819,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			accountCredit.setCum_cr_amt(cumbalCrAmtCr);
 			accountCredit.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(accountCredit);
+			
 			log.info("END TRANSACTION");
 			return tranId;
 		} catch (Exception e) {

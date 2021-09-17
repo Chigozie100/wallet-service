@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.wayapaychat.temporalwallet.dto.AccountLookUp;
 import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
 import com.wayapaychat.temporalwallet.dto.AccountTransChargeDTO;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
@@ -34,5 +35,7 @@ public interface TemporalWalletDAO {
 	List<AccountStatementDTO> TransactionReport(String acctNo);
 	
 	List<AccountTransChargeDTO> TransChargeReport();
+	
+	AccountLookUp GetAccountLookUp(String account);
 
 }

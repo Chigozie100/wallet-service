@@ -28,6 +28,7 @@ import com.wayapaychat.temporalwallet.dto.BulkTransactionCreationDTO;
 import com.wayapaychat.temporalwallet.dto.ClientComTransferDTO;
 import com.wayapaychat.temporalwallet.dto.ClientWalletTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionTransferDTO;
+import com.wayapaychat.temporalwallet.dto.DirectTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.NonWayaPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.OfficeTransferDTO;
@@ -68,6 +69,17 @@ public class WalletTransactionController {
 	@PostMapping("/sendmoney/wallet")
 	public ResponseEntity<?> sendMoney(@Valid @RequestBody TransferTransactionDTO transfer) {
 		ApiResponse<?> res = transAccountService.sendMoney(transfer);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+		log.info("Send Money: {}", transfer);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+	
+	@ApiOperation(value = "Notify Transaction", notes = "Post Money")
+	@PostMapping("/notify/transaction")
+	public ResponseEntity<?> VirtuPaymentMoney(@Valid @RequestBody DirectTransactionDTO transfer) {
+		ApiResponse<?> res = transAccountService.VirtuPaymentMoney(transfer);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }

@@ -10,9 +10,11 @@ import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import com.wayapaychat.temporalwallet.dto.AccountLookUp;
 import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
 import com.wayapaychat.temporalwallet.dto.AccountTransChargeDTO;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
+import com.wayapaychat.temporalwallet.mapper.AccountLookUpMapper;
 import com.wayapaychat.temporalwallet.mapper.AccountStatementMapper;
 import com.wayapaychat.temporalwallet.mapper.AccountTransChargeMapper;
 
@@ -278,6 +280,23 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 			log.error(ex.getMessage());
 		}
 		return count;
+	}
+	
+	public AccountLookUp GetAccountLookUp(String account) {
+		AccountLookUp mAccount = null;
+		StringBuilder query = new StringBuilder();
+		query.append("select virtu_id vId, cust_name,");
+		query.append("account_number from m_wallet_user a, m_wallet_account_virtual b ");
+		query.append("where cast(a.user_id AS VARCHAR) = b.user_id and account_number = ?");
+		String sql = query.toString();
+		try {
+			AccountLookUpMapper rowMapper = new AccountLookUpMapper();
+			Object[] params = new Object[] { account.trim()};
+			mAccount = jdbcTemplate.queryForObject(sql, rowMapper, params);
+		} catch (Exception ex) {
+			log.error(ex.getMessage());
+		}
+		return mAccount;
 	}
 
 }
