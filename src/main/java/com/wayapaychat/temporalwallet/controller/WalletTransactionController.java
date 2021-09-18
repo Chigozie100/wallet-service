@@ -33,6 +33,7 @@ import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.NonWayaPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.OfficeTransferDTO;
 import com.wayapaychat.temporalwallet.dto.OfficeUserTransferDTO;
+import com.wayapaychat.temporalwallet.dto.ReversePaymentDTO;
 import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.WalletAdminTransferDTO;
@@ -87,6 +88,23 @@ public class WalletTransactionController {
         return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 	
+	@ApiOperation(value = "Notify Transaction Reverse", notes = "Reverse Post Money")
+	@PostMapping("/notify/transaction/reverse")
+	public ResponseEntity<?> VirtuPaymentReverse(@RequestBody() ReversePaymentDTO reverseDto) {
+		ApiResponse<?> res;
+		try {
+			res = transAccountService.VirtuPaymentReverse(reverseDto);
+			if (!res.getStatus()) {
+	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+	        }
+	        return new ResponseEntity<>(res, HttpStatus.OK);
+		} catch (Exception e) {
+			e.printStackTrace();
+			res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
+			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+		}
+		
+	}
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "To transfer money from one waya official account to another", notes = "Post Money")
 	@PostMapping("/official/transfer")

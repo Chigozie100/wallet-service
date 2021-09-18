@@ -24,6 +24,7 @@ import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.NonWayaPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.OfficeTransferDTO;
 import com.wayapaychat.temporalwallet.dto.OfficeUserTransferDTO;
+import com.wayapaychat.temporalwallet.dto.ReversePaymentDTO;
 import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.WalletAdminTransferDTO;
@@ -100,6 +101,8 @@ public interface TransAccountService {
 	ApiResponse<?> sendMoneyCharge(WalletTransactionChargeDTO transfer);
 	
 	ApiResponse<?> TranReversePayment(ReverseTransactionDTO reverseDto) throws ParseException;
+	
+	ApiResponse<?> VirtuPaymentReverse(ReversePaymentDTO reverseDto) throws ParseException;
 	
 	ApiResponse<?> TranRevALLReport(Date date, Date todate);
 	

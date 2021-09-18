@@ -44,6 +44,7 @@ import com.wayapaychat.temporalwallet.dto.ExcelTransactionCreationDTO;
 import com.wayapaychat.temporalwallet.dto.NonWayaPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.OfficeTransferDTO;
 import com.wayapaychat.temporalwallet.dto.OfficeUserTransferDTO;
+import com.wayapaychat.temporalwallet.dto.ReversePaymentDTO;
 import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.UserTransactionDTO;
@@ -90,7 +91,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Autowired
 	WalletAccountRepository walletAccountRepository;
-	
+
 	@Autowired
 	WalletAcountVirtualRepository walletAcountVirtualRepository;
 
@@ -117,7 +118,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Autowired
 	private TokenImpl tokenService;
-	
+
 	@Autowired
 	ExternalServiceProxyImpl userDataService;
 
@@ -250,7 +251,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return resp;
 	}
-	
+
 	public ApiResponse<?> EventNonPayment(NonWayaPaymentDTO transfer) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
 		String toAccountNumber = transfer.getCustomerDebitAccountNo();
@@ -287,7 +288,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return resp;
 	}
-	
+
 	public ApiResponse<?> EventNonRedeem(NonWayaPaymentDTO transfer) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
 		String toAccountNumber = transfer.getCustomerDebitAccountNo();
@@ -456,16 +457,15 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", transaction);
 	}
-	
+
 	public ApiResponse<List<WalletTransaction>> findClientTransaction(String tranId) {
-		Optional<List<WalletTransaction>> transaction = walletTransactionRepository
-				.findByTranIdIgnoreCase(tranId);
+		Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
 		if (!transaction.isPresent()) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "UNABLE TO GENERATE STATEMENT", null);
 		}
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", transaction.get());
 	}
-	
+
 	public ApiResponse<List<AccountStatementDTO>> ReportTransaction(String accountNo) {
 		List<AccountStatementDTO> transaction = tempwallet.TransactionReport(accountNo);
 		if (transaction == null) {
@@ -584,27 +584,29 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return resp;
 	}
-	
+
 	@Override
 	public ApiResponse<?> VirtuPaymentMoney(DirectTransactionDTO transfer) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
-		
-		if(!transfer.getSecureKey().equals("yYSowX0uQVUZpNnkY28fREx0ayq+WsbEfm2s7ukn4+RHw1yxGODamMcLPH3R7lBD+Tmyw/FvCPG6yLPfuvbJVA==")) {
+
+		if (!transfer.getSecureKey()
+				.equals("yYSowX0uQVUZpNnkY28fREx0ayq+WsbEfm2s7ukn4+RHw1yxGODamMcLPH3R7lBD+Tmyw/FvCPG6yLPfuvbJVA==")) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED KEY", null);
 		}
-		
-		WalletAcountVirtual mvirt = walletAcountVirtualRepository.findByIdAccount(transfer.getVId(), transfer.getVAccountNo());
-		if(mvirt == null) {
+
+		WalletAcountVirtual mvirt = walletAcountVirtualRepository.findByIdAccount(transfer.getVId(),
+				transfer.getVAccountNo());
+		if (mvirt == null) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED VIRTUAL ACCOUNT", null);
 		}
 		Long userId = Long.parseLong(mvirt.getUserId());
-		log.info("USER ID: "+ userId);
+		log.info("USER ID: " + userId);
 		WalletUser user = walletUserRepository.findByUserId(userId);
-		if(user == null) {
+		if (user == null) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED VIRTUAL ACCOUNT", null);
 		}
 		Optional<WalletAccount> account = walletAccountRepository.findByDefaultAccount(user);
-		if(!account.isPresent()) {
+		if (!account.isPresent()) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NO DEFAULT WALLET FOR VIRTUAL ACCOUNT", null);
 		}
 		WalletAccount mAccount = account.get();
@@ -624,7 +626,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				log.info("Transaction ID Response: {}", tranId);
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				
+
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
@@ -633,7 +635,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				BigDecimal newAmount = mvirt.getActualBalance().add(transfer.getAmount());
 				mvirt.setActualBalance(newAmount);
 				walletAcountVirtualRepository.save(mvirt);
-				
+
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -647,11 +649,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return resp;
 	}
-	
+
 	@Override
 	public ResponseEntity<?> PostExternalMoney(HttpServletRequest request, CardRequestPojo transfer, Long userId) {
 		return userDataService.getCardPayment(request, transfer, userId);
-		//return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION PROCESSED", mCard);
+		// return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION
+		// PROCESSED", mCard);
 	}
 
 	public ApiResponse<?> OfficialMoneyTransfer(OfficeTransferDTO transfer) {
@@ -842,7 +845,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return resp;
 	}
-	
+
 	public ApiResponse<?> ClientCommissionMoney(ClientComTransferDTO transfer) {
 		WalletAccount acctComm = walletAccountRepository.findByAccountNo(transfer.getDebitAccountNumber());
 		if (!acctComm.getGl_code().equals("SB901")) {
@@ -979,7 +982,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return resp;
 	}
-	
+
 	@Override
 	public ApiResponse<?> AdminSendMoneyCustomer(AdminWalletTransactionDTO transfer) {
 		// check for admin
@@ -994,15 +997,17 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 		}
 
-		Optional<WalletUser> wallet = walletUserRepository.findByEmailOrPhoneNumber(transfer.getEmailOrPhoneNumberOrUserId());
+		Optional<WalletUser> wallet = walletUserRepository
+				.findByEmailOrPhoneNumber(transfer.getEmailOrPhoneNumberOrUserId());
 		if (!wallet.isPresent()) {
 			Long userId = Long.valueOf(transfer.getEmailOrPhoneNumberOrUserId());
 			wallet = walletUserRepository.findUserId(userId);
 			if (!wallet.isPresent()) {
-			   return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE OR ID DOES NOT EXIST", null);
+				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE OR ID DOES NOT EXIST",
+						null);
 			}
 		}
-			
+
 		WalletUser user = wallet.get();
 		Optional<WalletAccount> defaultAcct = walletAccountRepository.findByDefaultAccount(user);
 		if (!defaultAcct.isPresent()) {
@@ -1041,7 +1046,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return resp;
 	}
-	
+
 	@Override
 	public ApiResponse<?> ClientSendMoneyCustomer(ClientWalletTransactionDTO transfer) {
 		// check for admin
@@ -1056,15 +1061,17 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 		}
 
-		Optional<WalletUser> wallet = walletUserRepository.findByEmailOrPhoneNumber(transfer.getEmailOrPhoneNumberOrUserId());
+		Optional<WalletUser> wallet = walletUserRepository
+				.findByEmailOrPhoneNumber(transfer.getEmailOrPhoneNumberOrUserId());
 		if (!wallet.isPresent()) {
 			Long userId = Long.valueOf(transfer.getEmailOrPhoneNumberOrUserId());
 			wallet = walletUserRepository.findUserId(userId);
 			if (!wallet.isPresent()) {
-			   return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE OR ID DOES NOT EXIST", null);
+				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE OR ID DOES NOT EXIST",
+						null);
 			}
 		}
-			
+
 		WalletUser user = wallet.get();
 		Optional<WalletAccount> defaultAcct = walletAccountRepository.findByDefaultAccount(user);
 		if (!defaultAcct.isPresent()) {
@@ -1125,8 +1132,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 			// Check for account security
 			log.info(accountDebit.getHashed_no());
-			//String compareDebit = tempwallet.GetSecurityTest(debitAcctNo);
-			//log.info(compareDebit);
+			// String compareDebit = tempwallet.GetSecurityTest(debitAcctNo);
+			// log.info(compareDebit);
 			String secureDebit = reqIPUtils.WayaDecrypt(accountDebit.getHashed_no());
 			log.info(secureDebit);
 			String[] keyDebit = secureDebit.split(Pattern.quote("|"));
@@ -1137,8 +1144,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 
 			log.info(accountCredit.getHashed_no());
-			//String compareCredit = tempwallet.GetSecurityTest(creditAcctNo);
-			//log.info(compareCredit);
+			// String compareCredit = tempwallet.GetSecurityTest(creditAcctNo);
+			// log.info(compareCredit);
 			String secureCredit = reqIPUtils.WayaDecrypt(accountCredit.getHashed_no());
 			log.info(secureCredit);
 			String[] keyCredit = secureCredit.split(Pattern.quote("|"));
@@ -1183,7 +1190,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					if (accountDebit.getFrez_code().equals("D"))
 						return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
 				}
-				
+
 				if (accountDebit.getLien_amt() != 0) {
 					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
 					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
@@ -1225,13 +1232,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,n);
-			
+					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,
+					n);
+
 			n = n + 1;
-			
+
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId,
-					email,n);
+					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email,
+					n);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 			tempwallet.updateTransaction(paymentRef, amount, tranId);
@@ -1267,7 +1275,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef, String eventCharge)
 			throws Exception {
 		try {
-			
+
 			int n = 1;
 			log.info("START TRANSACTION");
 			String tranCount = tempwallet.transactionCount(paymentRef, creditAcctNo);
@@ -1354,7 +1362,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					if (accountDebit.getFrez_code().equals("D"))
 						return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
 				}
-				
+
 				if (accountDebit.getLien_amt() != 0) {
 					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
 					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
@@ -1401,17 +1409,17 @@ public class TransAccountServiceImpl implements TransAccountService {
 			BigDecimal chargeAmt = event.getTranAmt().add(amount);
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), chargeAmt,
 					tranType, tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef,
-					userId, email,n);
-			
+					userId, email, n);
+
 			n = n + 1;
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId,
-					email,n);
-			
+					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email,
+					n);
+
 			n = n + 1;
 			WalletTransaction tranCharge = new WalletTransaction(tranId, chargeTill.getAccountNo(), event.getTranAmt(),
 					tranType, tranNarrate1, LocalDate.now(), tranCrncy, "C", chargeTill.getGl_code(), paymentRef,
-					userId, email,n);
+					userId, email, n);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 			walletTransactionRepository.saveAndFlush(tranCharge);
@@ -1555,7 +1563,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					if (accountDebit.getFrez_code().equals("D"))
 						return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
 				}
-				
+
 				if (accountDebit.getLien_amt() != 0) {
 					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
 					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
@@ -1601,13 +1609,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,n);
-			
+					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,
+					n);
+
 			n = n + 1;
-			
+
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId,
-					email,n);
+					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email,
+					n);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 			tempwallet.updateTransaction(paymentRef, amount, tranId);
@@ -1744,7 +1753,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					if (accountDebit.getFrez_code().equals("D"))
 						return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
 				}
-				
+
 				if (accountDebit.getLien_amt() != 0) {
 					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
 					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
@@ -1793,12 +1802,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,n);
-			
+					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,
+					n);
+
 			n = n + 1;
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId,
-					email,n);
+					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email,
+					n);
 			log.info("TRANSACTION CREATION DEBIT: {} WITH CREDIT: {}", tranDebit.toString(), tranCredit.toString());
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
@@ -1819,7 +1829,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			accountCredit.setCum_cr_amt(cumbalCrAmtCr);
 			accountCredit.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(accountCredit);
-			
+
 			log.info("END TRANSACTION");
 			return tranId;
 		} catch (Exception e) {
@@ -1828,7 +1838,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 
 	}
-	
+
 	public String createEventRedeem(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef) throws Exception {
 		try {
@@ -1937,7 +1947,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					if (accountDebit.getFrez_code().equals("D"))
 						return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
 				}
-				
+
 				if (accountDebit.getLien_amt() != 0) {
 					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
 					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
@@ -1986,12 +1996,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,n);
-			
+					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,
+					n);
+
 			n = n + 1;
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId,
-					email,n);
+					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email,
+					n);
 			log.info("TRANSACTION CREATION DEBIT: {} WITH CREDIT: {}", tranDebit.toString(), tranCredit.toString());
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
@@ -2128,7 +2139,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					if (accountDebit.getFrez_code().equals("D"))
 						return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
 				}
-				
+
 				if (accountDebit.getLien_amt() != 0) {
 					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
 					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
@@ -2177,12 +2188,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,n);
-			
+					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,
+					n);
+
 			n = n + 1;
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId,
-					email,n);
+					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email,
+					n);
 			log.info("TRANSACTION CREATION DEBIT: {} WITH CREDIT: {}", tranDebit.toString(), tranCredit.toString());
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
@@ -2339,7 +2351,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (!accountCredit.getAcct_ownership().equals("O")) {
 				if (accountCredit.isAcct_cls_flg())
 					return "DJGO|CREDIT ACCOUNT IS CLOSED";
-				
+
 				log.info("Credit Account is: {}", accountCredit.getAccountNo());
 				log.info("Credit Account Freeze Code is: {}", accountCredit.getFrez_code());
 				if (accountCredit.getFrez_code() != null) {
@@ -2368,12 +2380,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			String tranNarrate = "WALLET-" + tranNarration + " TO:" + bk;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,n);
-			
+					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,
+					n);
+
 			n = n + 1;
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId,
-					email,n);
+					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email,
+					n);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 			tempwallet.updateTransaction(paymentRef, amount, tranId);
@@ -2473,7 +2486,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				trans1.setTranType(tranType);
 				trans1.setTranId(tranId);
 				trans1.setTranDate(LocalDate.now());
-				PostReverse(trans1,n);
+				PostReverse(trans1, n);
 				n++;
 			}
 			List<WalletTransaction> statement = walletTransactionRepository.findByTransaction(tranId, LocalDate.now(),
@@ -2494,7 +2507,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		WalletTransaction tranrev = new WalletTransaction(trans.getTranId(), trans.getAcctNum(), trans.getTranAmount(),
 				trans.getTranType(), trans.getTranNarrate(), LocalDate.now(), trans.getTranCrncyCode(),
 				trans.getPartTranType(), trans.getTranGL(), trans.getPaymentReference(), trans.getRelatedTransId(),
-				userId, email,n);
+				userId, email, n);
 		walletTransactionRepository.saveAndFlush(tranrev);
 
 		if (trans.getPartTranType().equalsIgnoreCase("D")) {
@@ -2526,29 +2539,31 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "REVERSAL REPORT SUCCESSFULLY", transaction);
 	}
-	
+
 	@Override
 	public ApiResponse<?> PaymentTransAccountReport(Date fromdate, Date todate, String accountNo) {
 		LocalDate fromDate = fromdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 		LocalDate toDate = todate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-		List<WalletTransaction> transaction = walletTransactionRepository.findByAccountReverse(fromDate, toDate, accountNo);
+		List<WalletTransaction> transaction = walletTransactionRepository.findByAccountReverse(fromDate, toDate,
+				accountNo);
 		if (transaction.isEmpty()) {
 			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO REPORT SPECIFIED DATE", null);
 		}
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "REVERSAL REPORT SUCCESSFULLY", transaction);
 	}
-	
+
 	@Override
 	public ApiResponse<?> PaymentAccountTrans(Date fromdate, Date todate, String wayaNo) {
 		LocalDate fromDate = fromdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 		LocalDate toDate = todate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-		List<WalletTransaction> transaction = walletTransactionRepository.findByOfficialAccount(fromDate, toDate, wayaNo);
+		List<WalletTransaction> transaction = walletTransactionRepository.findByOfficialAccount(fromDate, toDate,
+				wayaNo);
 		if (transaction.isEmpty()) {
 			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO REPORT SPECIFIED DATE", null);
 		}
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "OFFICIAL ACCOUNT SUCCESSFULLY", transaction);
 	}
-	
+
 	@Override
 	public ApiResponse<?> PaymentOffTrans() {
 		List<WalletTransaction> transaction = walletTransactionRepository.findByAccountOfficial();
@@ -2566,7 +2581,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "REVERSAL REPORT SUCCESSFULLY", transaction);
 	}
-	
+
 	public ApiResponse<?> TranChargeReport() {
 		List<AccountTransChargeDTO> transaction = tempwallet.TransChargeReport();
 		if (transaction.isEmpty()) {
@@ -2724,7 +2739,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					if (accountDebit.getFrez_code().equals("D"))
 						return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
 				}
-				
+
 				if (accountDebit.getLien_amt() != 0) {
 					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
 					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
@@ -2757,7 +2772,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,n);
+					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,
+					n);
 
 			List<WalletTransaction> tranMultCredit = new ArrayList<WalletTransaction>();
 			for (UserTransactionDTO mUser : usersList) {
@@ -2765,7 +2781,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				WalletAccount acctcdt = walletAccountRepository.findByAccountNo(mUser.getCustomerAccountNo());
 				WalletTransaction tranCredit = new WalletTransaction(tranId, acctcdt.getAccountNo(), mUser.getAmount(),
 						tranType, tranNarrate, LocalDate.now(), tranCrncy, "C", acctcdt.getGl_code(), paymentRef,
-						userId, email,n);
+						userId, email, n);
 				tranMultCredit.add(tranCredit);
 				n++;
 			}
@@ -2887,7 +2903,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 						if (accountDebit.getFrez_code().equals("D"))
 							return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
 					}
-					
+
 					if (accountDebit.getLien_amt() != 0) {
 						double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
 						if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
@@ -2925,13 +2941,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 				String tranNarrate = "WALLET-" + mUser.getTranNarration();
 				WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount,
 						tranType, tranNarrate, LocalDate.now(), mUser.getTranCrncy(), "D", accountDebit.getGl_code(),
-						mUser.getPaymentReference(), userId, email,n);
-				
+						mUser.getPaymentReference(), userId, email, n);
+
 				n = n + 1;
 
 				WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(),
 						mUser.getAmount(), tranType, tranNarrate, LocalDate.now(), mUser.getTranCrncy(), "C",
-						accountCredit.getGl_code(), mUser.getPaymentReference(), userId, email,n);
+						accountCredit.getGl_code(), mUser.getPaymentReference(), userId, email, n);
 
 				// walletTransactionRepository.saveAndFlush(tranDebit);
 				// walletTransactionRepository.saveAll(tranMultCredit);
@@ -2980,6 +2996,78 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO REPORT SPECIFIED DATE", null);
 		}
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION REPORT", transaction);
+	}
+
+	@Override
+	public ApiResponse<?> VirtuPaymentReverse(ReversePaymentDTO reverseDto) throws ParseException {
+		
+		if (!reverseDto.getSecureKey()
+				.equals("yYSowX0uQVUZpNnkY28fREx0ayq+WsbEfm2s7ukn4+RHw1yxGODamMcLPH3R7lBD+Tmyw/FvCPG6yLPfuvbJVA==")) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED KEY", null);
+		}
+		DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+		String toDate = dateFormat.format(new Date());
+		String tranDate = dateFormat.format(reverseDto.getTranDate());
+		SimpleDateFormat sdformat = new SimpleDateFormat("dd-MM-yyyy");
+		Date d1 = sdformat.parse(toDate);
+		Date d2 = sdformat.parse(tranDate);
+		LocalDate reverseDate = reverseDto.getTranDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		BigDecimal debitAmount = new BigDecimal("0"), creditAmount = new BigDecimal("0");
+		ArrayList<String> account = new ArrayList<String>();
+
+		if (d1.compareTo(d2) == 0) {
+			List<WalletTransaction> transRe = walletTransactionRepository.findByRevTrans(reverseDto.getTranId(),
+					reverseDate, reverseDto.getTranCrncy());
+			if (!transRe.isEmpty()) {
+				return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "TRANSACTION ALREADY REVERSED", null);
+			}
+			List<WalletTransaction> transpo = walletTransactionRepository.findByTransaction(reverseDto.getTranId(),
+					reverseDate, reverseDto.getTranCrncy());
+			if (transpo.isEmpty()) {
+				return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "TRANSACTION DOES NOT EXIST", null);
+			}
+			for (WalletTransaction tran : transpo) {
+				if (tran.getPartTranType().equalsIgnoreCase("D")) {
+					debitAmount = debitAmount.add(tran.getTranAmount());
+				} else {
+					creditAmount = creditAmount.add(tran.getTranAmount());
+				}
+				account.add(tran.getAcctNum());
+			}
+			int res = debitAmount.compareTo(creditAmount);
+			if (res != 0) {
+				return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "IMBALANCE TRANSACTION", null);
+			}
+			String tranId = "";
+			if (reverseDto.getTranId().substring(0, 1).equalsIgnoreCase("S")) {
+				tranId = tempwallet.SystemGenerateTranId();
+			} else {
+				tranId = tempwallet.GenerateTranId();
+			}
+			for (int i = 0; i < account.size(); i++) {
+				int n = 1;
+				WalletTransaction trans1 = walletTransactionRepository.findByAcctNumTran(account.get(i),
+						reverseDto.getTranId(), reverseDate, reverseDto.getTranCrncy());
+				if (trans1.getPartTranType().equalsIgnoreCase("D")) {
+					trans1.setPartTranType("C");
+				} else {
+					trans1.setPartTranType("D");
+				}
+				trans1.setTranNarrate("REV-" + trans1.getTranNarrate());
+				TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("REVERSAL");
+				trans1.setRelatedTransId(trans1.getTranId());
+				trans1.setTranType(tranType);
+				trans1.setTranId(tranId);
+				trans1.setTranDate(LocalDate.now());
+				PostReverse(trans1, n);
+				n++;
+			}
+			List<WalletTransaction> statement = walletTransactionRepository.findByTransaction(tranId, LocalDate.now(),
+					reverseDto.getTranCrncy());
+			return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "REVERSE SUCCESSFULLY", statement);
+		} else {
+			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "TRANSACTION DATE WAS IN PAST", null);
+		}
 	}
 
 }
