@@ -4,11 +4,13 @@ pipeline {
     		registryCredential = 'DigitalOcean-registry-for-development'
     		dockerImage = ''
     	}
-      	/*	parameters {
-	    strings(name: 'FROM_BUILD' defaultValue: '', description: 'Build Source')
-	} */
     
 	agent any
+	options {
+		skipStagesAfterUnstable()
+		disableConcurrentBuilds()
+		parallelsAlwaysFailFast()
+	}
 
    	tools {
         	jdk 'jdk-11'
@@ -19,7 +21,6 @@ pipeline {
 		
 		 stage('Checkout') {
             		steps {
-				
 				sh "git branch"
                 		sh "ls -lart ./*"
             		}
@@ -29,32 +30,19 @@ pipeline {
             		steps {
                			sh "mvn clean install"
             		}
-                }
+         }
+    
 		
 		stage('Code Quality Check via SonarQube') {
 			steps {
-                 		script {
-			     		def scannerHome = tool 'Jenkins-sonar-scanner';
-                     			withSonarQubeEnv("Jenkins-sonar-scanner") {
-                     				sh "${tool("Jenkins-sonar-scanner")}/bin/sonar-scanner \
-		     				            -Dsonar.projectName=waya-temporal-wallet-service \
-	             				      -Dsonar.projectKey=waya-temporal-wallet-service \
-	             				      -Dsonar.sources=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev \
-		     				            -Dsonar.projectBaseDir=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev \
-		     				            -Dsonar.projectVersion=1.0 \
-                     				-Dsonar.language=java \
-                     				-Dsonar.java.binaries=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev/target/classes \
-                     				-Dsonar.sourceEncoding=UTF-8 \
-                     				-Dsonar.exclusions=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev/src/test/**/* \
-		     				            -Dsonar.junit.reportsPath=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev/target/surefire-reports \
-                     				-Dsonar.surefire.reportsPath=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev/target/surefire-reports \
-                     				-Dsonar.jacoco.reportPath=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev/target/coverage-reports/jacoco-unit.exec \
-                     				-Dsonar.java.coveragePlugin=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev/target/jacoco  \
-		     				            -Dsonar.host.url=https://sonarqube.waya-pay.com \
-		     				            -Dsonar.verbose=true "
-               				}
-           			}
-      		 	}
+				script {
+        				def scannerHome = tool 'Jenkins-sonar-scanner';
+					def mvn         = tool 'mvn3.6.3'
+					withSonarQubeEnv("Jenkins-sonar-scanner") {
+          					sh "${mvn}/bin/mvn sonar:sonar"
+					}
+        			}
+      			}
    		}
 	    
 		//stage("Quality Gate") {
@@ -84,7 +72,7 @@ pipeline {
           				}
         			}
       			}
-    		}  
+    		} 
        
    		stage('Remove Unused docker image') {
       			steps{
@@ -93,13 +81,14 @@ pipeline {
 	   			sh "docker rmi $registry"
       			}
     		}
+		
 		stage ('Starting the deployment job') {
 			steps {
                 		build job: 'waya-2.0-waya-temporal-wallet-service-deploy-dev', 
 				parameters: [[$class: 'StringParameterValue', name: 'FROM_BUILD', value: "${BUILD_NUMBER}"]
 	        			    ]
 	    		}	    
-    		}	
+    		}	 
     	}
 
 }
