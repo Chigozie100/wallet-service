@@ -367,7 +367,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	public ApiResponse<?> EventCommissionPayment(EventPaymentDTO transfer) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
 		WalletAccount acctComm = walletAccountRepository.findByAccountNo(transfer.getCustomerAccountNumber());
-		if (!acctComm.getGl_code().equals("SB901")) {
+		if (!acctComm.getProduct_code().equals("SB901")) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NOT COMMISSION WALLET", null);
 		}
 		String toAccountNumber = transfer.getCustomerAccountNumber();
