@@ -795,6 +795,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public ApiResponse<?> AdminCommissionMoney(CommissionTransferDTO transfer) {
+		//ooop
 		UserDetailPojo user = authService.AuthUser(transfer.getUserId().intValue());
 		if (user == null) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID USER ID", null);
@@ -804,10 +805,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 					null);
 		}
 		WalletAccount acctComm = walletAccountRepository.findByAccountNo(transfer.getDebitAccountNumber());
-		if (!acctComm.getGl_code().equals("SB901")) {
+		if (!acctComm.getProduct_code().equals("SB901")) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NOT COMMISSION WALLET", null);
 		}
-		WalletAccount acctDef = walletAccountRepository.findByAccountNo(transfer.getDebitAccountNumber());
+		WalletAccount acctDef = walletAccountRepository.findByAccountNo(transfer.getBenefAccountNumber());
 		if (!acctDef.isWalletDefault()) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NOT DEFAULT WALLET", null);
 		}
@@ -1158,7 +1159,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (!accountDebit.getAcct_ownership().equals("O")) {
 
 				Long userId = Long.parseLong(keyDebit[0]);
+				log.info("" + userId);
 				WalletUser user = walletUserRepository.findByUserId(userId);
+				if(user == null) {
+					return "DJGO|USER ID " + userId + " DOES NOT EXIST IN WALLET DATABASE";
+				}
 				BigDecimal AmtVal = new BigDecimal(user.getCust_debit_limit());
 				if (AmtVal.compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
