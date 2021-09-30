@@ -1,6 +1,6 @@
 pipeline {
 	environment {
-    		registry = "wayapaychat-container-registry/waya-temporal-wallet-service"
+    		registry = "wayapaychat-container-registry/waya-temporal-wallet-service-staging"
     		registryCredential = 'DigitalOcean-registry-for-development'
     		dockerImage = ''
     	}
@@ -89,7 +89,7 @@ pipeline {
     
 		stage ('Starting the deployment job') {
 			steps {
-                		build job: 'waya-2.0-waya-temporal-wallet-service-deploy-dev', 
+                		build job: 'waya-2.0-waya-temporal-wallet-service-staging-deploy', 
 				parameters: [[$class: 'StringParameterValue', name: 'FROM_BUILD', value: "${BUILD_NUMBER}"]
 	        			    ]
 	    		}	    
