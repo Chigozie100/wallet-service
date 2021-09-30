@@ -19,8 +19,6 @@ pipeline {
 		
 		 stage('Checkout') {
             		steps {
-				cleanWs()
-				checkout([$class: 'GitSCM', branches: [[name: '*/dev']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'odenigbo-github-credentials', url: 'https://github.com/WAYA-MULTI-LINK/WAYA-PAY-CHAT-2.0-TEMPORAL-WALLET-USER.git']]])
 				sh "git branch"
                 		sh "ls -lart ./*"
             		}
@@ -40,17 +38,17 @@ pipeline {
                      				sh "${tool("Jenkins-sonar-scanner")}/bin/sonar-scanner \
 		     				            -Dsonar.projectName=waya-temporal-wallet-service \
 	             				      -Dsonar.projectKey=waya-temporal-wallet-service \
-	             				      -Dsonar.sources=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev \
-		     				            -Dsonar.projectBaseDir=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev \
+	             				      -Dsonar.sources=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-staging \
+		     				            -Dsonar.projectBaseDir=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-staging \
 		     				            -Dsonar.projectVersion=1.0 \
                      				-Dsonar.language=java \
-                     				-Dsonar.java.binaries=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev/target/classes \
+                     				-Dsonar.java.binaries=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-staging/target/classes \
                      				-Dsonar.sourceEncoding=UTF-8 \
-                     				-Dsonar.exclusions=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev/src/test/**/* \
-		     				            -Dsonar.junit.reportsPath=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev/target/surefire-reports \
-                     				-Dsonar.surefire.reportsPath=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev/target/surefire-reports \
-                     				-Dsonar.jacoco.reportPath=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev/target/coverage-reports/jacoco-unit.exec \
-                     				-Dsonar.java.coveragePlugin=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev/target/jacoco  \
+                     				-Dsonar.exclusions=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-staging/src/test/**/* \
+		     				            -Dsonar.junit.reportsPath=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-staging/target/surefire-reports \
+                     				-Dsonar.surefire.reportsPath=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-staging/target/surefire-reports \
+                     				-Dsonar.jacoco.reportPath=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-staging/target/coverage-reports/jacoco-unit.exec \
+                     				-Dsonar.java.coveragePlugin=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-staging/target/jacoco  \
 		     				            -Dsonar.host.url=https://sonarqube.waya-pay.com \
 		     				            -Dsonar.verbose=true "
                				}
