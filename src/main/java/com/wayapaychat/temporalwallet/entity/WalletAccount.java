@@ -18,12 +18,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString(exclude = {"user"})
 @Table(name = "m_wallet_account")
 public class WalletAccount {
 
@@ -116,6 +118,8 @@ public class WalletAccount {
 	private String last_tran_id_cr;
 	
 	private boolean walletDefault;
+	
+	private String lien_reason;
 	
 	@JsonIgnore
 	@ManyToOne(fetch = FetchType.LAZY)

@@ -1,10 +1,12 @@
 package com.wayapaychat.temporalwallet.controller;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,8 +14,19 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.wayapaychat.temporalwallet.dto.AccountCloseDTO;
+import com.wayapaychat.temporalwallet.dto.AccountFreezeDTO;
+import com.wayapaychat.temporalwallet.dto.AccountLienDTO;
+import com.wayapaychat.temporalwallet.dto.AccountProductDTO;
+import com.wayapaychat.temporalwallet.dto.AccountToggleDTO;
+import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
+import com.wayapaychat.temporalwallet.dto.OfficialAccountDTO;
+import com.wayapaychat.temporalwallet.dto.SecureDTO;
+import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
+import com.wayapaychat.temporalwallet.dto.UserAccountDelete;
 import com.wayapaychat.temporalwallet.dto.UserDTO;
 import com.wayapaychat.temporalwallet.dto.WalletCashAccountDTO;
 import com.wayapaychat.temporalwallet.dto.WalletEventAccountDTO;
@@ -39,32 +52,109 @@ public class WalletUserAccountController {
     @PostMapping(path = "/create-user")
     public ResponseEntity<?> createUser(@Valid @RequestBody UserDTO user) {
 		log.info("Request input: {}",user);
-        return userAccountService.createUser(user);
+		return userAccountService.createUser(user);       
+        //return userAccountService.createUser(user);
     }
 	
 	@ApiOperation(value = "Create User Account", hidden = false)
     @PostMapping(path = "/user/account")
     public ResponseEntity<?> createUserAccount(@Valid @RequestBody WalletUserDTO user) {
 		log.info("Request input: {}",user);
-        return userAccountService.createUserAccount(user);
+		return userAccountService.createUserAccount(user);
+        //return userAccountService.createUserAccount(user);
+    }
+	
+	@ApiOperation(value = "Modify User Account", hidden = false)
+    @PostMapping(path = "/user/account/modify")
+    public ResponseEntity<?> createUserAccount(@Valid @RequestBody UserAccountDTO user) {
+		log.info("Request input: {}",user);
+		return userAccountService.modifyUserAccount(user);
+        //return userAccountService.modifyUserAccount(user);
+    }
+	
+	@ApiOperation(value = "Account Toggle", hidden = false)
+    @PostMapping(path = "/user/account/toggle")
+    public ResponseEntity<?> createAccountToggle(@Valid @RequestBody AccountToggleDTO user) {
+		log.info("Request input: {}",user);
+		return userAccountService.ToggleAccount(user);
+        //return userAccountService.modifyUserAccount(user);
+    }
+	
+	@ApiOperation(value = "Delete,Pause and Block User Account", hidden = false)
+    @PostMapping(path = "/user/account/access")
+    public ResponseEntity<?> postAccountRestriction(@Valid @RequestBody AdminAccountRestrictionDTO user) {
+		log.info("Request input: {}",user);
+		return userAccountService.UserAccountAccess(user);
+    }
+	
+	@ApiOperation(value = "Delete User Account", hidden = false)
+    @PostMapping(path = "/user/account/delete")
+    public ResponseEntity<?> postAccountUser(@Valid @RequestBody UserAccountDelete user) {
+		log.info("Request input: {}",user);
+		return userAccountService.AccountAccessDelete(user);
+    }
+	
+	@ApiOperation(value = "Pause Account", hidden = false)
+    @PostMapping(path = "/account/pause")
+    public ResponseEntity<?> postAccountPause(@Valid @RequestBody AccountFreezeDTO user) {
+		log.info("Request input: {}",user);
+		return userAccountService.AccountAccessPause(user);
+    }
+	
+	@ApiOperation(value = "Delete Account", hidden = false)
+    @PostMapping(path = "/account/closure")
+    public ResponseEntity<?> postAccountClosure(@Valid @RequestBody AccountCloseDTO user) {
+		log.info("Request input: {}",user);
+		return userAccountService.AccountAccessClosure(user);
+    }
+	
+	@ApiOperation(value = "Transaction account block", hidden = false)
+    @PostMapping(path = "/account/block/transaction")
+    public ResponseEntity<?> postAccountLien(@Valid @RequestBody AccountLienDTO user) {
+		log.info("Request input: {}",user);
+		return userAccountService.AccountAccessLien(user);
     }
 	
 	 @ApiOperation(value = "Create Admin Cash Wallet - (Admin COnsumption Only)", hidden = false)
 	 @PostMapping(path = "/cash/account")
 	 public ResponseEntity<?> createCashAccounts(@Valid @RequestBody WalletCashAccountDTO user) {
-	        return userAccountService.createCashAccount(user);
+		 return userAccountService.createCashAccount(user);
+	        //return userAccountService.createCashAccount(user);
 	 }
 	 
 	 @ApiOperation(value = "Create Event Wallet Account - (Admin COnsumption Only)", hidden = false)
 	 @PostMapping(path = "/event/account")
 	 public ResponseEntity<?> createEventAccounts(@Valid @RequestBody WalletEventAccountDTO user) {
-	        return userAccountService.createEventAccount(user);
+		 return userAccountService.createEventAccount(user);
+	        //return userAccountService.createEventAccount(user);
 	 }
 	
 	@ApiOperation(value = "Create a Wallet")
     @PostMapping(path = "/create-wallet")
-    public ResponseEntity<?> creteAccount(@Valid @RequestBody AccountPojo2 accountPojo) {
-        return userAccountService.createAccount(accountPojo);
+    public ResponseEntity<?> createAccount(@Valid @RequestBody AccountPojo2 accountPojo) {
+		return userAccountService.createAccount(accountPojo);
+        //return userAccountService.createAccount(accountPojo);
+    }
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Create a wallet account")
+    @PostMapping(path = "/official/user/account")
+    public ResponseEntity<?> createUserAccount(@Valid @RequestBody AccountPojo2 accountPojo) {
+		return userAccountService.createAccount(accountPojo);
+    }
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Create a waya official account")
+    @PostMapping(path = "/official/waya/account")
+    public ResponseEntity<?> createOfficialAccount(@Valid @RequestBody OfficialAccountDTO account) {
+		return userAccountService.createOfficialAccount(account);
+    }
+	
+	@ApiOperation(value = "Create a Wallet")
+    @PostMapping(path = "/account/product")
+    public ResponseEntity<?> createProductAccount(@Valid @RequestBody AccountProductDTO accountPojo) {
+		return userAccountService.createAccountProduct(accountPojo);
+        //return userAccountService.createAccount(accountPojo);
     }
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
@@ -89,10 +179,24 @@ public class WalletUserAccountController {
         return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 	
+	
+	@ApiOperation(value = "Account LookUp", notes = "Find Virtual Account")
+	@PostMapping("/account/lookup/{accountNo}")
+	public ResponseEntity<?> AccountLook(@PathVariable("accountNo") String accountNo,
+			@Valid @RequestBody SecureDTO key ) {
+		return userAccountService.AccountLookUp(accountNo, key);
+	}
+	
 	@ApiOperation(value = "Get List of Commission Accounts")
     @GetMapping(path = "/commission-wallets")
     public ResponseEntity<?> ListAllCommissionAccounts(@RequestBody List<Integer> ids) {
         return userAccountService.getListCommissionAccount(ids);
+    }
+	
+	@ApiOperation(value = "List all waya official accounts")
+    @GetMapping(path = "/waya/official/account")
+    public ResponseEntity<?> ListAllWayaAccount() {
+        return userAccountService.getListWayaAccount();
     }
 	
 	@ApiOperation(value = "Get Wallet Account Info", hidden = false)
@@ -100,11 +204,23 @@ public class WalletUserAccountController {
     public ResponseEntity<?> getAcctInfo(@PathVariable String accountNo) {
         return userAccountService.getAccountInfo(accountNo);
     }
+	
+	@ApiOperation(value = "Get Wallet Selected Account Detail", hidden = false)
+    @GetMapping(path = "/account/{accountNo}")
+    public ResponseEntity<?> GetAcctDetail(@PathVariable String accountNo) {
+        return userAccountService.fetchAccountDetail(accountNo);
+    }
 
     @ApiOperation(value = "Get User list of wallets", hidden = false)
     @GetMapping(path = "/accounts/{user_id}")
     public ResponseEntity<?> getAccounts(@PathVariable long user_id) {
         return userAccountService.getUserAccountList(user_id);
+    }
+    
+    @ApiOperation(value = "List User wallets", hidden = false)
+    @GetMapping(path = "/admin/user/accounts/{user_id}")
+    public ResponseEntity<?> GetListAccount(@PathVariable long user_id) {
+        return userAccountService.ListUserAccount(user_id);
     }
     
     @ApiOperation(value = "Get All Wallets - (Admin COnsumption Only)", hidden = false)
@@ -134,11 +250,7 @@ public class WalletUserAccountController {
     @ApiOperation(value = "Create Cooperate account, this creates a default account and a commission account", notes = "Create Cooperate account, this creates a default account and a commission account")
 	@PostMapping("/create/cooperate/user")
 	public ResponseEntity<?> createCooperateAccount(@RequestBody WalletUserDTO createAccountPojo) {
-    	ResponseEntity<?> res = userAccountService.createUserAccount(createAccountPojo);
-		if (res.getStatusCode() == HttpStatus.NOT_FOUND) {
-            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(res, HttpStatus.OK);
+    	return userAccountService.createUserAccount(createAccountPojo);
 	}
     
     @ApiOperation(value = "List all Commission Accounts")
@@ -159,10 +271,67 @@ public class WalletUserAccountController {
         return userAccountService.getAccountDefault(user_id);
     }
 	
-	@ApiOperation(value = "To Search For Account(s) with Phone or Email")
+	@ApiOperation(value = "To Search For Account(s) with Phone or Email or WayaID")
     @GetMapping(path = "/account/search/{item}")
     public ResponseEntity<?> ListAllAccounts(@PathVariable String item) {
         return userAccountService.searchAccount(item);
+    }
+	
+	@ApiOperation(value = "Generate Account Statement")
+    @GetMapping(path = "/admin/account/statement/{accountNo}")
+    public ResponseEntity<?> GenerateAccountStatement(@PathVariable String accountNo) {
+        ApiResponse<?> res = userAccountService.fetchTransaction(accountNo);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+	
+	@ApiOperation(value = "Generate Account Statement by tran Date")
+    @GetMapping(path = "/account/statement/{accountNo}")
+    public ResponseEntity<?> FilterAccountStatement(@PathVariable String accountNo,
+    		@RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate, 
+			@RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate) {
+        ApiResponse<?> res = userAccountService.fetchFilterTransaction(accountNo,fromdate,todate);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+	
+	@ApiOperation(value = "Recent Transaction Details for User Accounts")
+    @GetMapping(path = "/recent/accounts/transaction/{user_id}")
+    public ResponseEntity<?> GenerateRecentTransaction(@PathVariable Long user_id) {
+        ApiResponse<?> res = userAccountService.fetchRecentTransaction(user_id);
+		if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+	
+	@ApiOperation(value = "List all wallet accounts")
+    @GetMapping(path = "/wallet/account")
+    public ResponseEntity<?> ListAllWalletAccount() {
+        return userAccountService.getListWalletAccount();
+    }
+	
+	@ApiOperation(value = "Get simulated Account", hidden = false)
+    @GetMapping(path = "/simulated/{user_id}")
+    public ResponseEntity<?> GetAcctSimulated(@PathVariable Long user_id) {
+        return userAccountService.getAccountSimulated(user_id);
+    }
+	
+	@ApiOperation(value = "List all simulated accounts")
+    @GetMapping(path = "/simulated/account")
+    public ResponseEntity<?> ListAllSimulatedAccount() {
+        return userAccountService.getListSimulatedAccount();
+    }
+	
+	@ApiOperation(value = "Create a Simulated User", hidden = false)
+    @PostMapping(path = "simulated/account")
+    public ResponseEntity<?> createSIMUser(@Valid @RequestBody AccountPojo2 user) {
+		log.info("Request input: {}",user);
+		return userAccountService.createAccount(user);
     }
 
 

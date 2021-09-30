@@ -7,13 +7,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.wayapaychat.temporalwallet.dto.AccountGLDTO;
+import com.wayapaychat.temporalwallet.dto.ChargeDTO;
 import com.wayapaychat.temporalwallet.dto.EventChargeDTO;
 import com.wayapaychat.temporalwallet.dto.InterestDTO;
+import com.wayapaychat.temporalwallet.dto.ModifyChargeDTO;
 import com.wayapaychat.temporalwallet.dto.ProductCodeDTO;
 import com.wayapaychat.temporalwallet.dto.ProductDTO;
 import com.wayapaychat.temporalwallet.dto.WalletConfigDTO;
@@ -72,15 +75,22 @@ public class WalletBankController {
     }
     
     @ApiOperation(value = "Get Wallet Product Code")
-    @GetMapping(path = "/product/code/{productCode}")
-    public ResponseEntity<?> getProduct(@PathVariable("productCode") String productCode) {
-        return configService.getProduct(productCode);
+    @GetMapping(path = "/product/code/{productCode}/{glcode}")
+    public ResponseEntity<?> getProduct(@PathVariable("productCode") String productCode,
+    		@PathVariable("glcode") String gl) {
+        return configService.getProduct(productCode,gl);
     }
     
     @ApiOperation(value = "List Wallet Product Code")
     @GetMapping(path = "/product")
     public ResponseEntity<?> getListProductCode() {
         return configService.ListProductCode();
+    }
+    
+    @ApiOperation(value = "List Account Products")
+    @GetMapping(path = "/product/account")
+    public ResponseEntity<?> ListProductAccount() {
+        return configService.ListAccountProductCode();
     }
     
     @ApiOperation(value = "Create a Wallet Product Code")
@@ -119,10 +129,36 @@ public class WalletBankController {
         return configService.createdEvents(eventPojo);
     }
     
-    @ApiOperation(value = "List Wallet Product Code")
+    @ApiOperation(value = "List Wallet Event")
     @GetMapping(path = "/event/charges")
     public ResponseEntity<?> getListEventChrg() {
         return configService.ListEvents();
     }
+    
+    @ApiOperation(value = "Create a Transaction Charge")
+    @PostMapping(path = "/create/transaction/charge")
+    public ResponseEntity<?> createTransactionCharge(@Valid @RequestBody ChargeDTO charge) {
+        return configService.createCharge(charge);
+    }
+    
+    @ApiOperation(value = "List Transaction Charge")
+    @GetMapping(path = "/transaction/charges")
+    public ResponseEntity<?> ListAllCharge() {
+        return configService.ListTranCharge();
+    }
+    
+    @ApiOperation(value = "Get Transaction Charge")
+    @GetMapping(path = "/transaction/charges/{chargeId}")
+    public ResponseEntity<?> GetTranCharge(@PathVariable("chargeId") Long chargeId) {
+        return configService.findTranCharge(chargeId);
+    }
+    
+    @ApiOperation(value = "Update Transaction Charge")
+    @PutMapping(path = "/transaction/charges/{chargeId}")
+    public ResponseEntity<?> creteDefaultCode(@Valid @RequestBody ModifyChargeDTO charge,
+    		@PathVariable("chargeId") Long chargeId) {
+        return configService.updateTranCharge(charge,chargeId);
+    }
+    
 
 }

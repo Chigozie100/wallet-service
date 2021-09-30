@@ -28,7 +28,7 @@ public class WalletProductCode {
 	@Column(nullable = false)
 	private boolean del_flg;
 	
-	@Column(unique = true, nullable = false)
+	@Column(nullable = false)
 	private String productCode;
 	
 	@Column(unique = true, nullable = false)

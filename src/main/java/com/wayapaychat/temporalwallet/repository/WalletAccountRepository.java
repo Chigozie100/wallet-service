@@ -31,5 +31,14 @@ public interface WalletAccountRepository extends JpaRepository<WalletAccount, Lo
     
     @Query("SELECT u FROM WalletAccount u WHERE u.user = (:user)" + " AND u.walletDefault = true")
     Optional<WalletAccount> findByDefaultAccount(WalletUser user);
+    
+    @Query("SELECT u FROM WalletAccount u WHERE u.product_type = ('OAB')" + " AND u.del_flg = false")
+    List<WalletAccount> findByWayaAccount();
+    
+    @Query("SELECT u FROM WalletAccount u WHERE u.product_type != ('OAB')" + " AND u.del_flg = false" + " AND u.accountNo NOT LIKE ('7%')")
+    List<WalletAccount> findByWalletAccount();
+    
+    @Query("SELECT u FROM WalletAccount u WHERE u.accountNo LIKE ('7%')" + " AND u.product_type != ('OAB')" + " AND u.del_flg = false")
+    List<WalletAccount> findBySimulatedAccount();
 
 }

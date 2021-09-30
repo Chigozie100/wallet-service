@@ -22,5 +22,9 @@ public class WalletEventAccountDTO {
 	@NotNull
 	@Size(min=5, max=50)
     private String accountName;
+	
+	@NotNull
+	@Size(min=5, max=10)
+    private String productGL;
 
 }

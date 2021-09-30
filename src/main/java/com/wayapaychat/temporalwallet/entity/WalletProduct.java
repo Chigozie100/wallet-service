@@ -29,7 +29,7 @@ public class WalletProduct {
 	
 	private boolean del_flg;
 	
-	@Column(unique = true, nullable = false)
+	@Column(nullable = false)
 	private String productCode;
 	
 	private String product_desc;
@@ -79,6 +79,8 @@ public class WalletProduct {
 	@Column(nullable = false)
 	private String rcre_user_id;
 	
+	private String glSubHeadCode;
+	
 	@Column(nullable = false)
 	private LocalDate rcre_time;
 
@@ -86,7 +88,7 @@ public class WalletProduct {
 			String product_type, boolean int_paid_flg, boolean int_coll_flg,boolean staff_product_flg, 
 			String int_freq_type_cr,boolean comm_paid_flg, String crncy_code, double cash_dr_limit, 
 			double xfer_dr_limit, double cash_cr_limit,double xfer_cr_limit, String int_tbl_code, 
-			double product_min_bal,boolean chq_book_flg) {
+			double product_min_bal,boolean chq_book_flg,String glSubHeadCode) {
 		super();
 		this.del_flg = false;
 		this.productCode = productCode;
@@ -108,6 +110,7 @@ public class WalletProduct {
 		this.rcre_user_id = "WAYAADMIN";
 		this.rcre_time = LocalDate.now();
 		this.chq_book_flg = chq_book_flg;
+		this.glSubHeadCode = glSubHeadCode;
 	}
 	
 	

@@ -11,7 +11,7 @@ import lombok.Data;
 public class EventChargeDTO {
 	
 	@NotNull
-	@Size(min=6, max=10)
+	@Size(min=6, max=50)
 	private String eventId;
 	
 	private BigDecimal tranAmt;
@@ -30,7 +30,7 @@ public class EventChargeDTO {
 	private BigDecimal taxAmt;
 	
 	@NotNull
-	@Size(min=10, max=20)
+	@Size(min=10, max=50)
 	private String tranNarration;
 	
 	@NotNull

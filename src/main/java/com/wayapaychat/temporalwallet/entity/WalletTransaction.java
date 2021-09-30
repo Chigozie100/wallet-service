@@ -1,8 +1,8 @@
 package com.wayapaychat.temporalwallet.entity;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -24,15 +24,17 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Getter
 @Setter
+@ToString
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "m_wallet_transaction" , uniqueConstraints = {
         @UniqueConstraint(name = "UniqueTranIdAndAcctNumberAndDelFlgAndDate", 
-        		columnNames = {"tranId", "acctNum", "del_flg","tranDate"})})
+        		columnNames = {"tranId", "acctNum", "del_flg","tranDate","tranPart"})})
 public class WalletTransaction {
 	
 	@Id
@@ -64,16 +66,21 @@ public class WalletTransaction {
     private String tranNarrate;
     
     @NotNull
-    private Date tranDate;
+    private LocalDate tranDate;
     
-    @NotNull
+    @Column(nullable = false)
     private String tranCrncyCode;
     
     @Column(nullable = true)
     private String paymentReference;
     
-    @NotNull
+    @Column(nullable = false)
     private String tranGL;
+    
+    @Column(nullable = true)
+    private Integer tranPart;
+    
+	private String relatedTransId;
     
     @CreationTimestamp
     @ApiModelProperty(hidden = true)
@@ -82,11 +89,16 @@ public class WalletTransaction {
     @CreationTimestamp
     @ApiModelProperty(hidden = true)
     private LocalDateTime updatedAt;
+    
+    private String createdBy;
+    
+    private String createdEmail;
 
 	public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
 			@NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType, 
-			@NotNull String tranNarrate, @NotNull Date tranDate, @NotNull String tranCrncyCode,
-			@NotNull String partTranType, String tranGL,String paymentReference) {
+			@NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
+			@NotNull String partTranType, String tranGL,String paymentReference, 
+			String createdBy, String createdEmail,Integer tranPart) {
 		super();
 		this.del_flg = false;
 		this.posted_flg = true;
@@ -100,6 +112,33 @@ public class WalletTransaction {
 		this.partTranType = partTranType;
 		this.tranGL = tranGL;
 		this.paymentReference = paymentReference;
+		this.createdBy = createdBy;
+		this.createdEmail = createdEmail;
+		this.tranPart = tranPart;
+	}
+	
+	public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
+			@NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType, 
+			@NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
+			@NotNull String partTranType, String tranGL, String paymentReference, String relatedTransId,
+			String createdBy, String createdEmail,Integer tranPart) {
+		super();
+		this.del_flg = false;
+		this.posted_flg = true;
+		this.tranId = tranId;
+		this.acctNum = acctNum;
+		this.tranAmount = tranAmount;
+		this.tranType = tranType;
+		this.tranNarrate = tranNarrate;
+		this.tranDate = tranDate;
+		this.tranCrncyCode = tranCrncyCode;
+		this.partTranType = partTranType;
+		this.tranGL = tranGL;
+		this.paymentReference = paymentReference;
+		this.relatedTransId = relatedTransId;
+		this.createdBy = createdBy;
+		this.createdEmail = createdEmail;
+		this.tranPart = tranPart;
 	}
     
     

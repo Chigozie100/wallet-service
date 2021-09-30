@@ -14,6 +14,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -27,7 +28,8 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "m_wallet_user")
+@Table(name = "m_wallet_user", uniqueConstraints = {
+        @UniqueConstraint(name = "UniqueEmailAndPhoneNumberAndDelFlg", columnNames = {"userId", "mobileNo", "emailAddress", "del_flg"})})
 public class WalletUser {
 
 	@Id
@@ -80,6 +82,8 @@ public class WalletUser {
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	@JoinColumn(name="cif_id")
     private List<WalletAccount> account;
+	
+	private boolean isVirtualAccount = false;
 
 	public WalletUser(String sol_id, Long userId, String firstName,
 			String lastName, String emailAddress, String mobileNo, String cust_name, String cust_title_code,
