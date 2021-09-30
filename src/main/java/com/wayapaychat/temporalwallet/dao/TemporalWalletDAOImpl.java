@@ -59,6 +59,19 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		}
 		return count;
 	}
+	
+	@Override
+	public String SystemGenOffice() {
+		String sql = "SELECT nextval('officesequence')";
+		String count = null;
+		try {
+			count = jdbcTemplate.queryForObject(sql, String.class);
+			count = "S" + count;
+		} catch (EmptyResultDataAccessException ex) {
+			ex.printStackTrace();
+		}
+		return count;
+	}
 
 	public String GetSecurityTest(String account) {
 		String sql = "select user_id||'|'||account_no||'|'||product_code||'|'||acct_crncy_code  ";

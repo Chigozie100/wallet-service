@@ -1,0 +1,66 @@
+server:
+  port: ${SERVER_PORT:9009}
+  servlet:
+    context-path: /temporal-service
+spring:
+   application:
+      name: temporal-wallet-service
+      
+   jpa:
+     hibernate:
+       ddl-auto: update
+     properties:
+       hibernate:
+          dialect: org.hibernate.dialect.PostgreSQLDialect
+          show-sql: true
+          jdbc:
+            time_zone: UTC
+     open-in-view: false
+    
+   devtools:
+       livereload:
+           enabled: false
+   jackson:
+      serialization:
+         fail-on-empty-beans: false
+         
+   datasource:
+        url:  jdbc:h2:mem:db;DB_CLOSE_DELAY=-1
+        username: sa
+        password: sa
+        driver-class-name: org.h2.Driver
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_SERVER_URL:http://46.101.41.187:8761/eureka}
+    service-url:
+      default-zone: ${EUREKA_SERVER_URL:http://46.101.41.187:8761/eureka}
+  instance:
+    preferIpAddress: true
+
+waya:
+   wallet:
+       auth: WAYA-AUTHENTICATION-SERVICE
+       authurl: ${AUTH_SERVICE:http://68.183.60.114:8059/api/v1}
+       mifos: WAYA-WALLET-SERVICE
+       mifosurl: ${MIFOS-SERVICE:http://46.101.41.187:9196}
+       productcode: ${SBPRODUCT:SB601}
+       commissioncode: ${COMMPRODUCT:SB901}
+       wayaglCode: ${SBGLCODE:21200}
+       wayacommglCode: ${COMMGLCODE:21105}
+       
+   card:
+     cardurl: ${CARD-SERVICE:http://157.230.223.54:3020/card-service/api}
+     service: WAYA-CARD-SERVICE
+     contacturl: ${CONTACT-SERVICE:http://46.101.41.187:8065/contact-service/contact}
+   contact:
+      service: WAYA-CONTACT-SERVICE
+   account:
+       accounturl: ${ACCOUNT-SERVICE:http://46.101.41.187:7090/account-creation-service/api}
+       service: WAYA-ACCOUNT-SERVICE
+   sms:
+     atalking: ${AFRICATALKING:http://68.183.60.114:8085/notification-service/sms-notification-atalking}
+     infobip: ${INFOBIP:http://68.183.60.114:8085/notification-service/sms-notification-infobip}
+     twilio: ${TWILIO:http://68.183.60.114:8085/notification-service/sms-notification-twilio}
+     

@@ -17,6 +17,8 @@ public interface TemporalWalletDAO {
 	
 	String SystemGenerateTranId();
 	
+	String SystemGenOffice();
+	
 	String GetSecurityTest(String account);
 	
 	List<AccountStatementDTO> fetchTransaction(String acctNo);
