@@ -1033,8 +1033,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> getALLCommissionAccount() {
-		Optional<WalletAccount> account = walletAccountRepository.findByProductCode(wayaProductCommission);
-		if (!account.isPresent()) {
+		List<WalletAccount> account = walletAccountRepository.findByProductList(wayaProductCommission);
+		if (account == null || account.isEmpty()) {
 			return new ResponseEntity<>(new ErrorResponse("Unable to fetch account"), HttpStatus.BAD_REQUEST);
 		}
 		return new ResponseEntity<>(new SuccessResponse("Wallet Commissions", account), HttpStatus.OK);
