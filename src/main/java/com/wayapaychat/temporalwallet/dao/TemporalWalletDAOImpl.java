@@ -13,10 +13,12 @@ import org.springframework.stereotype.Repository;
 import com.wayapaychat.temporalwallet.dto.AccountLookUp;
 import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
 import com.wayapaychat.temporalwallet.dto.AccountTransChargeDTO;
+import com.wayapaychat.temporalwallet.dto.CommissionHistoryDTO;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.mapper.AccountLookUpMapper;
 import com.wayapaychat.temporalwallet.mapper.AccountStatementMapper;
 import com.wayapaychat.temporalwallet.mapper.AccountTransChargeMapper;
+import com.wayapaychat.temporalwallet.mapper.CommissionHistoryMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -297,6 +299,24 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 			log.error(ex.getMessage());
 		}
 		return mAccount;
+	}
+
+	@Override
+	public List<CommissionHistoryDTO> GetCommissionHistory() {
+		List<CommissionHistoryDTO> comm = new ArrayList<>();
+		StringBuilder query = new StringBuilder();
+		query.append("select acct_name,account_no,email_address,clr_bal_amt,acct_opn_date ");
+		query.append("from m_wallet_account u Join m_wallet_user m ON u.cif_id = m.id ");
+		query.append("WHERE u.product_code = 'SB901' AND account_no not like '%621%' ");
+		query.append("AND m.del_flg = false AND acct_cls_flg = false");
+		String sql = query.toString();
+		try {
+			CommissionHistoryMapper rowMapper = new CommissionHistoryMapper();
+			comm = jdbcTemplate.query(sql, rowMapper);
+		} catch (Exception ex) {
+			log.error(ex.getMessage());
+		}
+		return comm;
 	}
 
 }
