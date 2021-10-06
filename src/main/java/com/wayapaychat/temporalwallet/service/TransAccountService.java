@@ -124,5 +124,7 @@ public interface TransAccountService {
 	
 	ApiResponse<?> TranChargeReport();
 	
+	ApiResponse<?> CommissionPaymentHistory();
+	
 
 }

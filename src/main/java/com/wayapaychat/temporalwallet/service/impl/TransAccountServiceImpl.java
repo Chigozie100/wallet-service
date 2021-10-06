@@ -37,6 +37,7 @@ import com.wayapaychat.temporalwallet.dto.BulkTransactionCreationDTO;
 import com.wayapaychat.temporalwallet.dto.BulkTransactionExcelDTO;
 import com.wayapaychat.temporalwallet.dto.ClientComTransferDTO;
 import com.wayapaychat.temporalwallet.dto.ClientWalletTransactionDTO;
+import com.wayapaychat.temporalwallet.dto.CommissionHistoryDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionTransferDTO;
 import com.wayapaychat.temporalwallet.dto.DirectTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
@@ -3073,6 +3074,15 @@ public class TransAccountServiceImpl implements TransAccountService {
 		} else {
 			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "TRANSACTION DATE WAS IN PAST", null);
 		}
+	}
+
+	@Override
+	public ApiResponse<?> CommissionPaymentHistory() {
+		List<CommissionHistoryDTO> listCom = tempwallet.GetCommissionHistory();
+		if(listCom.isEmpty() || listCom == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO COMMISSION", null);
+		}
+		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "COMMISSION LIST", listCom);
 	}
 
 }
