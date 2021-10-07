@@ -8,6 +8,8 @@ import lombok.Data;
 @Data
 public class CommissionHistoryDTO {
 	
+	private Long id;
+	
 	private String acct_name;
 	
 	private String account_no;
@@ -18,8 +20,9 @@ public class CommissionHistoryDTO {
 	
 	private Date custDate;
 
-	public CommissionHistoryDTO(String acct_name, String account_no, String email, BigDecimal balance, Date custDate) {
+	public CommissionHistoryDTO(Long id, String acct_name, String account_no, String email, BigDecimal balance, Date custDate) {
 		super();
+		this.id = id;
 		this.acct_name = acct_name;
 		this.account_no = account_no;
 		this.email = email;

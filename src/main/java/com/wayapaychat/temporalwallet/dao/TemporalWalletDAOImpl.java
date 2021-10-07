@@ -305,7 +305,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 	public List<CommissionHistoryDTO> GetCommissionHistory() {
 		List<CommissionHistoryDTO> comm = new ArrayList<>();
 		StringBuilder query = new StringBuilder();
-		query.append("select acct_name,account_no,email_address,clr_bal_amt,acct_opn_date ");
+		query.append("select user_id,acct_name,account_no,email_address,clr_bal_amt,acct_opn_date ");
 		query.append("from m_wallet_account u Join m_wallet_user m ON u.cif_id = m.id ");
 		query.append("WHERE u.product_code = 'SB901' AND account_no not like '%621%' ");
 		query.append("AND m.del_flg = false AND acct_cls_flg = false");
