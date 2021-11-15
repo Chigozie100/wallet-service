@@ -13,13 +13,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
 import com.wayapaychat.temporalwallet.dto.AdminLocalTransferDTO;
 import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.AdminWalletTransactionDTO;
@@ -30,7 +30,9 @@ import com.wayapaychat.temporalwallet.dto.ClientWalletTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionTransferDTO;
 import com.wayapaychat.temporalwallet.dto.DirectTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
+import com.wayapaychat.temporalwallet.dto.NonWayaPayPIN;
 import com.wayapaychat.temporalwallet.dto.NonWayaPaymentDTO;
+import com.wayapaychat.temporalwallet.dto.NonWayaRedeemDTO;
 import com.wayapaychat.temporalwallet.dto.OfficeTransferDTO;
 import com.wayapaychat.temporalwallet.dto.OfficeUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.ReversePaymentDTO;
@@ -246,7 +248,7 @@ public class WalletTransactionController {
         }
         return new ResponseEntity<>(res, HttpStatus.OK);
 	}
-	
+	//Stopped
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "To Fetch Transactions By Account Number", notes = "find transaction by Account Number pagable")
 	@GetMapping("/find/transactions/{accountNo}")
@@ -368,6 +370,27 @@ public class WalletTransactionController {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Non-Waya Payment", notes = "Transfer amount from user wallet to Non-waya")
+	@PostMapping("/non-waya/payment/new")
+	public ResponseEntity<?> NonWayaPayment(HttpServletRequest request, @Valid @RequestBody() NonWayaPaymentDTO walletDto) {
+		return transAccountService.TransferNonPayment(request, walletDto);
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Non-Waya Redeem", notes = "Transfer amount from user wallet to Non-waya")
+	@PutMapping("/non-waya/transaction/redeem/new")
+	public ResponseEntity<?> NonWayaRedeem(HttpServletRequest request, @Valid @RequestBody() NonWayaRedeemDTO walletDto) {
+		return transAccountService.NonWayaPaymentRedeem(request, walletDto);
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Non-Waya Redeem", notes = "Transfer amount from user wallet to Non-waya")
+	@PutMapping("/non-waya/transaction/redeem/PIN")
+	public ResponseEntity<?> NonWayaRedeemPIN(HttpServletRequest request, @Valid @RequestBody() NonWayaPayPIN walletDto) {
+		return transAccountService.NonWayaRedeemPIN(request, walletDto);
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })

@@ -4,9 +4,11 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -15,6 +17,7 @@ import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
 import com.wayapaychat.temporalwallet.dto.AccountTransChargeDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionHistoryDTO;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
+import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.mapper.AccountLookUpMapper;
 import com.wayapaychat.temporalwallet.mapper.AccountStatementMapper;
 import com.wayapaychat.temporalwallet.mapper.AccountTransChargeMapper;
@@ -58,6 +61,39 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 			count = "S" + count;
 		} catch (EmptyResultDataAccessException ex) {
 			ex.printStackTrace();
+		}
+		return count;
+	}
+	
+	public String generateToken() {
+		String sql = "SELECT nextval('tokensequence')";
+		String count = null;
+		try {
+			count = jdbcTemplate.queryForObject(sql, String.class);
+			Random r = new Random( System.currentTimeMillis() );
+		    int x = ((1 + r.nextInt(2)) * 10000 + r.nextInt(10000));
+		    count = count + x;
+		} catch (EmptyResultDataAccessException ex) {
+			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
+		}catch (Exception ex) {
+			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
+		}
+		return count;
+	}
+	
+	@Override
+	public String generatePIN() {
+		String sql = "SELECT nextval('pinsequence')";
+		String count = null;
+		try {
+			count = jdbcTemplate.queryForObject(sql, String.class);
+			Random r = new Random( System.currentTimeMillis() );
+		    int x = ((1 + r.nextInt(2)) * 100 + r.nextInt(100));
+		    count = count + x;
+		} catch (EmptyResultDataAccessException ex) {
+			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
+		}catch (Exception ex) {
+			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
 		}
 		return count;
 	}
