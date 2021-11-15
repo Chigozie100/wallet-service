@@ -83,12 +83,29 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 	
 	@Override
 	public String generatePIN() {
-		String sql = "SELECT nextval('pinsequence')";
+		String sql = "SELECT nextval('refnosequence')";
 		String count = null;
 		try {
 			count = jdbcTemplate.queryForObject(sql, String.class);
 			Random r = new Random( System.currentTimeMillis() );
 		    int x = ((1 + r.nextInt(2)) * 100 + r.nextInt(100));
+		    count = count + x;
+		} catch (EmptyResultDataAccessException ex) {
+			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
+		}catch (Exception ex) {
+			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
+		}
+		return count;
+	}
+	
+	@Override
+	public String generateRefNo() {
+		String sql = "SELECT nextval('refnosequence')";
+		String count = null;
+		try {
+			count = jdbcTemplate.queryForObject(sql, String.class);
+			Random r = new Random( System.currentTimeMillis() );
+		    int x = ((1 + r.nextInt(2)) * 10000 + r.nextInt(10000));
 		    count = count + x;
 		} catch (EmptyResultDataAccessException ex) {
 			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
