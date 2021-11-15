@@ -41,6 +41,8 @@ import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.WalletAdminTransferDTO;
 import com.wayapaychat.temporalwallet.dto.WalletTransactionChargeDTO;
 import com.wayapaychat.temporalwallet.dto.WalletTransactionDTO;
+import com.wayapaychat.temporalwallet.dto.WayaPaymentQRCode;
+import com.wayapaychat.temporalwallet.dto.WayaRedeemQRCode;
 import com.wayapaychat.temporalwallet.dto.WayaTradeDTO;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
@@ -391,6 +393,20 @@ public class WalletTransactionController {
 	@PutMapping("/non-waya/transaction/redeem/PIN")
 	public ResponseEntity<?> NonWayaRedeemPIN(HttpServletRequest request, @Valid @RequestBody() NonWayaPayPIN walletDto) {
 		return transAccountService.NonWayaRedeemPIN(request, walletDto);
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "QR Code Payment generation", notes = "Transfer amount from user wallet to Non-waya")
+	@PostMapping("/qr-code/transaction/payment")
+	public ResponseEntity<?> WayaQRCodeGen(HttpServletRequest request, @Valid @RequestBody() WayaPaymentQRCode walletDto) {
+		return transAccountService.WayaQRCodePayment(request, walletDto);
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "QR Code Payment redeem", notes = "Transfer amount from user wallet to Non-waya")
+	@PutMapping("/qr-code/transaction/redeem")
+	public ResponseEntity<?> WayaQRCodeRedeem(HttpServletRequest request, @Valid @RequestBody() WayaRedeemQRCode walletDto) {
+		return transAccountService.WayaQRCodePaymentRedeem(request, walletDto);
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })

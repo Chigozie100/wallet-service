@@ -45,4 +45,23 @@ public class TransferTransactionDTO {
 	@Size(min=3, max=50, message = "paymentReference must be aleast 3 alphanumeric")
 	private String paymentReference;
 
+	public TransferTransactionDTO(
+			String debitAccountNumber,
+			String benefAccountNumber,
+			BigDecimal amount,
+			String tranType,
+			String tranCrncy,
+			String tranNarration,
+			String paymentReference) {
+		super();
+		this.debitAccountNumber = debitAccountNumber;
+		this.benefAccountNumber = benefAccountNumber;
+		this.amount = amount;
+		this.tranType = tranType;
+		this.tranCrncy = tranCrncy;
+		this.tranNarration = tranNarration;
+		this.paymentReference = paymentReference;
+	}
+	
+
 }

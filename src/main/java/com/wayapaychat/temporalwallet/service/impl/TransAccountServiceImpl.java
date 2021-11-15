@@ -62,12 +62,15 @@ import com.wayapaychat.temporalwallet.dto.WalletAccountStatement;
 import com.wayapaychat.temporalwallet.dto.WalletAdminTransferDTO;
 import com.wayapaychat.temporalwallet.dto.WalletTransactionChargeDTO;
 import com.wayapaychat.temporalwallet.dto.WalletTransactionDTO;
+import com.wayapaychat.temporalwallet.dto.WayaPaymentQRCode;
+import com.wayapaychat.temporalwallet.dto.WayaRedeemQRCode;
 import com.wayapaychat.temporalwallet.dto.WayaTradeDTO;
 import com.wayapaychat.temporalwallet.entity.Transactions;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.entity.WalletAcountVirtual;
 import com.wayapaychat.temporalwallet.entity.WalletEventCharges;
 import com.wayapaychat.temporalwallet.entity.WalletNonWayaPayment;
+import com.wayapaychat.temporalwallet.entity.WalletQRCodePayment;
 import com.wayapaychat.temporalwallet.entity.WalletTeller;
 import com.wayapaychat.temporalwallet.entity.WalletTransaction;
 import com.wayapaychat.temporalwallet.entity.WalletUser;
@@ -85,6 +88,7 @@ import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletAcountVirtualRepository;
 import com.wayapaychat.temporalwallet.repository.WalletEventRepository;
 import com.wayapaychat.temporalwallet.repository.WalletNonWayaPaymentRepository;
+import com.wayapaychat.temporalwallet.repository.WalletQRCodePaymentRepository;
 import com.wayapaychat.temporalwallet.repository.WalletTellerRepository;
 import com.wayapaychat.temporalwallet.repository.WalletTransactionRepository;
 import com.wayapaychat.temporalwallet.repository.WalletUserRepository;
@@ -143,6 +147,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Autowired
 	CustomNotification customNotification;
+	
+	@Autowired
+	WalletQRCodePaymentRepository walletQRCodePaymentRepo;
 
 	@Override
 	public ApiResponse<TransactionRequest> makeTransaction(String command, TransactionRequest request) {
@@ -3671,6 +3678,55 @@ public class TransAccountServiceImpl implements TransAccountService {
 		String message = "" + "\n";
 		message = message + "" + "Message :" + "Kindly confirm the reserved transaction with received pin: " + pin;
 		return message;
+	}
+
+	@Override
+	public ResponseEntity<?> WayaQRCodePayment(HttpServletRequest request, WayaPaymentQRCode transfer) {
+		String refNo = tempwallet.generateRefNo();
+		if(refNo.length() < 12) {
+			refNo = StringUtils.leftPad(refNo, 12, "0");
+		}
+		refNo = "QR-" + transfer.getPayeeId() + "-" + refNo;
+		WalletQRCodePayment qrcode = new WalletQRCodePayment(transfer.getName(), transfer.getAmount(), transfer.getReason(), refNo,
+				LocalDate.now(), PaymentStatus.PENDING, transfer.getPayeeId(), transfer.getCrncyCode());
+		WalletQRCodePayment mPay = walletQRCodePaymentRepo.save(qrcode);
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", mPay), HttpStatus.CREATED);
+	}
+
+	@Override
+	public ResponseEntity<?> WayaQRCodePaymentRedeem(HttpServletRequest request, WayaRedeemQRCode transfer) {
+		WalletQRCodePayment mPay = walletQRCodePaymentRepo.findByReferenceNo(transfer.getReferenceNo(), LocalDate.now()).orElse(null);
+		if(mPay.getAmount().compareTo(transfer.getAmount()) == 0) {
+			if(mPay.getStatus().name().equals("PENDING")) {
+				String debitAcct = getAcount(transfer.getPayerId()).getAccountNo();
+				String creditAcct = getAcount(mPay.getPayeeId()).getAccountNo();
+				TransferTransactionDTO txt = new TransferTransactionDTO(
+						debitAcct,creditAcct,transfer.getAmount(),
+						"TRANSFER",mPay.getCrncyCode(),	"QR-CODE PAYMENT",
+						mPay.getReferenceNo());
+				ApiResponse<?> res = sendMoney(txt);
+				if (!res.getStatus()) {
+		            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+		        }
+				log.info("Send Money: {}", transfer);
+		        return new ResponseEntity<>(res, HttpStatus.OK);
+			}
+		}else {
+			return new ResponseEntity<>(new ErrorResponse("MISMATCH AMOUNT"), HttpStatus.BAD_REQUEST);
+		}
+		return null;
+	}
+	
+	public WalletAccount getAcount(Long userId) {
+		WalletUser user = walletUserRepository.findByUserId(userId);
+		if(user == null) {
+			throw new CustomException("INVALID USER ID", HttpStatus.BAD_REQUEST);
+		}
+		WalletAccount account = walletAccountRepository.findByDefaultAccount(user).orElse(null);
+		if(account == null) {
+			throw new CustomException("INVALID USER ID", HttpStatus.BAD_REQUEST);
+		}
+		return account;
 	}
 
 }
