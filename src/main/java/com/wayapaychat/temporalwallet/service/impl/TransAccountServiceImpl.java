@@ -76,6 +76,7 @@ import com.wayapaychat.temporalwallet.entity.WalletQRCodePayment;
 import com.wayapaychat.temporalwallet.entity.WalletTeller;
 import com.wayapaychat.temporalwallet.entity.WalletTransaction;
 import com.wayapaychat.temporalwallet.entity.WalletUser;
+import com.wayapaychat.temporalwallet.enumm.PaymentRequestStatus;
 import com.wayapaychat.temporalwallet.enumm.PaymentStatus;
 import com.wayapaychat.temporalwallet.enumm.TransactionTypeEnum;
 import com.wayapaychat.temporalwallet.exception.CustomException;
@@ -150,10 +151,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Autowired
 	CustomNotification customNotification;
-	
+
 	@Autowired
 	WalletQRCodePaymentRepository walletQRCodePaymentRepo;
-	
+
 	@Autowired
 	WalletPaymentRequestRepository walletPaymentRequestRepo;
 
@@ -3689,47 +3690,47 @@ public class TransAccountServiceImpl implements TransAccountService {
 	@Override
 	public ResponseEntity<?> WayaQRCodePayment(HttpServletRequest request, WayaPaymentQRCode transfer) {
 		String refNo = tempwallet.generateRefNo();
-		if(refNo.length() < 12) {
+		if (refNo.length() < 12) {
 			refNo = StringUtils.leftPad(refNo, 12, "0");
 		}
 		refNo = "QR-" + transfer.getPayeeId() + "-" + refNo;
-		WalletQRCodePayment qrcode = new WalletQRCodePayment(transfer.getName(), transfer.getAmount(), transfer.getReason(), refNo,
-				LocalDate.now(), PaymentStatus.PENDING, transfer.getPayeeId(), transfer.getCrncyCode());
+		WalletQRCodePayment qrcode = new WalletQRCodePayment(transfer.getName(), transfer.getAmount(),
+				transfer.getReason(), refNo, LocalDate.now(), PaymentStatus.PENDING, transfer.getPayeeId(),
+				transfer.getCrncyCode());
 		WalletQRCodePayment mPay = walletQRCodePaymentRepo.save(qrcode);
 		return new ResponseEntity<>(new SuccessResponse("SUCCESS", mPay), HttpStatus.CREATED);
 	}
 
 	@Override
 	public ResponseEntity<?> WayaQRCodePaymentRedeem(HttpServletRequest request, WayaRedeemQRCode transfer) {
-		WalletQRCodePayment mPay = walletQRCodePaymentRepo.findByReferenceNo(transfer.getReferenceNo(), LocalDate.now()).orElse(null);
-		if(mPay.getAmount().compareTo(transfer.getAmount()) == 0) {
-			if(mPay.getStatus().name().equals("PENDING")) {
+		WalletQRCodePayment mPay = walletQRCodePaymentRepo.findByReferenceNo(transfer.getReferenceNo(), LocalDate.now())
+				.orElse(null);
+		if (mPay.getAmount().compareTo(transfer.getAmount()) == 0) {
+			if (mPay.getStatus().name().equals("PENDING")) {
 				String debitAcct = getAcount(transfer.getPayerId()).getAccountNo();
 				String creditAcct = getAcount(mPay.getPayeeId()).getAccountNo();
-				TransferTransactionDTO txt = new TransferTransactionDTO(
-						debitAcct,creditAcct,transfer.getAmount(),
-						"TRANSFER",mPay.getCrncyCode(),	"QR-CODE PAYMENT",
-						mPay.getReferenceNo());
+				TransferTransactionDTO txt = new TransferTransactionDTO(debitAcct, creditAcct, transfer.getAmount(),
+						"TRANSFER", mPay.getCrncyCode(), "QR-CODE PAYMENT", mPay.getReferenceNo());
 				ApiResponse<?> res = sendMoney(txt);
 				if (!res.getStatus()) {
-		            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-		        }
+					return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+				}
 				log.info("Send Money: {}", transfer);
-		        return new ResponseEntity<>(res, HttpStatus.OK);
+				return new ResponseEntity<>(res, HttpStatus.OK);
 			}
-		}else {
+		} else {
 			return new ResponseEntity<>(new ErrorResponse("MISMATCH AMOUNT"), HttpStatus.BAD_REQUEST);
 		}
 		return null;
 	}
-	
+
 	public WalletAccount getAcount(Long userId) {
 		WalletUser user = walletUserRepository.findByUserId(userId);
-		if(user == null) {
+		if (user == null) {
 			throw new CustomException("INVALID USER ID", HttpStatus.BAD_REQUEST);
 		}
 		WalletAccount account = walletAccountRepository.findByDefaultAccount(user).orElse(null);
-		if(account == null) {
+		if (account == null) {
 			throw new CustomException("INVALID USER ID", HttpStatus.BAD_REQUEST);
 		}
 		return account;
@@ -3737,13 +3738,48 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Override
 	public ResponseEntity<?> WayaPaymentRequestUsertoUser(HttpServletRequest request, WayaPaymentRequest transfer) {
-		WalletPaymentRequest mPayRequest = walletPaymentRequestRepo.findByReference(transfer.getPaymentRequest().getReference()).orElse(null);
-		if(mPayRequest != null)	{
-			throw new CustomException("Reference ID already exist", HttpStatus.BAD_REQUEST);
+		if (transfer.getPaymentRequest().getStatus().name().equals("PENDING")) {
+			WalletPaymentRequest mPayRequest = walletPaymentRequestRepo
+					.findByReference(transfer.getPaymentRequest().getReference()).orElse(null);
+			if (mPayRequest != null) {
+				throw new CustomException("Reference ID already exist", HttpStatus.BAD_REQUEST);
+			}
+			WalletPaymentRequest spay = new WalletPaymentRequest(transfer.getPaymentRequest());
+			WalletPaymentRequest mPay = walletPaymentRequestRepo.save(spay);
+			return new ResponseEntity<>(new SuccessResponse("SUCCESS", mPay), HttpStatus.CREATED);
+		} else if (transfer.getPaymentRequest().getStatus().name().equals("PAID")) {
+			WalletPaymentRequest mPayRequest = walletPaymentRequestRepo
+					.findByReference(transfer.getPaymentRequest().getReference()).orElse(null);
+			if (mPayRequest == null) {
+				throw new CustomException("Reference ID does not exist", HttpStatus.BAD_REQUEST);
+			}
+			if (mPayRequest.getStatus().name().equals("PENDING")) {
+				WalletAccount creditAcct = getAcount(Long.valueOf(mPayRequest.getSenderId()));
+				WalletAccount debitAcct = getAcount(Long.valueOf(mPayRequest.getReceiverId()));
+				TransferTransactionDTO txt = new TransferTransactionDTO(debitAcct.getAccountNo(), creditAcct.getAccountNo(), mPayRequest.getAmount(),
+						"TRANSFER", "NGN", mPayRequest.getReason(), mPayRequest.getReference());
+				ApiResponse<?> res = sendMoney(txt);
+				if (!res.getStatus()) {
+					return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+				}
+				log.info("Send Money: {}", transfer);
+				return new ResponseEntity<>(res, HttpStatus.OK);
+			} else {
+				throw new CustomException("Reference ID already paid", HttpStatus.BAD_REQUEST);
+			}
+		} else if (transfer.getPaymentRequest().getStatus().name().equals("REJECT")) {
+			WalletPaymentRequest mPayRequest = walletPaymentRequestRepo
+					.findByReference(transfer.getPaymentRequest().getReference()).orElse(null);
+			if (mPayRequest == null) {
+				throw new CustomException("Reference ID does not exist", HttpStatus.BAD_REQUEST);
+			}
+			mPayRequest.setStatus(PaymentRequestStatus.REJECTED);
+			mPayRequest.setRejected(true);
+			WalletPaymentRequest mPay = walletPaymentRequestRepo.save(mPayRequest);
+			return new ResponseEntity<>(new SuccessResponse("SUCCESS", mPay), HttpStatus.CREATED);
+		} else {
+			throw new CustomException("UnKnown Payment Status", HttpStatus.BAD_REQUEST);
 		}
-		WalletPaymentRequest spay = new WalletPaymentRequest(transfer.getPaymentRequest());
-		WalletPaymentRequest mPay = walletPaymentRequestRepo.save(spay);
-		return new ResponseEntity<>(new SuccessResponse("SUCCESS", mPay), HttpStatus.CREATED);
 	}
 
 }
