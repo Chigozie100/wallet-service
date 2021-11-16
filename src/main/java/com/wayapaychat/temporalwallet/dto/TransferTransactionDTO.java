@@ -61,7 +61,6 @@ public class TransferTransactionDTO {
 		this.tranCrncy = tranCrncy;
 		this.tranNarration = tranNarration;
 		this.paymentReference = paymentReference;
-	}
-	
+	}	
 
 }

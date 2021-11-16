@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+
 import com.wayapaychat.temporalwallet.dto.AdminLocalTransferDTO;
 import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.AdminWalletTransactionDTO;
@@ -39,14 +40,15 @@ import com.wayapaychat.temporalwallet.dto.ReversePaymentDTO;
 import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.WalletAdminTransferDTO;
+import com.wayapaychat.temporalwallet.dto.WayaPaymentRequest;
 import com.wayapaychat.temporalwallet.dto.WalletTransactionChargeDTO;
 import com.wayapaychat.temporalwallet.dto.WalletTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.WayaPaymentQRCode;
 import com.wayapaychat.temporalwallet.dto.WayaRedeemQRCode;
 import com.wayapaychat.temporalwallet.dto.WayaTradeDTO;
+import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
-import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
 
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -407,6 +409,13 @@ public class WalletTransactionController {
 	@PutMapping("/qr-code/transaction/redeem")
 	public ResponseEntity<?> WayaQRCodeRedeem(HttpServletRequest request, @Valid @RequestBody() WayaRedeemQRCode walletDto) {
 		return transAccountService.WayaQRCodePaymentRedeem(request, walletDto);
+	}
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Payment request", notes = "Transfer amount from user to User in waya")
+	@PostMapping("/payment/request/transaction")
+	public ResponseEntity<?> transerPaymentUserToUser(@RequestParam("command") String command, HttpServletRequest request, @Valid @RequestBody WayaPaymentRequest transfer){
+		return transAccountService.WayaPaymentRequestUsertoUser(request, transfer);
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })

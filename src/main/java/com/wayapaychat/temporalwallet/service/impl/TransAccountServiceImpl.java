@@ -60,6 +60,7 @@ import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.UserTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.WalletAccountStatement;
 import com.wayapaychat.temporalwallet.dto.WalletAdminTransferDTO;
+import com.wayapaychat.temporalwallet.dto.WayaPaymentRequest;
 import com.wayapaychat.temporalwallet.dto.WalletTransactionChargeDTO;
 import com.wayapaychat.temporalwallet.dto.WalletTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.WayaPaymentQRCode;
@@ -70,6 +71,7 @@ import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.entity.WalletAcountVirtual;
 import com.wayapaychat.temporalwallet.entity.WalletEventCharges;
 import com.wayapaychat.temporalwallet.entity.WalletNonWayaPayment;
+import com.wayapaychat.temporalwallet.entity.WalletPaymentRequest;
 import com.wayapaychat.temporalwallet.entity.WalletQRCodePayment;
 import com.wayapaychat.temporalwallet.entity.WalletTeller;
 import com.wayapaychat.temporalwallet.entity.WalletTransaction;
@@ -88,6 +90,7 @@ import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletAcountVirtualRepository;
 import com.wayapaychat.temporalwallet.repository.WalletEventRepository;
 import com.wayapaychat.temporalwallet.repository.WalletNonWayaPaymentRepository;
+import com.wayapaychat.temporalwallet.repository.WalletPaymentRequestRepository;
 import com.wayapaychat.temporalwallet.repository.WalletQRCodePaymentRepository;
 import com.wayapaychat.temporalwallet.repository.WalletTellerRepository;
 import com.wayapaychat.temporalwallet.repository.WalletTransactionRepository;
@@ -150,6 +153,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 	
 	@Autowired
 	WalletQRCodePaymentRepository walletQRCodePaymentRepo;
+	
+	@Autowired
+	WalletPaymentRequestRepository walletPaymentRequestRepo;
 
 	@Override
 	public ApiResponse<TransactionRequest> makeTransaction(String command, TransactionRequest request) {
@@ -3727,6 +3733,17 @@ public class TransAccountServiceImpl implements TransAccountService {
 			throw new CustomException("INVALID USER ID", HttpStatus.BAD_REQUEST);
 		}
 		return account;
+	}
+
+	@Override
+	public ResponseEntity<?> WayaPaymentRequestUsertoUser(HttpServletRequest request, WayaPaymentRequest transfer) {
+		WalletPaymentRequest mPayRequest = walletPaymentRequestRepo.findByReference(transfer.getPaymentRequest().getReference()).orElse(null);
+		if(mPayRequest != null)	{
+			throw new CustomException("Reference ID already exist", HttpStatus.BAD_REQUEST);
+		}
+		WalletPaymentRequest spay = new WalletPaymentRequest(transfer.getPaymentRequest());
+		WalletPaymentRequest mPay = walletPaymentRequestRepo.save(spay);
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", mPay), HttpStatus.CREATED);
 	}
 
 }
