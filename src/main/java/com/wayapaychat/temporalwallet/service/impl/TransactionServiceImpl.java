@@ -1,9 +1,19 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
+import static com.wayapaychat.temporalwallet.util.Constant.WAYA_SETTLEMENT_ACCOUNT_NO;
+
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.wayapaychat.temporalwallet.entity.Accounts;
 import com.wayapaychat.temporalwallet.entity.Transactions;
 import com.wayapaychat.temporalwallet.entity.Users;
-import com.wayapaychat.temporalwallet.enumm.TransactionType;
 import com.wayapaychat.temporalwallet.pojo.TransactionPojo;
 import com.wayapaychat.temporalwallet.pojo.TransactionTransferPojo;
 import com.wayapaychat.temporalwallet.pojo.TransactionTransferPojo2;
@@ -14,16 +24,6 @@ import com.wayapaychat.temporalwallet.service.TransactionService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.RandomGenerators;
 import com.wayapaychat.temporalwallet.util.SuccessResponse;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.Optional;
-
-import static com.wayapaychat.temporalwallet.util.Constant.WAYA_SETTLEMENT_ACCOUNT_NO;
 
 
 @Service
@@ -43,7 +43,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     @Override
     @Transactional
-    public ResponseEntity transactAmount(TransactionPojo transactionPojo) {
+    public ResponseEntity<?> transactAmount(TransactionPojo transactionPojo) {
     	Optional<Accounts> account = accountRepository.findByAccountNo(transactionPojo.getAccountNo());
     	Optional<Accounts> wayaAccount = accountRepository.findByAccountNo(WAYA_SETTLEMENT_ACCOUNT_NO);
         if (!account.isPresent()) {
@@ -118,7 +118,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public ResponseEntity transferTransaction(TransactionTransferPojo transactionTransferPojo) {
+    public ResponseEntity<?> transferTransaction(TransactionTransferPojo transactionTransferPojo) {
 
         Optional<Accounts> fromAccount = accountRepository.findByAccountNo(transactionTransferPojo.getFromAccount());
         Optional<Accounts> toAccount = accountRepository.findByAccountNo(transactionTransferPojo.getToAccount());
@@ -164,7 +164,7 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
-    public ResponseEntity transferTransactionWithId(TransactionTransferPojo2 transactionTransferPojo2) {
+    public ResponseEntity<?> transferTransactionWithId(TransactionTransferPojo2 transactionTransferPojo2) {
     	Long tranId = Long.valueOf(transactionTransferPojo2.getFromId());
     	Long tId = Long.valueOf(transactionTransferPojo2.getToId());
         Optional<Users> fromUserx = userRepository.findById(tranId);
