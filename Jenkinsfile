@@ -55,9 +55,9 @@ pipeline {
                           --set service.type=ClusterIP \
                           --set service.port=9009 \
                           --set config.EUREKA_SERVER_URL=http://172.20.159.73:8761 \
-                          --set config.POSTGRES_URL=jdbc:postgresql://waya-infra-staging-database-staging-env-staging.c7gddqax0vzn.eu-west-1.rds.amazonaws.com:5432/tempwalletDBstaging \
-                          --set config.POSTGRES_USERNAME=wayapayuser \
-                          --set config.POSTGRES_PASSWORD=FrancisJude2020waya \
+                          --set config.url=jdbc:postgresql://waya-infra-staging-database-staging-env-staging.c7gddqax0vzn.eu-west-1.rds.amazonaws.com:5432/tempwalletDBstaging \
+                          --set config.username=wayapayuser \
+                          --set config.password=FrancisJude2020waya \
                           --set 'tolerations[0].effect=NoSchedule' \
                           --set 'tolerations[0].key=dev' \
                           --set 'tolerations[0].operator=Exists'"
