@@ -37,7 +37,7 @@ pipeline {
         stage("pushing to ECR") {
             steps{
                 script {
-                    sh "aws ecr describe-repositories --repository-names waya-twallet-user || aws ecr create-repository --repository-name waya-notification-api --image-scanning-configuration scanOnPush=true"
+                    sh "aws ecr describe-repositories --repository-names waya-twallet-user || aws ecr create-repository --repository-name waya-twallet-user --image-scanning-configuration scanOnPush=true"
                     sh 'docker push 863852973330.dkr.ecr.eu-west-1.amazonaws.com/waya-twallet-user'
                 }
             }   
