@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /*package com.wayapaychat.temporalwallet.controller;
+=======
+package com.wayapaychat.temporalwallet.controller;
+>>>>>>> master
 
 import com.wayapaychat.temporalwallet.pojo.TransactionPojo;
 import com.wayapaychat.temporalwallet.pojo.TransactionTransferPojo;
@@ -39,5 +43,9 @@ public class TransactionController {
         return transactionService.transferTransactionWithId(transactionTransferPojo);
     }
 
+<<<<<<< HEAD
 }
 */
+=======
+}
+>>>>>>> master

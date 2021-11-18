@@ -15,6 +15,11 @@ public class GetUserDataService {
 	@Autowired
 	private AuthProxy authProxy;
 	
+<<<<<<< HEAD
+=======
+	
+	
+>>>>>>> master
 	public TokenCheckResponse getUserData(String token) {
 		TokenCheckResponse res = authProxy.getUserDataToken(token);
 		System.out.println("::::Token::::"+res.getMessage());
@@ -23,6 +28,9 @@ public class GetUserDataService {
 	}
 	
 	
+<<<<<<< HEAD
 	
 	
+=======
+>>>>>>> master
 }

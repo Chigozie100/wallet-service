@@ -1,0 +1,172 @@
+# Default values for base.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+type: java
+## Data Persistency
+persistentVolume:
+  enabled: false
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  # storageClass: "-"
+  name: data
+  accessModes:
+    - ReadWriteOnce
+  size: 8Gi
+  annotations: {}
+  labels: {}
+
+
+
+fuse:
+  enabled: false
+
+replicaCount: 1
+autoscaling:
+  enabled: true
+
+activeDeadlineSeconds: 300
+
+labels:
+  type: default
+  env: default
+
+image:
+  repository: 863852973330.dkr.ecr.eu-west-1.amazonaws.com/waya-twallet-user 
+  tag: latest
+  pullPolicy: Always
+
+nameOverride: ""
+fullnameOverride: ""
+
+tomcat: none
+
+lifecycle: {}
+
+rabbitmq:
+  cert:
+    enabled: false
+    # keystore: |
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: false
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name:
+
+cronjob:
+  enabled: false
+
+deployment:
+  enabled: true
+
+stateful:
+  enabled: false
+
+podManagementPolicy: OrderedReady
+updateStrategy: RollingUpdate
+terminationGracePeriodSeconds: 10
+
+roleArn: dummy
+
+eks_iam:
+  enabled: false
+
+
+service:
+  enabled: true
+  type: ClusterIP
+  http:
+    enabled: false
+  internal:
+    enabled: false
+  external:
+    enabled: false
+  port: 9086
+
+  labels: {}
+  clusterIP: ""
+  ingress: traefik
+  ## List of IP addresses at which the hass-configurator service is available
+  ## Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
+  ##
+  externalIPs: []
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+  # nodePort: 30000
+  sessionAffinity: "None"
+  sessionAffinityConfig: {}
+
+## Custom configuration environment variables
+## Use this to override any setting settings defining environment variables in the
+## Example:
+# config:
+#   CORE__EXPOSE_CONFIG: "True"
+#   HTTP_PROXY: "http://proxy.mycompany.com:123"
+config: {}
+secret: {}
+
+probes:
+  liveness:
+    enabled: false
+    path: /
+    initialDelaySeconds: 60
+    failureThreshold: 5
+    timeoutSeconds: 10
+  readiness:
+    enabled: false
+    path: /
+    initialDelaySeconds: 60
+    failureThreshold: 5
+    timeoutSeconds: 10
+  startup:
+    enabled: false
+    path: /
+    failureThreshold: 30
+    periodSeconds: 10
+
+ingress:
+  enabled: false
+  ## Configure the web liveness path.
+  ## Defaults to the templated value `{{ ingress.web.path }}/health`
+  livenessPath:
+  # annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  host: chart-example.local
+  path: "/"
+
+
+# resources:
+#   limits:
+#    cpu: 100m
+#    memory: 128Mi
+#   requests:
+#    cpu: 100m
+#    memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+## Directory in which to mount secrets on webserver nodes.
+secretsDir: /var/secrets
+##
+## Secrets which will be mounted as a file at `secretsDir/<secret name>`.
+secrets: []
+
+podDisruptionBudgetEnabled: true
+podDisruptionBudget:
+  maxUnavailable: 1
+
+# Mount devices or folders from the host machine. Can be used for USB device mounting.
+hostMounts: []
+
+podAnnotations: {}

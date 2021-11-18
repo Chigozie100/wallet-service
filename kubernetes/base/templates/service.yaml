@@ -1,0 +1,63 @@
+{{- if .Values.service.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "base.fullname" . }}
+  annotations:
+    {{- if eq .Values.service.type "LoadBalancer" }}
+    external-dns.alpha.kubernetes.io/hostname: {{ .Values.service.host | quote }}
+    {{- if .Values.service.external.enabled }}
+    service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+    service.beta.kubernetes.io/aws-load-balancer-proxy-protocol: "*"
+    service.beta.kubernetes.io/aws-load-balancer-ssl-cert: {{ .Values.service.acm | quote }}
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "tcp"
+    {{- end }}
+    {{- if .Values.service.http.enabled }}
+    service.beta.kubernetes.io/aws-load-balancer-backend-protocol: "http"
+    {{- end }}
+    {{- if .Values.service.internal.enabled }}
+    service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+    {{- end }}
+    {{- end }}
+  labels:
+{{- if .Values.service.labels }}
+{{ toYaml .Values.service.labels | indent 4 }}
+{{- end }}
+spec:
+{{- if eq .Values.service.type "LoadBalancer" }}
+  externalTrafficPolicy: Local
+{{- end }}
+{{- if (or (eq .Values.service.type "ClusterIP") (empty .Values.service.type)) }}
+  type: ClusterIP
+  {{- if .Values.service.clusterIP }}
+  clusterIP: {{ .Values.service.clusterIP }}
+  {{end}}
+{{- else if eq .Values.service.type "LoadBalancer" }}
+  type: {{ .Values.service.type }}
+  {{- if .Values.service.loadBalancerIP }}
+  loadBalancerIP: {{ .Values.service.loadBalancerIP }}
+  {{- end }}
+  {{- if .Values.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+{{ toYaml .Values.service.loadBalancerSourceRanges | indent 4 }}
+  {{- end -}}
+{{- else }}
+  type: {{ .Values.service.type }}
+{{- end }}
+{{- if .Values.service.externalIPs }}
+  externalIPs:
+{{ toYaml .Values.service.externalIPs | indent 4 }}
+{{- end }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}
+      protocol: TCP
+      name: tcp
+  sessionAffinity: {{ .Values.service.sessionAffinity }}
+  sessionAffinityConfig:
+{{- if .Values.service.sessionAffinityConfig }}
+{{ toYaml .Values.service.sessionAffinityConfig | indent 4 }}
+{{- end }}
+  selector:
+    {{- include "base.selectorLabels" . | nindent 4 }}
+{{- end }}

@@ -1,21 +1,41 @@
 package com.wayapaychat.temporalwallet.config;
 
 
+<<<<<<< HEAD
 import java.util.Arrays;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+=======
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+>>>>>>> master
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+<<<<<<< HEAD
+=======
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+>>>>>>> master
 import org.springframework.security.web.firewall.DefaultHttpFirewall;
 import org.springframework.security.web.firewall.HttpFirewall;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+<<<<<<< HEAD
+=======
+
+import java.util.Arrays;
+
+>>>>>>> master
 @Configuration
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
@@ -40,11 +60,17 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 cors().and().csrf().disable()
                 // dont authenticate this particular request
                 .authorizeRequests().antMatchers(
+<<<<<<< HEAD
                 "/wallet/create/account", "/api/userjdbc/register/jdbc/add", "/api/v1/wallet/notify/**",
                 "/wallet/get/default/wallet/open/**","/wallet/create/cooperate/user","/api/v1/wallet/account/lookup/**", 
                 "/api/v1/wallet/user/account","/api/v1/wallet/create/cooperate/user","/api/users/register/admin", "/api/users/welcome").permitAll()
                 //For Local Test Purpose
                 //.antMatchers("/api/v1/bank/**","/wallet/create-wallet","/api/v1/wallet/**","/wallet/**","/api/v1/switch/**").permitAll()
+=======
+                "/wallet/create/account", "/api/userjdbc/register/jdbc/add"
+                ,"/wallet/get/default/wallet/open/**","/wallet/create/cooperate/user", 
+                "/api/users/register/admin", "/api/users/welcome").permitAll()
+>>>>>>> master
                 .antMatchers("/v2/api-docs", "/configuration/**", "/swagger*/**","/actuator/**", "/webjars/**").permitAll()
                 // all other requests need to be authenticated
                 .anyRequest().authenticated().and()
