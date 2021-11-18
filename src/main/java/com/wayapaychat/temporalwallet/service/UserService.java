@@ -5,6 +5,10 @@ import org.springframework.http.ResponseEntity;
 
 public interface UserService {
 
+<<<<<<< HEAD
     ResponseEntity<?> createUser(UserPojo userRequest);
+=======
+    ResponseEntity createUser(UserPojo userRequest);
+>>>>>>> master
 
 }

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /*package com.wayapaychat.temporalwallet.controller;
+=======
+package com.wayapaychat.temporalwallet.controller;
+>>>>>>> master
 
 import java.util.List;
 
@@ -59,6 +63,25 @@ public class WalletController {
 	        }
 	        return new ResponseEntity<>(res, HttpStatus.OK);
 		}
+<<<<<<< HEAD
+=======
+		
+		if(switchList.get(0).isMifosWallet()) {
+			ApiResponse res = mifosWalletProxy.register(createWallet);
+			if (!res.getStatus()) {
+	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+	        }
+	        return new ResponseEntity<>(res, HttpStatus.OK);
+		}
+		
+		else if(switchList.get(0).isTemporalWallet()) {
+			ApiResponse res = walletImplementation.createAccount(createWallet);
+			if (!res.getStatus()) {
+	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+	        }
+	        return new ResponseEntity<>(res, HttpStatus.OK);
+		}
+>>>>>>> master
 		String mm = "";
 		return new ResponseEntity<ApiResponse>(HttpStatus.NOT_FOUND);
 	}
@@ -221,4 +244,7 @@ public class WalletController {
         return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 }
+<<<<<<< HEAD
 */
+=======
+>>>>>>> master

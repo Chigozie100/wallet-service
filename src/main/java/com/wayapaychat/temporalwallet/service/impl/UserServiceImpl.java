@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
+<<<<<<< HEAD
 import java.util.Optional;
 
 import org.modelmapper.ModelMapper;
@@ -8,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+=======
+>>>>>>> master
 import com.wayapaychat.temporalwallet.entity.Accounts;
 import com.wayapaychat.temporalwallet.entity.Users;
 import com.wayapaychat.temporalwallet.enumm.AccountType;
@@ -18,6 +21,17 @@ import com.wayapaychat.temporalwallet.service.UserService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.RandomGenerators;
 import com.wayapaychat.temporalwallet.util.SuccessResponse;
+<<<<<<< HEAD
+=======
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+>>>>>>> master
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -34,9 +48,15 @@ public class UserServiceImpl implements UserService {
 
 
     @Override
+<<<<<<< HEAD
     public ResponseEntity<?> createUser(UserPojo userPojo) {
     	Optional<Users> existingUser = userRepository.findById(userPojo.getUserId());
         if (existingUser.isPresent()) {
+=======
+    public ResponseEntity createUser(UserPojo userPojo) {
+    	Optional<Users> existingUser = userRepository.findByUserId(userPojo.getUserId());
+        if (existingUser != null) {
+>>>>>>> master
             return new ResponseEntity<>(new ErrorResponse("User already exists"), HttpStatus.BAD_REQUEST);
         }
         Users user = new ModelMapper().map(userPojo, Users.class);
@@ -66,8 +86,12 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+<<<<<<< HEAD
     @SuppressWarnings("unused")
 	private void createAccount(Users user, boolean corporate) {
+=======
+    private void createAccount(Users user, boolean corporate) {
+>>>>>>> master
         Accounts account = new Accounts();
         account.setUser(user);
         account.setAccountNo(randomGenerators.generateAlphanumeric(10));

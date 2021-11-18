@@ -26,8 +26,11 @@ public class MyData {
     private boolean pinCreated;
     private boolean corporate;
     private List<String> roles;
+<<<<<<< HEAD
     private List<String> permits;
     private String transactionLimit;
+=======
+>>>>>>> master
     
     public MyData(String email) {
     	this.email = email;
