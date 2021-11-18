@@ -1,0 +1,148 @@
+{{- $fullName := include "base.fullname" . -}}
+{{- if .Values.deployment.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "base.fullname" . }}
+  labels:
+{{ include "base.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  minReadySeconds: {{ .Values.minReadySeconds }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      {{- include "base.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- if .Values.podAnnotations }}
+      annotations:
+        {{- range $key, $value := .Values.podAnnotations }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
+      {{- end }}
+      labels:
+        type: {{ .Values.labels.type }}
+        env: {{ .Values.labels.env }}
+        {{- include "base.selectorLabels" . | nindent 8 }}
+{{- if .Values.podAnnotations }}
+{{ toYaml .Values.podAnnotations | indent 8 }}
+{{- end }}
+    spec:
+      imagePullSecrets:
+      - name: {{ .Values.imageSecretName }}
+      serviceAccountName: {{ include "base.serviceAccountName" . }}
+      terminationGracePeriodSeconds: 300
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            capabilities:
+              add: ["SYS_PTRACE"]
+          {{- if eq .Values.type "php" }}
+          lifecycle:
+            preStop:
+              exec:
+                command: ["/bin/bash", "-c", "supervisorctl stop all"]
+          {{- else if eq .Values.type "dotnet" }}
+          lifecycle:
+            preStop:
+              exec:
+                command: [ "/bin/sleep", "20" ]
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          {{- if .Values.probes.liveness.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.liveness.path }}
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: {{ .Values.probes.liveness.initialDelaySeconds }}
+            failureThreshold: {{ .Values.probes.liveness.failureThreshold }}
+            timeoutSeconds: {{ .Values.probes.liveness.timeoutSeconds }}
+          {{- end }}
+          {{- if .Values.probes.readiness.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.readiness.path }}
+              port: {{ .Values.service.port }}
+            initialDelaySeconds: {{ .Values.probes.readiness.initialDelaySeconds }}
+            failureThreshold: {{ .Values.probes.readiness.failureThreshold }}
+            timeoutSeconds: {{ .Values.probes.readiness.timeoutSeconds }}
+          {{- end }}
+          {{- if .Values.probes.startup.enabled }}
+          startupProbe:
+            httpGet:
+              path: {{ .Values.probes.startup.path }}
+              port: {{ .Values.service.port }}
+            failureThreshold: {{ .Values.probes.startup.failureThreshold }}
+            periodSeconds: {{ .Values.probes.startup.periodSeconds }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          env:
+            {{- if eq .Values.tomcat "prod" }}
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+            {{- else if eq .Values.tomcat "dev" }}
+            - name: SPRING_PROFILES_ACTIVE
+              value: "dev"
+            {{- end -}}
+            {{- range $key, $value := .Values.config }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- range $key, $value := .Values.secret }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $fullName }}
+                  key: {{ $key }}
+            {{- end }}
+          volumeMounts:
+            {{- if .Values.rabbitmq.cert.enabled }}
+            - name: rabbitmq-cert
+              mountPath: /rabbitmq/ssl
+            {{- end }}
+            - mountPath: /config
+              name: config
+      {{- if .Values.eks_iam.enabled }}
+      securityContext:
+        fsGroup: 65534
+      {{- end }}
+      volumes:
+        {{- if .Values.rabbitmq.cert.enabled }}
+        - name: rabbitmq-cert
+          secret:
+            defaultMode: 420
+            secretName: {{ include "base.fullname" . }}-rabbitmq-cert
+        {{- end }}
+        - name: config
+          emptyDir: {}
+        {{- range .Values.hostMounts }}
+        - name: {{ .name }}
+          hostPath:
+            path: {{.hostPath}}
+            {{- if .type }}
+            type: {{ .type }}
+            {{- end }}
+        {{- end }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
+      {{- with .Values.affinity }}
+      affinity:
+          {{- toYaml . | nindent 8 }}
+      {{- end }}
+{{- if .Values.extraVolumes }}
+{{ toYaml .Values.extraVolumes | indent 8 }}
+{{- end }}
+{{- end }}
