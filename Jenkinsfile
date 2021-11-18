@@ -48,9 +48,9 @@ pipeline {
                     withCredentials([kubeconfigFile(credentialsId: 'kuberenetes-config', variable: 'KUBECONFIG')]) {
                       dir('kubernetes/'){
                           
-                          sh "helm upgrade --install notification ./base --kubeconfig ~/.kube/config \
+                          sh "helm upgrade --install waya-twallet ./base --kubeconfig ~/.kube/config \
                           --set ingress.enabled=false \
-                          --set fullnameOverride=notification \
+                          --set fullnameOverride=waya-twallet \
                           --set autoscaling.enaled=false \
                           --set service.type=ClusterIP \
                           --set service.port=9009 \
