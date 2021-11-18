@@ -615,7 +615,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
 			}
 			WalletNonWayaPayment redeem = walletNonWayaPaymentRepo
-					.findByTransaction(transfer.getToken(), transfer.getEmailOrPhoneNo(), transfer.getTranCrncy())
+					.findByTransaction(transfer.getToken(), transfer.getTranCrncy())
 					.orElse(null);
 			if (redeem == null) {
 				return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN.PLEASE CHECK IT"), HttpStatus.BAD_REQUEST);
@@ -624,7 +624,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String messageStatus = null;
 			if (redeem.getStatus().name().equals("PENDING")) {
 				if (transfer.getTranStatus().equals("RESERVED")) {
-					messageStatus = "TRANSACTION RESERVED.";
+					messageStatus = "TRANSACTION RESERVED: Kindly note that confirm PIN has been sent";
 					redeem.setStatus(PaymentStatus.RESERVED);
 					String pinToken = tempwallet.generatePIN();
 					redeem.setConfirmPIN(pinToken);
@@ -632,9 +632,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 					redeem.setMerchantId(transfer.getMerchantId());
 					String message = formatMessagePIN(pinToken);
 					CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, redeem.getFullName(),
-							transfer.getEmailOrPhoneNo(), message, userToken.getId()));
+							redeem.getEmailOrPhone(), message, userToken.getId()));
 					CompletableFuture.runAsync(() -> customNotification.pushSMS(token, redeem.getFullName(),
-							transfer.getEmailOrPhoneNo(), message, userToken.getId()));
+							redeem.getEmailOrPhone(), message, userToken.getId()));
 					walletNonWayaPaymentRepo.save(redeem);
 				} else {
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION MUST BE RESERVED FIRST"),
@@ -697,7 +697,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					new ErrorResponse("TWO MERCHANT CAN'T PROCESS NON-WAYA TRANSACTION. PLEASE CONTACT ADMIN"),
 					HttpStatus.BAD_REQUEST);
 		}
-		NonWayaRedeemDTO waya = new NonWayaRedeemDTO(redeem.getEmailOrPhone(), redeem.getMerchantId(),
+		NonWayaRedeemDTO waya = new NonWayaRedeemDTO(redeem.getMerchantId(),
 				redeem.getTranAmount(), redeem.getCrncyCode(), redeem.getTokenId(), "PAYOUT");
 		NonWayaPaymentRedeem(request, waya);
 		return new ResponseEntity<>(new SuccessResponse("SUCCESS", null), HttpStatus.CREATED);

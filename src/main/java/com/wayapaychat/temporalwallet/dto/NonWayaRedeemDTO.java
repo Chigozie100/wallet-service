@@ -12,9 +12,9 @@ import lombok.Data;
 @Data
 public class NonWayaRedeemDTO {
 	
-	@NotBlank(message = "EmailOrPhone must not be Null or Blank")
-	@Size(min=1, max=50, message = "EmailOrPhone must be between 1 to 50 digit")
-    private String emailOrPhoneNo;
+	//@NotBlank(message = "EmailOrPhone must not be Null or Blank")
+	//@Size(min=1, max=50, message = "EmailOrPhone must be between 1 to 50 digit")
+    //private String emailOrPhoneNo;
 	
 	@NotNull(message = "Merchant ID must not be Null or Blank")
     private Long merchantId;
@@ -36,14 +36,13 @@ public class NonWayaRedeemDTO {
     private String tranStatus;
 
 	public NonWayaRedeemDTO(
-			String emailOrPhoneNo,
 			Long merchantId,
 			BigDecimal amount,
 			String tranCrncy,
 			String token,
 			String tranStatus) {
 		super();
-		this.emailOrPhoneNo = emailOrPhoneNo;
+		//this.emailOrPhoneNo = emailOrPhoneNo;
 		this.merchantId = merchantId;
 		this.amount = amount;
 		this.tranCrncy = tranCrncy;
