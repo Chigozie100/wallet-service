@@ -3754,7 +3754,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (mPayRequest == null) {
 				throw new CustomException("Reference ID does not exist", HttpStatus.BAD_REQUEST);
 			}
-			if (mPayRequest.getStatus().name().equals("PENDING") && (transfer.getPaymentRequest().isWayauser())) {
+			if (mPayRequest.getStatus().name().equals("PENDING") && (mPayRequest.isWayauser())) {
 				WalletAccount creditAcct = getAcount(Long.valueOf(mPayRequest.getSenderId()));
 				WalletAccount debitAcct = getAcount(Long.valueOf(mPayRequest.getReceiverId()));
 				TransferTransactionDTO txt = new TransferTransactionDTO(debitAcct.getAccountNo(), creditAcct.getAccountNo(), mPayRequest.getAmount(),
@@ -3764,8 +3764,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
 				}
 				log.info("Send Money: {}", transfer);
+				mPayRequest.setStatus(PaymentRequestStatus.PAID);
+				walletPaymentRequestRepo.save(mPayRequest);
 				return new ResponseEntity<>(res, HttpStatus.OK);
-			}else if(mPayRequest.getStatus().name().equals("PENDING") && (!transfer.getPaymentRequest().isWayauser())) {
+			}else if(mPayRequest.getStatus().name().equals("PENDING") && (!mPayRequest.isWayauser())) {
 				PaymentRequest mPay = transfer.getPaymentRequest();
 				WalletAccount creditAcct = getAcount(Long.valueOf(mPayRequest.getSenderId()));
 				WalletAccount debitAcct = getAcount(Long.valueOf(mPay.getReceiverId()));
