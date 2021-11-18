@@ -3777,6 +3777,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 				log.info("Send Money: {}", transfer);
 				mPayRequest.setReceiverId(mPay.getReceiverId());
+				mPayRequest.setStatus(PaymentRequestStatus.PAID);
 				walletPaymentRequestRepo.save(mPayRequest);
 				return new ResponseEntity<>(res, HttpStatus.OK);
 			} else {
