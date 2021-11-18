@@ -83,7 +83,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 	
 	@Override
 	public String generatePIN() {
-		String sql = "SELECT nextval('refnosequence')";
+		String sql = "SELECT nextval('pinsequence')";
 		String count = null;
 		try {
 			count = jdbcTemplate.queryForObject(sql, String.class);
