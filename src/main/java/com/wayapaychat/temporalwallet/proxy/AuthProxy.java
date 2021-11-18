@@ -14,8 +14,8 @@ public interface AuthProxy {
     
     @PostMapping("/auth/validate-user")
 	public TokenCheckResponse getUserDataToken(@RequestHeader("authorization") String token);
-    
+
     @PostMapping("/auth/validate-user")
     TokenCheckResponse getSignedOnUser();
-    
+
 }

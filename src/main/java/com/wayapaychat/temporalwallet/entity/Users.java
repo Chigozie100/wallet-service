@@ -23,7 +23,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-
 @Entity
 @Getter
 @Setter
@@ -41,6 +40,7 @@ public class Users {
     private Long userId;
 
     @JsonIgnore
+
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     private List<Accounts> accounts;
 
@@ -85,8 +85,5 @@ public class Users {
 		this.emailAddress = emailAddress;
 		this.mobileNo = mobileNo;
 	}
-
-	
-    
 
 }

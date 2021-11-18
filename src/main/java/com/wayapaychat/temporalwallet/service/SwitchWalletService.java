@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.service;
 
+
 import org.springframework.http.ResponseEntity;
 
 import com.wayapaychat.temporalwallet.dto.CreateSwitchDTO;
@@ -16,4 +17,5 @@ public interface SwitchWalletService {
 	ResponseEntity<?> DeleteSwitches(Long id);
 	
 	ResponseEntity<?> CreateWalletOperator(CreateSwitchDTO offno);
+
 }

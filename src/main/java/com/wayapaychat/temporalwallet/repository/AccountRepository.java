@@ -10,6 +10,7 @@ import com.wayapaychat.temporalwallet.entity.Accounts;
 import com.wayapaychat.temporalwallet.entity.Users;
 import com.wayapaychat.temporalwallet.enumm.AccountType;
 
+
 @Repository
 public interface AccountRepository extends JpaRepository<Accounts, Long> {
     Optional<Accounts> findByAccountNo(String accountNo);

@@ -28,7 +28,6 @@ public class MyData {
     private List<String> roles;
     private List<String> permits;
     private String transactionLimit;
-    
     public MyData(String email) {
     	this.email = email;
     }

@@ -1,6 +1,7 @@
 package com.wayapaychat.temporalwallet.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,7 +14,9 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.wayapaychat.temporalwallet.dto.CreateSwitchDTO;
 import com.wayapaychat.temporalwallet.dto.ToggleSwitchDTO;
+import com.wayapaychat.temporalwallet.entity.SwitchWallet;
 import com.wayapaychat.temporalwallet.service.SwitchWalletService;
+import com.wayapaychat.temporalwallet.util.ApiResponse;
 
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -25,7 +28,7 @@ public class SwitchAccountController {
 
 	@Autowired
 	private SwitchWalletService switchWalletService;
-
+	
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Create Switch for Toggle", notes = "Toggle Off/No")
@@ -58,5 +61,7 @@ public class SwitchAccountController {
 	@DeleteMapping("/wallet/{id}")
 	public ResponseEntity<?> DeleteSwitchOperator(@PathVariable("id") Long id) {
 		return switchWalletService.DeleteSwitches(id);
+
 	}
+	
 }

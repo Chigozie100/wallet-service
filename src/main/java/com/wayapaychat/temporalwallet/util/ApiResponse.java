@@ -16,7 +16,6 @@ public class ApiResponse<E> implements Serializable {
     private Integer code;
 
     private String message;
-
     private E data;
     
 

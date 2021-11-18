@@ -12,7 +12,6 @@ public class WalletClientConfiguration {
 	public Encoder feignEncoder() {
 
         HttpMessageConverter<?> jacksonConverter = new MappingJackson2HttpMessageConverter();
-
         ObjectFactory<HttpMessageConverters> objectFactory = () -> new HttpMessageConverters(jacksonConverter);
 
         return new SpringEncoder(objectFactory);

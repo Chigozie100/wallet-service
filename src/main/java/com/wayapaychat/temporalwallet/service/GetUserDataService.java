@@ -14,15 +14,12 @@ public class GetUserDataService {
 
 	@Autowired
 	private AuthProxy authProxy;
-	
+
 	public TokenCheckResponse getUserData(String token) {
 		TokenCheckResponse res = authProxy.getUserDataToken(token);
 		System.out.println("::::Token::::"+res.getMessage());
 		System.out.println("::::Token::::"+res.getData().getEmail());
 		return res;
 	}
-	
-	
-	
-	
+
 }

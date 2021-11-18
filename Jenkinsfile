@@ -1,106 +1,70 @@
 pipeline {
-	environment {
-    		registry = "wayapaychat-container-registry/waya-temporal-wallet-service"
-    		registryCredential = 'DigitalOcean-registry-for-development'
-    		dockerImage = ''
-    	}
-      	/*	parameters {
-	    strings(name: 'FROM_BUILD' defaultValue: '', description: 'Build Source')
-	} */
-    
-	agent any
-
-   	tools {
-        	jdk 'jdk-11'
-        	maven 'mvn3.6.3'
-    	}
-
-	stages {
-		
-		 stage('Checkout') {
-            		steps {
-				cleanWs()
-				checkout([$class: 'GitSCM', branches: [[name: '*/dev']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: 'odenigbo-github-credentials', url: 'https://github.com/WAYA-MULTI-LINK/WAYA-PAY-CHAT-2.0-TEMPORAL-WALLET-USER.git']]])
-				sh "git branch"
-                		sh "ls -lart ./*"
-            		}
-        	}     
-		
-        	stage('compile') {
-            		steps {
-               			sh "mvn clean install"
-            		}
+    agent any
+    environment {
+        registry='863852973330.dkr.ecr.eu-west-1.amazonaws.com/waya-twallet-user'
+        aws_Account_id='863852973330'
+        aws_default_region='eu-west-1'
+        image_repo_name='waya-infra-staging-registry'
+        image_tag='latest'
+    }
+    tools {
+        jdk 'jdk-11'
+        maven 'mvn3.6.3'
+    }
+    stages{
+        stage("compile") {
+            steps{
+                script {
+                    sh 'mvn clean install'
                 }
-		
-		stage('Code Quality Check via SonarQube') {
-			steps {
-                 		script {
-			     		def scannerHome = tool 'Jenkins-sonar-scanner';
-                     			withSonarQubeEnv("Jenkins-sonar-scanner") {
-                     				sh "${tool("Jenkins-sonar-scanner")}/bin/sonar-scanner \
-		     				            -Dsonar.projectName=waya-temporal-wallet-service \
-	             				      -Dsonar.projectKey=waya-temporal-wallet-service \
-	             				      -Dsonar.sources=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev \
-		     				            -Dsonar.projectBaseDir=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev \
-		     				            -Dsonar.projectVersion=1.0 \
-                     				-Dsonar.language=java \
-                     				-Dsonar.java.binaries=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev/target/classes \
-                     				-Dsonar.sourceEncoding=UTF-8 \
-                     				-Dsonar.exclusions=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev/src/test/**/* \
-		     				            -Dsonar.junit.reportsPath=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev/target/surefire-reports \
-                     				-Dsonar.surefire.reportsPath=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev/target/surefire-reports \
-                     				-Dsonar.jacoco.reportPath=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev/target/coverage-reports/jacoco-unit.exec \
-                     				-Dsonar.java.coveragePlugin=/var/jenkins_home/workspace/waya-2.0-waya-temporal-wallet-service-dev/target/jacoco  \
-		     				            -Dsonar.host.url=https://sonarqube.waya-pay.com \
-		     				            -Dsonar.verbose=true "
-               				}
-           			}
-      		 	}
-   		}
-	    
-		//stage("Quality Gate") {
-			//steps {
-				//timeout(time: 1, unit: 'HOURS') {
-                    	    		// Parameter indicates whether to set pipeline to UNSTABLE if Quality Gate fails
-                    	    		// true = set pipeline to UNSTABLE, false = don't
-                   	    		//waitForQualityGate abortPipeline: true
-                		//}
-           	 	//}
-       	 	//}
-		
-		stage('Building image') {
-      			steps{
-        			script {
-          				/*dockerImage = docker.build registry + ":$BUILD_NUMBER" */
-	    				dockerImage=docker.build registry
-        			}
-      			}
-		}
-    
-		stage('Deploy Image') {
-      			steps{
-         			script {
-		    			docker.withRegistry( 'https://registry.digitalocean.com/wayapaychat-container-registry', registryCredential ) {
-            					dockerImage.push()
-          				}
-        			}
-      			}
-    		}
-    
-		stage ('Starting the deployment job') {
-			steps {
-                		build job: 'waya-2.0-waya-temporal-wallet-service-deploy-dev', 
-				parameters: [[$class: 'StringParameterValue', name: 'FROM_BUILD', value: "${BUILD_NUMBER}"]
-	        			    ]
-	    		}	    
-    		}	  
+            }   
+        }
+        stage("Building Image") {
+            steps{
+                script {
+                    dockerImage = docker.build registry
+                }
+            }   
+        }
+        stage("Logging into AWS ECR") {
+            steps{
+                script {
+                    sh 'aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin 863852973330.dkr.ecr.eu-west-1.amazonaws.com'
+                }
+            }   
+        }
        
-   		stage('Remove Unused docker image') {
-      			steps{
-         			/* sh "docker rmi $registry:$BUILD_NUMBER" */
-	   			sh "docker rmi $registry"
-      			}
-    		} 
-    	}
-
+        stage("pushing to ECR") {
+            steps{
+                script {
+                    sh "aws ecr describe-repositories --repository-names waya-twallet-user || aws ecr create-repository --repository-name waya-notification-api --image-scanning-configuration scanOnPush=true"
+                    sh 'docker push 863852973330.dkr.ecr.eu-west-1.amazonaws.com/waya-twallet-user'
+                }
+            }   
+        }
+        stage("Deploying to EKS cluster") {
+            steps{
+                script {
+                    withCredentials([kubeconfigFile(credentialsId: 'kuberenetes-config', variable: 'KUBECONFIG')]) {
+                      dir('kubernetes/'){
+                          
+                          sh "helm upgrade --install notification ./base --kubeconfig ~/.kube/config \
+                          --set ingress.enabled=false \
+                          --set fullnameOverride=notification \
+                          --set autoscaling.enaled=false \
+                          --set service.type=ClusterIP \
+                          --set service.port=9009 \
+                          --set config.EUREKA_SERVER_URL=http://172.20.159.73:8761 \
+                          --set config.POSTGRES_URL=jdbc:postgresql://waya-infra-staging-database-staging-env-staging.c7gddqax0vzn.eu-west-1.rds.amazonaws.com:5432/tempwalletDBstaging \
+                          --set config.POSTGRES_USERNAME=wayapayuser \
+                          --set config.POSTGRES_PASSWORD=FrancisJude2020waya \
+                          --set 'tolerations[0].effect=NoSchedule' \
+                          --set 'tolerations[0].key=dev' \
+                          --set 'tolerations[0].operator=Exists'"
+                      }
+                   }
+                }
+            }
+        }   
+    }
 }
