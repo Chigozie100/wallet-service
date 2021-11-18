@@ -55,11 +55,7 @@ public class Accounts {
     private AccountType accountType = AccountType.SAVINGS;
 
     @JsonIgnore
-<<<<<<< HEAD
     @ManyToOne(fetch = FetchType.LAZY)
-=======
-    @ManyToOne
->>>>>>> master
     private Users user;
 
     @JsonIgnore

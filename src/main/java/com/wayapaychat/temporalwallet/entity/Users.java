@@ -1,6 +1,5 @@
 package com.wayapaychat.temporalwallet.entity;
 
-<<<<<<< HEAD
 import java.util.Date;
 import java.util.List;
 
@@ -20,25 +19,9 @@ import org.hibernate.annotations.CreationTimestamp;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import lombok.AllArgsConstructor;
-=======
-import com.fasterxml.jackson.annotation.JsonIgnore;
-
-import lombok.AllArgsConstructor;
-import lombok.Data;
->>>>>>> master
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-<<<<<<< HEAD
-=======
-import org.hibernate.annotations.CreationTimestamp;
-
-import javax.persistence.*;
-import java.util.Date;
-import java.util.List;
-
->>>>>>> master
 
 @Entity
 @Getter
@@ -57,18 +40,14 @@ public class Users {
     private Long userId;
 
     @JsonIgnore
-<<<<<<< HEAD
+
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
-=======
-    @OneToMany
->>>>>>> master
     private List<Accounts> accounts;
 
     @JsonIgnore
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdAt;
-<<<<<<< HEAD
     
     private String firstName;
     
@@ -107,18 +86,4 @@ public class Users {
 		this.mobileNo = mobileNo;
 	}
 
-	
-    
-
-=======
-    private String firstName;
-    private String lastName;
-//    private String externalId;
-    private int savingsProductId;
-    @Column(unique = true, nullable = false)
-    private String emailAddress;
-    @Column(unique = true, nullable = false)
-    private String mobileNo;
-
->>>>>>> master
 }

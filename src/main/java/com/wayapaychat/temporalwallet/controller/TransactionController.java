@@ -1,4 +1,4 @@
-<<<<<<< HEAD
+
 /*package com.wayapaychat.temporalwallet.controller;
 =======
 package com.wayapaychat.temporalwallet.controller;
@@ -46,6 +46,4 @@ public class TransactionController {
 <<<<<<< HEAD
 }
 */
-=======
-}
->>>>>>> master
+

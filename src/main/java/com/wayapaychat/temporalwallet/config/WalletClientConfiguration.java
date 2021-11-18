@@ -11,12 +11,7 @@ import feign.codec.Encoder;
 public class WalletClientConfiguration {
 	public Encoder feignEncoder() {
 
-<<<<<<< HEAD
         HttpMessageConverter<?> jacksonConverter = new MappingJackson2HttpMessageConverter();
-=======
-        HttpMessageConverter jacksonConverter = new MappingJackson2HttpMessageConverter();
->>>>>>> master
-
         ObjectFactory<HttpMessageConverters> objectFactory = () -> new HttpMessageConverters(jacksonConverter);
 
         return new SpringEncoder(objectFactory);

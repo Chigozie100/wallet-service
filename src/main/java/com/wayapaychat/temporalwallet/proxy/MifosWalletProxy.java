@@ -14,11 +14,7 @@ import com.wayapaychat.temporalwallet.pojo.CreateAccountPojo;
 import com.wayapaychat.temporalwallet.pojo.MifosTransactionPojo;
 import com.wayapaychat.temporalwallet.util.ApiResponse;
 
-<<<<<<< HEAD
 @FeignClient(name = "${waya.wallet.mifos}", url = "${waya.wallet.mifosurl}", configuration = WalletClientConfiguration.class)
-=======
-@FeignClient(name = "WAYA-WALLET-SERVICE", url = "http://46.101.41.187:9196", configuration = WalletClientConfiguration.class)
->>>>>>> master
 public interface MifosWalletProxy {
 
 	//OPEN ENDPOINT, MIFOS ACCOUNT CREATION
