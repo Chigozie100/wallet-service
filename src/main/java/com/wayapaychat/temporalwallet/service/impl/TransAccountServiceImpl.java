@@ -54,6 +54,7 @@ import com.wayapaychat.temporalwallet.dto.NonWayaPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.NonWayaRedeemDTO;
 import com.wayapaychat.temporalwallet.dto.OfficeTransferDTO;
 import com.wayapaychat.temporalwallet.dto.OfficeUserTransferDTO;
+import com.wayapaychat.temporalwallet.dto.PaymentRequest;
 import com.wayapaychat.temporalwallet.dto.ReversePaymentDTO;
 import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
@@ -3753,7 +3754,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (mPayRequest == null) {
 				throw new CustomException("Reference ID does not exist", HttpStatus.BAD_REQUEST);
 			}
-			if (mPayRequest.getStatus().name().equals("PENDING")) {
+			if (mPayRequest.getStatus().name().equals("PENDING") && (transfer.getPaymentRequest().isWayauser())) {
 				WalletAccount creditAcct = getAcount(Long.valueOf(mPayRequest.getSenderId()));
 				WalletAccount debitAcct = getAcount(Long.valueOf(mPayRequest.getReceiverId()));
 				TransferTransactionDTO txt = new TransferTransactionDTO(debitAcct.getAccountNo(), creditAcct.getAccountNo(), mPayRequest.getAmount(),
@@ -3763,6 +3764,20 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
 				}
 				log.info("Send Money: {}", transfer);
+				return new ResponseEntity<>(res, HttpStatus.OK);
+			}else if(mPayRequest.getStatus().name().equals("PENDING") && (!transfer.getPaymentRequest().isWayauser())) {
+				PaymentRequest mPay = transfer.getPaymentRequest();
+				WalletAccount creditAcct = getAcount(Long.valueOf(mPayRequest.getSenderId()));
+				WalletAccount debitAcct = getAcount(Long.valueOf(mPay.getReceiverId()));
+				TransferTransactionDTO txt = new TransferTransactionDTO(debitAcct.getAccountNo(), creditAcct.getAccountNo(), mPayRequest.getAmount(),
+						"TRANSFER", "NGN", mPayRequest.getReason(), mPayRequest.getReference());
+				ApiResponse<?> res = sendMoney(txt);
+				if (!res.getStatus()) {
+					return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+				}
+				log.info("Send Money: {}", transfer);
+				mPayRequest.setReceiverId(mPay.getReceiverId());
+				walletPaymentRequestRepo.save(mPayRequest);
 				return new ResponseEntity<>(res, HttpStatus.OK);
 			} else {
 				throw new CustomException("Reference ID already paid", HttpStatus.BAD_REQUEST);
