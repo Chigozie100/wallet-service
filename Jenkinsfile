@@ -49,11 +49,12 @@ pipeline {
                       dir('kubernetes/'){
                           
                           sh "helm upgrade --install waya-twallet ./base --kubeconfig ~/.kube/config \
-                          --set ingress.enabled=false \
+                          --set ingress.enabled=true \
                           --set fullnameOverride=waya-twallet \
                           --set autoscaling.enaled=false \
                           --set service.type=ClusterIP \
                           --set service.port=9009 \
+                          --set service.host=temporal-wallet-wayagram.com \
                           --set config.EUREKA_SERVER_URL=http://172.20.159.73:8761 \
                           --set config.url=jdbc:postgresql://waya-infra-staging-database-staging-env-staging.c7gddqax0vzn.eu-west-1.rds.amazonaws.com:5432/tempwalletDBstaging \
                           --set config.username=wayapayuser \
