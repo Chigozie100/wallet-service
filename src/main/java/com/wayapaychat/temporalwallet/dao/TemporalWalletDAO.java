@@ -21,8 +21,10 @@ public interface TemporalWalletDAO {
 	String generateToken();
 
 	String generatePIN();
-	
+
 	String generateRefNo();
+
+	String SystemGenOffice();
 
 	String GetSecurityTest(String account);
 

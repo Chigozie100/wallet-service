@@ -64,7 +64,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		}
 		return count;
 	}
-	
+
 	public String generateToken() {
 		String sql = "SELECT nextval('tokensequence')";
 		String count = null;
@@ -111,6 +111,19 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
 		}catch (Exception ex) {
 			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
+		}
+		return count;
+	}
+	@Override
+	public String SystemGenOffice() {
+		String sql = "SELECT nextval('officesequence')";
+		String count = null;
+		try {
+			count = jdbcTemplate.queryForObject(sql, String.class);
+			count = "S" + count;
+		} catch (EmptyResultDataAccessException ex) {
+			ex.printStackTrace();
+
 		}
 		return count;
 	}
