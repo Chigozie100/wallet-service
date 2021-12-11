@@ -38,7 +38,7 @@ pipeline {
         stage("pushing to ECR") {
             steps{
                 script {
-                    sh "aws ecr describe-repositories --repository-names waya-twallet-user || aws ecr create-repository --repository-name waya-notification-api --image-scanning-configuration scanOnPush=true"
+                    sh "aws ecr describe-repositories --repository-names waya-twallet-user || aws ecr create-repository --repository-name waya-twallet-user --image-scanning-configuration scanOnPush=true"
                     sh 'docker push 863852973330.dkr.ecr.eu-west-1.amazonaws.com/waya-twallet-user'
                 }
             }   
@@ -49,16 +49,18 @@ pipeline {
                     withCredentials([kubeconfigFile(credentialsId: 'kuberenetes-config', variable: 'KUBECONFIG')]) {
                       dir('kubernetes/'){
                           
-                          sh "helm upgrade --install notification ./base --kubeconfig ~/.kube/config \
-                          --set ingress.enabled=false \
-                          --set fullnameOverride=notification \
+                          sh "helm upgrade --install waya-twallet ./base --kubeconfig ~/.kube/config \
+                          --set ingress.enabled=true \
+                          --set fullnameOverride=waya-twallet \
                           --set autoscaling.enaled=false \
                           --set service.type=ClusterIP \
                           --set service.port=9009 \
+                          --set service.host=twallet.dev.wayagram.com \
+                          --set service.ingress=traefik \
                           --set config.EUREKA_SERVER_URL=http://172.20.159.73:8761 \
-                          --set config.POSTGRES_URL=jdbc:postgresql://waya-infra-staging-database-staging-env-staging.c7gddqax0vzn.eu-west-1.rds.amazonaws.com:5432/tempwalletDBstaging \
-                          --set config.POSTGRES_USERNAME=wayapayuser \
-                          --set config.POSTGRES_PASSWORD=FrancisJude2020waya \
+                          --set config.url=jdbc:postgresql://waya-infra-staging-database-staging-env-staging.c7gddqax0vzn.eu-west-1.rds.amazonaws.com:5432/tempwalletDBstaging \
+                          --set config.username=wayapayuser \
+                          --set config.password=FrancisJude2020waya \
                           --set 'tolerations[0].effect=NoSchedule' \
                           --set 'tolerations[0].key=dev' \
                           --set 'tolerations[0].operator=Exists'"
