@@ -158,6 +158,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Autowired
 	WalletPaymentRequestRepository walletPaymentRequestRepo;
+	
+	@Autowired
+	ExternalServiceProxyImpl externalServiceProxy;
 
 	@Override
 	public ApiResponse<TransactionRequest> makeTransaction(String command, TransactionRequest request) {
@@ -172,7 +175,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ApiResponse<?> adminTransferForUser(String command, AdminUserTransferDTO transfer) {
+	public ApiResponse<?> adminTransferForUser(HttpServletRequest request, String command, AdminUserTransferDTO transfer) {
 		String toAccountNumber = transfer.getCustomerAccountNumber();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
@@ -182,7 +185,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createAdminTransaction(transfer.getAdminUserId(), toAccountNumber,
 						transfer.getTranCrncy(), transfer.getAmount(), tranType, transfer.getTranNarration(),
-						transfer.getPaymentReference(), command);
+						transfer.getPaymentReference(), command, request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -207,7 +210,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return resp;
 	}
 
-	public ApiResponse<?> cashTransferByAdmin(String command, WalletAdminTransferDTO transfer) {
+	public ApiResponse<?> cashTransferByAdmin(HttpServletRequest request, String command, WalletAdminTransferDTO transfer) {
 		Optional<WalletUser> wallet = walletUserRepository.findByEmailOrPhoneNumber(transfer.getEmailOrPhoneNumber());
 		if (!wallet.isPresent()) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE NO DOES NOT EXIST", null);
@@ -226,7 +229,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createAdminTransaction(transfer.getAdminUserId(), toAccountNumber,
 						transfer.getTranCrncy(), transfer.getAmount(), tranType, transfer.getTranNarration(),
-						transfer.getPaymentReference(), command);
+						transfer.getPaymentReference(), command, request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -1843,7 +1846,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public String createAdminTransaction(String adminUserId, String creditAcctNo, String tranCrncy, BigDecimal amount,
-			TransactionTypeEnum tranType, String tranNarration, String paymentRef, String command) throws Exception {
+			TransactionTypeEnum tranType, String tranNarration, String paymentRef, 
+			String command, HttpServletRequest request) throws Exception {
 		try {
 			int n = 1;
 			log.info("START TRANSACTION");
@@ -2022,6 +2026,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 			accountCredit.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(accountCredit);
 			log.info("END TRANSACTION");
+			String token = request.getHeader(SecurityConstants.HEADER_STRING);
+			String receiverAcct = accountCredit.getAccountNo();
+			String receiverName = accountCredit.getAcct_name();
+			CompletableFuture.runAsync(() -> 
+			externalServiceProxy.printReceipt(amount, receiverAcct, 
+					paymentRef, new Date(), tranType.getValue(), 
+					userId, receiverName, token));
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
