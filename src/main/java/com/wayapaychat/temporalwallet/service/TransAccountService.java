@@ -48,9 +48,9 @@ public interface TransAccountService {
 
 	ApiResponse<TransactionRequest> walletToWalletTransfer(String command, WalletToWalletDto walletDto);
 
-	ApiResponse<?> adminTransferForUser(String command, AdminUserTransferDTO adminTranser);
+	ApiResponse<?> adminTransferForUser(HttpServletRequest request, String command, AdminUserTransferDTO adminTranser);
 
-	ApiResponse<?> cashTransferByAdmin(String command, WalletAdminTransferDTO adminTranser);
+	ApiResponse<?> cashTransferByAdmin(HttpServletRequest request, String command, WalletAdminTransferDTO adminTranser);
 
 	ApiResponse<TransactionRequest> transferUserToUser(String command, TransactionRequest request);
 
