@@ -1,71 +1,60 @@
 pipeline {
-    agent any
+
+    agent { label 'worker1' }
+
     environment {
-        registry='863852973330.dkr.ecr.eu-west-1.amazonaws.com/waya-twallet-user'
-        aws_Account_id='863852973330'
-        aws_default_region='eu-west-1'
-        image_repo_name='waya-infra-staging-registry'
-        image_tag='latest'
+        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+        AWS_DEFAULT_REGION = credentials('AWS_DEFAULT_REGION')
+        CLUSTER_NAME = credentials('CLUSTER_NAME')
+        REGISTRY = credentials('REGISTRY')
+        SERVICE_NAME = 'waya-repository'
+        VERSION = 'latest'
     }
-    tools {
-        jdk 'jdk-11'
-        maven 'mvn3.6.3'
-    }
+
+
     stages{
-        stage("compile") {
+
+        stage("build") {
             steps{
                 script {
-                    sh 'mvn clean install'
+                    sh 'mvn clean install package -DskipTests'
+                    echo 'Build with Maven'
                 }
             }   
         }
-        stage("Building Image") {
+
+        stage("Image Build") {
             steps{
                 script {
-                    dockerImage = docker.build registry
+                    dockerImage = docker.build "${REGISTRY}/${SERVICE_NAME}:${VERSION}"
                 }
             }   
         }
-        stage("Logging into AWS ECR") {
+        stage("ECR") {
             steps{
                 script {
-                    sh 'aws ecr get-login-password --region eu-west-1 | docker login --username AWS --password-stdin 863852973330.dkr.ecr.eu-west-1.amazonaws.com'
+                    sh "aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin ${REGISTRY}"
                 }
             }   
         }
-       
+
         stage("pushing to ECR") {
             steps{
                 script {
-                    sh "aws ecr describe-repositories --repository-names waya-twallet-user || aws ecr create-repository --repository-name waya-twallet-user --image-scanning-configuration scanOnPush=true"
-                    sh 'docker push 863852973330.dkr.ecr.eu-west-1.amazonaws.com/waya-twallet-user'
+                    sh "docker push ${REGISTRY}/${SERVICE_NAME}:${VERSION}"
                 }
             }   
         }
-        stage("Deploying to EKS cluster") {
+        stage("Deploy to EKS cluster") {
             steps{
                 script {
-                    withCredentials([kubeconfigFile(credentialsId: 'kuberenetes-config', variable: 'KUBECONFIG')]) {
-                      dir('kubernetes/'){
-                          
-                          sh "helm upgrade --install waya-twallet ./base --kubeconfig ~/.kube/config \
-                          --set ingress.enabled=true \
-                          --set fullnameOverride=waya-twallet \
-                          --set autoscaling.enaled=false \
-                          --set service.type=ClusterIP \
-                          --set service.port=9009 \
-                          --set service.host=twallet.dev.wayagram.com \
-                          --set service.ingress=traefik \
-                          --set config.EUREKA_SERVER_URL=http://172.20.159.73:8761 \
-                          --set config.url=jdbc:postgresql://waya-infra-staging-database-staging-env-staging.c7gddqax0vzn.eu-west-1.rds.amazonaws.com:5432/tempwalletDBstaging \
-                          --set config.username=wayapayuser \
-                          --set config.password=FrancisJude2020waya \
-                          --set 'tolerations[0].effect=NoSchedule' \
-                          --set 'tolerations[0].key=dev' \
-                          --set 'tolerations[0].operator=Exists'"
-                      }
-                   }
+                    sh '''
+                        aws eks --region $AWS_DEFAULT_REGION update-kubeconfig --name $CLUSTER_NAME
+                        kubectl apply -f staging.yaml --namespace=staging
+                        '''
                 }
+
             }
         }   
     }

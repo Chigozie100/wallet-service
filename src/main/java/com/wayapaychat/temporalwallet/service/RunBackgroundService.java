@@ -30,8 +30,8 @@ public class RunBackgroundService {
 	@Autowired
 	WalletAcountVirtualRepository walletAcountVirtualRepository;
 
-	@Scheduled(cron = "*/5 * * * * *")
-	public void VirtualAccountProcess() {
+	//@Scheduled(cron = "*/5 * * * * *")
+	/*public void VirtualAccountProcess() {
 		// ResponseEntity<AccountResponse> resp = accountProxy.fetchAllVirtualAccount();
 		// AccountResponse account = resp.getBody();
 
@@ -54,6 +54,5 @@ public class RunBackgroundService {
 				}
 			}
 		}
-	}
-
+	}*/
 }

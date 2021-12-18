@@ -1,5 +1,5 @@
 server:
-  port: ${TEMP_SERVER_PORT:80}
+  port: 80
   servlet:
     context-path: /temporal-service
 spring:
@@ -11,7 +11,7 @@ spring:
        ddl-auto: update
      properties:
        hibernate:
-          dialect: ${TEMP_SVC_DB_DIALECT:org.hibernate.dialect.H2Dialect}
+          dialect: org.hibernate.dialect.PostgreSQLDialect
           show-sql: true
           jdbc:
             time_zone: UTC
@@ -25,17 +25,17 @@ spring:
          fail-on-empty-beans: false
          
    datasource:
-        url:  ${TEMP_SVC_DB_URL:jdbc:h2:mem:dbTemp}
-        username: ${TEMP_SVC_DB_USERNAME:sa}
-        password: ${TEMP_SVC_DB_PASSWORD:sa}
-        driver-class-name: ${TEMP_SVC_DB_DRIVER:org.h2.Driver}
+        url:  jdbc:postgresql://postgresdb:5432/temporal-service?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+        username: root
+        password: pONvagaJf3BTbu9l
+        driver-class-name: org.postgresql.Driver
 
 eureka:
   client:
     serviceUrl:
-      defaultZone: ${EUREKA_SERVER_URL:http://eureka-service/eureka}
+      defaultZone: http://eureka-service/eureka
     service-url:
-      default-zone: ${EUREKA_SERVER_URL:http://eureka-service/eureka}
+      default-zone: http://eureka-service/eureka
   instance:
     preferIpAddress: true
 
@@ -63,12 +63,3 @@ waya:
 #     atalking: ${AFRICATALKING}
 #     infobip: ${INFOBIP}
 #     twilio: ${TWILIO}
-   notification:
-      service: NOTIFICATION-SERVICE
-      notificationurl: ${CONFIG_BASEURL_NOTIFICATION:http://68.183.60.114:8085/notification-service}
-   receipt:
-      service: RECEIPT-SERVICE
-      receipturl: ${CONFIG_BASEURL_RECEIPT:http://46.101.41.187:6316/transaction-receipt}
-   service:
-     username: tbaadm@wayapaychat.com
-     password: fintemp@#123
