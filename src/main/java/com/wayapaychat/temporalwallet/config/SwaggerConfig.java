@@ -1,53 +1,68 @@
 package com.wayapaychat.temporalwallet.config;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpHeaders;
+
+import io.swagger.models.auth.In;
 import springfox.documentation.builders.PathSelectors;
 import springfox.documentation.builders.RequestHandlerSelectors;
 import springfox.documentation.service.ApiInfo;
+import springfox.documentation.service.ApiKey;
+import springfox.documentation.service.AuthorizationScope;
 import springfox.documentation.service.Contact;
-import springfox.documentation.service.VendorExtension;
+import springfox.documentation.service.SecurityReference;
 import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spi.service.contexts.SecurityContext;
 import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
 
 @Configuration
 @EnableSwagger2
 public class SwaggerConfig {
-    Contact contact = new Contact(
-            "Waya-Paychat",
-            "",
-            "admin@wayapaychat.com"
-    );
-
-    @SuppressWarnings("rawtypes")
-	List<VendorExtension> vendorExtensions = new ArrayList<>();
-
-    ApiInfo apiInfo = new ApiInfo(
-            "Temporal Wallet Service",
-            "This pages documents Waya-Paychat Temporal Wallet RESTful Web Service endpoints",
-            "2.0",
-            "",
-            contact,
-            "Apache 2.0",
-            "http://www.apache.org/licenses/LICENSE-2.0",
-            vendorExtensions);
-
-    @Bean
-    public Docket api() {
+	@Bean
+    public Docket docket() {
         return new Docket(DocumentationType.SWAGGER_2)
-//                .protocols(new HashSet<>(Arrays.asList("HTTP", "HTTPs")))
-                .protocols(new HashSet<>(Arrays.asList("HTTP")))
-                .apiInfo(apiInfo)
-                .select()
-                .apis(RequestHandlerSelectors.any())
-                .paths(PathSelectors.any())
-                .build();
+        		    .protocols(new HashSet<>(Arrays.asList("HTTP","HTTPs")))
+                    .select()
+                    .apis(RequestHandlerSelectors.basePackage("com.wayapaychat.temporalwallet.controller"))
+                    .paths(PathSelectors.any())
+                    .build()
+                    .securitySchemes(Arrays.asList(new ApiKey("Token Access", HttpHeaders.AUTHORIZATION, In.HEADER.name())))
+                    .securityContexts(Arrays.asList(securityContext()))
+                    //.apiInfo(apiInfo())
+                    .apiInfo(DEFAULT_API_INFO);
+
     }
+    
+    @SuppressWarnings("deprecation")
+	private SecurityContext securityContext() {
+        return SecurityContext.builder()
+            .securityReferences(defaultAuth())
+            .forPaths(PathSelectors.ant("/api/v1/**"))
+            .build();
+    
+    }
+    
+    List<SecurityReference> defaultAuth() {
+        AuthorizationScope authorizationScope = new AuthorizationScope("ADMIN", "accessEverything");
+        AuthorizationScope[] authorizationScopes = new AuthorizationScope[1];
+        authorizationScopes[0] = authorizationScope;
+        return Arrays.asList(new SecurityReference("Token Access", authorizationScopes));
+    }
+    
+   
+    
+    public static final Contact DEFAULT_CONTACT = new Contact("API Support", "https://www.wayapaychat.com",
+			"admin@waya-paychat.com");
+	
+	public static final ApiInfo DEFAULT_API_INFO = new ApiInfo("TEMPORAL-WALLET-SERVICE REST API I",
+			"RESTFUL TEMPORAL WALLET API DOCUMENTATION", "1.0", "urn:tos", DEFAULT_CONTACT, "Apache 2.0",
+			"http://www.apache.org/licenses/LICENSE-2.0", Collections.emptyList());
 }
 
