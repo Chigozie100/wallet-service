@@ -1,102 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
-<Configuration status="WARN">
-	<!-- Logging Properties -->
-	<!-- <Properties> </Properties> -->
-
-	<Appenders>
-		<Console name="Console" target="SYSTEM_OUT" follow="true">
-			<PatternLayout
-				pattern="%d{yyy-MM-dd HH:mm:ss.SSS} [%t] %highlight{%-5level}{FATAL=bg_red, ERROR=red, WARN=yellow, INFO=green} %logger{36} - %message\n" />
-		</Console>
-
-		<RollingFile name="debugLog"
-			fileName="C:/home/logs/WalletLogv2-debug.log"
-			filePattern="C:/home/logs/$${date:yyyy-MM}/WalletLogv2-debug-%d{-dd-MMMM-yyyy}-%i.log.gz">
-			<LevelRangeFilter minLevel="DEBUG" maxLevel="DEBUG"
-				onMatch="ACCEPT" onMismatch="DENY" />
-			<PatternLayout
-				pattern="%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n" />
-			<Policies>
-				<OnStartupTriggeringPolicy />
-				<SizeBasedTriggeringPolicy size="10 MB" />
-				<TimeBasedTriggeringPolicy />
-			</Policies>
-			<DefaultRolloverStrategy max="10" />
-		</RollingFile>
-
-		<RollingFile name="infoLog"
-			fileName="C:/home/logs/WalletLogv2-info.log"
-			filePattern="C:/home/logs/$${date:yyyy-MM}/WalletLogv2-info-%d{-dd-MMMM-yyyy}-%i.log.gz">
-			<LevelRangeFilter minLevel="INFO" maxLevel="INFO"
-				onMatch="ACCEPT" onMismatch="DENY" />
-			<PatternLayout
-				pattern="%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n" />
-			<Policies>
-				<OnStartupTriggeringPolicy />
-				<SizeBasedTriggeringPolicy size="10 MB" />
-				<TimeBasedTriggeringPolicy />
-			</Policies>
-			<DefaultRolloverStrategy max="10" />
-		</RollingFile>
-
-		<RollingFile name="errorLog"
-			fileName="C:/home/logs/WalletLogv2-error.log"
-			filePattern="C:/home/logs/$${date:yyyy-MM}/WalletLogv2-error-%d{-dd-MMMM-yyyy}-%i.log.gz">
-			<LevelRangeFilter minLevel="ERROR" maxLevel="ERROR"
-				onMatch="ACCEPT" onMismatch="DENY" />
-			<PatternLayout
-				pattern="%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n" />
-			<Policies>
-				<OnStartupTriggeringPolicy />
-				<SizeBasedTriggeringPolicy size="10 MB" />
-				<TimeBasedTriggeringPolicy />
-			</Policies>
-			<DefaultRolloverStrategy max="10" />
-		</RollingFile>
-
-
-		<RollingFile name="requestLog"
-					 fileName="C:/home/logs/WalletLogv2-request.log"
-					 filePattern="C:/home/logs/$${date:yyyy-MM}/WalletLogv2-request-%d{-dd-MMMM-yyyy}-%i.log.gz">
-			<LevelRangeFilter minLevel="INFO" maxLevel="INFO"
-							  onMatch="ACCEPT" onMismatch="DENY" />
-			<PatternLayout
-					pattern="%d{yyyy-MM-dd HH:mm:ss} %-5level %logger{36} - %msg%n" />
-			<Policies>
-				<OnStartupTriggeringPolicy />
-				<SizeBasedTriggeringPolicy size="10 MB" />
-				<TimeBasedTriggeringPolicy />
-			</Policies>
-			<DefaultRolloverStrategy max="10" />
-		</RollingFile>
-
-	</Appenders>
-
-	<Loggers>
-
-		<Logger name="org.springframework.jdbc" additivity="false"
-			includeLocation="true">
-			<AppenderRef ref="debugLog" />
-		</Logger>
-
-		<Logger name="com.wayapaychat.temporalwallet.config"
-				additivity="false" includeLocation="true">
-			<AppenderRef ref="requestLog" />
-		</Logger>
-
-		<Logger name="com.wayapaychat.temporalwallet" includeLocation="true"
-			additivity="false">
-			<AppenderRef ref="debugLog" />
-			<AppenderRef ref="infoLog" />
-			<AppenderRef ref="errorLog" />
-			<AppenderRef ref="Console" />
-		</Logger>
-
-		<Root level="info">
-			<AppenderRef ref="Console" />
-		</Root>
-
-	</Loggers>
-
+<Configuration status="warn">
+    <Appenders>
+    	<!-- Console appender configuration -->
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout
+                pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
+        </Console>
+    </Appenders>
+    <Loggers>
+    	<!-- Root logger referring to console appender -->
+        <Root level="info" additivity="false">
+            <AppenderRef ref="console" />
+        </Root>
+    </Loggers>
 </Configuration>
