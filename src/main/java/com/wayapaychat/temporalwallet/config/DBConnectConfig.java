@@ -31,7 +31,7 @@ public class DBConnectConfig {
 		final DriverManagerDataSource datasource = new DriverManagerDataSource();
 		try {
 			
-			String jdbcUrl = hostURL.replace("WayaPayChatTemporalWalletDB", "WayaPayChatAuthDB");
+			String jdbcUrl = hostURL.replace("temporal-service", "auth-service-db");
 			datasource.setDriverClassName(hostDriver);
 			datasource.setUrl(jdbcUrl);
 			datasource.setUsername(hostUsername);
