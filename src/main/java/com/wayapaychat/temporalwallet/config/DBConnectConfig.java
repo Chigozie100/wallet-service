@@ -31,7 +31,7 @@ public class DBConnectConfig {
 		final DriverManagerDataSource datasource = new DriverManagerDataSource();
 		try {
 			
-			String jdbcUrl = hostURL.replace("temporal-service", "auth-service-db");
+			String jdbcUrl = hostURL.replace("temporal-service", "auth-service");
 			datasource.setDriverClassName(hostDriver);
 			datasource.setUrl(jdbcUrl);
 			datasource.setUsername(hostUsername);
