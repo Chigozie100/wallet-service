@@ -163,22 +163,29 @@ public class TransAccountServiceImpl implements TransAccountService {
 	ExternalServiceProxyImpl externalServiceProxy;
 
 	@Override
-	public ApiResponse<TransactionRequest> makeTransaction(String command, TransactionRequest request) {
+	public ApiResponse<TransactionRequest> makeTransaction(HttpServletRequest request, String command, TransactionRequest transfer) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public ApiResponse<TransactionRequest> walletToWalletTransfer(String command, WalletToWalletDto walletDto) {
+	public ApiResponse<TransactionRequest> walletToWalletTransfer(HttpServletRequest request, String command, WalletToWalletDto walletDto) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public ApiResponse<?> adminTransferForUser(HttpServletRequest request, String command, AdminUserTransferDTO transfer) {
+		
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+		}
+		
 		String toAccountNumber = transfer.getCustomerAccountNumber();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
-		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
+		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID ACCOUNT NO", null);
 		try {
 			int intRec = tempwallet.PaymenttranInsert("ADMINTIL", "", toAccountNumber, transfer.getAmount(),
 					transfer.getPaymentReference());
@@ -192,10 +199,25 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+				
+				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+                String fullName = xUser.getFirstName() + " " + xUser.getLastName();
+                
+				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, fullName,
+						xUser.getEmailAddress(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
+						xUser.getMobileNo(), message, userToken.getId()));
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -211,6 +233,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public ApiResponse<?> cashTransferByAdmin(HttpServletRequest request, String command, WalletAdminTransferDTO transfer) {
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID", null);
+		}
+		
 		Optional<WalletUser> wallet = walletUserRepository.findByEmailOrPhoneNumber(transfer.getEmailOrPhoneNumber());
 		if (!wallet.isPresent()) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE NO DOES NOT EXIST", null);
@@ -236,10 +264,26 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+				
+				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+                String fullName = xUser.getFirstName() + " " + xUser.getLastName();
+                
+				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, fullName,
+						xUser.getEmailAddress(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
+						xUser.getMobileNo(), message, userToken.getId()));
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -255,8 +299,15 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ApiResponse<?> EventTransferPayment(EventPaymentDTO transfer) {
+	public ApiResponse<?> EventTransferPayment(HttpServletRequest request, EventPaymentDTO transfer) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
+		
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+		}
+		
 		String toAccountNumber = transfer.getCustomerAccountNumber();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("CARD");
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
@@ -273,11 +324,27 @@ public class TransAccountServiceImpl implements TransAccountService {
 				log.info("Transaction ID Response: {}", tranId);
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
-				log.info("Transaction Response: {}", resp.toString());
+				
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				log.info("Transaction Response: {}", resp.toString());
+				
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+
+				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+                String fullName = xUser.getFirstName() + " " + xUser.getLastName();
+                
+				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, fullName,
+						xUser.getEmailAddress(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
+						xUser.getMobileNo(), message, userToken.getId()));
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -292,8 +359,15 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return resp;
 	}
 
-	public ApiResponse<?> EventNonPayment(NonWayaPaymentDTO transfer) {
+	public ApiResponse<?> EventNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
+		
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
+		}
+		
 		String toAccountNumber = transfer.getCustomerDebitAccountNo();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("CARD");
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
@@ -310,11 +384,24 @@ public class TransAccountServiceImpl implements TransAccountService {
 				log.info("Transaction ID Response: {}", tranId);
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
-				log.info("Transaction Response: {}", resp.toString());
+				
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
+				
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				log.info("Transaction Response: {}", resp.toString());
+				
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+
+				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, transfer.getFullName(),
+						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
+						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -329,8 +416,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return resp;
 	}
 
-	public ApiResponse<?> EventNonRedeem(NonWayaPaymentDTO transfer) {
+	public ApiResponse<?> EventNonRedeem(HttpServletRequest request, NonWayaPaymentDTO transfer) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED TOKEN", null);
+		}
 		String toAccountNumber = transfer.getCustomerDebitAccountNo();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("CARD");
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
@@ -347,11 +439,22 @@ public class TransAccountServiceImpl implements TransAccountService {
 				log.info("Transaction ID Response: {}", tranId);
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
-				log.info("Transaction Response: {}", resp.toString());
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				log.info("Transaction Response: {}", resp.toString());
+				
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+
+				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, transfer.getFullName(),
+						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
+						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -707,8 +810,15 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return new ResponseEntity<>(new SuccessResponse("SUCCESS", null), HttpStatus.CREATED);
 	}
 
-	public ApiResponse<?> EventBuySellPayment(WayaTradeDTO transfer) {
+	public ApiResponse<?> EventBuySellPayment(HttpServletRequest request, WayaTradeDTO transfer) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
+		
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+		}
+		
 		String toAccountNumber = transfer.getBenefAccountNumber();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("CARD");
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
@@ -725,11 +835,28 @@ public class TransAccountServiceImpl implements TransAccountService {
 				log.info("Transaction ID Response: {}", tranId);
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
-				log.info("Transaction Response: {}", resp.toString());
+				
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
+				
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				log.info("Transaction Response: {}", resp.toString());
+				
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+				
+				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+                String fullName = xUser.getFirstName() + " " + xUser.getLastName();
+                
+				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, fullName,
+						xUser.getEmailAddress(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
+						xUser.getMobileNo(), message, userToken.getId()));
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -745,8 +872,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ApiResponse<?> EventCommissionPayment(EventPaymentDTO transfer) {
+	public ApiResponse<?> EventCommissionPayment(HttpServletRequest request, EventPaymentDTO transfer) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+		}
 		WalletAccount acctComm = walletAccountRepository.findByAccountNo(transfer.getCustomerAccountNumber());
 		if (!acctComm.getProduct_code().equals("SB901")) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NOT COMMISSION WALLET", null);
@@ -767,11 +899,28 @@ public class TransAccountServiceImpl implements TransAccountService {
 				log.info("Transaction ID Response: {}", tranId);
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
-				log.info("Transaction Response: {}", resp.toString());
+				
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
+				
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				log.info("Transaction Response: {}", resp.toString());
+				
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+				
+				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+                String fullName = xUser.getFirstName() + " " + xUser.getLastName();
+                
+				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, fullName,
+						xUser.getEmailAddress(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
+						xUser.getMobileNo(), message, userToken.getId()));
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -786,7 +935,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return resp;
 	}
 
-	public ApiResponse<?> BankTransferPayment(BankPaymentDTO transfer) {
+	public ApiResponse<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer) {
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+		}
+		
 		String toAccountNumber = transfer.getCustomerAccountNumber();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("CARD");
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
@@ -803,10 +958,26 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+
+				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+                String fullName = xUser.getFirstName() + " " + xUser.getLastName();
+                
+				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, fullName,
+						xUser.getEmailAddress(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
+						xUser.getMobileNo(), message, userToken.getId()));
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -822,7 +993,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ApiResponse<TransactionRequest> transferUserToUser(String command, TransactionRequest request) {
+	public ApiResponse<TransactionRequest> transferUserToUser(HttpServletRequest request, String command, TransactionRequest transfer) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -894,28 +1065,62 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ApiResponse<?> makeWalletTransaction(String command, TransferTransactionDTO transactionPojo) {
-		String fromAccountNumber = transactionPojo.getDebitAccountNumber();
-		String toAccountNumber = transactionPojo.getBenefAccountNumber();
-		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transactionPojo.getTranType());
+	public ApiResponse<?> makeWalletTransaction(HttpServletRequest request, String command, TransferTransactionDTO transfer) {
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+		}
+		
+		String fromAccountNumber = transfer.getDebitAccountNumber();
+		String toAccountNumber = transfer.getBenefAccountNumber();
+		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
 			int intRec = tempwallet.PaymenttranInsert("", fromAccountNumber, toAccountNumber,
-					transactionPojo.getAmount(), transactionPojo.getPaymentReference());
+					transfer.getAmount(), transfer.getPaymentReference());
 			if (intRec == 1) {
-				String tranId = createTransaction(fromAccountNumber, toAccountNumber, transactionPojo.getTranCrncy(),
-						transactionPojo.getAmount(), tranType, transactionPojo.getTranNarration(),
-						transactionPojo.getPaymentReference());
+				String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+						transfer.getAmount(), tranType, transfer.getTranNarration(),
+						transfer.getPaymentReference());
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
 				}
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
+				
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+				
+				WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
+				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+                String xfullName = xUser.getFirstName() + " " + xUser.getLastName();
+                
+				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
+						xUser.getEmailAddress(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
+						xUser.getMobileNo(), message1, userToken.getId()));
+				
+				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
+                String yfullName = yUser.getFirstName() + " " + yUser.getLastName();
+                
+				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
+						yUser.getEmailAddress(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
+						yUser.getMobileNo(), message2, userToken.getId()));
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -931,7 +1136,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ApiResponse<?> sendMoney(TransferTransactionDTO transfer) {
+	public ApiResponse<?> sendMoney(HttpServletRequest request, TransferTransactionDTO transfer) {
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+		}
+		
 		String fromAccountNumber = transfer.getDebitAccountNumber();
 		String toAccountNumber = transfer.getBenefAccountNumber();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
@@ -948,10 +1159,38 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
+				
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+
+				WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
+				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+                String xfullName = xUser.getFirstName() + " " + xUser.getLastName();
+                
+				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
+						xUser.getEmailAddress(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
+						xUser.getMobileNo(), message1, userToken.getId()));
+				
+				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
+                String yfullName = yUser.getFirstName() + " " + yUser.getLastName();
+                
+				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
+						yUser.getEmailAddress(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
+						yUser.getMobileNo(), message2, userToken.getId()));
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -967,8 +1206,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ApiResponse<?> VirtuPaymentMoney(DirectTransactionDTO transfer) {
+	public ApiResponse<?> VirtuPaymentMoney(HttpServletRequest request, DirectTransactionDTO transfer) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
+		
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+		}
 
 		if (!transfer.getSecureKey()
 				.equals("yYSowX0uQVUZpNnkY28fREx0ayq+WsbEfm2s7ukn4+RHw1yxGODamMcLPH3R7lBD+Tmyw/FvCPG6yLPfuvbJVA==")) {
@@ -1013,6 +1258,23 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
 				log.info("Transaction Response: {}", resp.toString());
+				
+
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+				
+				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+                String fullName = xUser.getFirstName() + " " + xUser.getLastName();
+
+				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, fullName,
+						xUser.getEmailAddress(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
+						xUser.getMobileNo(), message, userToken.getId()));
+				
 				BigDecimal newAmount = mvirt.getActualBalance().add(transfer.getAmount());
 				mvirt.setActualBalance(newAmount);
 				walletAcountVirtualRepository.save(mvirt);
@@ -1038,7 +1300,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 		// PROCESSED", mCard);
 	}
 
-	public ApiResponse<?> OfficialMoneyTransfer(OfficeTransferDTO transfer) {
+	public ApiResponse<?> OfficialMoneyTransfer(HttpServletRequest request, OfficeTransferDTO transfer) {
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+		}
+		
 		String fromAccountNumber = transfer.getOfficeDebitAccount();
 		String toAccountNumber = transfer.getOfficeCreditAccount();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
@@ -1085,7 +1353,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return resp;
 	}
 
-	public ApiResponse<?> OfficialUserTransfer(OfficeUserTransferDTO transfer) {
+	public ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer) {
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+		}
+		
 		String fromAccountNumber = transfer.getOfficeDebitAccount();
 		String toAccountNumber = transfer.getCustomerCreditAccount();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
@@ -1118,6 +1392,34 @@ public class TransAccountServiceImpl implements TransAccountService {
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
+				
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+
+				WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
+				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+                String xfullName = xUser.getFirstName() + " " + xUser.getLastName();
+                
+				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
+						xUser.getEmailAddress(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
+						xUser.getMobileNo(), message1, userToken.getId()));
+				
+				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
+                String yfullName = yUser.getFirstName() + " " + yUser.getLastName();
+                
+				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
+						yUser.getEmailAddress(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
+						yUser.getMobileNo(), message2, userToken.getId()));
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -1132,7 +1434,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return resp;
 	}
 
-	public ApiResponse<?> AdminsendMoney(AdminLocalTransferDTO transfer) {
+	public ApiResponse<?> AdminsendMoney(HttpServletRequest request, AdminLocalTransferDTO transfer) {
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+		}
+		
 		UserDetailPojo user = authService.AuthUser(transfer.getUserId().intValue());
 		if (user == null) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID USER ID", null);
@@ -1161,6 +1469,33 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction.get());
+				
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+
+				WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
+				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+                String xfullName = xUser.getFirstName() + " " + xUser.getLastName();
+                
+				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
+						xUser.getEmailAddress(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
+						xUser.getMobileNo(), message1, userToken.getId()));
+				
+				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
+                String yfullName = yUser.getFirstName() + " " + yUser.getLastName();
+                
+				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
+						yUser.getEmailAddress(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
+						yUser.getMobileNo(), message2, userToken.getId()));
+				
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -1175,8 +1510,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return resp;
 	}
 
-	public ApiResponse<?> AdminCommissionMoney(CommissionTransferDTO transfer) {
-		// ooop
+	public ApiResponse<?> AdminCommissionMoney(HttpServletRequest request, CommissionTransferDTO transfer) {
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+		}
+		
 		UserDetailPojo user = authService.AuthUser(transfer.getUserId().intValue());
 		if (user == null) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID USER ID", null);
@@ -1214,6 +1554,33 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction.get());
+				
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+
+				WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
+				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+                String xfullName = xUser.getFirstName() + " " + xUser.getLastName();
+                
+				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
+						xUser.getEmailAddress(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
+						xUser.getMobileNo(), message1, userToken.getId()));
+				
+				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
+                String yfullName = yUser.getFirstName() + " " + yUser.getLastName();
+                
+				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
+						yUser.getEmailAddress(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
+						yUser.getMobileNo(), message2, userToken.getId()));
+				
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -1228,7 +1595,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return resp;
 	}
 
-	public ApiResponse<?> ClientCommissionMoney(ClientComTransferDTO transfer) {
+	public ApiResponse<?> ClientCommissionMoney(HttpServletRequest request, ClientComTransferDTO transfer) {
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+		}
+		
 		WalletAccount acctComm = walletAccountRepository.findByAccountNo(transfer.getDebitAccountNumber());
 		if (!acctComm.getProduct_code().equals("SB901")) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NOT COMMISSION WALLET", null);
@@ -1258,6 +1631,33 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction.get());
+				
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+
+				WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
+				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+                String xfullName = xUser.getFirstName() + " " + xUser.getLastName();
+                
+				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
+						xUser.getEmailAddress(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
+						xUser.getMobileNo(), message1, userToken.getId()));
+				
+				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
+                String yfullName = yUser.getFirstName() + " " + yUser.getLastName();
+                
+				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
+						yUser.getEmailAddress(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
+						yUser.getMobileNo(), message2, userToken.getId()));
+				
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -1273,7 +1673,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ApiResponse<?> sendMoneyCharge(WalletTransactionChargeDTO transfer) {
+	public ApiResponse<?> sendMoneyCharge(HttpServletRequest request, WalletTransactionChargeDTO transfer) {
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+		}
+		
 		String fromAccountNumber = transfer.getDebitAccountNumber();
 		String toAccountNumber = transfer.getBenefAccountNumber();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
@@ -1295,6 +1701,33 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction.get());
+				
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+
+				WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
+				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+                String xfullName = xUser.getFirstName() + " " + xUser.getLastName();
+                
+				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
+						xUser.getEmailAddress(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
+						xUser.getMobileNo(), message1, userToken.getId()));
+				
+				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
+                String yfullName = yUser.getFirstName() + " " + yUser.getLastName();
+                
+				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
+						yUser.getEmailAddress(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
+						yUser.getMobileNo(), message2, userToken.getId()));
+				
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -1310,7 +1743,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ApiResponse<?> sendMoneyCustomer(WalletTransactionDTO transfer) {
+	public ApiResponse<?> sendMoneyCustomer(HttpServletRequest request, WalletTransactionDTO transfer) {
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+		}
+		
 		List<WalletTransaction> transRef = walletTransactionRepository.findByReference(transfer.getPaymentReference(),
 				LocalDate.now(), transfer.getTranCrncy());
 		if (!transRef.isEmpty()) {
@@ -1347,10 +1786,39 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
+				
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+
+				WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
+				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+                String xfullName = xUser.getFirstName() + " " + xUser.getLastName();
+                
+				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
+						xUser.getEmailAddress(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
+						xUser.getMobileNo(), message1, userToken.getId()));
+				
+				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
+                String yfullName = yUser.getFirstName() + " " + yUser.getLastName();
+                
+				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
+						yUser.getEmailAddress(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
+						yUser.getMobileNo(), message2, userToken.getId()));
+				
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -1366,7 +1834,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ApiResponse<?> AdminSendMoneyCustomer(AdminWalletTransactionDTO transfer) {
+	public ApiResponse<?> AdminSendMoneyCustomer(HttpServletRequest request, AdminWalletTransactionDTO transfer) {
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+		}
+		
 		// check for admin
 		List<WalletTransaction> transRef = walletTransactionRepository.findByReference(transfer.getPaymentReference(),
 				LocalDate.now(), transfer.getTranCrncy());
@@ -1411,10 +1885,39 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
+				
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+
+				WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
+				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+                String xfullName = xUser.getFirstName() + " " + xUser.getLastName();
+                
+				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
+						xUser.getEmailAddress(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
+						xUser.getMobileNo(), message1, userToken.getId()));
+				
+				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
+                String yfullName = yUser.getFirstName() + " " + yUser.getLastName();
+                
+				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
+						yUser.getEmailAddress(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
+						yUser.getMobileNo(), message2, userToken.getId()));
+				
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -1430,7 +1933,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ApiResponse<?> ClientSendMoneyCustomer(ClientWalletTransactionDTO transfer) {
+	public ApiResponse<?> ClientSendMoneyCustomer(HttpServletRequest request, ClientWalletTransactionDTO transfer) {
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+		}
+		
 		// check for admin
 		List<WalletTransaction> transRef = walletTransactionRepository.findByReference(transfer.getPaymentReference(),
 				LocalDate.now(), transfer.getTranCrncy());
@@ -1475,10 +1984,39 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
+				
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+
+				WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
+				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+                String xfullName = xUser.getFirstName() + " " + xUser.getLastName();
+                
+				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
+						xUser.getEmailAddress(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
+						xUser.getMobileNo(), message1, userToken.getId()));
+				
+				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
+                String yfullName = yUser.getFirstName() + " " + yUser.getLastName();
+                
+				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
+						yUser.getEmailAddress(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
+						yUser.getMobileNo(), message2, userToken.getId()));
+				
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -3015,7 +3553,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ApiResponse<?> TranReversePayment(ReverseTransactionDTO reverseDto) throws ParseException {
+	public ApiResponse<?> TranReversePayment(HttpServletRequest request, ReverseTransactionDTO reverseDto) throws ParseException {
 		DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
 		String toDate = dateFormat.format(new Date());
 		String tranDate = dateFormat.format(reverseDto.getTranDate());
@@ -3175,7 +3713,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ApiResponse<?> createBulkTransaction(BulkTransactionCreationDTO bulkList) {
+	public ApiResponse<?> createBulkTransaction(HttpServletRequest request, BulkTransactionCreationDTO bulkList) {
 		try {
 			if (bulkList == null || bulkList.getUsersList().isEmpty())
 				return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "Bulk List cannot be null or Empty",
@@ -3202,7 +3740,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ApiResponse<?> createBulkExcelTrans(MultipartFile file) {
+	public ApiResponse<?> createBulkExcelTrans(HttpServletRequest request, MultipartFile file) {
 		String message;
 		BulkTransactionExcelDTO bulkLimt = null;
 		if (ExcelHelper.hasExcelFormat(file)) {
@@ -3583,7 +4121,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ApiResponse<?> VirtuPaymentReverse(ReversePaymentDTO reverseDto) throws ParseException {
+	public ApiResponse<?> VirtuPaymentReverse(HttpServletRequest request, ReversePaymentDTO reverseDto) throws ParseException {
 
 		if (!reverseDto.getSecureKey()
 				.equals("yYSowX0uQVUZpNnkY28fREx0ayq+WsbEfm2s7ukn4+RHw1yxGODamMcLPH3R7lBD+Tmyw/FvCPG6yLPfuvbJVA==")) {
@@ -3691,6 +4229,32 @@ public class TransAccountServiceImpl implements TransAccountService {
 		message = message + "" + "Narration :" + narration + "\n";
 		return message;
 	}
+	
+	public String formatNewMessage(BigDecimal amount, String tranId, String tranDate, String tranCrncy, String narration) {
+
+		String message = "" + "\n";
+		message = message + "" + "Message :" + "A credit transaction has occurred" 
+				+ "  on your account see details below" + "\n";
+		message = message + "" + "Amount :" + amount + "\n";
+		message = message + "" + "tranId :" + tranId + "\n";
+		message = message + "" + "tranDate :" + tranDate + "\n";
+		message = message + "" + "Currency :" + tranCrncy + "\n";
+		message = message + "" + "Narration :" + narration + "\n";
+		return message;
+	}
+	
+	public String formatDebitMessage(BigDecimal amount, String tranId, String tranDate, String tranCrncy, String narration) {
+
+		String message = "" + "\n";
+		message = message + "" + "Message :" + "A debit transaction has occurred" 
+				+ "  on your account see details below" + "\n";
+		message = message + "" + "Amount :" + amount + "\n";
+		message = message + "" + "tranId :" + tranId + "\n";
+		message = message + "" + "tranDate :" + tranDate + "\n";
+		message = message + "" + "Currency :" + tranCrncy + "\n";
+		message = message + "" + "Narration :" + narration + "\n";
+		return message;
+	}
 
 	public String formatMessagePIN(String pin) {
 
@@ -3723,7 +4287,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				String creditAcct = getAcount(mPay.getPayeeId()).getAccountNo();
 				TransferTransactionDTO txt = new TransferTransactionDTO(debitAcct, creditAcct, transfer.getAmount(),
 						"TRANSFER", mPay.getCrncyCode(), "QR-CODE PAYMENT", mPay.getReferenceNo());
-				ApiResponse<?> res = sendMoney(txt);
+				ApiResponse<?> res = sendMoney(request, txt);
 				if (!res.getStatus()) {
 					return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
 				}
@@ -3770,7 +4334,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				WalletAccount debitAcct = getAcount(Long.valueOf(mPayRequest.getReceiverId()));
 				TransferTransactionDTO txt = new TransferTransactionDTO(debitAcct.getAccountNo(), creditAcct.getAccountNo(), mPayRequest.getAmount(),
 						"TRANSFER", "NGN", mPayRequest.getReason(), mPayRequest.getReference());
-				ApiResponse<?> res = sendMoney(txt);
+				ApiResponse<?> res = sendMoney(request,txt);
 				if (!res.getStatus()) {
 					return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
 				}
@@ -3784,7 +4348,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				WalletAccount debitAcct = getAcount(Long.valueOf(mPay.getReceiverId()));
 				TransferTransactionDTO txt = new TransferTransactionDTO(debitAcct.getAccountNo(), creditAcct.getAccountNo(), mPayRequest.getAmount(),
 						"TRANSFER", "NGN", mPayRequest.getReason(), mPayRequest.getReference());
-				ApiResponse<?> res = sendMoney(txt);
+				ApiResponse<?> res = sendMoney(request, txt);
 				if (!res.getStatus()) {
 					return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
 				}
