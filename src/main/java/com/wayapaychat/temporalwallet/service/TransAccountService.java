@@ -44,15 +44,15 @@ import com.wayapaychat.temporalwallet.response.ApiResponse;
 
 public interface TransAccountService {
 
-	ApiResponse<?> makeTransaction(String command, TransactionRequest request);
+	ApiResponse<?> makeTransaction(HttpServletRequest request, String command, TransactionRequest transfer);
 
-	ApiResponse<TransactionRequest> walletToWalletTransfer(String command, WalletToWalletDto walletDto);
+	ApiResponse<TransactionRequest> walletToWalletTransfer(HttpServletRequest request, String command, WalletToWalletDto walletDto);
 
 	ApiResponse<?> adminTransferForUser(HttpServletRequest request, String command, AdminUserTransferDTO adminTranser);
 
 	ApiResponse<?> cashTransferByAdmin(HttpServletRequest request, String command, WalletAdminTransferDTO adminTranser);
 
-	ApiResponse<TransactionRequest> transferUserToUser(String command, TransactionRequest request);
+	ApiResponse<TransactionRequest> transferUserToUser(HttpServletRequest request, String command, TransactionRequest transfer);
 
 	ApiResponse<Page<WalletTransaction>> findAllTransaction(int page, int size);
 
@@ -66,47 +66,47 @@ public interface TransAccountService {
 
 	ApiResponse<Page<WalletTransaction>> findByAccountNumber(int page, int size, String accountNumber);
 
-	ApiResponse<?> makeWalletTransaction(String command, TransferTransactionDTO transactionPojo);
+	ApiResponse<?> makeWalletTransaction(HttpServletRequest request, String command, TransferTransactionDTO transactionPojo);
 
-	ApiResponse<?> sendMoney(TransferTransactionDTO transfer);
+	ApiResponse<?> sendMoney(HttpServletRequest request, TransferTransactionDTO transfer);
 
-	ApiResponse<?> VirtuPaymentMoney(DirectTransactionDTO transfer);
+	ApiResponse<?> VirtuPaymentMoney(HttpServletRequest request, DirectTransactionDTO transfer);
 
 	ResponseEntity<?> PostExternalMoney(HttpServletRequest request, CardRequestPojo transfer, Long userId);
 
-	ApiResponse<?> OfficialMoneyTransfer(OfficeTransferDTO transfer);
+	ApiResponse<?> OfficialMoneyTransfer(HttpServletRequest request, OfficeTransferDTO transfer);
 
-	ApiResponse<?> OfficialUserTransfer(OfficeUserTransferDTO transfer);
+	ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer);
 
-	ApiResponse<?> createBulkTransaction(BulkTransactionCreationDTO bulk);
+	ApiResponse<?> createBulkTransaction(HttpServletRequest request, BulkTransactionCreationDTO bulk);
 
-	ApiResponse<?> createBulkExcelTrans(MultipartFile file);
+	ApiResponse<?> createBulkExcelTrans(HttpServletRequest request, MultipartFile file);
 
-	ApiResponse<?> AdminsendMoney(AdminLocalTransferDTO transfer);
+	ApiResponse<?> AdminsendMoney(HttpServletRequest request, AdminLocalTransferDTO transfer);
 
-	ApiResponse<?> AdminCommissionMoney(CommissionTransferDTO transfer);
+	ApiResponse<?> AdminCommissionMoney(HttpServletRequest request, CommissionTransferDTO transfer);
 
-	ApiResponse<?> ClientCommissionMoney(ClientComTransferDTO transfer);
+	ApiResponse<?> ClientCommissionMoney(HttpServletRequest request, ClientComTransferDTO transfer);
 
-	ApiResponse<?> sendMoneyCustomer(WalletTransactionDTO transfer);
+	ApiResponse<?> sendMoneyCustomer(HttpServletRequest request, WalletTransactionDTO transfer);
 
-	ApiResponse<?> AdminSendMoneyCustomer(AdminWalletTransactionDTO transfer);
+	ApiResponse<?> AdminSendMoneyCustomer(HttpServletRequest request, AdminWalletTransactionDTO transfer);
 
-	ApiResponse<?> ClientSendMoneyCustomer(ClientWalletTransactionDTO transfer);
+	ApiResponse<?> ClientSendMoneyCustomer(HttpServletRequest request, ClientWalletTransactionDTO transfer);
 
 	ApiResponse<?> getStatement(String accountNumber);
 
-	ApiResponse<?> EventTransferPayment(EventPaymentDTO eventPay);
+	ApiResponse<?> EventTransferPayment(HttpServletRequest request, EventPaymentDTO eventPay);
 
-	ApiResponse<?> EventBuySellPayment(WayaTradeDTO eventPay);
+	ApiResponse<?> EventBuySellPayment(HttpServletRequest request, WayaTradeDTO eventPay);
 
-	ApiResponse<?> EventCommissionPayment(EventPaymentDTO eventPay);
+	ApiResponse<?> EventCommissionPayment(HttpServletRequest request, EventPaymentDTO eventPay);
 
-	ApiResponse<?> sendMoneyCharge(WalletTransactionChargeDTO transfer);
+	ApiResponse<?> sendMoneyCharge(HttpServletRequest request, WalletTransactionChargeDTO transfer);
 
-	ApiResponse<?> TranReversePayment(ReverseTransactionDTO reverseDto) throws ParseException;
+	ApiResponse<?> TranReversePayment(HttpServletRequest request, ReverseTransactionDTO reverseDto) throws ParseException;
 
-	ApiResponse<?> VirtuPaymentReverse(ReversePaymentDTO reverseDto) throws ParseException;
+	ApiResponse<?> VirtuPaymentReverse(HttpServletRequest request, ReversePaymentDTO reverseDto) throws ParseException;
 
 	ApiResponse<?> TranRevALLReport(Date date, Date todate);
 
@@ -120,11 +120,11 @@ public interface TransAccountService {
 
 	ApiResponse<?> statementReport(Date fromdate, Date todate, String acctNo);
 
-	ApiResponse<?> BankTransferPayment(BankPaymentDTO transfer);
+	ApiResponse<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer);
 
-	ApiResponse<?> EventNonPayment(NonWayaPaymentDTO transfer);
+	ApiResponse<?> EventNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer);
 
-	ApiResponse<?> EventNonRedeem(NonWayaPaymentDTO transfer);
+	ApiResponse<?> EventNonRedeem(HttpServletRequest request, NonWayaPaymentDTO transfer);
 
 	ApiResponse<?> TranChargeReport();
 

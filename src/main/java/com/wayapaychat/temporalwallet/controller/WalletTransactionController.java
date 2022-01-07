@@ -78,8 +78,8 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Send Money to Wallet", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/sendmoney/wallet")
-	public ResponseEntity<?> sendMoney(@Valid @RequestBody TransferTransactionDTO transfer) {
-		ApiResponse<?> res = transAccountService.sendMoney(transfer);
+	public ResponseEntity<?> sendMoney(HttpServletRequest request, @Valid @RequestBody TransferTransactionDTO transfer) {
+		ApiResponse<?> res = transAccountService.sendMoney(request, transfer);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
@@ -89,8 +89,8 @@ public class WalletTransactionController {
 	
 	@ApiOperation(value = "Notify Transaction", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/notify/transaction")
-	public ResponseEntity<?> VirtuPaymentMoney(@Valid @RequestBody DirectTransactionDTO transfer) {
-		ApiResponse<?> res = transAccountService.VirtuPaymentMoney(transfer);
+	public ResponseEntity<?> VirtuPaymentMoney(HttpServletRequest request, @Valid @RequestBody DirectTransactionDTO transfer) {
+		ApiResponse<?> res = transAccountService.VirtuPaymentMoney(request, transfer);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
@@ -100,10 +100,10 @@ public class WalletTransactionController {
 	
 	@ApiOperation(value = "Notify Transaction Reverse", notes = "Reverse Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/notify/transaction/reverse")
-	public ResponseEntity<?> VirtuPaymentReverse(@RequestBody() ReversePaymentDTO reverseDto) {
+	public ResponseEntity<?> VirtuPaymentReverse(HttpServletRequest request, @RequestBody() ReversePaymentDTO reverseDto) {
 		ApiResponse<?> res;
 		try {
-			res = transAccountService.VirtuPaymentReverse(reverseDto);
+			res = transAccountService.VirtuPaymentReverse(request, reverseDto);
 			if (!res.getStatus()) {
 	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
 	        }
@@ -118,8 +118,8 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "To transfer money from one waya official account to another", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/official/transfer")
-	public ResponseEntity<?> OfficialSendMoney(@Valid @RequestBody OfficeTransferDTO transfer) {
-		ApiResponse<?> res = transAccountService.OfficialMoneyTransfer(transfer);
+	public ResponseEntity<?> OfficialSendMoney(HttpServletRequest request, @Valid @RequestBody OfficeTransferDTO transfer) {
+		ApiResponse<?> res = transAccountService.OfficialMoneyTransfer(request, transfer);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
@@ -130,8 +130,8 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "To transfer money from one waya official account to user wallet", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/official/user/transfer")
-	public ResponseEntity<?> OfficialUserMoney(@Valid @RequestBody OfficeUserTransferDTO transfer) {
-		ApiResponse<?> res = transAccountService.OfficialUserTransfer(transfer);
+	public ResponseEntity<?> OfficialUserMoney(HttpServletRequest request, @Valid @RequestBody OfficeUserTransferDTO transfer) {
+		ApiResponse<?> res = transAccountService.OfficialUserTransfer(request, transfer);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
@@ -142,8 +142,8 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Send Money to commercial bank", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/fund/bank/account")
-	public ResponseEntity<?> fundBank(@Valid @RequestBody BankPaymentDTO transfer) {
-		ApiResponse<?> res = transAccountService.BankTransferPayment(transfer);
+	public ResponseEntity<?> fundBank(HttpServletRequest request, @Valid @RequestBody BankPaymentDTO transfer) {
+		ApiResponse<?> res = transAccountService.BankTransferPayment(request, transfer);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
@@ -154,8 +154,8 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Admin Send Money to Wallet", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/admin/sendmoney")
-	public ResponseEntity<?> AdminsendMoney(@Valid @RequestBody AdminLocalTransferDTO transfer) {
-		ApiResponse<?> res = transAccountService.AdminsendMoney(transfer);
+	public ResponseEntity<?> AdminsendMoney(HttpServletRequest request, @Valid @RequestBody AdminLocalTransferDTO transfer) {
+		ApiResponse<?> res = transAccountService.AdminsendMoney(request, transfer);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
@@ -166,8 +166,8 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Admin Send Money from Commission to Default Wallet", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/admin/commission/transfer")
-	public ResponseEntity<?> AdminCommissionMoney(@Valid @RequestBody CommissionTransferDTO transfer) {
-		ApiResponse<?> res = transAccountService.AdminCommissionMoney(transfer);
+	public ResponseEntity<?> AdminCommissionMoney(HttpServletRequest request, @Valid @RequestBody CommissionTransferDTO transfer) {
+		ApiResponse<?> res = transAccountService.AdminCommissionMoney(request, transfer);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
@@ -178,8 +178,8 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Admin Send Money from Commission to Default Wallet", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/client/commission/transfer")
-	public ResponseEntity<?> CommissionMoney(@Valid @RequestBody ClientComTransferDTO transfer) {
-		ApiResponse<?> res = transAccountService.ClientCommissionMoney(transfer);
+	public ResponseEntity<?> CommissionMoney(HttpServletRequest request, @Valid @RequestBody ClientComTransferDTO transfer) {
+		ApiResponse<?> res = transAccountService.ClientCommissionMoney(request, transfer);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
@@ -190,8 +190,8 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Send Money to Wallet with Charge", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/sendmoney/wallet/charge")
-	public ResponseEntity<?> PushsendMoney(@Valid @RequestBody WalletTransactionChargeDTO transfer) {
-		ApiResponse<?> res = transAccountService.sendMoneyCharge(transfer);
+	public ResponseEntity<?> PushsendMoney(HttpServletRequest request, @Valid @RequestBody WalletTransactionChargeDTO transfer) {
+		ApiResponse<?> res = transAccountService.sendMoneyCharge(request, transfer);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
@@ -202,8 +202,8 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Send Money to Wallet", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/sendmoney/wallet/customer")
-	public ResponseEntity<?> sendMoneyCustomer(@Valid @RequestBody WalletTransactionDTO transfer) {
-		ApiResponse<?> res = transAccountService.sendMoneyCustomer(transfer);
+	public ResponseEntity<?> sendMoneyCustomer(HttpServletRequest request, @Valid @RequestBody WalletTransactionDTO transfer) {
+		ApiResponse<?> res = transAccountService.sendMoneyCustomer(request, transfer);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
@@ -214,8 +214,8 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Admin Send Money to Wallet", notes = "Admin Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/admin/sendmoney/customer")
-	public ResponseEntity<?> AdminSendMoney(@Valid @RequestBody AdminWalletTransactionDTO transfer) {
-		ApiResponse<?> res = transAccountService.AdminSendMoneyCustomer(transfer);
+	public ResponseEntity<?> AdminSendMoney(HttpServletRequest request, @Valid @RequestBody AdminWalletTransactionDTO transfer) {
+		ApiResponse<?> res = transAccountService.AdminSendMoneyCustomer(request, transfer);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
@@ -226,8 +226,8 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Client Send Money to Wallet", notes = "Client Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/client/sendmoney/customer")
-	public ResponseEntity<?> ClientSendMoney(@Valid @RequestBody ClientWalletTransactionDTO transfer) {
-		ApiResponse<?> res = transAccountService.ClientSendMoneyCustomer(transfer);
+	public ResponseEntity<?> ClientSendMoney(HttpServletRequest request, @Valid @RequestBody ClientWalletTransactionDTO transfer) {
+		ApiResponse<?> res = transAccountService.ClientSendMoneyCustomer(request, transfer);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
@@ -249,8 +249,8 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Transfer from one User Wallet to another wallet", notes = "Transfer from one Wallet to another wallet for a user this takes customer wallet id and the Beneficiary wallet id, effective from 06/24/2021", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/fund/transfer/wallet")
-	public ResponseEntity<?> handleTransactions(@RequestBody TransferTransactionDTO transactionPojo) {
-		ApiResponse<?> res = transAccountService.makeWalletTransaction("",transactionPojo);
+	public ResponseEntity<?> handleTransactions(HttpServletRequest request, @RequestBody TransferTransactionDTO transactionPojo) {
+		ApiResponse<?> res = transAccountService.makeWalletTransaction(request,"",transactionPojo);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
@@ -339,8 +339,8 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Event and Service Payment", notes = "Transfer amount from one wallet to another wallet", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/event/charge/payment")
-	public ResponseEntity<?> EventPayment(@RequestBody() EventPaymentDTO walletDto) {
-		ApiResponse<?> res = transAccountService.EventTransferPayment(walletDto);
+	public ResponseEntity<?> EventPayment(HttpServletRequest request, @RequestBody() EventPaymentDTO walletDto) {
+		ApiResponse<?> res = transAccountService.EventTransferPayment(request, walletDto);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
@@ -350,8 +350,8 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Trade and Service Payment", notes = "Transfer amount from one wallet to another wallet", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/event/trade/payment")
-	public ResponseEntity<?> BuySellPayment(@RequestBody() WayaTradeDTO walletDto) {
-		ApiResponse<?> res = transAccountService.EventBuySellPayment(walletDto);
+	public ResponseEntity<?> BuySellPayment(HttpServletRequest request, @RequestBody() WayaTradeDTO walletDto) {
+		ApiResponse<?> res = transAccountService.EventBuySellPayment(request, walletDto);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
@@ -361,8 +361,8 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Non-Waya Payment", notes = "Transfer amount from user wallet to Non-waya", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/non-waya/transaction/payment")
-	public ResponseEntity<?> NonWayaPayment(@RequestBody() NonWayaPaymentDTO walletDto) {
-		ApiResponse<?> res = transAccountService.EventNonPayment(walletDto);
+	public ResponseEntity<?> NonWayaPaymentX(HttpServletRequest request, @RequestBody() NonWayaPaymentDTO walletDto) {
+		ApiResponse<?> res = transAccountService.EventNonPayment(request, walletDto);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
@@ -372,8 +372,8 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Non-Waya Redeem", notes = "Transfer amount from user wallet to Non-waya", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/non-waya/transaction/redeem")
-	public ResponseEntity<?> NonWayaRedeem(@RequestBody() NonWayaPaymentDTO walletDto) {
-		ApiResponse<?> res = transAccountService.EventNonRedeem(walletDto);
+	public ResponseEntity<?> NonWayaRedeem(HttpServletRequest request, @RequestBody() NonWayaPaymentDTO walletDto) {
+		ApiResponse<?> res = transAccountService.EventNonRedeem(request, walletDto);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
@@ -425,8 +425,8 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Event and Service Payment", notes = "Transfer amount from one wallet to another wallet", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/admin/commission/payment")
-	public ResponseEntity<?> CommissiomPaymentAdmin(@RequestBody() EventPaymentDTO walletDto) {
-		ApiResponse<?> res = transAccountService.EventCommissionPayment(walletDto);
+	public ResponseEntity<?> CommissiomPaymentAdmin(HttpServletRequest request, @RequestBody() EventPaymentDTO walletDto) {
+		ApiResponse<?> res = transAccountService.EventCommissionPayment(request, walletDto);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
@@ -446,10 +446,10 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Admin Transaction Reversal", notes = "Transfer amount from one wallet to another wallet", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/transaction/reverse")
-	public ResponseEntity<?> PaymentReversal(@RequestBody() ReverseTransactionDTO reverseDto) {
+	public ResponseEntity<?> PaymentReversal(HttpServletRequest request, @RequestBody() ReverseTransactionDTO reverseDto) {
 		ApiResponse<?> res;
 		try {
-			res = transAccountService.TranReversePayment(reverseDto);
+			res = transAccountService.TranReversePayment(request, reverseDto);
 			if (!res.getStatus()) {
 	            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
 	        }
@@ -567,8 +567,8 @@ public class WalletTransactionController {
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Waya Admin to create multiple transaction", notes = "Transfer amount from one wallet to another wallet", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/transfer/bulk-transaction")
-	public ResponseEntity<?> createBulkTrans(@Valid @RequestBody BulkTransactionCreationDTO userList) {
-		ApiResponse<?> res = transAccountService.createBulkTransaction(userList);
+	public ResponseEntity<?> createBulkTrans(HttpServletRequest request, @Valid @RequestBody BulkTransactionCreationDTO userList) {
+		ApiResponse<?> res = transAccountService.createBulkTransaction(request, userList);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
@@ -581,8 +581,8 @@ public class WalletTransactionController {
     @PostMapping(path = "/transfer/bulk-transaction-excel",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> createBulkTransExcel(@RequestPart("file") MultipartFile file) {
-		ApiResponse<?> res = transAccountService.createBulkExcelTrans(file);
+    public ResponseEntity<?> createBulkTransExcel(HttpServletRequest request, @RequestPart("file") MultipartFile file) {
+		ApiResponse<?> res = transAccountService.createBulkExcelTrans(request, file);
 		if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
