@@ -37,8 +37,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 cors().and().csrf().disable()
                 // dont authenticate this particular request
                 .authorizeRequests().antMatchers(
-                "/wallet/create/account","/api/v1/wallet/account/count", "/api/userjdbc/register/jdbc/add", "/api/v1/wallet/notify/**",
-                "/wallet/get/default/wallet/open/**","/wallet/create/cooperate/user","/api/v1/wallet/account/lookup/**", 
+                "/wallet/create/account","/api/v1/wallet/account/count/**", "/api/userjdbc/register/jdbc/add", "/api/v1/wallet/notify/**",
+                "/wallet/get/default/wallet/open/**","/wallet/create/cooperate/user","/api/v1/wallet/account/lookup/**","/temporal-service/api/v1/wallet/account/count/**", 
                 "/api/v1/wallet/user/account","/api/v1/wallet/create/cooperate/user","/api/users/register/admin", "/api/users/welcome").permitAll()
                 //For Local Test Purpose
                 //.antMatchers("/api/v1/bank/**","/wallet/create-wallet","/api/v1/wallet/**","/wallet/**","/api/v1/switch/**").permitAll()
