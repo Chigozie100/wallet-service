@@ -1378,6 +1378,18 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 		return new ResponseEntity<>(new SuccessResponse("LIST SIMULATED ACCOUNT", account), HttpStatus.OK);
 	}
+	
+	public ResponseEntity<?> getUserAccountCount(Long userId) {
+		WalletUser user = walletUserRepository.findByUserId(userId);
+		if (user == null) {
+			return new ResponseEntity<>(new ErrorResponse("User Doesn't Exist"), HttpStatus.BAD_REQUEST);
+		}
+		List<WalletAccount> account = walletAccountRepository.findByUser(user);
+		if (account.isEmpty() || account == null) {
+			return new ResponseEntity<>(new ErrorResponse("NO ACCOUNT CREATED"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(new SuccessResponse("LIST ACCOUNT", account), HttpStatus.OK);
+	}
 
 	@Override
 	public ResponseEntity<?> AccountLookUp(String account, SecureDTO secureKey) {

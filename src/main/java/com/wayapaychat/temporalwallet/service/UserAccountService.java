@@ -94,6 +94,8 @@ public interface UserAccountService {
 	
 	ResponseEntity<?> getListSimulatedAccount();
 	
+	ResponseEntity<?> getUserAccountCount(Long userId);
+	
 	ResponseEntity<?> ListUserAccount(long userId);
 	
 	ResponseEntity<?> AccountLookUp(String account, SecureDTO secureKey);
