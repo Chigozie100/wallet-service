@@ -337,6 +337,12 @@ public class WalletUserAccountController {
 		log.info("Request input: {}",user);
 		return userAccountService.createAccount(user);
     }
+	
+	@ApiOperation(value = "Get Wallet User account count", tags = { "USER-ACCOUNT-WALLET" })
+    @GetMapping(path = "/account/count/{userId}")
+    public ResponseEntity<?> TotalUserAccountCount(@PathVariable Long userId) {
+        return userAccountService.getUserAccountCount(userId);
+    }
 
 
 }

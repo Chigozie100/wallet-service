@@ -8,6 +8,7 @@ import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
+import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.models.auth.In;
 import springfox.documentation.builders.PathSelectors;
@@ -30,7 +31,7 @@ public class SwaggerConfig {
         return new Docket(DocumentationType.SWAGGER_2)
         		    .protocols(new HashSet<>(Arrays.asList("HTTP","HTTPs")))
                     .select()
-                    .apis(RequestHandlerSelectors.basePackage("com.wayapaychat.temporalwallet.controller"))
+                    .apis(RequestHandlerSelectors.withClassAnnotation(RestController.class))
                     .paths(PathSelectors.any())
                     .build()
                     .securitySchemes(Arrays.asList(new ApiKey("Token Access", HttpHeaders.AUTHORIZATION, In.HEADER.name())))
