@@ -1139,12 +1139,18 @@ public class TransAccountServiceImpl implements TransAccountService {
 	public ApiResponse<?> sendMoney(HttpServletRequest request, TransferTransactionDTO transfer) {
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
+		
 		if (userToken == null) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
 		}
 		
 		String fromAccountNumber = transfer.getDebitAccountNumber();
 		String toAccountNumber = transfer.getBenefAccountNumber();
+		
+		if(fromAccountNumber.trim().equals(toAccountNumber.trim())) {
+			log.info(toAccountNumber + "|" + fromAccountNumber);
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "DEBIT AND CREDIT ON THE SAME ACCOUNT", null);
+		}
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
