@@ -1145,6 +1145,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 		
 		String fromAccountNumber = transfer.getDebitAccountNumber();
 		String toAccountNumber = transfer.getBenefAccountNumber();
+		if(fromAccountNumber == toAccountNumber) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "DEBIT AND CREDIT ON THE SAME ACCOUNT", null);
+		}
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
