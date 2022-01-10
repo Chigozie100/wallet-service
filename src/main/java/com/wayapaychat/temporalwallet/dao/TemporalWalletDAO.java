@@ -9,6 +9,7 @@ import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
 import com.wayapaychat.temporalwallet.dto.AccountTransChargeDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionHistoryDTO;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
+import com.wayapaychat.temporalwallet.pojo.TransWallet;
 
 public interface TemporalWalletDAO {
 
@@ -48,5 +49,7 @@ public interface TemporalWalletDAO {
 	AccountLookUp GetAccountLookUp(String account);
 
 	List<CommissionHistoryDTO> GetCommissionHistory();
+	
+	List<TransWallet> GetTransactionType(String account);
 
 }

@@ -22,6 +22,8 @@ import com.wayapaychat.temporalwallet.mapper.AccountLookUpMapper;
 import com.wayapaychat.temporalwallet.mapper.AccountStatementMapper;
 import com.wayapaychat.temporalwallet.mapper.AccountTransChargeMapper;
 import com.wayapaychat.temporalwallet.mapper.CommissionHistoryMapper;
+import com.wayapaychat.temporalwallet.mapper.TransWalletMapper;
+import com.wayapaychat.temporalwallet.pojo.TransWallet;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -383,6 +385,28 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 			log.error(ex.getMessage());
 		}
 		return comm;
+	}
+	
+	public List<TransWallet> GetTransactionType(String account) {
+		List<TransWallet> wallet = new ArrayList<>();
+		StringBuilder query = new StringBuilder();
+		query.append("SELECT acct_num,a.payment_reference,a.tran_amount,tran_crncy_code,");
+		query.append("a.tran_date,tran_narrate,tran_type,(CASE WHEN part_tran_type = 'D' THEN 'DEBIT' ");
+		query.append("WHEN part_tran_type = 'C' THEN 'CREDIT' ELSE 'Unknown' END) AS part_tran_type,");
+		query.append("a.tran_id,(CASE WHEN event_id = 'ADMINTIL' THEN 'CASH' WHEN event_id = 'PAYSTACK' ");
+		query.append("THEN 'CARD' WHEN event_id = 'BANKPMT' THEN 'CASH' WHEN event_id = 'NONWAYAPT' ");
+		query.append("THEN 'NON-WAYA' ELSE 'TRANSFER' END) AS categoies ");
+		query.append("FROM m_wallet_transaction a, m_accounts_transaction b WHERE processed_flg ='Y' ");
+		query.append("AND a.tran_id = b.tran_id AND acct_num = ? ORDER BY a.id asc");
+		String sql = query.toString();
+		try {
+			Object[] params = new Object[] { account.trim()};
+			TransWalletMapper rowMapper = new TransWalletMapper();
+			wallet = jdbcTemplate.query(sql, rowMapper, params);
+		} catch (Exception ex) {
+			log.error(ex.getMessage());
+		}
+		return wallet;
 	}
 
 }
