@@ -119,6 +119,8 @@ public interface TransAccountService {
 	ApiResponse<?> TranALLReverseReport();
 
 	ApiResponse<?> statementReport(Date fromdate, Date todate, String acctNo);
+	
+	ApiResponse<?> PaymentTransFilter(String acctNo);
 
 	ApiResponse<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer);
 
