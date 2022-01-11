@@ -1,7 +1,7 @@
 server:
   port: 80
   servlet:
-    context-path: /temporal-service
+    context-path: /
 spring:
    application:
       name: temporal-service
