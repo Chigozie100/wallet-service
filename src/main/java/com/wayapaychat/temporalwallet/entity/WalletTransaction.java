@@ -100,7 +100,7 @@ public class WalletTransaction {
     
     private String transChannel;
     
-    private boolean channel_flg;
+    private boolean channel_flg = false;
 
 	public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
 			@NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType, 
