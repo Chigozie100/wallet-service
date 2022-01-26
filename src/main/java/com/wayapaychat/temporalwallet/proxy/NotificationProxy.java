@@ -15,7 +15,7 @@ import com.wayapaychat.temporalwallet.notification.SmsEvent;
 @FeignClient(name = "${waya.notification.service}", url = "${waya.notification.notificationurl}")
 public interface NotificationProxy {
 	
-	@PostMapping("/api/v1/sms-notification-atalking")
+	@PostMapping("/sms-notification-atalking")
 	ResponseEntity<ResponseObj<?>> smsNotifyUser(@RequestBody SmsEvent smsEvent, @RequestHeader("Authorization") String token);
 	
 	@PostMapping("/email-notification")
