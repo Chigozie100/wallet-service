@@ -93,6 +93,14 @@ public class WalletTransaction {
     private String createdBy;
     
     private String createdEmail;
+    
+    private String senderName;
+    
+    private String receiverName;
+    
+    private String transChannel;
+    
+    private boolean channel_flg;
 
 	public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
 			@NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType, 

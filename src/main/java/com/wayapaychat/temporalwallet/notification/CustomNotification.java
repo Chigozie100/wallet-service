@@ -49,46 +49,84 @@ public class CustomNotification {
 		}
 
 	}
-	
+
 	public void pushSMS(String token, String name, String phone, String message, Long userId) {
-		
+
 		SmsEvent smsEvent = new SmsEvent();
-	    SmsPayload data = new SmsPayload();
-	    data.setMessage(message);
+		SmsPayload data = new SmsPayload();
+		data.setMessage(message);
 
-	    data.setSmsEventStatus(SMSEventStatus.NONWAYA);
+		data.setSmsEventStatus(SMSEventStatus.NONWAYA);
 
-	    SmsRecipient smsRecipient = new SmsRecipient();
-	    smsRecipient.setEmail("emmanuel.njoku@wayapaychat.com");
-	    smsRecipient.setTelephone(phone);
-	    List<SmsRecipient> addList = new ArrayList<>();
-	    addList.add(smsRecipient);
+		SmsRecipient smsRecipient = new SmsRecipient();
+		smsRecipient.setEmail("emmanuel.njoku@wayapaychat.com");
+		smsRecipient.setTelephone(phone);
+		List<SmsRecipient> addList = new ArrayList<>();
+		addList.add(smsRecipient);
 
-	    data.setRecipients(addList);
-	    smsEvent.setData(data);
+		data.setRecipients(addList);
+		smsEvent.setData(data);
 
-	    smsEvent.setEventType("SMS");
-	    smsEvent.setInitiator(userId.toString());
-	    log.info(smsEvent.toString());
+		smsEvent.setEventType("SMS");
+		smsEvent.setInitiator(userId.toString());
+		log.info(smsEvent.toString());
 
-	    try {
-	        smsNotification(smsEvent,token);
+		try {
+			smsNotification(smsEvent, token);
 
-	    }catch (Exception ex){
-	    	throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
-	    }
+		} catch (Exception ex) {
+			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+		}
 	}
-	
+
+	public void pushInApp(String token, String name, String phone, String message, Long userId) {
+
+		InAppEvent appEvent = new InAppEvent();
+		InAppPayload data = new InAppPayload();
+		data.setMessage(message);
+
+		InAppRecipient appRecipient = new InAppRecipient();
+		appRecipient.setUserId(userId.toString());
+		List<InAppRecipient> addUserId = new ArrayList<>();
+		addUserId.add(appRecipient);
+
+		data.setUsers(addUserId);
+		appEvent.setData(data);
+
+		appEvent.setEventType("IN_APP");
+		appEvent.setInitiator(userId.toString());
+		log.info(appEvent.toString());
+
+		try {
+			appNotification(appEvent, token);
+
+		} catch (Exception ex) {
+			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+		}
+	}
+
+	public void appNotification(InAppEvent appEvent, String token) {
+		try {
+			ResponseEntity<ResponseObj<?>> responseEntity = notificationFeignClient.InAppNotify(appEvent, token);
+			ResponseObj<?> infoResponse = responseEntity.getBody();
+			log.info("user response sms sent status :: " + infoResponse.status);
+		} catch (Exception e) {
+			log.error("Unable to send SMS", e.getMessage());
+			throw new CustomException(e.getMessage(), HttpStatus.EXPECTATION_FAILED);
+		}
+
+	}
+
 	public Boolean smsNotification(SmsEvent smsEvent, String token) {
-	    try {
-	        ResponseEntity<ResponseObj<?>>  responseEntity = notificationFeignClient.smsNotifyUser(smsEvent,token);
-	        ResponseObj<?> infoResponse = responseEntity.getBody();
-	        log.info("user response sms sent status :: " +infoResponse.status);
-	        return infoResponse.status;
-	    } catch (Exception e) {
-	        log.error("Unable to send SMS", e.getMessage());
-	        throw new CustomException(e.getMessage(), HttpStatus.EXPECTATION_FAILED);
-	    }
+		try {
+			ResponseEntity<ResponseObj<?>> responseEntity = notificationFeignClient.smsNotifyUser(smsEvent, token);
+			ResponseObj<?> infoResponse = responseEntity.getBody();
+			log.info("user response sms sent status :: " + infoResponse.status);
+			return infoResponse.status;
+		} catch (Exception e) {
+			log.error("Unable to send SMS", e.getMessage());
+			throw new CustomException(e.getMessage(), HttpStatus.EXPECTATION_FAILED);
+		}
 
 	}
 
