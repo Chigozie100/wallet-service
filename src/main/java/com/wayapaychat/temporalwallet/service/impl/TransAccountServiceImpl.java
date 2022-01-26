@@ -219,6 +219,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						xUser.getEmailAddress(), message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
 						xUser.getMobileNo(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName,
+						xUser.getMobileNo(), message, userToken.getId()));
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -285,6 +287,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						xUser.getEmailAddress(), message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
 						xUser.getMobileNo(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName,
+						xUser.getMobileNo(), message, userToken.getId()));
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -346,6 +350,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						xUser.getEmailAddress(), message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
 						xUser.getMobileNo(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName,
+						xUser.getMobileNo(), message, userToken.getId()));
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -403,6 +409,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
 						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
+						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -455,6 +463,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, transfer.getFullName(),
 						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
+						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
 						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
 			} else {
 				if (intRec == 2) {
@@ -522,6 +532,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, transfer.getFullName(),
 						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
+						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
 						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
 				// resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION
 				// CREATE", transaction);
@@ -610,6 +622,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						() -> customNotification.pushEMAIL(token, fullName, emailAddress, message, userToken.getId()));
 				CompletableFuture.runAsync(
 						() -> customNotification.pushSMS(token, fullName, phoneNo, message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName,
+						phoneNo, message, userToken.getId()));
 
 				// resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION
 				// CREATE", transaction);
@@ -688,6 +702,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						() -> customNotification.pushEMAIL(token, fullName, emailAddress, message, userToken.getId()));
 				CompletableFuture.runAsync(
 						() -> customNotification.pushSMS(token, fullName, phoneNo, message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName,
+						phoneNo, message, userToken.getId()));
 
 				// resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION
 				// CREATE", transaction);
@@ -742,6 +758,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 					CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, redeem.getFullName(),
 							redeem.getEmailOrPhone(), message, userToken.getId()));
 					CompletableFuture.runAsync(() -> customNotification.pushSMS(token, redeem.getFullName(),
+							redeem.getEmailOrPhone(), message, userToken.getId()));
+					CompletableFuture.runAsync(() -> customNotification.pushInApp(token, redeem.getFullName(),
 							redeem.getEmailOrPhone(), message, userToken.getId()));
 					walletNonWayaPaymentRepo.save(redeem);
 				} else {
@@ -858,6 +876,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						xUser.getEmailAddress(), message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
 						xUser.getMobileNo(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName,
+						xUser.getMobileNo(), message, userToken.getId()));
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -922,6 +942,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						xUser.getEmailAddress(), message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
 						xUser.getMobileNo(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName,
+						xUser.getMobileNo(), message, userToken.getId()));
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -978,6 +1000,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, fullName,
 						xUser.getEmailAddress(), message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
+						xUser.getMobileNo(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName,
 						xUser.getMobileNo(), message, userToken.getId()));
 			} else {
 				if (intRec == 2) {
@@ -1111,6 +1135,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						xUser.getEmailAddress(), message1, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
 						xUser.getMobileNo(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,
+						xUser.getMobileNo(), message1, userToken.getId()));
 				
 				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
@@ -1122,6 +1148,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						yUser.getEmailAddress(), message2, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
 						yUser.getMobileNo(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName,
+						xUser.getMobileNo(), message2, userToken.getId()));
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -1187,6 +1215,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						xUser.getEmailAddress(), message1, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
 						xUser.getMobileNo(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,
+						xUser.getMobileNo(), message1, userToken.getId()));
 				
 				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
@@ -1197,6 +1227,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
 						yUser.getEmailAddress(), message2, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
+						yUser.getMobileNo(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName,
 						yUser.getMobileNo(), message2, userToken.getId()));
 			} else {
 				if (intRec == 2) {
@@ -1280,6 +1312,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, fullName,
 						xUser.getEmailAddress(), message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
+						xUser.getMobileNo(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName,
 						xUser.getMobileNo(), message, userToken.getId()));
 				
 				BigDecimal newAmount = mvirt.getActualBalance().add(transfer.getAmount());
@@ -1416,6 +1450,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						xUser.getEmailAddress(), message1, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
 						xUser.getMobileNo(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,
+						xUser.getMobileNo(), message1, userToken.getId()));
 				
 				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
@@ -1426,6 +1462,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
 						yUser.getEmailAddress(), message2, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
+						yUser.getMobileNo(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName,
 						yUser.getMobileNo(), message2, userToken.getId()));
 			} else {
 				if (intRec == 2) {
@@ -1490,6 +1528,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
 						xUser.getEmailAddress(), message1, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
+						xUser.getMobileNo(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,
 						xUser.getMobileNo(), message1, userToken.getId()));
 				
 				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
@@ -1587,6 +1627,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						yUser.getEmailAddress(), message2, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
 						yUser.getMobileNo(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName,
+						yUser.getMobileNo(), message2, userToken.getId()));
 				
 			} else {
 				if (intRec == 2) {
@@ -1653,6 +1695,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						xUser.getEmailAddress(), message1, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
 						xUser.getMobileNo(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,
+						xUser.getMobileNo(), message1, userToken.getId()));
 				
 				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
@@ -1663,6 +1707,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
 						yUser.getEmailAddress(), message2, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
+						yUser.getMobileNo(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName,
 						yUser.getMobileNo(), message2, userToken.getId()));
 				
 			} else {
@@ -1723,6 +1769,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						xUser.getEmailAddress(), message1, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
 						xUser.getMobileNo(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,
+						xUser.getMobileNo(), message1, userToken.getId()));
 				
 				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
@@ -1733,6 +1781,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
 						yUser.getEmailAddress(), message2, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
+						yUser.getMobileNo(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName,
 						yUser.getMobileNo(), message2, userToken.getId()));
 				
 			} else {
@@ -1814,6 +1864,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						xUser.getEmailAddress(), message1, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
 						xUser.getMobileNo(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,
+						xUser.getMobileNo(), message1, userToken.getId()));
 				
 				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
@@ -1824,6 +1876,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
 						yUser.getEmailAddress(), message2, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
+						yUser.getMobileNo(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName,
 						yUser.getMobileNo(), message2, userToken.getId()));
 				
 			} else {
@@ -1913,6 +1967,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						xUser.getEmailAddress(), message1, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
 						xUser.getMobileNo(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,
+						xUser.getMobileNo(), message1, userToken.getId()));
 				
 				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
@@ -1923,6 +1979,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
 						yUser.getEmailAddress(), message2, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
+						yUser.getMobileNo(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName,
 						yUser.getMobileNo(), message2, userToken.getId()));
 				
 			} else {
@@ -2012,6 +2070,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						xUser.getEmailAddress(), message1, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
 						xUser.getMobileNo(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,
+						xUser.getMobileNo(), message1, userToken.getId()));
 				
 				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
@@ -2022,6 +2082,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
 						yUser.getEmailAddress(), message2, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
+						yUser.getMobileNo(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName,
 						yUser.getMobileNo(), message2, userToken.getId()));
 				
 			} else {
