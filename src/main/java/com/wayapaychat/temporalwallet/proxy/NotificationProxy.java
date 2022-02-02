@@ -11,6 +11,7 @@ import com.wayapaychat.temporalwallet.notification.InAppEvent;
 import com.wayapaychat.temporalwallet.notification.NotifyObjectBody;
 import com.wayapaychat.temporalwallet.notification.ResponseObj;
 import com.wayapaychat.temporalwallet.notification.SmsEvent;
+import com.wayapaychat.temporalwallet.notification.TransEmailEvent;
 
 @FeignClient(name = "${waya.notification.service}", url = "${waya.notification.notificationurl}")
 public interface NotificationProxy {
@@ -26,5 +27,8 @@ public interface NotificationProxy {
 	
 	@PostMapping("/api/v1/sms-notification")
 	ResponseEntity<ResponseObj<?>> smsNotifyUserTwilo(@RequestBody SmsEvent smsEvent, @RequestHeader("Authorization") String token);
+	
+	@PostMapping("/api/v1/email-notification-transaction")
+	NotifyObjectBody emailNotifyTranUser(@RequestBody TransEmailEvent emailDto, @RequestHeader("Authorization") String token);
 
 }

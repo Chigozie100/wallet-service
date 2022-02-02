@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import com.wayapaychat.temporalwallet.enumm.EventCategory;
 import com.wayapaychat.temporalwallet.enumm.SMSEventStatus;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.proxy.NotificationProxy;
@@ -44,6 +45,41 @@ public class CustomNotification {
 
 		try {
 			sendEmailNotification(emailEvent, token);
+		} catch (Exception ex) {
+			throw new CustomException(ex.getMessage(), HttpStatus.NOT_FOUND);
+		}
+
+	}
+	
+	public void pushTranEMAIL(String token, String name, String email, String message, Long userId,
+			String amount, String tranId, String tranDate, String narrate) {
+
+		TransEmailEvent emailEvent = new TransEmailEvent();
+
+		emailEvent.setEventType("EMAIL");
+		EmailPayload data = new EmailPayload();
+
+		data.setMessage(message);
+
+		EmailRecipient emailRecipient = new EmailRecipient();
+		emailRecipient.setFullName(name);
+		emailRecipient.setEmail(email);
+
+		List<EmailRecipient> addUserId = new ArrayList<>();
+		addUserId.add(emailRecipient);
+		data.setNames(addUserId);
+
+		emailEvent.setData(data);
+		emailEvent.setEventCategory(EventCategory.TRANSACTION);
+		emailEvent.setInitiator(userId.toString());
+		emailEvent.setAmount(amount);
+		emailEvent.setTransactionId(tranId);
+		emailEvent.setTransactionDate(tranDate);
+		emailEvent.setNarration(narrate);
+		log.info(emailEvent.toString());
+
+		try {
+			postEmailNotification(emailEvent, token);
 		} catch (Exception ex) {
 			throw new CustomException(ex.getMessage(), HttpStatus.NOT_FOUND);
 		}
@@ -134,6 +170,18 @@ public class CustomNotification {
 
 		try {
 			NotifyObjectBody responseEntity = notificationFeignClient.emailNotifyUser(emailEvent, token);
+			log.info("User response email sent status :: " + responseEntity.isStatus());
+		} catch (Exception ex) {
+			log.error("Unable to generate transaction Id", ex);
+			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+		}
+
+	}
+	
+	public void postEmailNotification(TransEmailEvent emailEvent, String token) {
+
+		try {
+			NotifyObjectBody responseEntity = notificationFeignClient.emailNotifyTranUser(emailEvent, token);
 			log.info("User response email sent status :: " + responseEntity.isStatus());
 		} catch (Exception ex) {
 			log.error("Unable to generate transaction Id", ex);
