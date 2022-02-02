@@ -215,8 +215,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, fullName,
-						xUser.getEmailAddress(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
+						xUser.getEmailAddress(), message, userToken.getId(), transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
 						xUser.getMobileNo(), message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName,
@@ -283,8 +283,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, fullName,
-						xUser.getEmailAddress(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
+						xUser.getEmailAddress(), message, userToken.getId(),transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
 						xUser.getMobileNo(), message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName,
@@ -346,8 +346,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, fullName,
-						xUser.getEmailAddress(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
+						xUser.getEmailAddress(), message, userToken.getId(),transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
 						xUser.getMobileNo(), message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName,
@@ -405,8 +405,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, transfer.getFullName(),
-						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, transfer.getFullName(),
+						transfer.getEmailOrPhoneNo(), message, userToken.getId(),transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
 						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
@@ -460,8 +460,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, transfer.getFullName(),
-						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, transfer.getFullName(),
+						transfer.getEmailOrPhoneNo(), message, userToken.getId(),transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
 						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
@@ -529,8 +529,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				String message = formatMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration(), transactionToken);
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, transfer.getFullName(),
-						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, transfer.getFullName(),
+						transfer.getEmailOrPhoneNo(), message, userToken.getId(),transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
 						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
@@ -619,7 +619,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				String message = formatMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration(), transactionToken);
 				CompletableFuture.runAsync(
-						() -> customNotification.pushEMAIL(token, fullName, emailAddress, message, userToken.getId()));
+						() -> customNotification.pushTranEMAIL(token, fullName, emailAddress, message, userToken.getId(),transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(
 						() -> customNotification.pushSMS(token, fullName, phoneNo, message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName,
@@ -699,7 +699,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				String message = formatMessage(amount, tranId, tranDate, tranCrncy, tranNarration, transactionToken);
 				CompletableFuture.runAsync(
-						() -> customNotification.pushEMAIL(token, fullName, emailAddress, message, userToken.getId()));
+						() -> customNotification.pushTranEMAIL(token, fullName, emailAddress, message, userToken.getId(),amount.toString(), tranId, tranDate, tranNarration));
 				CompletableFuture.runAsync(
 						() -> customNotification.pushSMS(token, fullName, phoneNo, message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName,
@@ -872,8 +872,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, fullName,
-						xUser.getEmailAddress(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
+						xUser.getEmailAddress(), message, userToken.getId(), transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
 						xUser.getMobileNo(), message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName,
@@ -938,8 +938,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, fullName,
-						xUser.getEmailAddress(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
+						xUser.getEmailAddress(), message, userToken.getId(), transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
 						xUser.getMobileNo(), message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName,
@@ -997,8 +997,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, fullName,
-						xUser.getEmailAddress(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
+						xUser.getEmailAddress(), message, userToken.getId(),transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
 						xUser.getMobileNo(), message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName,
@@ -1131,8 +1131,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
-						xUser.getEmailAddress(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, xfullName,
+						xUser.getEmailAddress(), message1, userToken.getId(), transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
 						xUser.getMobileNo(), message1, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,
@@ -1144,8 +1144,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
-						yUser.getEmailAddress(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, yfullName,
+						yUser.getEmailAddress(), message2, userToken.getId(), transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
 						yUser.getMobileNo(), message2, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName,
@@ -1211,8 +1211,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
-						xUser.getEmailAddress(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, xfullName,
+						xUser.getEmailAddress(), message1, userToken.getId(), transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
 						xUser.getMobileNo(), message1, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,
@@ -1224,8 +1224,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
-						yUser.getEmailAddress(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, yfullName,
+						yUser.getEmailAddress(), message2, userToken.getId(), transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
 						yUser.getMobileNo(), message2, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName,
@@ -1309,8 +1309,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, fullName,
-						xUser.getEmailAddress(), message, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
+						xUser.getEmailAddress(), message, userToken.getId(), transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName,
 						xUser.getMobileNo(), message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName,
@@ -1446,8 +1446,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
-						xUser.getEmailAddress(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, xfullName,
+						xUser.getEmailAddress(), message1, userToken.getId(),transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
 						xUser.getMobileNo(), message1, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,
@@ -1459,8 +1459,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
-						yUser.getEmailAddress(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, yfullName,
+						yUser.getEmailAddress(), message2, userToken.getId(), transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
 						yUser.getMobileNo(), message2, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName,
@@ -1525,8 +1525,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
-						xUser.getEmailAddress(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, xfullName,
+						xUser.getEmailAddress(), message1, userToken.getId(), transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
 						xUser.getMobileNo(), message1, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,
@@ -1538,8 +1538,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
-						yUser.getEmailAddress(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, yfullName,
+						yUser.getEmailAddress(), message2, userToken.getId(),transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
 						yUser.getMobileNo(), message2, userToken.getId()));
 				
@@ -1612,8 +1612,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
-						xUser.getEmailAddress(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, xfullName,
+						xUser.getEmailAddress(), message1, userToken.getId(), transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
 						xUser.getMobileNo(), message1, userToken.getId()));
 				
@@ -1623,8 +1623,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
-						yUser.getEmailAddress(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, yfullName,
+						yUser.getEmailAddress(), message2, userToken.getId(), transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
 						yUser.getMobileNo(), message2, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName,
@@ -1691,8 +1691,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
-						xUser.getEmailAddress(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, xfullName,
+						xUser.getEmailAddress(), message1, userToken.getId(), transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
 						xUser.getMobileNo(), message1, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,
@@ -1704,8 +1704,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
-						yUser.getEmailAddress(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, yfullName,
+						yUser.getEmailAddress(), message2, userToken.getId(), transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
 						yUser.getMobileNo(), message2, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName,
@@ -1765,8 +1765,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
-						xUser.getEmailAddress(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, xfullName,
+						xUser.getEmailAddress(), message1, userToken.getId(), transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
 						xUser.getMobileNo(), message1, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,
@@ -1778,8 +1778,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
-						yUser.getEmailAddress(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, yfullName,
+						yUser.getEmailAddress(), message2, userToken.getId(),transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
 						yUser.getMobileNo(), message2, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName,
@@ -1860,8 +1860,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
-						xUser.getEmailAddress(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, xfullName,
+						xUser.getEmailAddress(), message1, userToken.getId(),transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
 						xUser.getMobileNo(), message1, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,
@@ -1873,8 +1873,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
-						yUser.getEmailAddress(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, yfullName,
+						yUser.getEmailAddress(), message2, userToken.getId(), transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
 						yUser.getMobileNo(), message2, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName,
@@ -1963,8 +1963,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
-						xUser.getEmailAddress(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, xfullName,
+						xUser.getEmailAddress(), message1, userToken.getId(),transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
 						xUser.getMobileNo(), message1, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,
@@ -1976,8 +1976,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
-						yUser.getEmailAddress(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, yfullName,
+						yUser.getEmailAddress(), message2, userToken.getId(),transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
 						yUser.getMobileNo(), message2, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName,
@@ -2066,8 +2066,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, xfullName,
-						xUser.getEmailAddress(), message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, xfullName,
+						xUser.getEmailAddress(), message1, userToken.getId(),transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName,
 						xUser.getMobileNo(), message1, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,
@@ -2079,8 +2079,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
 				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushEMAIL(token, yfullName,
-						yUser.getEmailAddress(), message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, yfullName,
+						yUser.getEmailAddress(), message2, userToken.getId(), transfer.getAmount().toString(), tranId, tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName,
 						yUser.getMobileNo(), message2, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName,
