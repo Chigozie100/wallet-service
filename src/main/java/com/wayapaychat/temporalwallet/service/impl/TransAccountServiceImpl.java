@@ -4298,13 +4298,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String tokenId) {
 
 		String message = "" + "\n";
-		message = message + "" + "Message :" + "A transaction has occurred with token id: " + tokenId
-				+ "  on your account see details below" + "\n";
-		message = message + "" + "Amount :" + amount + "\n";
-		message = message + "" + "tranId :" + tranId + "\n";
-		message = message + "" + "tranDate :" + tranDate + "\n";
-		message = message + "" + "Currency :" + tranCrncy + "\n";
-		message = message + "" + "Narration :" + narration + "\n";
+		message = message + "" + "A transaction has occurred with token id: " + tokenId
+				+ "  on your account see details below." + "\n";
 		return message;
 	}
 	
