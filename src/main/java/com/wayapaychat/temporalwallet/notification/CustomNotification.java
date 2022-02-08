@@ -85,6 +85,41 @@ public class CustomNotification {
 		}
 
 	}
+	
+	public void pushNonWayaEMAIL(String token, String name, String email, String message, Long userId,
+			String amount, String tranId, String tranDate, String narrate) {
+
+		TransEmailEvent emailEvent = new TransEmailEvent();
+
+		emailEvent.setEventType("EMAIL");
+		EmailPayload data = new EmailPayload();
+
+		data.setMessage(message);
+
+		EmailRecipient emailRecipient = new EmailRecipient();
+		emailRecipient.setFullName(name);
+		emailRecipient.setEmail(email);
+
+		List<EmailRecipient> addUserId = new ArrayList<>();
+		addUserId.add(emailRecipient);
+		data.setNames(addUserId);
+
+		emailEvent.setData(data);
+		emailEvent.setEventCategory(EventCategory.NON_WAYA);
+		emailEvent.setInitiator(userId.toString());
+		emailEvent.setAmount(amount);
+		emailEvent.setTransactionId(tranId);
+		emailEvent.setTransactionDate(tranDate);
+		emailEvent.setNarration(narrate);
+		log.info(emailEvent.toString());
+
+		try {
+			postEmailNotification(emailEvent, token);
+		} catch (Exception ex) {
+			throw new CustomException(ex.getMessage(), HttpStatus.NOT_FOUND);
+		}
+
+	}
 
 	public void pushSMS(String token, String name, String phone, String message, Long userId) {
 
