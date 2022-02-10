@@ -321,7 +321,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference());
 			if (intRec == 1) {
 				String tranId = createEventTransaction(transfer.getEventId(), toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -383,7 +383,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference());
 			if (intRec == 1) {
 				String tranId = createEventTransaction("NONWAYAPT", toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -440,7 +440,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference());
 			if (intRec == 1) {
 				String tranId = createEventRedeem("NONWAYAPT", toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -501,7 +501,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createEventTransactionNew(transfer.getCustomerDebitAccountNo(), "NONWAYAPT",
 						transfer.getTranCrncy(), transfer.getAmount(), tranType, transfer.getTranNarration(),
-						transfer.getPaymentReference());
+						transfer.getPaymentReference(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					// return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1],
@@ -595,7 +595,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference());
 			if (intRec == 1) {
 				String tranId = createEventTransactionNew("NONWAYAPT", beneAccount, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					// return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1],
@@ -676,7 +676,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			int intRec = tempwallet.PaymenttranInsert("NONWAYAPT", "", beneAccount, amount, paymentReference);
 			if (intRec == 1) {
 				String tranId = createEventTransactionNew("NONWAYAPT", beneAccount, tranCrncy, amount, tranType,
-						tranNarration, paymentReference);
+						tranNarration, paymentReference, request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					// return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1],
@@ -846,7 +846,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference());
 			if (intRec == 1) {
 				String tranId = createEventTransaction(transfer.getEventId(), toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -912,7 +912,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference());
 			if (intRec == 1) {
 				String tranId = createEventCommission(transfer.getEventId(), toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -974,7 +974,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = BankTransactionPay("BANKPMT", toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-						transfer.getBankName());
+						transfer.getBankName(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -1107,7 +1107,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(),
-						transfer.getPaymentReference());
+						transfer.getPaymentReference(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -1187,7 +1187,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference());
 			if (intRec == 1) {
 				String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -1283,7 +1283,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference());
 			if (intRec == 1) {
 				String tranId = createEventTransaction(transfer.getEventId(), toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -1369,7 +1369,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference());
 			if (intRec == 1) {
 				String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -1422,7 +1422,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference());
 			if (intRec == 1) {
 				String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -1503,7 +1503,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference());
 			if (intRec == 1) {
 				String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -1590,7 +1590,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference());
 			if (intRec == 1) {
 				String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -1669,7 +1669,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference());
 			if (intRec == 1) {
 				String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -1743,7 +1743,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createChargeTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-						transfer.getEventChargeId());
+						transfer.getEventChargeId(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -1836,7 +1836,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference());
 			if (intRec == 1) {
 				String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -1939,7 +1939,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference());
 			if (intRec == 1) {
 				String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -2042,7 +2042,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference());
 			if (intRec == 1) {
 				String tranId = createTransaction(fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference());
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -2101,7 +2101,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public String createTransaction(String debitAcctNo, String creditAcctNo, String tranCrncy, BigDecimal amount,
-			TransactionTypeEnum tranType, String tranNarration, String paymentRef) throws Exception {
+			TransactionTypeEnum tranType, String tranNarration, String paymentRef,
+			HttpServletRequest request) throws Exception {
 		try {
 			int n = 1;
 			log.info("START TRANSACTION");
@@ -2258,6 +2259,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// To generate transaction receipt
 
 			log.info("END TRANSACTION");
+			//HttpServletRequest request
+			String token = request.getHeader(SecurityConstants.HEADER_STRING);
+			String receiverAcct = accountCredit.getAccountNo();
+			String receiverName = accountCredit.getAcct_name();
+			CompletableFuture.runAsync(() -> 
+			externalServiceProxy.printReceipt(amount, receiverAcct, 
+					paymentRef, new Date(), tranType.getValue(), 
+					userId, receiverName, token));
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2267,7 +2276,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public String createChargeTransaction(String debitAcctNo, String creditAcctNo, String tranCrncy, BigDecimal amount,
-			TransactionTypeEnum tranType, String tranNarration, String paymentRef, String eventCharge)
+			TransactionTypeEnum tranType, String tranNarration, String paymentRef, String eventCharge,
+			HttpServletRequest request)
 			throws Exception {
 		try {
 
@@ -2444,6 +2454,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 			chargeTill.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(chargeTill);
 			log.info("END TRANSACTION");
+			//HttpServletRequest request
+			String token = request.getHeader(SecurityConstants.HEADER_STRING);
+			String receiverAcct = accountCredit.getAccountNo();
+			String receiverName = accountCredit.getAcct_name();
+			CompletableFuture.runAsync(() -> 
+			externalServiceProxy.printReceipt(amount, receiverAcct, 
+					paymentRef, new Date(), tranType.getValue(), 
+					userId, receiverName, token));
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2649,7 +2667,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public String createEventTransactionNew(String debitEvent, String creditEvent, String tranCrncy, BigDecimal amount,
-			TransactionTypeEnum tranType, String tranNarration, String paymentRef) {
+			TransactionTypeEnum tranType, String tranNarration, String paymentRef,
+			HttpServletRequest request) {
 		try {
 			int mPartran = 1;
 			log.info("START DEBIT-CREDIT TRANSACTION");
@@ -2829,6 +2848,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// WalletTransactionNotification(debitAcctNo, creditAcctNo, String tranMessage,
 			// String debitMobileNo, String creditMobileNo)
 			log.info("END DEBIT-CREDIT TRANSACTION");
+			//HttpServletRequest request
+			String token = request.getHeader(SecurityConstants.HEADER_STRING);
+			String receiverAcct = accountCredit.getAccountNo();
+			String receiverName = accountCredit.getAcct_name();
+			CompletableFuture.runAsync(() -> 
+			externalServiceProxy.printReceipt(amount, receiverAcct, 
+					paymentRef, new Date(), tranType.getValue(), 
+					userId, receiverName, token));
 			return tranId;
 		} catch (Exception ex) {
 			log.error(ex.getMessage());
@@ -2837,7 +2864,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public String createEventTransaction(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
-			TransactionTypeEnum tranType, String tranNarration, String paymentRef) throws Exception {
+			TransactionTypeEnum tranType, String tranNarration, String paymentRef,
+			HttpServletRequest request) throws Exception {
 		try {
 			int n = 1;
 			log.info("START TRANSACTION");
@@ -3022,6 +3050,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 			walletAccountRepository.saveAndFlush(accountCredit);
 
 			log.info("END TRANSACTION");
+			//HttpServletRequest request
+			String token = request.getHeader(SecurityConstants.HEADER_STRING);
+			String receiverAcct = accountCredit.getAccountNo();
+			String receiverName = accountCredit.getAcct_name();
+			CompletableFuture.runAsync(() -> 
+			externalServiceProxy.printReceipt(amount, receiverAcct, 
+					paymentRef, new Date(), tranType.getValue(), 
+					userId, receiverName, token));
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -3031,7 +3067,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public String createEventRedeem(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
-			TransactionTypeEnum tranType, String tranNarration, String paymentRef) throws Exception {
+			TransactionTypeEnum tranType, String tranNarration, String paymentRef,
+			HttpServletRequest request) throws Exception {
 		try {
 			int n = 1;
 			log.info("START TRANSACTION");
@@ -3215,6 +3252,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 			accountCredit.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(accountCredit);
 			log.info("END TRANSACTION");
+			//HttpServletRequest request
+			String token = request.getHeader(SecurityConstants.HEADER_STRING);
+			String receiverAcct = accountCredit.getAccountNo();
+			String receiverName = accountCredit.getAcct_name();
+			CompletableFuture.runAsync(() -> 
+			externalServiceProxy.printReceipt(amount, receiverAcct, 
+					paymentRef, new Date(), tranType.getValue(), 
+					userId, receiverName, token));
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -3224,7 +3269,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public String createEventCommission(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
-			TransactionTypeEnum tranType, String tranNarration, String paymentRef) throws Exception {
+			TransactionTypeEnum tranType, String tranNarration, String paymentRef,
+			HttpServletRequest request) throws Exception {
 		try {
 			int n = 1;
 			log.info("START TRANSACTION");
@@ -3407,6 +3453,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 			accountCredit.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(accountCredit);
 			log.info("END TRANSACTION");
+			//HttpServletRequest request
+			String token = request.getHeader(SecurityConstants.HEADER_STRING);
+			String receiverAcct = accountCredit.getAccountNo();
+			String receiverName = accountCredit.getAcct_name();
+			CompletableFuture.runAsync(() -> 
+			externalServiceProxy.printReceipt(amount, receiverAcct, 
+					paymentRef, new Date(), tranType.getValue(), 
+					userId, receiverName, token));
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -3416,7 +3470,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public String BankTransactionPay(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
-			TransactionTypeEnum tranType, String tranNarration, String paymentRef, String bk) throws Exception {
+			TransactionTypeEnum tranType, String tranNarration, String paymentRef, String bk,
+			HttpServletRequest request) throws Exception {
 		try {
 			int n = 1;
 			log.info("START TRANSACTION");
@@ -3598,6 +3653,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 			accountCredit.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(accountCredit);
 			log.info("END TRANSACTION");
+			//HttpServletRequest request
+			String token = request.getHeader(SecurityConstants.HEADER_STRING);
+			String receiverAcct = accountCredit.getAccountNo();
+			String receiverName = accountCredit.getAcct_name();
+			CompletableFuture.runAsync(() -> 
+			externalServiceProxy.printReceipt(amount, receiverAcct, 
+					paymentRef, new Date(), tranType.getValue(), 
+					userId, receiverName, token));
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -4006,6 +4069,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				finalCredit.setLast_tran_date(LocalDate.now());
 				walletAccountRepository.saveAndFlush(finalCredit);
 			}
+			
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -4179,6 +4243,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			walletTransactionRepository.saveAll(tranMultCR);
 			walletAccountRepository.saveAll(acctMultDebit);
 			walletAccountRepository.saveAll(acctMultCredit);
+			
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
