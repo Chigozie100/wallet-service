@@ -67,6 +67,7 @@ import com.wayapaychat.temporalwallet.dto.WalletTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.WayaPaymentQRCode;
 import com.wayapaychat.temporalwallet.dto.WayaRedeemQRCode;
 import com.wayapaychat.temporalwallet.dto.WayaTradeDTO;
+import com.wayapaychat.temporalwallet.entity.Provider;
 import com.wayapaychat.temporalwallet.entity.Transactions;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.entity.WalletAcountVirtual;
@@ -79,6 +80,7 @@ import com.wayapaychat.temporalwallet.entity.WalletTransaction;
 import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.enumm.PaymentRequestStatus;
 import com.wayapaychat.temporalwallet.enumm.PaymentStatus;
+import com.wayapaychat.temporalwallet.enumm.ProviderType;
 import com.wayapaychat.temporalwallet.enumm.TransactionTypeEnum;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
@@ -88,7 +90,6 @@ import com.wayapaychat.temporalwallet.pojo.MyData;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import com.wayapaychat.temporalwallet.pojo.TransactionRequest;
 import com.wayapaychat.temporalwallet.pojo.UserDetailPojo;
-import com.wayapaychat.temporalwallet.pojo.WalletToWalletDto;
 import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletAcountVirtualRepository;
 import com.wayapaychat.temporalwallet.repository.WalletEventRepository;
@@ -99,6 +100,7 @@ import com.wayapaychat.temporalwallet.repository.WalletTellerRepository;
 import com.wayapaychat.temporalwallet.repository.WalletTransactionRepository;
 import com.wayapaychat.temporalwallet.repository.WalletUserRepository;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
+import com.wayapaychat.temporalwallet.service.SwitchWalletService;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.ExcelHelper;
@@ -141,6 +143,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Autowired
 	AuthUserServiceDAO authService;
+	
+	@Autowired
+	private SwitchWalletService switchWalletService;
 
 	@Autowired
 	private TokenImpl tokenService;
@@ -164,46 +169,54 @@ public class TransAccountServiceImpl implements TransAccountService {
 	ExternalServiceProxyImpl externalServiceProxy;
 
 	@Override
-	public ApiResponse<TransactionRequest> makeTransaction(HttpServletRequest request, String command, TransactionRequest transfer) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ApiResponse<TransactionRequest> walletToWalletTransfer(HttpServletRequest request, String command, WalletToWalletDto walletDto) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	public ApiResponse<?> adminTransferForUser(HttpServletRequest request, String command, AdminUserTransferDTO transfer) {
+	public ResponseEntity<?> adminTransferForUser(HttpServletRequest request, String command, AdminUserTransferDTO transfer) {
+		Provider provider = switchWalletService.getActiveProvider();
+		if (provider == null) {
+			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
+		}
+		log.info("WALLET PROVIDER: " + provider.getName());
+		switch (provider.getName()) {
+		case ProviderType.MAINMIFO:
+			return adminTransfer(request,command, transfer);
+		case ProviderType.TEMPORAL:
+			return adminTransfer(request,command, transfer);
+		default:
+			return adminTransfer(request,command, transfer);
+		}
 		
+	}
+	
+	public ResponseEntity<?> adminTransfer(HttpServletRequest request, String command, AdminUserTransferDTO transfer){
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 		if (userToken == null) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
 		}
 		
 		String toAccountNumber = transfer.getCustomerAccountNumber();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
-		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID ACCOUNT NO", null);
+		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
 		try {
-			int intRec = tempwallet.PaymenttranInsert("ADMINTIL", "", toAccountNumber, transfer.getAmount(),
-					transfer.getPaymentReference());
+			int intRec = tempwallet.PaymenttranInsert("ADMINTIL", "", toAccountNumber, 
+					transfer.getAmount(),transfer.getPaymentReference());
 			if (intRec == 1) {
-				String tranId = createAdminTransaction(transfer.getAdminUserId(), toAccountNumber,
-						transfer.getTranCrncy(), transfer.getAmount(), tranType, transfer.getTranNarration(),
+				String tranId = createAdminTransaction(transfer.getAdminUserId(), 
+						toAccountNumber,transfer.getTranCrncy(), transfer.getAmount(), 
+						tranType, transfer.getTranNarration(),
 						transfer.getPaymentReference(), command, request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+					return new ResponseEntity<>(new ErrorResponse(tranKey[1]), 
+							HttpStatus.BAD_REQUEST);
 				}
-				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
-						.findByTranIdIgnoreCase(tranId);
+				Optional<List<WalletTransaction>> transaction = 
+						walletTransactionRepository.findByTranIdIgnoreCase(tranId);
 				if (!transaction.isPresent()) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"), 
+							HttpStatus.BAD_REQUEST);
 				}
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", 
+						transaction), HttpStatus.CREATED);
 				
 				Date tDate = Calendar.getInstance().getTime();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
@@ -223,14 +236,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 						xUser.getMobileNo(), message, userToken.getId()));
 			} else {
 				if (intRec == 2) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
-							"Unable to process duplicate transaction", null);
+					return new ResponseEntity<>(new ErrorResponse("UNABLE TO PROCESS DUPLICATE TRANSACTION REFERENCE"), HttpStatus.BAD_REQUEST);
 				} else {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+					return new ResponseEntity<>(new ErrorResponse("UNKNOWN DATABASE ERROR. PLEASE CONTACT ADMIN"), HttpStatus.BAD_REQUEST);
 				}
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (Exception ex) {
+			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return resp;
 	}
@@ -1336,9 +1349,19 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Override
 	public ResponseEntity<?> PostExternalMoney(HttpServletRequest request, CardRequestPojo transfer, Long userId) {
-		return userDataService.getCardPayment(request, transfer, userId);
-		// return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION
-		// PROCESSED", mCard);
+		Provider provider = switchWalletService.getActiveProvider();
+		if (provider == null) {
+			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
+		}
+		log.info("WALLET PROVIDER: " + provider.getName());
+		switch (provider.getName()) {
+		case ProviderType.MAINMIFO:
+			return userDataService.getCardPayment(request, transfer, userId);
+		case ProviderType.TEMPORAL:
+			return userDataService.getCardPayment(request, transfer, userId);
+		default:
+			return userDataService.getCardPayment(request, transfer, userId);
+		}
 	}
 
 	public ApiResponse<?> OfficialMoneyTransfer(HttpServletRequest request, OfficeTransferDTO transfer) {

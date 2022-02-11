@@ -41,10 +41,10 @@ import com.wayapaychat.temporalwallet.dto.ReversePaymentDTO;
 import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.WalletAdminTransferDTO;
-import com.wayapaychat.temporalwallet.dto.WayaPaymentRequest;
 import com.wayapaychat.temporalwallet.dto.WalletTransactionChargeDTO;
 import com.wayapaychat.temporalwallet.dto.WalletTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.WayaPaymentQRCode;
+import com.wayapaychat.temporalwallet.dto.WayaPaymentRequest;
 import com.wayapaychat.temporalwallet.dto.WayaRedeemQRCode;
 import com.wayapaychat.temporalwallet.dto.WayaTradeDTO;
 import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
@@ -71,8 +71,7 @@ public class WalletTransactionController {
 	@ApiOperation(value = "External Wallet Payment", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/external/payment/{userId}")
 	public ResponseEntity<?> ExternalSendMoney(HttpServletRequest request, @Valid @RequestBody CardRequestPojo transfer, @PathVariable("userId") Long userId) {
-		return transAccountService.PostExternalMoney(request, transfer, userId);
-        
+		    return transAccountService.PostExternalMoney(request, transfer, userId);   
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
@@ -318,11 +317,7 @@ public class WalletTransactionController {
 	@ApiOperation(value = "Admin Transfer from Waya to another wallet", notes = "Transfer amount from one wallet to another wallet", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/admin/wallet/funding")
 	public ResponseEntity<?> AdminTransferForUser(HttpServletRequest request, @RequestBody() AdminUserTransferDTO walletDto, @RequestParam("command") String command) {
-		ApiResponse<?> res = transAccountService.adminTransferForUser(request, command, walletDto);
-		if (!res.getStatus()) {
-            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(res, HttpStatus.OK);
+		return transAccountService.adminTransferForUser(request, command, walletDto);
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })

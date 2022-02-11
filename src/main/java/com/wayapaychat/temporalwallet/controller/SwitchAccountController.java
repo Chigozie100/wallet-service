@@ -1,6 +1,7 @@
 package com.wayapaychat.temporalwallet.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,13 +21,13 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.extern.slf4j.Slf4j;
+//import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/v1/switch")
 @Tag(name = "SWITCH-WALLET", description = "Switch Wallet Service API")
 @Validated
-@Slf4j
+//@Slf4j
 public class SwitchAccountController {
 
 	@Autowired
@@ -65,6 +66,24 @@ public class SwitchAccountController {
 	public ResponseEntity<?> DeleteSwitchOperator(@PathVariable("id") Long id) {
 		return switchWalletService.DeleteSwitches(id);
 
+	}
+	
+	@GetMapping(
+            value = "/provider",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+	@ApiOperation(value = "Get Providers", notes = "Get providers")
+	public ResponseEntity<?> getProviders() {
+		return switchWalletService.getProvider();
+	}
+	
+	@PutMapping(
+            value = "/provider/enable/{providerId}",
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    @ApiOperation(value = "Enable Provider", notes = "Enable a provider")
+	public ResponseEntity<?> enableProvider(@PathVariable("providerId") Long providerId) {
+		return switchWalletService.enableProvider(providerId);
 	}
 	
 }
