@@ -11,7 +11,9 @@ import org.springframework.stereotype.Service;
 
 import com.wayapaychat.temporalwallet.dto.CreateSwitchDTO;
 import com.wayapaychat.temporalwallet.dto.ToggleSwitchDTO;
+import com.wayapaychat.temporalwallet.entity.Provider;
 import com.wayapaychat.temporalwallet.entity.SwitchWallet;
+import com.wayapaychat.temporalwallet.repository.ProviderRepository;
 import com.wayapaychat.temporalwallet.repository.SwitchWalletRepository;
 import com.wayapaychat.temporalwallet.service.SwitchWalletService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
@@ -25,6 +27,9 @@ public class SwitchWalletServiceImpl implements SwitchWalletService {
 
 	@Autowired
 	SwitchWalletRepository switchWalletRepository;
+	
+	@Autowired
+	ProviderRepository providerRepository;
 
 	@Override
 	public ResponseEntity<?> ListAllSwitches() {
@@ -114,6 +119,56 @@ public class SwitchWalletServiceImpl implements SwitchWalletService {
 			log.error("UNABLE TO CREATE: {}", e.getMessage());
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
+	}
+
+	@Override
+	public ResponseEntity<?> getProvider() {
+		try {
+			List<Provider> providers = providerRepository.findAll();
+            return new ResponseEntity<>(new SuccessResponse("LIST PROVIDERS", providers), HttpStatus.OK);
+        } catch (Exception ex) {
+        	log.error("UNABLE TO FETCH: {}", ex.getMessage());
+			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+        }
+	}
+
+	@Override
+	public ResponseEntity<?> enableProvider(long providerId) {
+		if (providerId < 0L) {
+            return new ResponseEntity<>(new ErrorResponse("Please provide a valid provider ID"), HttpStatus.BAD_REQUEST);
+        }
+
+        Provider provider = providerRepository.findById(providerId).orElse(null);
+
+        if (provider == null) {
+            return new ResponseEntity<>(new ErrorResponse("providerId not found"), HttpStatus.BAD_REQUEST);
+        }
+        try {
+        	List<Provider> providers = providerRepository.findAll();
+
+            for (Provider mprovider : providers) {
+                if (mprovider.getId() == providerId) {
+                    mprovider.setActive(true);
+                } else {
+                    mprovider.setActive(false);
+                }
+                providerRepository.save(provider);
+            }
+            return new ResponseEntity<>(new SuccessResponse("PROVIDER ENABLED", null), HttpStatus.OK);
+        } catch (Exception ex) {
+            log.error("Error occurred - GET WALLET PROVIDER :", ex.getMessage());
+			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+        }
+	}
+	
+	public Provider getActiveProvider() {
+		List<Provider> providers = providerRepository.findByIsActive(true);
+        Provider provider = new Provider();
+        if (providers.size() > 0) {
+        	provider = providers.get(0);
+        	return provider;
+        }
+        return null;
 	}
 
 }
