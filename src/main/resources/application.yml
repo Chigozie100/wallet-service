@@ -29,6 +29,11 @@ spring:
         username: ${TEMP_SVC_DB_USERNAME:sa}
         password: ${TEMP_SVC_DB_PASSWORD:sa}
         driver-class-name: ${TEMP_SVC_DB_DRIVER:org.h2.Driver}
+   flyway:
+      baselineOnMigrate: true
+      locations: classpath:db/migration
+      schemas: public
+      enabled: true
 
 eureka:
   client:

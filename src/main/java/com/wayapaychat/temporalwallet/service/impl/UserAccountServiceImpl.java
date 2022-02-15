@@ -37,6 +37,7 @@ import com.wayapaychat.temporalwallet.dto.WalletCashAccountDTO;
 import com.wayapaychat.temporalwallet.dto.WalletEventAccountDTO;
 import com.wayapaychat.temporalwallet.dto.WalletUserDTO;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
+import com.wayapaychat.temporalwallet.entity.WalletEventCharges;
 import com.wayapaychat.temporalwallet.entity.WalletProduct;
 import com.wayapaychat.temporalwallet.entity.WalletProductCode;
 import com.wayapaychat.temporalwallet.entity.WalletTeller;
@@ -44,6 +45,7 @@ import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
 import com.wayapaychat.temporalwallet.pojo.UserDetailPojo;
 import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
+import com.wayapaychat.temporalwallet.repository.WalletEventRepository;
 import com.wayapaychat.temporalwallet.repository.WalletProductCodeRepository;
 import com.wayapaychat.temporalwallet.repository.WalletProductRepository;
 import com.wayapaychat.temporalwallet.repository.WalletTellerRepository;
@@ -87,6 +89,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Autowired
 	TemporalWalletDAO tempwallet;
+	
+	@Autowired
+	WalletEventRepository walletEventRepo;
 
 	@Value("${waya.wallet.productcode}")
 	private String wayaProduct;
@@ -666,7 +671,12 @@ public class UserAccountServiceImpl implements UserAccountService {
 		if (!validate2) {
 			return new ResponseEntity<>(new ErrorResponse("Currency Code Validation Failed"), HttpStatus.BAD_REQUEST);
 		}
-
+		
+		WalletEventCharges event = walletEventRepo.findByEventCurrency(user.getEventId(), user.getCrncyCode()).orElse(null);
+        if(event == null) {
+        	return new ResponseEntity<>(new ErrorResponse("No Event created"), HttpStatus.BAD_REQUEST);
+        }
+        
 		WalletProduct product = walletProductRepository.findByProductCode(user.getProductCode(), user.getProductGL());
 		if ((!product.getProduct_type().equals("OAB"))) {
 			return new ResponseEntity<>(new ErrorResponse("Product Type Does Not Match"), HttpStatus.BAD_REQUEST);
@@ -693,6 +703,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 					product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
 					product.getXfer_cr_limit(), false);
 			walletAccountRepository.save(account);
+			event.setProcessflg(true);
+			walletEventRepo.save(event);
 			return new ResponseEntity<>(new SuccessResponse("Office Account created successfully.", account),
 					HttpStatus.CREATED);
 		} catch (Exception e) {

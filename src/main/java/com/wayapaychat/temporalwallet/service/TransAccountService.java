@@ -64,9 +64,9 @@ public interface TransAccountService {
 
 	ApiResponse<?> makeWalletTransaction(HttpServletRequest request, String command, TransferTransactionDTO transactionPojo);
 
-	ApiResponse<?> sendMoney(HttpServletRequest request, TransferTransactionDTO transfer);
+	ResponseEntity<?> sendMoney(HttpServletRequest request, TransferTransactionDTO transfer);
 
-	ApiResponse<?> VirtuPaymentMoney(HttpServletRequest request, DirectTransactionDTO transfer);
+	ResponseEntity<?> VirtuPaymentMoney(HttpServletRequest request, DirectTransactionDTO transfer);
 
 	ResponseEntity<?> PostExternalMoney(HttpServletRequest request, CardRequestPojo transfer, Long userId);
 
