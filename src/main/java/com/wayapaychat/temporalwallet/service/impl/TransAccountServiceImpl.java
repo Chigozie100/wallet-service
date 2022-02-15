@@ -1178,12 +1178,29 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ApiResponse<?> sendMoney(HttpServletRequest request, TransferTransactionDTO transfer) {
+	public ResponseEntity<?> sendMoney(HttpServletRequest request, TransferTransactionDTO transfer) {
+		Provider provider = switchWalletService.getActiveProvider();
+		if (provider == null) {
+			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), 
+					HttpStatus.BAD_REQUEST);
+		}
+		log.info("WALLET PROVIDER: " + provider.getName());
+		switch (provider.getName()) {
+		case ProviderType.MAINMIFO:
+			return MoneyTransfer(request,transfer);
+		case ProviderType.TEMPORAL:
+			return MoneyTransfer(request,transfer);
+		default:
+			return MoneyTransfer(request,transfer);
+		}
+	}
+	
+	public ResponseEntity<?> MoneyTransfer(HttpServletRequest request, TransferTransactionDTO transfer) {
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 		
 		if (userToken == null) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
 		}
 		
 		String fromAccountNumber = transfer.getDebitAccountNumber();
@@ -1191,10 +1208,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 		
 		if(fromAccountNumber.trim().equals(toAccountNumber.trim())) {
 			log.info(toAccountNumber + "|" + fromAccountNumber);
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "DEBIT AND CREDIT ON THE SAME ACCOUNT", null);
+			return new ResponseEntity<>(new ErrorResponse("DEBIT AND CREDIT ON THE SAME ACCOUNT"), HttpStatus.BAD_REQUEST);
 		}
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
-		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
+		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
 		try {
 			int intRec = tempwallet.PaymenttranInsert("", fromAccountNumber, toAccountNumber, transfer.getAmount(),
 					transfer.getPaymentReference());
@@ -1203,16 +1220,19 @@ public class TransAccountServiceImpl implements TransAccountService {
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+					return new ResponseEntity<>(new ErrorResponse(tranKey[1]), 
+							HttpStatus.BAD_REQUEST);
 				}
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 				
 				if (!transaction.isPresent()) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"), 
+							HttpStatus.BAD_REQUEST);
 				}
 				
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", 
+						transaction), HttpStatus.CREATED);
 				
 				Date tDate = Calendar.getInstance().getTime();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
@@ -1245,52 +1265,69 @@ public class TransAccountServiceImpl implements TransAccountService {
 						yUser.getMobileNo(), message2, userToken.getId()));
 			} else {
 				if (intRec == 2) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
-							"Unable to process duplicate transaction", null);
+					return new ResponseEntity<>(new ErrorResponse("UNABLE TO PROCESS DUPLICATE TRANSACTION REFERENCE"), HttpStatus.BAD_REQUEST);
 				} else {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+					return new ResponseEntity<>(new ErrorResponse("UNKNOWN DATABASE ERROR. PLEASE CONTACT ADMIN"), HttpStatus.BAD_REQUEST);
 				}
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (Exception ex) {
+			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return resp;
 	}
 
 	@Override
-	public ApiResponse<?> VirtuPaymentMoney(HttpServletRequest request, DirectTransactionDTO transfer) {
+	public ResponseEntity<?> VirtuPaymentMoney(HttpServletRequest request, DirectTransactionDTO transfer) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
+		Provider provider = switchWalletService.getActiveProvider();
+		if (provider == null) {
+			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), 
+					HttpStatus.BAD_REQUEST);
+		}
+		log.info("WALLET PROVIDER: " + provider.getName());
+		switch (provider.getName()) {
+		case ProviderType.MAINMIFO:
+			return PaymentMoney(request,transfer);
+		case ProviderType.TEMPORAL:
+			return PaymentMoney(request,transfer);
+		default:
+			return PaymentMoney(request,transfer);
+		}
 		
+	}
+	
+	public ResponseEntity<?> PaymentMoney(HttpServletRequest request, DirectTransactionDTO transfer) {
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 		if (userToken == null) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
 		}
 
 		if (!transfer.getSecureKey()
 				.equals("yYSowX0uQVUZpNnkY28fREx0ayq+WsbEfm2s7ukn4+RHw1yxGODamMcLPH3R7lBD+Tmyw/FvCPG6yLPfuvbJVA==")) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED KEY", null);
+			return new ResponseEntity<>(new ErrorResponse("INVAILED KEY"), HttpStatus.BAD_REQUEST);
 		}
 
 		WalletAcountVirtual mvirt = walletAcountVirtualRepository.findByIdAccount(transfer.getVId(),
 				transfer.getVAccountNo());
 		if (mvirt == null) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED VIRTUAL ACCOUNT", null);
+			return new ResponseEntity<>(new ErrorResponse("INVAILED VIRTUAL ACCOUNT"), HttpStatus.BAD_REQUEST);
 		}
 		Long userId = Long.parseLong(mvirt.getUserId());
 		log.info("USER ID: " + userId);
 		WalletUser user = walletUserRepository.findByUserId(userId);
 		if (user == null) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED VIRTUAL ACCOUNT", null);
+			return new ResponseEntity<>(new ErrorResponse("INVAILED VIRTUAL ACCOUNT"), HttpStatus.BAD_REQUEST);
 		}
 		Optional<WalletAccount> account = walletAccountRepository.findByDefaultAccount(user);
 		if (!account.isPresent()) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NO DEFAULT WALLET FOR VIRTUAL ACCOUNT", null);
+			return new ResponseEntity<>(new ErrorResponse("NO DEFAULT WALLET FOR VIRTUAL ACCOUNT"), HttpStatus.BAD_REQUEST);
 		}
 		WalletAccount mAccount = account.get();
 		String toAccountNumber = mAccount.getAccountNo();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("BANK");
-		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
+		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
 		try {
 			int intRec = tempwallet.PaymenttranInsert(transfer.getEventId(), "", toAccountNumber, transfer.getAmount(),
 					transfer.getPaymentReference());
@@ -1299,16 +1336,19 @@ public class TransAccountServiceImpl implements TransAccountService {
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(), request);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+					return new ResponseEntity<>(new ErrorResponse(tranKey[1]), 
+							HttpStatus.BAD_REQUEST);
 				}
 				log.info("Transaction ID Response: {}", tranId);
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
 				if (!transaction.isPresent()) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"), 
+							HttpStatus.BAD_REQUEST);
 				}
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", 
+						transaction), HttpStatus.CREATED);
 				log.info("Transaction Response: {}", resp.toString());
 				
 
@@ -1335,14 +1375,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			} else {
 				if (intRec == 2) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
-							"Unable to process duplicate transaction", null);
+					return new ResponseEntity<>(new ErrorResponse("UNABLE TO PROCESS DUPLICATE TRANSACTION REFERENCE"), HttpStatus.BAD_REQUEST);
 				} else {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+					return new ResponseEntity<>(new ErrorResponse("UNKNOWN DATABASE ERROR. PLEASE CONTACT ADMIN"), HttpStatus.BAD_REQUEST);
 				}
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (Exception ex) {
+			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return resp;
 	}
@@ -4448,12 +4488,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 				String creditAcct = getAcount(mPay.getPayeeId()).getAccountNo();
 				TransferTransactionDTO txt = new TransferTransactionDTO(debitAcct, creditAcct, transfer.getAmount(),
 						"TRANSFER", mPay.getCrncyCode(), "QR-CODE PAYMENT", mPay.getReferenceNo());
-				ApiResponse<?> res = sendMoney(request, txt);
-				if (!res.getStatus()) {
-					return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-				}
-				log.info("Send Money: {}", transfer);
-				return new ResponseEntity<>(res, HttpStatus.OK);
+				return sendMoney(request, txt);
+				
 			}
 		} else {
 			return new ResponseEntity<>(new ErrorResponse("MISMATCH AMOUNT"), HttpStatus.BAD_REQUEST);
@@ -4495,29 +4531,29 @@ public class TransAccountServiceImpl implements TransAccountService {
 				WalletAccount debitAcct = getAcount(Long.valueOf(mPayRequest.getReceiverId()));
 				TransferTransactionDTO txt = new TransferTransactionDTO(debitAcct.getAccountNo(), creditAcct.getAccountNo(), mPayRequest.getAmount(),
 						"TRANSFER", "NGN", mPayRequest.getReason(), mPayRequest.getReference());
-				ApiResponse<?> res = sendMoney(request,txt);
-				if (!res.getStatus()) {
-					return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+				ResponseEntity<?> res = sendMoney(request,txt);
+				if (res.getStatusCodeValue() != 200 && res.getStatusCodeValue() != 201) {
+					return res;
 				}
 				log.info("Send Money: {}", transfer);
 				mPayRequest.setStatus(PaymentRequestStatus.PAID);
 				walletPaymentRequestRepo.save(mPayRequest);
-				return new ResponseEntity<>(res, HttpStatus.OK);
+				return res;
 			}else if(mPayRequest.getStatus().name().equals("PENDING") && (!mPayRequest.isWayauser())) {
 				PaymentRequest mPay = transfer.getPaymentRequest();
 				WalletAccount creditAcct = getAcount(Long.valueOf(mPayRequest.getSenderId()));
 				WalletAccount debitAcct = getAcount(Long.valueOf(mPay.getReceiverId()));
 				TransferTransactionDTO txt = new TransferTransactionDTO(debitAcct.getAccountNo(), creditAcct.getAccountNo(), mPayRequest.getAmount(),
 						"TRANSFER", "NGN", mPayRequest.getReason(), mPayRequest.getReference());
-				ApiResponse<?> res = sendMoney(request, txt);
-				if (!res.getStatus()) {
-					return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+				ResponseEntity<?> res = sendMoney(request, txt);
+				if (res.getStatusCodeValue() != 200 && res.getStatusCodeValue() != 201) {
+					return res;
 				}
 				log.info("Send Money: {}", transfer);
 				mPayRequest.setReceiverId(mPay.getReceiverId());
 				mPayRequest.setStatus(PaymentRequestStatus.PAID);
 				walletPaymentRequestRepo.save(mPayRequest);
-				return new ResponseEntity<>(res, HttpStatus.OK);
+				return res;
 			} else {
 				throw new CustomException("Reference ID already paid", HttpStatus.BAD_REQUEST);
 			}

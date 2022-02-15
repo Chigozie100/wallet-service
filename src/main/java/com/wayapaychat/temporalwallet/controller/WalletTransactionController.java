@@ -78,23 +78,13 @@ public class WalletTransactionController {
 	@ApiOperation(value = "Send Money to Wallet", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/sendmoney/wallet")
 	public ResponseEntity<?> sendMoney(HttpServletRequest request, @Valid @RequestBody TransferTransactionDTO transfer) {
-		ApiResponse<?> res = transAccountService.sendMoney(request, transfer);
-		if (!res.getStatus()) {
-            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-        }
-		log.info("Send Money: {}", transfer);
-        return new ResponseEntity<>(res, HttpStatus.OK);
+		return transAccountService.sendMoney(request, transfer);
 	}
 	
 	@ApiOperation(value = "Notify Transaction", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/notify/transaction")
 	public ResponseEntity<?> VirtuPaymentMoney(HttpServletRequest request, @Valid @RequestBody DirectTransactionDTO transfer) {
-		ApiResponse<?> res = transAccountService.VirtuPaymentMoney(request, transfer);
-		if (!res.getStatus()) {
-            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-        }
-		log.info("Send Money: {}", transfer);
-        return new ResponseEntity<>(res, HttpStatus.OK);
+		return transAccountService.VirtuPaymentMoney(request, transfer);
 	}
 	
 	@ApiOperation(value = "Notify Transaction Reverse", notes = "Reverse Post Money", tags = { "TRANSACTION-WALLET" })
