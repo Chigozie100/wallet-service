@@ -54,6 +54,8 @@ public class WalletEventCharges {
 	
 	@Column(nullable = false)
 	private boolean chargeWaya;
+	
+	private boolean processflg = false;
 
 	public WalletEventCharges(String eventId, BigDecimal tranAmt, String placeholder,
 			boolean taxable, BigDecimal taxAmt, String tranNarration, boolean chargeCustomer, 
