@@ -972,40 +972,65 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ApiResponse<?> EventCommissionPayment(HttpServletRequest request, EventPaymentDTO transfer) {
+	public ResponseEntity<?> EventCommissionPayment(HttpServletRequest request, EventPaymentDTO transfer) {
+		Provider provider = switchWalletService.getActiveProvider();
+		if (provider == null) {
+			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
+		}
+		log.info("WALLET PROVIDER: " + provider.getName());
+		switch (provider.getName()) {
+		case ProviderType.MAINMIFO:
+			return CommissionPayment(request, transfer);
+		case ProviderType.TEMPORAL:
+			return CommissionPayment(request, transfer);
+		default:
+			return CommissionPayment(request, transfer);
+		}
+	}
+	
+	public ResponseEntity<?> CommissionPayment(HttpServletRequest request, EventPaymentDTO transfer) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 		if (userToken == null) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
 		}
 		WalletAccount acctComm = walletAccountRepository.findByAccountNo(transfer.getCustomerAccountNumber());
 		if (!acctComm.getProduct_code().equals("SB901")) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NOT COMMISSION WALLET", null);
+			return new ResponseEntity<>(new ErrorResponse("NOT COMMISSION WALLET"), HttpStatus.BAD_REQUEST);
+		}
+		String reference = "";
+		reference = tempwallet.TransactionGenerate();
+		if (reference.equals("")) {
+			reference = transfer.getPaymentReference();
 		}
 		String toAccountNumber = transfer.getCustomerAccountNumber();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("CARD");
-		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
+		CategoryType tranCategory = CategoryType.valueOf("COMMISSION");
+		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
 		try {
 			int intRec = tempwallet.PaymenttranInsert(transfer.getEventId(), "", toAccountNumber, transfer.getAmount(),
-					transfer.getPaymentReference());
+					reference);
 			if (intRec == 1) {
 				String tranId = createEventCommission(transfer.getEventId(), toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-						request);
+						transfer.getAmount(), tranType, transfer.getTranNarration(), reference,
+						request,tranCategory);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+					return new ResponseEntity<>(new ErrorResponse(tranKey[1]), 
+							HttpStatus.BAD_REQUEST);
 				}
 				log.info("Transaction ID Response: {}", tranId);
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
 				if (!transaction.isPresent()) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"), 
+							HttpStatus.BAD_REQUEST);
 				}
 
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", 
+						transaction), HttpStatus.CREATED);
 				log.info("Transaction Response: {}", resp.toString());
 
 				Date tDate = Calendar.getInstance().getTime();
@@ -1027,46 +1052,75 @@ public class TransAccountServiceImpl implements TransAccountService {
 						message, userToken.getId()));
 			} else {
 				if (intRec == 2) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
-							"Unable to process duplicate transaction", null);
+					return new ResponseEntity<>(new ErrorResponse("UNABLE TO PROCESS DUPLICATE TRANSACTION REFERENCE"), HttpStatus.BAD_REQUEST);
 				} else {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+					return new ResponseEntity<>(new ErrorResponse("UNKNOWN DATABASE ERROR. PLEASE CONTACT ADMIN"), HttpStatus.BAD_REQUEST);
 				}
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (Exception ex) {
+			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return resp;
 	}
 
-	public ApiResponse<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer) {
+	public ResponseEntity<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer) {
+		Provider provider = switchWalletService.getActiveProvider();
+		if (provider == null) {
+			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
+		}
+		log.info("WALLET PROVIDER: " + provider.getName());
+		switch (provider.getName()) {
+		case ProviderType.MAINMIFO:
+			return BankPayment(request, transfer);
+		case ProviderType.TEMPORAL:
+			return BankPayment(request, transfer);
+		default:
+			return BankPayment(request, transfer);
+		}
+
+	}
+	
+	public ResponseEntity<?> BankPayment(HttpServletRequest request, BankPaymentDTO transfer) {
+		
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 		if (userToken == null) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
 		}
-
+        
+		String reference = "";
+		reference = tempwallet.TransactionGenerate();
+		if (reference.equals("")) {
+			reference = transfer.getPaymentReference();
+		}
+		
 		String toAccountNumber = transfer.getCustomerAccountNumber();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("WITHDRAW");
-		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
+		CategoryType tranCategory = CategoryType.valueOf(transfer.getTransactionCategory());
+		
+		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
 		try {
 			int intRec = tempwallet.PaymenttranInsert("BANKPMT", "", toAccountNumber, transfer.getAmount(),
-					transfer.getPaymentReference());
+					reference);
 			if (intRec == 1) {
 				String tranId = BankTransactionPay("BANKPMT", toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-						transfer.getBankName(), request);
+						transfer.getAmount(), tranType, transfer.getTranNarration(), reference,
+						transfer.getBankName(), request, tranCategory);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+					return new ResponseEntity<>(new ErrorResponse(tranKey[1]), 
+							HttpStatus.BAD_REQUEST);
 				}
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
 				if (!transaction.isPresent()) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"), 
+							HttpStatus.BAD_REQUEST);
 				}
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", 
+						transaction), HttpStatus.CREATED);
 
 				Date tDate = Calendar.getInstance().getTime();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
@@ -1087,14 +1141,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 						message, userToken.getId()));
 			} else {
 				if (intRec == 2) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
-							"Unable to process duplicate transaction", null);
+					return new ResponseEntity<>(new ErrorResponse("UNABLE TO PROCESS DUPLICATE TRANSACTION REFERENCE"), HttpStatus.BAD_REQUEST);
 				} else {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+					return new ResponseEntity<>(new ErrorResponse("UNKNOWN DATABASE ERROR. PLEASE CONTACT ADMIN"), HttpStatus.BAD_REQUEST);
 				}
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
+		} catch (Exception ex) {
+			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return resp;
 	}
@@ -3444,7 +3498,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public String createEventCommission(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
-			TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request)
+			TransactionTypeEnum tranType, String tranNarration, String paymentRef, 
+			HttpServletRequest request, CategoryType tranCategory)
 			throws Exception {
 		try {
 			int n = 1;
@@ -3601,12 +3656,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,
-					n);
+					n, tranCategory);
 
 			n = n + 1;
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email,
-					n);
+					n, tranCategory);
 			log.info("TRANSACTION CREATION DEBIT: {} WITH CREDIT: {}", tranDebit.toString(), tranCredit.toString());
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
@@ -3633,7 +3688,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String receiverAcct = accountCredit.getAccountNo();
 			String receiverName = accountCredit.getAcct_name();
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
-					new Date(), tranType.getValue(), userId, receiverName, "TRANSFER", token));
+					new Date(), tranType.getValue(), userId, receiverName, tranCategory.getValue(), token));
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -3644,7 +3699,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	public String BankTransactionPay(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef, String bk,
-			HttpServletRequest request) throws Exception {
+			HttpServletRequest request, CategoryType tranCategory) throws Exception {
 		try {
 			int n = 1;
 			log.info("START TRANSACTION");
@@ -3800,12 +3855,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String tranNarrate = "WALLET-" + tranNarration + " TO:" + bk;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,
-					n);
+					n, tranCategory);
 
 			n = n + 1;
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email,
-					n);
+					n, tranCategory);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 			tempwallet.updateTransaction(paymentRef, amount, tranId);
@@ -3831,7 +3886,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String receiverAcct = accountCredit.getAccountNo();
 			String receiverName = accountCredit.getAcct_name();
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
-					new Date(), tranType.getValue(), userId, receiverName, "TRANSFER", token));
+					new Date(), tranType.getValue(), userId, receiverName, tranCategory.getValue(), token));
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -3856,7 +3911,24 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ApiResponse<?> TranReversePayment(HttpServletRequest request, ReverseTransactionDTO reverseDto)
+	public ResponseEntity<?> TranReversePayment(HttpServletRequest request, ReverseTransactionDTO reverseDto)
+			throws ParseException {
+		Provider provider = switchWalletService.getActiveProvider();
+		if (provider == null) {
+			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
+		}
+		log.info("WALLET PROVIDER: " + provider.getName());
+		switch (provider.getName()) {
+		case ProviderType.MAINMIFO:
+			return ReversePayment(request, reverseDto);
+		case ProviderType.TEMPORAL:
+			return ReversePayment(request, reverseDto);
+		default:
+			return ReversePayment(request, reverseDto);
+		}
+	}
+	
+	public ResponseEntity<?> ReversePayment(HttpServletRequest request, ReverseTransactionDTO reverseDto)
 			throws ParseException {
 		DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
 		String toDate = dateFormat.format(new Date());
@@ -3872,12 +3944,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 			List<WalletTransaction> transRe = walletTransactionRepository.findByRevTrans(reverseDto.getTranId(),
 					reverseDate, reverseDto.getTranCrncy());
 			if (!transRe.isEmpty()) {
-				return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "TRANSACTION ALREADY REVERSED", null);
+				return new ResponseEntity<>(new ErrorResponse("TRANSACTION ALREADY REVERSED"), 
+						HttpStatus.BAD_REQUEST);
 			}
 			List<WalletTransaction> transpo = walletTransactionRepository.findByTransaction(reverseDto.getTranId(),
 					reverseDate, reverseDto.getTranCrncy());
 			if (transpo.isEmpty()) {
-				return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "TRANSACTION DOES NOT EXIST", null);
+				return new ResponseEntity<>(new ErrorResponse("TRANSACTION DOES NOT EXIST"), 
+						HttpStatus.BAD_REQUEST);
 			}
 			for (WalletTransaction tran : transpo) {
 				if (tran.getPartTranType().equalsIgnoreCase("D")) {
@@ -3889,7 +3963,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 			int res = debitAmount.compareTo(creditAmount);
 			if (res != 0) {
-				return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "IMBALANCE TRANSACTION", null);
+				return new ResponseEntity<>(new ErrorResponse("IMBALANCE TRANSACTION"), 
+						HttpStatus.BAD_REQUEST);
 			}
 			String tranId = "";
 			if (reverseDto.getTranId().substring(0, 1).equalsIgnoreCase("S")) {
@@ -3908,19 +3983,24 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 				trans1.setTranNarrate("REV-" + trans1.getTranNarrate());
 				TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("REVERSAL");
+				CategoryType tranCategory = CategoryType.valueOf("REVERSAL");
 				trans1.setRelatedTransId(trans1.getTranId());
 				trans1.setTranType(tranType);
 				trans1.setTranId(tranId);
 				trans1.setTranDate(LocalDate.now());
+				trans1.setTranCategory(tranCategory);
 				PostReverse(trans1, n);
 				n++;
 			}
 			List<WalletTransaction> statement = walletTransactionRepository.findByTransaction(tranId, LocalDate.now(),
 					reverseDto.getTranCrncy());
-			return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "REVERSE SUCCESSFULLY", statement);
+			return new ResponseEntity<>(new SuccessResponse("REVERSE SUCCESSFULLY", 
+					statement), HttpStatus.CREATED);
 		} else {
-			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "TRANSACTION DATE WAS IN PAST", null);
+			return new ResponseEntity<>(new SuccessResponse("TRANSACTION DATE WAS IN PAST", 
+					null), HttpStatus.CREATED);
 		}
+		
 	}
 
 	public void PostReverse(WalletTransaction trans, Integer n) {
@@ -3933,7 +4013,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		WalletTransaction tranrev = new WalletTransaction(trans.getTranId(), trans.getAcctNum(), trans.getTranAmount(),
 				trans.getTranType(), trans.getTranNarrate(), LocalDate.now(), trans.getTranCrncyCode(),
 				trans.getPartTranType(), trans.getTranGL(), trans.getPaymentReference(), trans.getRelatedTransId(),
-				userId, email, n);
+				userId, email, n, trans.getTranCategory());
 		walletTransactionRepository.saveAndFlush(tranrev);
 
 		if (trans.getPartTranType().equalsIgnoreCase("D")) {

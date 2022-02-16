@@ -13,6 +13,6 @@ public class WayaRedeemQRCode {
 	
 	private Long payerId;
 	
-	private String transactionCategory;
+	private String transactionCategory = "TRANSFER";
 
 }
