@@ -157,7 +157,7 @@ public class WalletTransaction {
 			@NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType, 
 			@NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
 			@NotNull String partTranType, String tranGL, String paymentReference, String relatedTransId,
-			String createdBy, String createdEmail,Integer tranPart) {
+			String createdBy, String createdEmail,Integer tranPart, CategoryType tranCategory) {
 		super();
 		this.del_flg = false;
 		this.posted_flg = true;
@@ -175,6 +175,7 @@ public class WalletTransaction {
 		this.createdBy = createdBy;
 		this.createdEmail = createdEmail;
 		this.tranPart = tranPart;
+		this.tranCategory = tranCategory;
 	}
     
     

@@ -96,11 +96,11 @@ public interface TransAccountService {
 
 	ApiResponse<?> EventBuySellPayment(HttpServletRequest request, WayaTradeDTO eventPay);
 
-	ApiResponse<?> EventCommissionPayment(HttpServletRequest request, EventPaymentDTO eventPay);
+	ResponseEntity<?> EventCommissionPayment(HttpServletRequest request, EventPaymentDTO eventPay);
 
 	ApiResponse<?> sendMoneyCharge(HttpServletRequest request, WalletTransactionChargeDTO transfer);
 
-	ApiResponse<?> TranReversePayment(HttpServletRequest request, ReverseTransactionDTO reverseDto) throws ParseException;
+	ResponseEntity<?> TranReversePayment(HttpServletRequest request, ReverseTransactionDTO reverseDto) throws ParseException;
 
 	ApiResponse<?> VirtuPaymentReverse(HttpServletRequest request, ReversePaymentDTO reverseDto) throws ParseException;
 
@@ -118,7 +118,7 @@ public interface TransAccountService {
 	
 	ApiResponse<?> PaymentTransFilter(String acctNo);
 
-	ApiResponse<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer);
+	ResponseEntity<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer);
 
 	ApiResponse<?> EventNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer);
 
