@@ -31,5 +31,9 @@ public class EventPaymentDTO {
 	@NotNull
 	@Size(min=3, max=50)
 	private String paymentReference;
+	
+	@NotNull
+	@Size(min=3, max=20)
+    private String transactionCategory;
 
 }
