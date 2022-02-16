@@ -364,6 +364,7 @@ public class WalletTransactionController {
         return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 	
+	//Wallet call by other service
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Non-Waya Payment", notes = "Transfer amount from user wallet to Non-waya", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/non-waya/payment/new")
@@ -371,6 +372,7 @@ public class WalletTransactionController {
 		return transAccountService.TransferNonPayment(request, walletDto);
 	}
 	
+	//Wallet call by other service
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Non-Waya Redeem", notes = "Transfer amount from user wallet to Non-waya", tags = { "TRANSACTION-WALLET" })
 	@PutMapping("/non-waya/transaction/redeem/new")
@@ -378,6 +380,7 @@ public class WalletTransactionController {
 		return transAccountService.NonWayaPaymentRedeem(request, walletDto);
 	}
 	
+	//Wallet call by other service
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Non-Waya Redeem", notes = "Transfer amount from user wallet to Non-waya", tags = { "TRANSACTION-WALLET" })
 	@PutMapping("/non-waya/transaction/redeem/PIN")
@@ -385,6 +388,7 @@ public class WalletTransactionController {
 		return transAccountService.NonWayaRedeemPIN(request, walletDto);
 	}
 	
+	//Wallet call by other service
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "QR Code Payment generation", notes = "Transfer amount from user wallet to Non-waya", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/qr-code/transaction/payment")
