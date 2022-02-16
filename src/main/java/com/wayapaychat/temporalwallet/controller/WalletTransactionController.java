@@ -322,15 +322,13 @@ public class WalletTransactionController {
         return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 	
+	//Wallet call by other service
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Event and Service Payment", notes = "Transfer amount from one wallet to another wallet", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/event/charge/payment")
 	public ResponseEntity<?> EventPayment(HttpServletRequest request, @RequestBody() EventPaymentDTO walletDto) {
-		ApiResponse<?> res = transAccountService.EventTransferPayment(request, walletDto);
-		if (!res.getStatus()) {
-            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(res, HttpStatus.OK);
+		return transAccountService.EventTransferPayment(request, walletDto);
+		
 	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
