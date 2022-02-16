@@ -16,7 +16,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: waya-repository
-  namespace: staging
   labels:
     app: waya-repository
 spec:
@@ -31,12 +30,18 @@ spec:
     spec:
       containers:
       - name: waya-repository
-        image: 863852973330.dkr.ecr.eu-west-2.amazonaws.com/waya-repository:latest
-        env:
-        - name: MESSAGING_GROUP_ID
-          value: "events" 
+        image: 863852973330.dkr.ecr.eu-west-2.amazonaws.com/waya-repository:imgtag
+        envFrom:
+        - configMapRef:
+            name: common-services-config
         ports: 
         - name: http
-          containerPort: 80
-      imagePullSecrets:
-      - name: dynamowit
+          containerPort: 80 
+        volumeMounts:
+        - name: config-file
+          mountPath: "/app/application-cfgprofile.yml"  # "secret-file" file will be created in "/app" directory
+          subPath: application.yml
+      volumes:
+        - name: config-file
+          secret:
+            secretName: waya-repository-config-file # name of the Secret

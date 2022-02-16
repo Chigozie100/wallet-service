@@ -44,6 +44,10 @@ public class TransferTransactionDTO {
 	@NotBlank(message = "paymentReference must not Null or Blank")
 	@Size(min=3, max=50, message = "paymentReference must be aleast 3 alphanumeric")
 	private String paymentReference;
+	
+	@NotBlank(message = "transactionCategory must not Null or Blank")
+	@Size(min=3, max=50, message = "Transaction Category must be aleast 3 alphanumeric")
+	private String transactionCategory;
 
 	public TransferTransactionDTO(
 			String debitAccountNumber,
@@ -52,7 +56,8 @@ public class TransferTransactionDTO {
 			String tranType,
 			String tranCrncy,
 			String tranNarration,
-			String paymentReference) {
+			String paymentReference,
+			String transactionCategory) {
 		super();
 		this.debitAccountNumber = debitAccountNumber;
 		this.benefAccountNumber = benefAccountNumber;
@@ -61,6 +66,7 @@ public class TransferTransactionDTO {
 		this.tranCrncy = tranCrncy;
 		this.tranNarration = tranNarration;
 		this.paymentReference = paymentReference;
+		this.transactionCategory = transactionCategory;
 	}	
 
 }

@@ -7,6 +7,7 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
+import com.wayapaychat.temporalwallet.enumm.CategoryType;
 import com.wayapaychat.temporalwallet.enumm.PaymentRequestStatus;
 
 import lombok.Data;
@@ -45,6 +46,8 @@ public class PaymentRequest {
     private String reason;
 
     private String reference;
+    
+    private CategoryType transactionCategory;
 
     private LocalDateTime createdAt;
 

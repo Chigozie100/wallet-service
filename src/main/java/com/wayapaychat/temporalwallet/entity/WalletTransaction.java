@@ -17,6 +17,7 @@ import javax.validation.constraints.NotNull;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.wayapaychat.temporalwallet.enumm.CategoryType;
 import com.wayapaychat.temporalwallet.enumm.TransactionTypeEnum;
 
 import io.swagger.annotations.ApiModelProperty;
@@ -90,6 +91,9 @@ public class WalletTransaction {
     @ApiModelProperty(hidden = true)
     private LocalDateTime updatedAt;
     
+    @Enumerated(EnumType.STRING)
+    private CategoryType tranCategory;
+    
     private String createdBy;
     
     private String createdEmail;
@@ -123,6 +127,30 @@ public class WalletTransaction {
 		this.createdBy = createdBy;
 		this.createdEmail = createdEmail;
 		this.tranPart = tranPart;
+	}
+	
+	public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
+			@NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType, 
+			@NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
+			@NotNull String partTranType, String tranGL,String paymentReference, 
+			String createdBy, String createdEmail,Integer tranPart, CategoryType tranCategory) {
+		super();
+		this.del_flg = false;
+		this.posted_flg = true;
+		this.tranId = tranId;
+		this.acctNum = acctNum;
+		this.tranAmount = tranAmount;
+		this.tranType = tranType;
+		this.tranNarrate = tranNarrate;
+		this.tranDate = tranDate;
+		this.tranCrncyCode = tranCrncyCode;
+		this.partTranType = partTranType;
+		this.tranGL = tranGL;
+		this.paymentReference = paymentReference;
+		this.createdBy = createdBy;
+		this.createdEmail = createdEmail;
+		this.tranPart = tranPart;
+		this.tranCategory = tranCategory;
 	}
 	
 	public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,

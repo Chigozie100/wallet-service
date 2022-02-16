@@ -12,5 +12,7 @@ public class WayaRedeemQRCode {
 	private String referenceNo;
 	
 	private Long payerId;
+	
+	private String transactionCategory;
 
 }
