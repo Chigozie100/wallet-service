@@ -28,11 +28,13 @@ public class ReceiptRequest {
 	
 	private String transactionType;
 	
+	private String transactionCategory;
+	
 	private String userId;
 
 	public ReceiptRequest(BigDecimal amount, String amountInWords, String receiverAccount, String receiverBank,
 			String receiverName, String referenceNumber, String senderName, Date transactionDate,
-			String transactionType, String userId) {
+			String transactionType, String transactionCategory, String userId) {
 		super();
 		this.amount = amount;
 		this.amountInWords = amountInWords;
@@ -43,6 +45,7 @@ public class ReceiptRequest {
 		this.senderName = senderName;
 		this.transactionDate = transactionDate;
 		this.transactionType = transactionType;
+		this.transactionCategory = transactionCategory;
 		this.userId = userId;
 	}
 	

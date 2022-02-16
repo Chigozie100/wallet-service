@@ -18,6 +18,7 @@ import javax.validation.constraints.NotNull;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.wayapaychat.temporalwallet.dto.PaymentRequest;
+import com.wayapaychat.temporalwallet.enumm.CategoryType;
 import com.wayapaychat.temporalwallet.enumm.PaymentRequestStatus;
 
 import lombok.AllArgsConstructor;
@@ -76,6 +77,9 @@ public class WalletPaymentRequest {
 
     @CreationTimestamp
     private LocalDateTime createdAt;
+    
+    @Enumerated(EnumType.STRING)
+    private CategoryType category;
 
 	public WalletPaymentRequest(
 			@NotBlank(message = "please enter the receiver's email") @Email(message = "please enter a valid email") String receiverEmail,
@@ -86,7 +90,7 @@ public class WalletPaymentRequest {
 			@NotNull(message = "please enter the amount") BigDecimal amount, boolean deleted,
 			PaymentRequestStatus status, boolean rejected, boolean wayauser,
 			@NotBlank(message = "please specify the reason for this payment request") String reason, String reference,
-			LocalDateTime createdAt) {
+			LocalDateTime createdAt, CategoryType category) {
 		super();
 		this.receiverEmail = receiverEmail;
 		this.receiverPhoneNumber = receiverPhoneNumber;
@@ -101,6 +105,7 @@ public class WalletPaymentRequest {
 		this.reason = reason;
 		this.reference = reference;
 		this.createdAt = createdAt;
+		this.category = category;
 	}
 	
 	public WalletPaymentRequest(PaymentRequest request) {
@@ -118,6 +123,7 @@ public class WalletPaymentRequest {
 		this.reason = request.getReason();
 		this.reference = request.getReference();
 		this.createdAt = request.getCreatedAt();
+		this.category = request.getTransactionCategory();
 	}
     
 

@@ -60,10 +60,10 @@ public class ExternalServiceProxyImpl {
 	
 	public ReceiptJson printReceipt(BigDecimal amount, String receiverAccount, 
 			String referenceNumber, Date transactionDate, String transactionType, 
-			String userId, String name, String token) {
+			String userId, String name, String category, String token) {
 		try {
 		ReceiptRequest receipt = new ReceiptRequest(amount, "", receiverAccount, "WALLET",
-				name, referenceNumber, "", transactionDate, transactionType, userId);
+				name, referenceNumber, "", transactionDate, transactionType, category, userId);
 		log.info("Receipt Request: {}", receipt.toString());
 		log.info("Receipt Token: {}", token);
 		ReceiptJson receiptResponse = receiptProxy.receiptOut(receipt, token);

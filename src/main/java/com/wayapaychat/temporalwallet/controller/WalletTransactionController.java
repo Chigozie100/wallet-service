@@ -74,6 +74,7 @@ public class WalletTransactionController {
 		    return transAccountService.PostExternalMoney(request, transfer, userId);   
 	}
 	
+	//Wallet call by other service
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Send Money to Wallet", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/sendmoney/wallet")
@@ -393,6 +394,7 @@ public class WalletTransactionController {
 		return transAccountService.WayaQRCodePayment(request, walletDto);
 	}
 	
+	//Wallet call by other service
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "QR Code Payment redeem", notes = "Transfer amount from user wallet to Non-waya", tags = { "TRANSACTION-WALLET" })
 	@PutMapping("/qr-code/transaction/redeem")
@@ -400,6 +402,7 @@ public class WalletTransactionController {
 		return transAccountService.WayaQRCodePaymentRedeem(request, walletDto);
 	}
 	
+	//Wallet call by other service
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Payment request", notes = "Transfer amount from user to User in waya", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/payment/request/transaction")
