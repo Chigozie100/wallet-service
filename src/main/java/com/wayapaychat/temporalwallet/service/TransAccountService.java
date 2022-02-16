@@ -92,7 +92,7 @@ public interface TransAccountService {
 
 	ApiResponse<?> getStatement(String accountNumber);
 
-	ApiResponse<?> EventTransferPayment(HttpServletRequest request, EventPaymentDTO eventPay);
+	ResponseEntity<?> EventTransferPayment(HttpServletRequest request, EventPaymentDTO eventPay);
 
 	ApiResponse<?> EventBuySellPayment(HttpServletRequest request, WayaTradeDTO eventPay);
 
