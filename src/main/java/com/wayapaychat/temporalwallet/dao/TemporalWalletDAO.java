@@ -18,6 +18,8 @@ public interface TemporalWalletDAO {
 	String GenerateTranId();
 
 	String SystemGenerateTranId();
+	
+	String TransactionGenerate();
 
 	String generateToken();
 

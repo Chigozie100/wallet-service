@@ -66,6 +66,19 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		}
 		return count;
 	}
+	
+	@Override
+	public String TransactionGenerate() {
+		String sql = "SELECT nextval('Transactionsequence')";
+		String count = null;
+		try {
+			count = jdbcTemplate.queryForObject(sql, String.class);
+			count = "WAYA" + count;
+		} catch (EmptyResultDataAccessException ex) {
+			ex.printStackTrace();
+		}
+		return count;
+	}
 
 	public String generateToken() {
 		String sql = "SELECT nextval('tokensequence')";
