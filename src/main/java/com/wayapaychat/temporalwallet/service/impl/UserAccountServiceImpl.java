@@ -360,9 +360,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 						acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 						LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
 						product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
-						product.getXfer_cr_limit(), true);
+						product.getXfer_cr_limit(),true);
 			}
-			walletAccountRepository.save(account);
+			WalletAccount sAcct = walletAccountRepository.save(account);
 			WalletAccount caccount = new WalletAccount();
 			// Commission Wallet
 			if (wallet.is_corporate()) {
@@ -398,6 +398,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 				}
 
 			}
+			sAcct.setWalletDefault(true);
+			walletAccountRepository.save(sAcct);
+			log.info("Account Creation: " + sAcct.getAccountNo());
 			return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
 					HttpStatus.CREATED);
 		} catch (Exception e) {
