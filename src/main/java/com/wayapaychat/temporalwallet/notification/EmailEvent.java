@@ -22,6 +22,10 @@ public class EmailEvent extends EventBase {
     @Valid
     @NotNull(message = "make sure you entered the right key *data* , and the value must not be null")
     private EmailPayload data;
+    
+    private String eventCategory;
+    
+    private String productType;
 
     public EmailEvent(EmailPayload data, String eventType) {
         this.data = data;
