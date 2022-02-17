@@ -72,7 +72,7 @@ public class SwitchAccountController {
             value = "/provider",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-	@ApiOperation(value = "Get Providers", notes = "Get providers")
+	@ApiOperation(value = "Get Providers", notes = "Get providers", tags = { "SWITCH-WALLET" })
 	public ResponseEntity<?> getProviders() {
 		return switchWalletService.getProvider();
 	}
@@ -81,7 +81,7 @@ public class SwitchAccountController {
             value = "/provider/enable/{providerId}",
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    @ApiOperation(value = "Enable Provider", notes = "Enable a provider")
+    @ApiOperation(value = "Enable Provider", notes = "Enable a provider", tags = { "SWITCH-WALLET" })
 	public ResponseEntity<?> enableProvider(@PathVariable("providerId") Long providerId) {
 		return switchWalletService.enableProvider(providerId);
 	}
