@@ -27,6 +27,8 @@ public class CustomNotification {
 		EmailEvent emailEvent = new EmailEvent();
 
 		emailEvent.setEventType("EMAIL");
+		emailEvent.setEventCategory("TRANSACTION");
+		emailEvent.setProductType("WAYABANK");
 		EmailPayload data = new EmailPayload();
 
 		data.setMessage(message);
