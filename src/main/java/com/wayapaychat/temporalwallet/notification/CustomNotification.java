@@ -199,8 +199,8 @@ public class CustomNotification {
 			log.info("user response sms sent status :: " + infoResponse.status);
 			return infoResponse.status;
 		} catch (Exception e) {
-			log.error("Unable to send SMS", e.getMessage());
-			throw new CustomException(e.getMessage(), HttpStatus.EXPECTATION_FAILED);
+			log.error("Unable to send SMS: " + e.getLocalizedMessage());
+			throw new CustomException(e.getLocalizedMessage(), HttpStatus.EXPECTATION_FAILED);
 		}
 
 	}
