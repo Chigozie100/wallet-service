@@ -134,7 +134,7 @@ public class CustomNotification {
 		data.setSmsEventStatus(SMSEventStatus.NONWAYA);
 
 		SmsRecipient smsRecipient = new SmsRecipient();
-		smsRecipient.setEmail(phone);
+		smsRecipient.setEmail("emmanuel.njoku@wayapaychat.com");
 		smsRecipient.setTelephone(phone);
 		List<SmsRecipient> addList = new ArrayList<>();
 		addList.add(smsRecipient);
