@@ -38,6 +38,8 @@ public class TransEmailEvent extends EventBase {
     private String transactionDate;
 
     private String narration;
+    
+    private String productType;
 
     public TransEmailEvent(EmailPayload data, String eventType) {
         this.data = data;
