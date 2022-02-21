@@ -1,6 +1,6 @@
 #!/bin/bash
 
-yes | cp -rf staging.yaml deploy.yaml
+yes | cp -rf service.yaml deploy.yaml
 
 sed -i "s/imgtag/$VERSION/" deploy.yaml
 sed -i "s/cfgprofile/$NAMESPACE/" deploy.yaml
