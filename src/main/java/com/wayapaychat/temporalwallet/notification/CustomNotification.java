@@ -43,7 +43,7 @@ public class CustomNotification {
 
 		emailEvent.setData(data);
 		emailEvent.setInitiator(userId.toString());
-		log.info(emailEvent.toString());
+		log.info("REQUEST EMAIL WAYABANK: " + emailEvent.toString());
 
 		try {
 			sendEmailNotification(emailEvent, token);
@@ -78,7 +78,7 @@ public class CustomNotification {
 		emailEvent.setTransactionId(tranId);
 		emailEvent.setTransactionDate(tranDate);
 		emailEvent.setNarration(narrate);
-		log.info(emailEvent.toString());
+		log.info("REQUEST EMAIL TRANSACTION: " +emailEvent.toString());
 
 		try {
 			postEmailNotification(emailEvent, token);
@@ -113,7 +113,7 @@ public class CustomNotification {
 		emailEvent.setTransactionId(tranId);
 		emailEvent.setTransactionDate(tranDate);
 		emailEvent.setNarration(narrate);
-		log.info(emailEvent.toString());
+		log.info("REQUEST EMAIL: " + emailEvent.toString());
 
 		try {
 			postEmailNotification(emailEvent, token);
@@ -132,7 +132,7 @@ public class CustomNotification {
 		data.setSmsEventStatus(SMSEventStatus.NONWAYA);
 
 		SmsRecipient smsRecipient = new SmsRecipient();
-		smsRecipient.setEmail("emmanuel.njoku@wayapaychat.com");
+		smsRecipient.setEmail(phone);
 		smsRecipient.setTelephone(phone);
 		List<SmsRecipient> addList = new ArrayList<>();
 		addList.add(smsRecipient);
@@ -142,7 +142,7 @@ public class CustomNotification {
 
 		smsEvent.setEventType("SMS");
 		smsEvent.setInitiator(userId.toString());
-		log.info(smsEvent.toString());
+		log.info("REQUEST SMS: " +smsEvent.toString());
 
 		try {
 			smsNotification(smsEvent, token);
