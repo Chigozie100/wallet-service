@@ -605,14 +605,28 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				String message = formatMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration(), transactionToken);
+				
+				if(!StringUtils.isNumeric(transfer.getEmailOrPhoneNo())) {
 				CompletableFuture.runAsync(() -> customNotification.pushNonWayaEMAIL(token, transfer.getFullName(),
 						transfer.getEmailOrPhoneNo(), message, userToken.getId(), transfer.getAmount().toString(),
 						tranId, tranDate, transfer.getTranNarration()));
+				
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
-						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
+						userToken.getPhoneNumber(), message, userToken.getId()));
+				
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
 						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
-				
+				}else {
+					CompletableFuture.runAsync(() -> customNotification.pushNonWayaEMAIL(token, transfer.getFullName(),
+							userToken.getEmail(), message, userToken.getId(), transfer.getAmount().toString(),
+							tranId, tranDate, transfer.getTranNarration()));
+					
+					CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
+							transfer.getEmailOrPhoneNo(), message, userToken.getId()));
+					
+					CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
+							transfer.getEmailOrPhoneNo(), message, userToken.getId()));
+				}
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATED", transaction),
 						HttpStatus.CREATED);
 				log.info("Transaction Response: {}", resp.toString());
