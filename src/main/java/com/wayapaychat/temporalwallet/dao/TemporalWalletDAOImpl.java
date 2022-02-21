@@ -152,7 +152,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 			Object[] params = new Object[] { account };
 			count = jdbcTemplate.queryForObject(sql, String.class, params);
 		} catch (EmptyResultDataAccessException ex) {
-			ex.printStackTrace();
+			log.error("RESULT DATA: " + ex.getLocalizedMessage() + " With Account: " + account);
 		}
 		return count;
 	}
