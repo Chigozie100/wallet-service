@@ -59,6 +59,7 @@ public class CustomNotification {
 		TransEmailEvent emailEvent = new TransEmailEvent();
 
 		emailEvent.setEventType("EMAIL");
+		emailEvent.setProductType("WAYABANK");
 		EmailPayload data = new EmailPayload();
 
 		data.setMessage(message);
@@ -78,7 +79,7 @@ public class CustomNotification {
 		emailEvent.setTransactionId(tranId);
 		emailEvent.setTransactionDate(tranDate);
 		emailEvent.setNarration(narrate);
-		log.info("REQUEST EMAIL TRANSACTION: " +emailEvent.toString());
+		log.info("REQUEST EMAIL TRANSACTION: " + emailEvent.toString());
 
 		try {
 			postEmailNotification(emailEvent, token);
@@ -94,6 +95,7 @@ public class CustomNotification {
 		TransEmailEvent emailEvent = new TransEmailEvent();
 
 		emailEvent.setEventType("EMAIL");
+		emailEvent.setProductType("WAYABANK");
 		EmailPayload data = new EmailPayload();
 
 		data.setMessage(message);
