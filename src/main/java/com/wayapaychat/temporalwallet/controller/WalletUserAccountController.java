@@ -60,12 +60,12 @@ public class WalletUserAccountController {
         //return userAccountService.createUser(user);
     }
 	
+	//Wallet call by other service
 	@ApiOperation(value = "Create User Account", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/user/account")
     public ResponseEntity<?> createUserAccount(@Valid @RequestBody WalletUserDTO user) {
 		log.info("Request input: {}",user);
 		return userAccountService.createUserAccount(user);
-        //return userAccountService.createUserAccount(user);
     }
 	
 	@ApiOperation(value = "Modify User Account", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
@@ -133,11 +133,11 @@ public class WalletUserAccountController {
 	        //return userAccountService.createEventAccount(user);
 	 }
 	
+	//Wallet call by other service
 	@ApiOperation(value = "Create a Wallet", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/create-wallet")
     public ResponseEntity<?> createAccount(@Valid @RequestBody AccountPojo2 accountPojo) {
 		return userAccountService.createAccount(accountPojo);
-        //return userAccountService.createAccount(accountPojo);
     }
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
