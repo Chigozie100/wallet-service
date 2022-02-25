@@ -20,6 +20,7 @@ import com.wayapaychat.temporalwallet.dto.ClientComTransferDTO;
 import com.wayapaychat.temporalwallet.dto.ClientWalletTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionTransferDTO;
 import com.wayapaychat.temporalwallet.dto.DirectTransactionDTO;
+import com.wayapaychat.temporalwallet.dto.EventOfficePaymentDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.NonWayaPayPIN;
 import com.wayapaychat.temporalwallet.dto.NonWayaPaymentDTO;
@@ -94,6 +95,8 @@ public interface TransAccountService {
 	ApiResponse<?> getStatement(String accountNumber);
 
 	ResponseEntity<?> EventTransferPayment(HttpServletRequest request, EventPaymentDTO eventPay);
+	
+	ResponseEntity<?> EventOfficePayment(HttpServletRequest request, EventOfficePaymentDTO eventPay);
 
 	ApiResponse<?> EventBuySellPayment(HttpServletRequest request, WayaTradeDTO eventPay);
 
