@@ -52,6 +52,7 @@ import com.wayapaychat.temporalwallet.dto.NonWayaBenefDTO;
 import com.wayapaychat.temporalwallet.dto.NonWayaPayPIN;
 import com.wayapaychat.temporalwallet.dto.NonWayaPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.NonWayaRedeemDTO;
+import com.wayapaychat.temporalwallet.dto.OTPResponse;
 import com.wayapaychat.temporalwallet.dto.OfficeTransferDTO;
 import com.wayapaychat.temporalwallet.dto.OfficeUserTransferDTO;
 import com.wayapaychat.temporalwallet.dto.PaymentRequest;
@@ -91,6 +92,7 @@ import com.wayapaychat.temporalwallet.pojo.MyData;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import com.wayapaychat.temporalwallet.pojo.TransactionRequest;
 import com.wayapaychat.temporalwallet.pojo.UserDetailPojo;
+import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
 import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletAcountVirtualRepository;
 import com.wayapaychat.temporalwallet.repository.WalletEventRepository;
@@ -108,7 +110,9 @@ import com.wayapaychat.temporalwallet.util.ExcelHelper;
 import com.wayapaychat.temporalwallet.util.ParamDefaultValidation;
 import com.wayapaychat.temporalwallet.util.ReqIPUtils;
 import com.wayapaychat.temporalwallet.util.SuccessResponse;
+import com.wayapaychat.temporalwallet.proxy.AuthProxy;
 
+import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -168,6 +172,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Autowired
 	ExternalServiceProxyImpl externalServiceProxy;
+	
+	@Autowired
+	AuthProxy authProxy;
 
 	@Override
 	public ResponseEntity<?> adminTransferForUser(HttpServletRequest request, String command,
@@ -4828,6 +4835,56 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ResponseEntity<>(new SuccessResponse("SUCCESS", mPay), HttpStatus.CREATED);
 		} else {
 			throw new CustomException("UnKnown Payment Status", HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@Override
+	public ResponseEntity<?> PostOTPGenerate(HttpServletRequest request, String emailPhone) {
+		try {
+			OTPResponse tokenResponse = authProxy.postOTPGenerate(emailPhone);
+			if(tokenResponse == null)
+				throw new CustomException("Unable to delivered OTP", HttpStatus.BAD_REQUEST);
+			
+			if (!tokenResponse.isStatus())
+				  return new ResponseEntity<>(new ErrorResponse(tokenResponse.getMessage()), HttpStatus.BAD_REQUEST);
+			
+			if (tokenResponse.isStatus())
+				log.info("Authorizated Transaction Token: {}", tokenResponse.toString());
+			
+			return new ResponseEntity<>(new SuccessResponse("SUCCESS", tokenResponse), HttpStatus.CREATED);
+			
+		} catch (Exception ex) {
+			if (ex instanceof FeignException) {
+				String httpStatus = Integer.toString(((FeignException) ex).status());
+				log.error("Feign Exception Status {}", httpStatus);
+			}
+			log.error("Higher Wahala {}", ex.getMessage());
+			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@Override
+	public ResponseEntity<?> PostOTPVerify(HttpServletRequest request, WalletRequestOTP transfer) {
+		try {
+			OTPResponse tokenResponse = authProxy.postOTPVerify(transfer);
+			if(tokenResponse == null)
+				throw new CustomException("Unable to delivered OTP", HttpStatus.BAD_REQUEST);
+			
+			if (!tokenResponse.isStatus())
+				  return new ResponseEntity<>(new ErrorResponse(tokenResponse.getMessage()), HttpStatus.BAD_REQUEST);
+			
+			if (tokenResponse.isStatus())
+				log.info("Verify Transaction Token: {}", tokenResponse.toString());
+			
+			return new ResponseEntity<>(new SuccessResponse("SUCCESS", tokenResponse), HttpStatus.CREATED);
+			
+		} catch (Exception ex) {
+			if (ex instanceof FeignException) {
+				String httpStatus = Integer.toString(((FeignException) ex).status());
+				log.error("Feign Exception Status {}", httpStatus);
+			}
+			log.error("Higher Wahala {}", ex.getMessage());
+			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}
 	}
 
