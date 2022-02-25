@@ -49,6 +49,7 @@ import com.wayapaychat.temporalwallet.dto.WayaPaymentRequest;
 import com.wayapaychat.temporalwallet.dto.WayaRedeemQRCode;
 import com.wayapaychat.temporalwallet.dto.WayaTradeDTO;
 import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
+import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
 
@@ -67,6 +68,20 @@ public class WalletTransactionController {
 	
 	@Autowired
 	TransAccountService transAccountService;
+	
+	//@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Generate OTP for Payment", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
+	@PostMapping("/otp/generate/{emailOrPhoneNumber}")
+	public ResponseEntity<?> OtpGenerate(HttpServletRequest request, @PathVariable("emailOrPhoneNumber") String emailOrPhoneNumber) {
+		    return transAccountService.PostOTPGenerate(request, emailOrPhoneNumber);   
+	}
+	
+	//@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Verify Wallet OTP", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
+	@PostMapping("/otp/payment/verify")
+	public ResponseEntity<?> otpVerify(HttpServletRequest request, @Valid @RequestBody WalletRequestOTP otp) {
+		    return transAccountService.PostOTPVerify(request, otp);   
+	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "External Wallet Payment", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
