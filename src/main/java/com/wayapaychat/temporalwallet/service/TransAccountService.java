@@ -62,7 +62,7 @@ public interface TransAccountService {
 
 	ApiResponse<Page<WalletTransaction>> findByAccountNumber(int page, int size, String accountNumber);
 
-	ApiResponse<?> makeWalletTransaction(HttpServletRequest request, String command, TransferTransactionDTO transactionPojo);
+	ResponseEntity<?> makeWalletTransaction(HttpServletRequest request, String command, TransferTransactionDTO transactionPojo);
 
 	ResponseEntity<?> sendMoney(HttpServletRequest request, TransferTransactionDTO transfer);
 
