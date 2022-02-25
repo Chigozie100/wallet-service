@@ -49,6 +49,7 @@ import com.wayapaychat.temporalwallet.dto.WayaPaymentRequest;
 import com.wayapaychat.temporalwallet.dto.WayaRedeemQRCode;
 import com.wayapaychat.temporalwallet.dto.WayaTradeDTO;
 import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
+import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
 
@@ -67,6 +68,20 @@ public class WalletTransactionController {
 	
 	@Autowired
 	TransAccountService transAccountService;
+	
+	//@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Generate OTP for Payment", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
+	@PostMapping("/otp/generate/{emailOrPhoneNumber}")
+	public ResponseEntity<?> OtpGenerate(HttpServletRequest request, @PathVariable("emailOrPhoneNumber") String emailOrPhoneNumber) {
+		    return transAccountService.PostOTPGenerate(request, emailOrPhoneNumber);   
+	}
+	
+	//@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Verify Wallet OTP", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
+	@PostMapping("/otp/payment/verify")
+	public ResponseEntity<?> otpVerify(HttpServletRequest request, @Valid @RequestBody WalletRequestOTP otp) {
+		    return transAccountService.PostOTPVerify(request, otp);   
+	}
 	
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "External Wallet Payment", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
@@ -237,11 +252,8 @@ public class WalletTransactionController {
 	@ApiOperation(value = "Transfer from one User Wallet to another wallet", notes = "Transfer from one Wallet to another wallet for a user this takes customer wallet id and the Beneficiary wallet id, effective from 06/24/2021", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/fund/transfer/wallet")
 	public ResponseEntity<?> handleTransactions(HttpServletRequest request, @RequestBody TransferTransactionDTO transactionPojo) {
-		ApiResponse<?> res = transAccountService.makeWalletTransaction(request,"",transactionPojo);
-		if (!res.getStatus()) {
-            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(res, HttpStatus.OK);
+		return transAccountService.makeWalletTransaction(request,"",transactionPojo);
+		
 	}
 	//Stopped
 	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
