@@ -62,6 +62,7 @@ public class FeignClientInterceptor implements RequestInterceptor {
 
 	@Override
 	public void apply(RequestTemplate requestTemplate) {
+		/*
 		Provider provider = switchWalletService.getActiveProvider();
 		Date date = new Date();
 		SimpleDateFormat formatter = new SimpleDateFormat("ddMMyyyy");
@@ -90,7 +91,7 @@ public class FeignClientInterceptor implements RequestInterceptor {
 		default:
 
 		}
-
+        */
 		String token = getBearerTokenHeader();
 		if (token != null && !token.isBlank()) {
 			requestTemplate.header(AUTHORIZATION_HEADER, token);
