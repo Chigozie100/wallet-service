@@ -63,7 +63,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 
 	@Override
 	public String GenerateTranId() {
-		getSecurity();
+		//getSecurity();
 		String sql = "SELECT nextval('transequence')";
 		String count = null;
 		try {
@@ -77,7 +77,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 
 	@Override
 	public String SystemGenerateTranId() {
-		getSecurity();
+		//getSecurity();
 		String sql = "SELECT nextval('syssequence')";
 		String count = null;
 		try {
@@ -91,7 +91,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 	
 	@Override
 	public String TransactionGenerate() {
-		getSecurity();
+		//getSecurity();
 		String sql = "SELECT nextval('Transactionsequence')";
 		String count = null;
 		try {
@@ -104,7 +104,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 	}
 
 	public String generateToken() {
-		getSecurity();
+		//getSecurity();
 		String sql = "SELECT nextval('tokensequence')";
 		String count = null;
 		try {
@@ -122,7 +122,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 	
 	@Override
 	public String generatePIN() {
-		getSecurity();
+		//getSecurity();
 		String sql = "SELECT nextval('pinsequence')";
 		String count = null;
 		try {
@@ -140,7 +140,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 	
 	@Override
 	public String generateRefNo() {
-		getSecurity();
+		//getSecurity();
 		String sql = "SELECT nextval('refnosequence')";
 		String count = null;
 		try {
@@ -157,7 +157,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 	}
 	@Override
 	public String SystemGenOffice() {
-		getSecurity();
+		//getSecurity();
 		String sql = "SELECT nextval('officesequence')";
 		String count = null;
 		try {
