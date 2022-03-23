@@ -20,6 +20,7 @@ import com.wayapaychat.temporalwallet.dto.ClientComTransferDTO;
 import com.wayapaychat.temporalwallet.dto.ClientWalletTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionTransferDTO;
 import com.wayapaychat.temporalwallet.dto.DirectTransactionDTO;
+import com.wayapaychat.temporalwallet.dto.EventOfficePaymentDTO;
 import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.NonWayaPayPIN;
 import com.wayapaychat.temporalwallet.dto.NonWayaPaymentDTO;
@@ -40,6 +41,7 @@ import com.wayapaychat.temporalwallet.entity.Transactions;
 import com.wayapaychat.temporalwallet.entity.WalletTransaction;
 import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
 import com.wayapaychat.temporalwallet.pojo.TransactionRequest;
+import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 
 public interface TransAccountService {
@@ -62,7 +64,7 @@ public interface TransAccountService {
 
 	ApiResponse<Page<WalletTransaction>> findByAccountNumber(int page, int size, String accountNumber);
 
-	ApiResponse<?> makeWalletTransaction(HttpServletRequest request, String command, TransferTransactionDTO transactionPojo);
+	ResponseEntity<?> makeWalletTransaction(HttpServletRequest request, String command, TransferTransactionDTO transactionPojo);
 
 	ResponseEntity<?> sendMoney(HttpServletRequest request, TransferTransactionDTO transfer);
 
@@ -93,6 +95,8 @@ public interface TransAccountService {
 	ApiResponse<?> getStatement(String accountNumber);
 
 	ResponseEntity<?> EventTransferPayment(HttpServletRequest request, EventPaymentDTO eventPay);
+	
+	ResponseEntity<?> EventOfficePayment(HttpServletRequest request, EventOfficePaymentDTO eventPay);
 
 	ApiResponse<?> EventBuySellPayment(HttpServletRequest request, WayaTradeDTO eventPay);
 
@@ -139,5 +143,9 @@ public interface TransAccountService {
 	ResponseEntity<?> WayaQRCodePaymentRedeem(HttpServletRequest request, WayaRedeemQRCode transfer);
 	
 	ResponseEntity<?> WayaPaymentRequestUsertoUser(HttpServletRequest request, WayaPaymentRequest transfer);
+	
+    ResponseEntity<?> PostOTPGenerate(HttpServletRequest request, String emailPhone);
+	
+	ResponseEntity<?> PostOTPVerify(HttpServletRequest request, WalletRequestOTP transfer);
 
 }

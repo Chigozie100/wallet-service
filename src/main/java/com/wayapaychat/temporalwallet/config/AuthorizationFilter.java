@@ -32,7 +32,7 @@ public class AuthorizationFilter extends BasicAuthenticationFilter {
 	@Autowired
 	AuthProxy authProxy;
 	
-//    private static final Logger LOGGER= LoggerFactory.getLogger(AuthorizationFilter.class);
+    //private static final Logger LOGGER= LoggerFactory.getLogger(AuthorizationFilter.class);
     
     public AuthorizationFilter(AuthenticationManager authManager) {
         super(authManager);
@@ -58,9 +58,7 @@ public class AuthorizationFilter extends BasicAuthenticationFilter {
             return null;
         }
         GetUserDataService authProxy = (GetUserDataService) SpringApplicationContext.getBean("getUserDataService");
-        TokenCheckResponse tokenResponse = authProxy.getUserData(request);
-//        Users user = (Users) JSONMarshaller.unmarshall(request, Users.class);
-        
+        TokenCheckResponse tokenResponse = authProxy.getUserData(request);        
         
         if(!tokenResponse.isStatus()) {
         	log.info("Error::: {}, {} and {}", tokenResponse.getMessage(),2,3);

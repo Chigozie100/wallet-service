@@ -12,6 +12,7 @@ import com.wayapaychat.temporalwallet.enumm.EventCategory;
 import com.wayapaychat.temporalwallet.enumm.SMSEventStatus;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.proxy.NotificationProxy;
+import com.wayapaychat.temporalwallet.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,7 +44,7 @@ public class CustomNotification {
 
 		emailEvent.setData(data);
 		emailEvent.setInitiator(userId.toString());
-		log.info(emailEvent.toString());
+		log.info("REQUEST EMAIL WAYABANK: " + emailEvent.toString());
 
 		try {
 			sendEmailNotification(emailEvent, token);
@@ -59,6 +60,7 @@ public class CustomNotification {
 		TransEmailEvent emailEvent = new TransEmailEvent();
 
 		emailEvent.setEventType("EMAIL");
+		emailEvent.setProductType("WAYABANK");
 		EmailPayload data = new EmailPayload();
 
 		data.setMessage(message);
@@ -76,9 +78,9 @@ public class CustomNotification {
 		emailEvent.setInitiator(userId.toString());
 		emailEvent.setAmount(amount);
 		emailEvent.setTransactionId(tranId);
-		emailEvent.setTransactionDate(tranDate);
+		emailEvent.setTransactionDate(CryptoUtils.getNigeriaDate(tranDate));
 		emailEvent.setNarration(narrate);
-		log.info(emailEvent.toString());
+		log.info("REQUEST EMAIL TRANSACTION: " + emailEvent.toString());
 
 		try {
 			postEmailNotification(emailEvent, token);
@@ -94,6 +96,7 @@ public class CustomNotification {
 		TransEmailEvent emailEvent = new TransEmailEvent();
 
 		emailEvent.setEventType("EMAIL");
+		emailEvent.setProductType("WAYABANK");
 		EmailPayload data = new EmailPayload();
 
 		data.setMessage(message);
@@ -111,9 +114,9 @@ public class CustomNotification {
 		emailEvent.setInitiator(userId.toString());
 		emailEvent.setAmount(amount);
 		emailEvent.setTransactionId(tranId);
-		emailEvent.setTransactionDate(tranDate);
+		emailEvent.setTransactionDate(CryptoUtils.getNigeriaDate(tranDate));
 		emailEvent.setNarration(narrate);
-		log.info(emailEvent.toString());
+		log.info("REQUEST EMAIL: " + emailEvent.toString());
 
 		try {
 			postEmailNotification(emailEvent, token);
@@ -142,7 +145,7 @@ public class CustomNotification {
 
 		smsEvent.setEventType("SMS");
 		smsEvent.setInitiator(userId.toString());
-		log.info(smsEvent.toString());
+		log.info("REQUEST SMS: " +smsEvent.toString());
 
 		try {
 			smsNotification(smsEvent, token);
@@ -197,8 +200,8 @@ public class CustomNotification {
 			log.info("user response sms sent status :: " + infoResponse.status);
 			return infoResponse.status;
 		} catch (Exception e) {
-			log.error("Unable to send SMS", e.getMessage());
-			throw new CustomException(e.getMessage(), HttpStatus.EXPECTATION_FAILED);
+			log.error("Unable to send SMS: " + e.getLocalizedMessage());
+			throw new CustomException(e.getLocalizedMessage(), HttpStatus.EXPECTATION_FAILED);
 		}
 
 	}
