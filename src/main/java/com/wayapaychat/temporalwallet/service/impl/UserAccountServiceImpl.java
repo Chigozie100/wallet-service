@@ -348,7 +348,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			}
 		}
 
-		try {
+		//try {
 			String hashed_no = reqUtil
 					.WayaEncrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
 			WalletUser userx = walletUserRepository.save(userInfo);
@@ -403,9 +403,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 			log.info("Account Creation: " + sAcct.getAccountNo());
 			return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
 					HttpStatus.CREATED);
-		} catch (Exception e) {
+		/*} catch (Exception e) {
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
-		}
+		}*/
 	}
 
 	public ResponseEntity<?> modifyUserAccount(UserAccountDTO user) {
