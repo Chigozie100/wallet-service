@@ -278,7 +278,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 		WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
 		String acctNo = null;
 		Integer rand = reqUtil.getAccountNo();
-		if (rand == 0) {
+		if (rand == 0) { 
+			log.error("Error: Unable to generate Wallet Account");
 			return new ResponseEntity<>(new ErrorResponse("Unable to generate Wallet Account"), HttpStatus.BAD_REQUEST);
 		}
 		String acct_ownership = null;
@@ -352,7 +353,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			String hashed_no = reqUtil
 					.WayaEncrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
 			WalletUser userx = walletUserRepository.save(userInfo);
-
+			
 			WalletAccount account = new WalletAccount();
 			if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 					|| product.getProduct_type().equals("ODA"))) {
@@ -404,7 +405,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
 					HttpStatus.CREATED);
 		} catch (Exception e) {
-			e.printStackTrace();
+			e.printStackTrace(); 
+			log.error("Exception: " + e.getMessage());
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 	}
