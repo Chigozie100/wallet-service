@@ -12,6 +12,7 @@ import com.wayapaychat.temporalwallet.enumm.EventCategory;
 import com.wayapaychat.temporalwallet.enumm.SMSEventStatus;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.proxy.NotificationProxy;
+import com.wayapaychat.temporalwallet.util.CryptoUtils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -77,7 +78,7 @@ public class CustomNotification {
 		emailEvent.setInitiator(userId.toString());
 		emailEvent.setAmount(amount);
 		emailEvent.setTransactionId(tranId);
-		emailEvent.setTransactionDate(tranDate);
+		emailEvent.setTransactionDate(CryptoUtils.getNigeriaDate(tranDate));
 		emailEvent.setNarration(narrate);
 		log.info("REQUEST EMAIL TRANSACTION: " + emailEvent.toString());
 
@@ -113,7 +114,7 @@ public class CustomNotification {
 		emailEvent.setInitiator(userId.toString());
 		emailEvent.setAmount(amount);
 		emailEvent.setTransactionId(tranId);
-		emailEvent.setTransactionDate(tranDate);
+		emailEvent.setTransactionDate(CryptoUtils.getNigeriaDate(tranDate));
 		emailEvent.setNarration(narrate);
 		log.info("REQUEST EMAIL: " + emailEvent.toString());
 

@@ -1071,6 +1071,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		if (user == null) {
 			return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
 		}
+
 		Optional<WalletAccount> account = walletAccountRepository.findByDefaultAccount(user);
 		if (!account.isPresent()) {
 			return new ResponseEntity<>(new ErrorResponse("Unable to fetch default account"), HttpStatus.BAD_REQUEST);
