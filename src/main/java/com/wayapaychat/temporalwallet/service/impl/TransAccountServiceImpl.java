@@ -7,13 +7,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
@@ -710,6 +704,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 				String message = formatMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration(), transactionToken);
 
+				String noneWaya = formatMoneWayaMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration(), transactionToken);
+
 				if (!StringUtils.isNumeric(transfer.getEmailOrPhoneNo())) {
 					log.info("EMAIL: " + transfer.getEmailOrPhoneNo());
 
@@ -718,7 +715,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 							tranId, tranDate, transfer.getTranNarration()));
 
 					CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
-							userToken.getPhoneNumber(), message, userToken.getId()));
+							userToken.getPhoneNumber(), noneWaya, userToken.getId()));
 
 					CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
 							transfer.getEmailOrPhoneNo(), message, userToken.getId()));
@@ -730,7 +727,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 							tranDate, transfer.getTranNarration()));
 
 					CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
-							transfer.getEmailOrPhoneNo(), message, userToken.getId()));
+							transfer.getEmailOrPhoneNo(), noneWaya, userToken.getId()));
 
 					CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
 							transfer.getEmailOrPhoneNo(), message, userToken.getId()));
@@ -753,6 +750,35 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return resp;
+	}
+
+	public ResponseEntity<?> getListOfNonWayaTransfers(HttpServletRequest request, String userId, int page, int  size) {
+
+		try{
+			String token = request.getHeader(SecurityConstants.HEADER_STRING);
+			MyData userToken = tokenService.getTokenUser(token);
+			if (userToken == null) {
+				return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
+			}
+
+
+			Pageable paging = PageRequest.of(page, size);
+			Page<WalletNonWayaPayment> walletNonWayaPaymentPage = walletNonWayaPaymentRepo.findAllByCreatedBy(userId,paging);
+			List<WalletNonWayaPayment> walletNonWayaPaymentList = walletNonWayaPaymentPage.getContent();
+			Map<String, Object> response = new HashMap<>();
+
+			response.put("accountStatements", walletNonWayaPaymentList);
+			response.put("currentPage", walletNonWayaPaymentPage.getNumber());
+			response.put("totalItems", walletNonWayaPaymentPage.getTotalElements());
+			response.put("totalPages", walletNonWayaPaymentPage.getTotalPages());
+
+			return new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATED", response),
+					HttpStatus.CREATED);
+
+		} catch (Exception ex) {
+			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+		}
 	}
 
 	public ResponseEntity<?> TransferNonRedeem(HttpServletRequest request, NonWayaBenefDTO transfer) {
@@ -1364,7 +1390,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return makeTransfer(request, command, transfer);
 		}
 	}
-	
+
+
+
 	public ResponseEntity<?> makeTransfer(HttpServletRequest request, String command,
 			TransferTransactionDTO transfer) {
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
@@ -1372,6 +1400,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 		if (userToken == null) {
 			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
 		}
+
+		// check if user is a marchent
+
+
 
 		String fromAccountNumber = transfer.getDebitAccountNumber();
 		String toAccountNumber = transfer.getBenefAccountNumber();
@@ -5007,6 +5039,20 @@ public class TransAccountServiceImpl implements TransAccountService {
 		String message = "" + "\n";
 		message = message + "" + "A transaction has occurred with token id: " + tokenId
 				+ "  on your account see details below." + "\n";
+		return message;
+	}
+
+	public String formatMoneWayaMessage(BigDecimal amount, String tranId, String tranDate, String tranCrncy, String narration,
+										String tokenId) {
+
+		String message = "" + "\n";
+		message = message + "" + "A transaction has occurred with token id: " + tokenId
+				+ "  on your account see details below." + "\n";
+		message = message + "" + "Amount :" + amount + "\n";
+		message = message + "" + "tranId :" + tranId + "\n";
+		message = message + "" + "tranDate :" + tranDate + "\n";
+		message = message + "" + "Currency :" + tranCrncy + "\n";
+		message = message + "" + "Narration :" + narration + "\n";
 		return message;
 	}
 
