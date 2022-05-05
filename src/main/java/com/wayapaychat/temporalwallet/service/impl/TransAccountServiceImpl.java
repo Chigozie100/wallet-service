@@ -767,7 +767,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			List<WalletNonWayaPayment> walletNonWayaPaymentList = walletNonWayaPaymentPage.getContent();
 			Map<String, Object> response = new HashMap<>();
 
-			response.put("accountStatements", walletNonWayaPaymentList);
+			response.put("nonWayaList", walletNonWayaPaymentList);
 			response.put("currentPage", walletNonWayaPaymentPage.getNumber());
 			response.put("totalItems", walletNonWayaPaymentPage.getTotalElements());
 			response.put("totalPages", walletNonWayaPaymentPage.getTotalPages());
@@ -958,6 +958,16 @@ public class TransAccountServiceImpl implements TransAccountService {
 	@Override
 	public ResponseEntity<?> NonWayaPaymentRedeem(HttpServletRequest request, NonWayaRedeemDTO transfer) {
 		try {
+			// check if Transaction is still valid
+
+			WalletNonWayaPayment data1 = walletNonWayaPaymentRepo
+					.findByToken(transfer.getToken()).orElse(null);
+			if (data1.getStatus().equals(PaymentStatus.REJECT)) {
+				return new ResponseEntity<>(new ErrorResponse("TOKEN IS NO LONGER VALID"), HttpStatus.BAD_REQUEST);
+			}else if(data1.getStatus().equals(PaymentStatus.PAYOUT)){
+				return new ResponseEntity<>(new ErrorResponse("TRANSACTION HAS BEEN PAYED OUT"), HttpStatus.BAD_REQUEST);
+			}
+
 			// To fetch the token used
 			String token = request.getHeader(SecurityConstants.HEADER_STRING);
 			MyData userToken = tokenService.getTokenUser(token);
@@ -1037,6 +1047,15 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Override
 	public ResponseEntity<?> NonWayaRedeemPIN(HttpServletRequest request, NonWayaPayPIN transfer) {
+
+		WalletNonWayaPayment check = walletNonWayaPaymentRepo
+				.findByToken(transfer.getTokenId()).orElse(null);
+		if (check == null) {
+			return new ResponseEntity<>(new ErrorResponse("INVALID PIN.PLEASE CHECK IT"), HttpStatus.BAD_REQUEST);
+		}else if (check.getStatus().equals(PaymentStatus.REJECT)){
+			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
+		}
+
 		WalletNonWayaPayment redeem = walletNonWayaPaymentRepo
 				.findByTokenPIN(transfer.getTokenId(), transfer.getTokenPIN()).orElse(null);
 		if (redeem == null) {
