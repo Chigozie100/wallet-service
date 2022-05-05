@@ -35,6 +35,11 @@ spring:
       schemas: public
       enabled: true
 
+#Scheduled Jobs
+job:
+  cron:
+    nonewaya: 0/5 * * * * ? #5am every day
+
 eureka:
   client:
     serviceUrl:
