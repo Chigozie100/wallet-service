@@ -772,7 +772,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			response.put("totalItems", walletNonWayaPaymentPage.getTotalElements());
 			response.put("totalPages", walletNonWayaPaymentPage.getTotalPages());
 
-			return new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATED", response),
+			return new ResponseEntity<>(new SuccessResponse("Data Retrieved", response),
 					HttpStatus.CREATED);
 
 		} catch (Exception ex) {
@@ -1053,7 +1053,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		if (check == null) {
 			return new ResponseEntity<>(new ErrorResponse("INVALID PIN.PLEASE CHECK IT"), HttpStatus.BAD_REQUEST);
 		}else if (check.getStatus().equals(PaymentStatus.REJECT)){
-			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
+			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN OR TOKEN HAS EXPIRED AFTER 30DAYs"), HttpStatus.BAD_REQUEST);
 		}
 
 		WalletNonWayaPayment redeem = walletNonWayaPaymentRepo
