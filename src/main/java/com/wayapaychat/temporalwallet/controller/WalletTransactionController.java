@@ -519,8 +519,8 @@ public class WalletTransactionController {
 	@ApiOperation(value = "Payment request", notes = "Transfer amount from user to User in waya", tags = {
 			"TRANSACTION-WALLET" })
 	@PostMapping("/payment/request/transaction")
-	public ResponseEntity<?> transerPaymentUserToUser(@RequestParam("command") String command,
-			HttpServletRequest request, @Valid @RequestBody WayaPaymentRequest transfer) {
+	public ResponseEntity<?> transerPaymentUserToUser(HttpServletRequest request, @Valid @RequestBody WayaPaymentRequest transfer) {
+		System.out.println("TK- : {} " + transfer);
 		return transAccountService.WayaPaymentRequestUsertoUser(request, transfer);
 	}
 
