@@ -5156,6 +5156,24 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return account;
 	}
 
+	public WalletPaymentRequest getWalletPaymentRequest(PaymentRequest request) {
+		WalletPaymentRequest wayauser = new WalletPaymentRequest();
+		wayauser.setReceiverEmail(request.getReceiverEmail());
+		wayauser.setReceiverPhoneNumber(request.getReceiverName());
+		wayauser.setReceiverId( request.getReceiverId());
+		wayauser.setSenderId(request.getSenderId());
+		wayauser.setAmount(request.getAmount());
+		wayauser.setDeleted(request.isDeleted());
+		wayauser.setStatus(request.getStatus());
+		wayauser.setRejected(request.isRejected());
+		wayauser.setWayauser(request.isWayauser());
+		wayauser.setReason(request.getReason());
+		wayauser.setReference(request.getReference());
+		wayauser.setCreatedAt(request.getCreatedAt());
+		wayauser.setCategory(request.getTransactionCategory());
+		return wayauser;
+	}
+
 	@Override
 	public ResponseEntity<?> WayaPaymentRequestUsertoUser(HttpServletRequest request, WayaPaymentRequest transfer) {
 		if (transfer.getPaymentRequest().getStatus().name().equals("PENDING")) {
@@ -5164,12 +5182,15 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (mPayRequest != null) {
 				throw new CustomException("Reference ID already exist", HttpStatus.BAD_REQUEST);
 			}
+//			WalletPaymentRequest spay = getWalletPaymentRequest(transfer.getPaymentRequest());
 			WalletPaymentRequest spay = new WalletPaymentRequest(transfer.getPaymentRequest());
 			WalletPaymentRequest mPay = walletPaymentRequestRepo.save(spay);
 			return new ResponseEntity<>(new SuccessResponse("SUCCESS", mPay), HttpStatus.CREATED);
 		} else if (transfer.getPaymentRequest().getStatus().name().equals("PAID")) {
+
 			WalletPaymentRequest mPayRequest = walletPaymentRequestRepo
 					.findByReference(transfer.getPaymentRequest().getReference()).orElse(null);
+
 			if (mPayRequest == null) {
 				throw new CustomException("Reference ID does not exist", HttpStatus.BAD_REQUEST);
 			}
