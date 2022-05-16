@@ -6,4 +6,6 @@ import com.wayapaychat.temporalwallet.entity.WalletTransactionCharge;
 
 public interface WalletTransactionChargeRepository extends JpaRepository <WalletTransactionCharge, Long> {
 
+    WalletTransactionCharge findByChargeName(String chargeName);
+
 }

@@ -502,7 +502,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 				}
 				caccount.setWalletDefault(true);
 				walletAccountRepository.save(caccount);
-				return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
+				return new ResponseEntity<>(new SuccessResponse("Account set as default successfully.", account),
 						HttpStatus.CREATED);
 			} catch (Exception e) {
 				return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);

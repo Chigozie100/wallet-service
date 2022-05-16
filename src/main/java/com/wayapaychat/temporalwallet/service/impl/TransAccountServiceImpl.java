@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -170,6 +171,19 @@ public class TransAccountServiceImpl implements TransAccountService {
 	
 	@Autowired
 	AuthProxy authProxy;
+
+	@Value("${waya.charges.account}")
+	private String chargesAccount;
+
+	@Value("${waya.official.email}")
+	private String officalEmail;
+
+	@Value("${waya.official.phone}")
+	private String officalPhone;
+
+
+
+	private BigDecimal chargesAmount = BigDecimal.valueOf(10.00);
 
 	@Override
 	public ResponseEntity<?> adminTransferForUser(HttpServletRequest request, String command,
@@ -1234,6 +1248,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	public ResponseEntity<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer) {
 		Provider provider = switchWalletService.getActiveProvider();
+		System.out.println("provider :: {} " + provider);
 		if (provider == null) {
 			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
 		}
@@ -1249,7 +1264,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public ResponseEntity<?> BankPayment(HttpServletRequest request, BankPaymentDTO transfer) {
-
+		System.out.println("BankPayment :: {} " + transfer);
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 		if (userToken == null) {
@@ -1261,47 +1276,61 @@ public class TransAccountServiceImpl implements TransAccountService {
 		if (reference.equals("")) {
 			reference = transfer.getPaymentReference();
 		}
-
+		System.out.println("after TransactionGenerate  :: {} " + reference);
 		String toAccountNumber = transfer.getCustomerAccountNumber();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("WITHDRAW");
 		CategoryType tranCategory = CategoryType.valueOf(transfer.getTransactionCategory());
+		System.out.println("after CategoryType and  TransactionTypeEnum :: {} " + tranType);
 
 		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
 		try {
 			int intRec = tempwallet.PaymenttranInsert("BANKPMT", "", toAccountNumber, transfer.getAmount(), reference);
+			log.info("after PaymenttranInsert :: {} " + intRec);
 			if (intRec == 1) {
 				String tranId = BankTransactionPay("BANKPMT", toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), reference, transfer.getBankName(),
-						request, tranCategory);
+						request, tranCategory, transfer.getSenderName(), transfer.getReceiverName());
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ResponseEntity<>(new ErrorResponse(tranKey[1]), HttpStatus.BAD_REQUEST);
 				}
+
+				System.out.println("After BankTransactionPay :: " + tranId );
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
+
+				log.info("WalletTransaction :: " + transaction.get() );
 
 				if (!transaction.isPresent()) {
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
 							HttpStatus.BAD_REQUEST);
 				}
-				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", transaction), HttpStatus.CREATED);
+				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", transaction.get()), HttpStatus.CREATED);
 
 				Date tDate = Calendar.getInstance().getTime();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 				String tranDate = dateFormat.format(tDate);
 
+				log.info("toAccountNumber :: {} " + toAccountNumber);
+
 				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
-				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
-				String fullName = xUser.getFirstName() + " " + xUser.getLastName();
+				log.info("WalletAccount :: {} " + xAccount);
+
+				//WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+				//System.out.println("WalletUser :: {} " + xUser);  + " " + xUser.getLastName()
+
+				String fullName = "WAYABANK";
+				String email = officalEmail;
+				String phone = officalPhone;
 
 				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
 				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
-						xUser.getEmailAddress(), message, userToken.getId(), transfer.getAmount().toString(), tranId,
+						email, message, userToken.getId(), transfer.getAmount().toString(), tranId,
 						tranDate, transfer.getTranNarration()));
-				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, phone,
 						message, userToken.getId()));
-				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getMobileNo(),
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, phone,
 						message, userToken.getId()));
 			} else {
 				if (intRec == 2) {
@@ -1400,14 +1429,20 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
+		ResponseEntity<?> mm = null;
 		switch (provider.getName()) {
 		case ProviderType.MAINMIFO:
-			return makeTransfer(request, command, transfer);
+			 mm = makeTransfer(request, command, transfer);
 		case ProviderType.TEMPORAL:
-			return makeTransfer(request, command, transfer);
+			 mm = makeTransfer(request, command, transfer);
 		default:
-			return makeTransfer(request, command, transfer);
+			 mm = makeTransfer(request, command, transfer);
 		}
+
+		transfer.setBenefAccountNumber(chargesAccount);
+		transfer.setAmount(chargesAmount);
+		debitTransactionFee(request,transfer);
+		return mm;
 	}
 
 
@@ -1501,6 +1536,17 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return resp;
 	}
 
+	public void debitTransactionFee(HttpServletRequest request, TransferTransactionDTO transfer){
+
+		/**
+		 * 	deduct transaction charges
+		 * 	take 10 from transfer.getDebitAccountNumber();
+		 * 	and creadit Waya official wallet
+		 * transfer.setBenefAccountNumber();
+		 */
+		sendMoney(request,transfer);
+	}
+
 	@Override
 	public ResponseEntity<?> sendMoney(HttpServletRequest request, TransferTransactionDTO transfer) {
 		Provider provider = switchWalletService.getActiveProvider();
@@ -1525,6 +1571,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		if (userToken == null) {
 			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
 		}
+
 
 		String fromAccountNumber = transfer.getDebitAccountNumber();
 		String toAccountNumber = transfer.getBenefAccountNumber();
@@ -2178,6 +2225,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
+
 			int intRec = tempwallet.PaymenttranInsert("", fromAccountNumber, toAccountNumber, transfer.getAmount(),
 					transfer.getPaymentReference());
 			if (intRec == 1) {
@@ -4144,7 +4192,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	public String BankTransactionPay(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef, String bk,
-			HttpServletRequest request, CategoryType tranCategory) throws Exception {
+			HttpServletRequest request, CategoryType tranCategory, String senderName, String receiverName) throws Exception {
 		try {
 			int n = 1;
 			log.info("START TRANSACTION");
@@ -4306,6 +4354,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email,
 					n, tranCategory);
+
+			//  ################ TERSEER ########################
+			tranCredit.setReceiverName(receiverName);
+			tranCredit.setSenderName(senderName);
+			tranDebit.setSenderName(senderName);
+			tranDebit.setReceiverName(receiverName);
+
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
 			tempwallet.updateTransaction(paymentRef, amount, tranId);
@@ -4329,9 +4384,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// HttpServletRequest request
 			String token = request.getHeader(SecurityConstants.HEADER_STRING);
 			String receiverAcct = accountCredit.getAccountNo();
-			String receiverName = accountCredit.getAcct_name();
+			String receiverName1 = accountCredit.getAcct_name();
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
-					new Date(), tranType.getValue(), userId, receiverName, tranCategory.getValue(), token));
+					new Date(), tranType.getValue(), userId, receiverName1, tranCategory.getValue(), token));
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -5203,6 +5258,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 				ResponseEntity<?> res = sendMoney(request, txt);
 				if (res.getStatusCodeValue() != 200 && res.getStatusCodeValue() != 201) {
 					return res;
+				}else{
+					txt.setBenefAccountNumber(chargesAccount);
+					txt.setAmount(BigDecimal.valueOf(10.00));
+
+					CompletableFuture.runAsync(() -> debitTransactionFee(request, txt));
 				}
 				log.info("Send Money: {}", transfer);
 				mPayRequest.setStatus(PaymentRequestStatus.PAID);
@@ -5218,6 +5278,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 				ResponseEntity<?> res = sendMoney(request, txt);
 				if (res.getStatusCodeValue() != 200 && res.getStatusCodeValue() != 201) {
 					return res;
+				}else{
+					txt.setBenefAccountNumber(chargesAccount);
+					txt.setAmount(BigDecimal.valueOf(10.00));
+					CompletableFuture.runAsync(() -> debitTransactionFee(request, txt));
 				}
 				log.info("Send Money: {}", transfer);
 				mPayRequest.setReceiverId(mPay.getReceiverId());

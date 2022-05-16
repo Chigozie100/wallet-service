@@ -168,6 +168,7 @@ public class WalletTransactionController {
 	@ApiOperation(value = "Send Money to commercial bank", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/fund/bank/account")
 	public ResponseEntity<?> fundBank(HttpServletRequest request, @Valid @RequestBody BankPaymentDTO transfer) {
+		System.out.println("transfer : {} " + transfer);
 		return transAccountService.BankTransferPayment(request, transfer);
 	}
 
