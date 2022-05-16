@@ -127,6 +127,7 @@ public class WalletTransaction {
 		this.createdBy = createdBy;
 		this.createdEmail = createdEmail;
 		this.tranPart = tranPart;
+
 	}
 	
 	public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,

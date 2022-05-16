@@ -382,6 +382,10 @@ public class ConfigServiceImpl implements ConfigService {
 		WalletTransactionCharge EventCharge = new WalletTransactionCharge(event.getChargeName(), event.getCurrencyCode(), event.getFixedAmount(), event.getFixedPercent(),
 				event.getChargePerMode(), event.isTaxable(), event.getChargeEvent());
 		try {
+			WalletTransactionCharge wc = walletTransactionChargeRepository.findByChargeName(event.getChargeName());
+			if(wc !=null){
+				return new ResponseEntity<>(new ErrorResponse("ChargeName Already Exist"), HttpStatus.BAD_REQUEST);
+			}
 			WalletTransactionCharge charge = walletTransactionChargeRepository.save(EventCharge);
             return new ResponseEntity<>(new SuccessResponse("Transaction Charge Created Successfully.", charge), HttpStatus.CREATED);
         } catch (Exception e) {
