@@ -6,6 +6,7 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
@@ -119,7 +120,11 @@ public interface TransAccountService {
 	ApiResponse<?> TranALLReverseReport();
 
 	ApiResponse<?> statementReport(Date fromdate, Date todate, String acctNo);
-	
+
+	List<TransWallet> statementReport2(Date fromdate, Date todate, String acctNo);
+
+	ApiResponse<List<AccountStatementDTO>> ReportTransaction2(String accountNo);
+
 	ApiResponse<?> PaymentTransFilter(String acctNo);
 
 	ResponseEntity<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer);

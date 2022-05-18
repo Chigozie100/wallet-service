@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.dao;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 import com.wayapaychat.temporalwallet.dto.AccountLookUp;
@@ -53,5 +54,7 @@ public interface TemporalWalletDAO {
 	List<CommissionHistoryDTO> GetCommissionHistory();
 	
 	List<TransWallet> GetTransactionType(String account);
+
+	List<TransWallet> GetTransactionType2(String account, Date fromdate, Date todate);
 
 }

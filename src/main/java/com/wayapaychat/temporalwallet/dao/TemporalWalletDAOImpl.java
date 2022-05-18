@@ -272,6 +272,30 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 			return null;
 		}
 	}
+
+	public List<AccountStatementDTO> TransactionReport2(String acctNo, Date startDate, Date endDate) {
+		List<AccountStatementDTO> accountList = new ArrayList<>();
+		StringBuilder query = new StringBuilder();
+		query.append("Select tran_date,tran_type,created_at,created_email,email_address,");
+		query.append("mobile_no,a.account_no,tran_amount,tran_narrate,tran_id,");
+		query.append("(CASE WHEN part_tran_type = 'D' THEN 'DEBIT' WHEN part_tran_type = 'C' THEN 'CREDIT'");
+		query.append(" ELSE 'Unknown' END) debit_credit ");
+		query.append("from m_wallet_account a, m_wallet_transaction b,m_wallet_user c ");
+		query.append("where a.account_no = b.acct_num and a.cif_id = c.id ");
+		query.append("where b.tran_date >= ?2 and b.tran_date <= ?3  ");
+		query.append("and tran_id in (SELECT tran_id FROM m_wallet_transaction WHERE acct_num = ?1)  ");
+		query.append("order by tran_id desc");
+		String sql = query.toString();
+		try {
+			AccountStatementMapper rowMapper = new AccountStatementMapper();
+			Object[] params = new Object[] { acctNo.trim().toUpperCase(), startDate, endDate };
+			accountList = jdbcTemplate.query(sql, rowMapper, params);
+			return accountList;
+		} catch (Exception ex) {
+			log.error("An error Occured: Cause: {} \r\n Message: {}", ex.getCause(), ex.getMessage());
+			return null;
+		}
+	}
 	
 	public List<AccountTransChargeDTO> TransChargeReport() {
 		List<AccountTransChargeDTO> accountList = new ArrayList<>();
@@ -448,7 +472,33 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		}
 		return wallet;
 	}
-	
+
+	public List<TransWallet> GetTransactionType2(String account, Date startDate, Date endDate) {
+		List<TransWallet> wallet = new ArrayList<>();
+		StringBuilder query = new StringBuilder();
+		query.append("SELECT acct_num,a.payment_reference,a.tran_amount,tran_crncy_code,");
+		query.append("a.tran_date,tran_narrate,tran_type,(CASE WHEN part_tran_type = 'D' THEN 'DEBIT' ");
+		query.append("WHEN part_tran_type = 'C' THEN 'CREDIT' ELSE 'Unknown' END) AS part_tran_type,");
+		query.append("a.tran_id,(CASE WHEN event_id = 'ADMINTIL' THEN 'CASH' WHEN event_id = 'PAYSTACK' ");
+		query.append("THEN 'CARD' WHEN event_id = 'BANKPMT' THEN 'CASH' WHEN event_id = 'NONWAYAPT' ");
+		query.append("THEN 'NON-WAYA' ELSE 'TRANSFER' END) AS categoies ");
+		query.append("FROM m_wallet_transaction a, m_accounts_transaction b WHERE processed_flg ='Y' ");
+//		query.append("AND b.tran_date >= '"+ startDate +"' and b.tran_date < '"+ endDate +"' ");
+//		query.append("AND b.tran_date BETWEEN  (cast(?2 as date)is null )  AND (cast(?3 as date)is null ) ");
+		query.append("AND a.tran_id = b.tran_id AND acct_num = ? ORDER BY a.id asc");
+
+		String sql = query.toString();
+		try {
+			Object[] params = new Object[] { account.trim() };
+			
+			TransWalletMapper rowMapper = new TransWalletMapper();
+			wallet = jdbcTemplate.query(sql, rowMapper, params);
+		} catch (Exception ex) {
+			log.error(ex.getMessage());
+		}
+		return wallet;
+	}
+
 	public void getSecurity() {
 		Provider provider = switchWalletService.getActiveProvider();
 		Date date = new Date();

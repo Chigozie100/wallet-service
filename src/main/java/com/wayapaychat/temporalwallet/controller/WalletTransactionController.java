@@ -1,11 +1,19 @@
 package com.wayapaychat.temporalwallet.controller;
 
+import java.io.IOException;
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
+import com.itextpdf.text.DocumentException;
+import com.wayapaychat.temporalwallet.pojo.TransWallet;
+import com.wayapaychat.temporalwallet.util.PDFExporter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -718,6 +726,31 @@ public class WalletTransactionController {
 
 	}
 
+//
+//	@ApiImplicitParams({
+//			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+//	@ApiOperation(value = "For Admin to view all waya transaction", notes = "To view all transaction for wallet/waya", tags = {
+//			"TRANSACTION-WALLET" })
+//	@GetMapping("/client/statement-format/{acctNo}")
+//	public ResponseEntity<?> StatementReportFormat(
+//			@RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
+//			@RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
+//			@PathVariable("acctNo") String acctNo) {
+//		ApiResponse<?> res;
+//		try {
+//			res = transAccountService.statementReport2(fromdate, todate, acctNo);
+//			if (!res.getStatus()) {
+//				return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+//			}
+//			return new ResponseEntity<>(res, HttpStatus.OK);
+//		} catch (Exception e) {
+//			e.printStackTrace();
+//			res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
+//			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+//		}
+//
+//	}
+
 	@ApiOperation(value = "For Client to view all waya transaction", notes = "To view all transaction for wallet/waya", tags = {
 			"TRANSACTION-WALLET" })
 	@GetMapping("/client/statement/{acctNo}")
@@ -776,6 +809,29 @@ public class WalletTransactionController {
 			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
 		}
 
+	}
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "To Export Account Transaction ", notes = "Account Statement", tags = { "TRANSACTION-WALLET" })
+	@GetMapping("/transaction/export/pdf/{accountNo}")
+	public String exportToPDF(HttpServletResponse response,
+							  @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
+							  @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
+							  @PathVariable String accountNo) throws DocumentException, IOException, com.lowagie.text.DocumentException {
+		response.setContentType("application/pdf");
+		DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+		String currentDateTime = dateFormatter.format(new Date());
+
+		String headerKey = "Content-Disposition";
+		String headerValue = "attachment; filename=receipt_" + currentDateTime + ".pdf";
+		response.setHeader(headerKey, headerValue);
+		List<TransWallet> res = transAccountService.statementReport2(fromdate, todate, accountNo);
+		//OrgAndReceiptUtil receipt = transactionOperations.exportPDF(referenceNumber);
+		PDFExporter exporter = new PDFExporter(res,accountNo,fromdate,todate);
+		exporter.export(response);
+
+		return headerValue;
 	}
 
 }

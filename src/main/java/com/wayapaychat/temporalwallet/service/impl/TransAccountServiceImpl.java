@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.wayapaychat.temporalwallet.dto.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,42 +29,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.wayapaychat.temporalwallet.config.SecurityConstants;
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
-import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
-import com.wayapaychat.temporalwallet.dto.AccountTransChargeDTO;
-import com.wayapaychat.temporalwallet.dto.AdminLocalTransferDTO;
-import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
-import com.wayapaychat.temporalwallet.dto.AdminWalletTransactionDTO;
-import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
-import com.wayapaychat.temporalwallet.dto.BulkTransactionCreationDTO;
-import com.wayapaychat.temporalwallet.dto.BulkTransactionExcelDTO;
-import com.wayapaychat.temporalwallet.dto.ClientComTransferDTO;
-import com.wayapaychat.temporalwallet.dto.ClientWalletTransactionDTO;
-import com.wayapaychat.temporalwallet.dto.CommissionHistoryDTO;
-import com.wayapaychat.temporalwallet.dto.CommissionTransferDTO;
-import com.wayapaychat.temporalwallet.dto.DirectTransactionDTO;
-import com.wayapaychat.temporalwallet.dto.EventOfficePaymentDTO;
-import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
-import com.wayapaychat.temporalwallet.dto.ExcelTransactionCreationDTO;
-import com.wayapaychat.temporalwallet.dto.NonWayaBenefDTO;
-import com.wayapaychat.temporalwallet.dto.NonWayaPayPIN;
-import com.wayapaychat.temporalwallet.dto.NonWayaPaymentDTO;
-import com.wayapaychat.temporalwallet.dto.NonWayaRedeemDTO;
-import com.wayapaychat.temporalwallet.dto.OTPResponse;
-import com.wayapaychat.temporalwallet.dto.OfficeTransferDTO;
-import com.wayapaychat.temporalwallet.dto.OfficeUserTransferDTO;
-import com.wayapaychat.temporalwallet.dto.PaymentRequest;
-import com.wayapaychat.temporalwallet.dto.ReversePaymentDTO;
-import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
-import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
-import com.wayapaychat.temporalwallet.dto.UserTransactionDTO;
-import com.wayapaychat.temporalwallet.dto.WalletAccountStatement;
-import com.wayapaychat.temporalwallet.dto.WalletAdminTransferDTO;
-import com.wayapaychat.temporalwallet.dto.WayaPaymentRequest;
-import com.wayapaychat.temporalwallet.dto.WalletTransactionChargeDTO;
-import com.wayapaychat.temporalwallet.dto.WalletTransactionDTO;
-import com.wayapaychat.temporalwallet.dto.WayaPaymentQRCode;
-import com.wayapaychat.temporalwallet.dto.WayaRedeemQRCode;
-import com.wayapaychat.temporalwallet.dto.WayaTradeDTO;
 import com.wayapaychat.temporalwallet.entity.Provider;
 import com.wayapaychat.temporalwallet.entity.Transactions;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
@@ -1264,7 +1229,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public ResponseEntity<?> BankPayment(HttpServletRequest request, BankPaymentDTO transfer) {
-		System.out.println("BankPayment :: {} " + transfer);
+		log.info("BankPayment :: {} " + transfer);
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 		if (userToken == null) {
@@ -1276,11 +1241,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 		if (reference.equals("")) {
 			reference = transfer.getPaymentReference();
 		}
-		System.out.println("after TransactionGenerate  :: {} " + reference);
+		log.info("after TransactionGenerate  :: {} " + reference);
 		String toAccountNumber = transfer.getCustomerAccountNumber();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("WITHDRAW");
 		CategoryType tranCategory = CategoryType.valueOf(transfer.getTransactionCategory());
-		System.out.println("after CategoryType and  TransactionTypeEnum :: {} " + tranType);
+		log.info("after CategoryType and  TransactionTypeEnum :: {} " + tranType);
 
 		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
 		try {
@@ -5008,6 +4973,20 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO REPORT SPECIFIED DATE", null);
 		}
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION REPORT", transaction);
+	}
+
+	public List<TransWallet> statementReport2(Date fromdate, Date todate, String acctNo) {
+		LocalDate fromDate = fromdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		LocalDate toDate = todate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		//List<WalletTransaction> transaction = walletTransactionRepository.findByStatement(fromDate, toDate, acctNo);
+
+		List<TransWallet> transaction2 = tempwallet.GetTransactionType2(acctNo,fromdate,todate);
+		return transaction2;
+	}
+
+	@Override
+	public ApiResponse<List<AccountStatementDTO>> ReportTransaction2(String accountNo) {
+		return null;
 	}
 
 	@Override
