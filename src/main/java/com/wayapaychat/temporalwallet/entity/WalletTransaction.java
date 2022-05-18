@@ -129,6 +129,31 @@ public class WalletTransaction {
 		this.tranPart = tranPart;
 
 	}
+
+	public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
+							 @NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType,
+							 @NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
+							 @NotNull String partTranType, String tranGL,String paymentReference,
+							 String createdBy, String createdEmail,Integer tranPart,String senderName, String receiverName) {
+		super();
+		this.del_flg = false;
+		this.posted_flg = true;
+		this.tranId = tranId;
+		this.acctNum = acctNum;
+		this.tranAmount = tranAmount;
+		this.tranType = tranType;
+		this.tranNarrate = tranNarrate;
+		this.tranDate = tranDate;
+		this.tranCrncyCode = tranCrncyCode;
+		this.partTranType = partTranType;
+		this.tranGL = tranGL;
+		this.paymentReference = paymentReference;
+		this.createdBy = createdBy;
+		this.createdEmail = createdEmail;
+		this.tranPart = tranPart;
+		this.senderName = senderName;
+		this.receiverName = receiverName;
+	}
 	
 	public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
 			@NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType, 
