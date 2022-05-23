@@ -1284,9 +1284,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 				//WalletUser xUser = walletUserRepository.findByAccount(xAccount);
 				//System.out.println("WalletUser :: {} " + xUser);  + " " + xUser.getLastName()
 
-				String fullName = "WAYABANK";
-				String email = officalEmail;
-				String phone = officalPhone;
+				String fullName = userToken.getFirstName();
+				String email = userToken.getEmail();
+				String phone = userToken.getPhoneNumber();
 
 				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
