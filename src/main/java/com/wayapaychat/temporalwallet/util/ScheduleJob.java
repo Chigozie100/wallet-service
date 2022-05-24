@@ -57,7 +57,7 @@ public class ScheduleJob {
 
             if(checkDays == daysBetween){
                 log.info("-----####### Transaction upto 30 days ###### -------");
-                payment.setStatus(PaymentStatus.REJECT);
+                payment.setStatus(PaymentStatus.EXPIRED);
                 walletNonWayaPaymentRepo.save(payment);
                 log.info("-----####### END: record Updated ###### -------" + payment);
             }else{

@@ -155,4 +155,14 @@ public interface TransAccountService {
 	
 	ResponseEntity<?> PostOTPVerify(HttpServletRequest request, WalletRequestOTP transfer);
 
+	ResponseEntity<?>  getPendingNoneWayaPaymentRequest(String userId);
+
+	ResponseEntity<?>  getPayoutNoneWayaPaymentRequest(String userId);
+
+	ResponseEntity<?>  getReservedNoneWayaPaymentRequest(String userId);
+
+	ResponseEntity<?>  getTotalNoneWayaPaymentRequest(String userId);
+
+	ResponseEntity<?>  getExpierdNoneWayaPaymentRequest(String userId);
+
 }
