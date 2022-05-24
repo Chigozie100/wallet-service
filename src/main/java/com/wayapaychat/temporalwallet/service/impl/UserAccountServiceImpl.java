@@ -1348,6 +1348,16 @@ public class UserAccountServiceImpl implements UserAccountService {
 	}
 
 	@Override
+	public ResponseEntity<?> AccountAccessClosureMultiple(List<AccountCloseDTO> user) {
+		int count = 0;
+		for (AccountCloseDTO data: user){
+			ResponseEntity<?> dd = AccountAccessClosure(data);
+			count ++;
+		}
+		return new ResponseEntity<>(new SuccessResponse(count + "accounts closed successfully.", user), HttpStatus.OK);
+	}
+
+	@Override
 	public ResponseEntity<?> AccountAccessLien(AccountLienDTO user) {
 		try {
 			if (user.getLienAmount().compareTo(BigDecimal.ZERO) == 0) {
