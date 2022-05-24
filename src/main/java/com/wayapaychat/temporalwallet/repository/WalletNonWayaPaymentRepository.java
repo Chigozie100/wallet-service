@@ -40,4 +40,19 @@ public interface WalletNonWayaPaymentRepository extends JpaRepository<WalletNonW
 	@Query("SELECT u FROM WalletNonWayaPayment u WHERE u.createdBy =:userId order by u.createdAt desc")
 	Page<WalletNonWayaPayment> findAllByCreatedBy(String userId, Pageable pageable);
 
+	@Query("SELECT count(u.id) FROM WalletNonWayaPayment u WHERE u.createdBy =:userId and u.status ='PENDING' ")
+	long findAllByPending(String userId);
+
+	@Query("SELECT count(u.id) FROM WalletNonWayaPayment u WHERE u.createdBy =:userId and u.status ='PAYOUT' ")
+	long findAllByPayout(String userId);
+
+	@Query("SELECT count(u.id) FROM WalletNonWayaPayment u WHERE u.createdBy =:userId and u.status ='RESERVED' ")
+	long findAllByReserved(String userId);
+
+	@Query("SELECT count(u.id) FROM WalletNonWayaPayment u WHERE u.createdBy =:userId ")
+	long findAllByTotal(String userId);
+
+	@Query("SELECT count(u.id) FROM WalletNonWayaPayment u WHERE u.createdBy =:userId and u.status = 'EXPIRED'")
+	long findAllByExpired(String userId);
+
 }

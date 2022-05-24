@@ -95,6 +95,8 @@ public class WalletTransactionController {
 		return transAccountService.PostOTPVerify(request, otp);
 	}
 
+
+
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "External Wallet Payment", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
@@ -451,6 +453,38 @@ public class WalletTransactionController {
 			return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
 		}
 		return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Non Waya Total Transaction Count", notes = "Total Transaction", tags = { "TRANSACTION-WALLET" })
+	@GetMapping("/non-waya/payment/total-transactions/{userId}")
+	public ResponseEntity<?> totalNonePaymentRequest(@PathVariable String userId) {
+		return transAccountService.getTotalNoneWayaPaymentRequest(userId);
+	}
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Non Waya Total Pending Count", notes = "Total Pending Count", tags = { "TRANSACTION-WALLET" })
+	@GetMapping("/non-waya/payment/total-pending/{userId}")
+	public ResponseEntity<?> pendingNonePaymentRequest(@PathVariable String userId) {
+		return transAccountService.getPendingNoneWayaPaymentRequest(userId);
+	}
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Non Waya Total Expired Count", notes = "Total Expired", tags = { "TRANSACTION-WALLET" })
+	@GetMapping("/non-waya/payment/total-expired/{userId}")
+	public ResponseEntity<?> expiredNonePaymentRequest(@PathVariable String userId) {
+		return transAccountService.getExpierdNoneWayaPaymentRequest(userId);
+	}
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Non Waya Total Reserved Count", notes = "Total Reserved", tags = { "TRANSACTION-WALLET" })
+	@PostMapping("/non-waya/payment/total-reserved/{userId}")
+	public ResponseEntity<?> ReservedNonePaymentRequest(@PathVariable String userId) {
+		return transAccountService.getReservedNoneWayaPaymentRequest(userId);
 	}
 
 	// Wallet call by other service

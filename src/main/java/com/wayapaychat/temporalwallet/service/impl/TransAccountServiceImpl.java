@@ -945,6 +945,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 				return new ResponseEntity<>(new ErrorResponse("TOKEN IS NO LONGER VALID"), HttpStatus.BAD_REQUEST);
 			}else if(data1.getStatus().equals(PaymentStatus.PAYOUT)){
 				return new ResponseEntity<>(new ErrorResponse("TRANSACTION HAS BEEN PAYED OUT"), HttpStatus.BAD_REQUEST);
+			}else if(data1.getStatus().equals(PaymentStatus.EXPIRED)){
+				return new ResponseEntity<>(new ErrorResponse("TOKEN FOR THIS TRANSACTION HAS EXPIRED"), HttpStatus.BAD_REQUEST);
 			}
 
 			// To fetch the token used
@@ -5310,9 +5312,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 			
 			if (tokenResponse.isStatus())
 				log.info("Authorizated Transaction Token: {}", tokenResponse.toString());
-			
+
 			return new ResponseEntity<>(new SuccessResponse("SUCCESS", tokenResponse), HttpStatus.CREATED);
-			
+
 		} catch (Exception ex) {
 			if (ex instanceof FeignException) {
 				String httpStatus = Integer.toString(((FeignException) ex).status());
@@ -5346,6 +5348,31 @@ public class TransAccountServiceImpl implements TransAccountService {
 			log.error("Higher Wahala {}", ex.getMessage());
 			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}
+	}
+
+	public ResponseEntity<?>  getTotalNoneWayaPaymentRequest(String userId){
+		long count = walletNonWayaPaymentRepo.findAllByTotal(userId);
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
+	}
+
+	public ResponseEntity<?>  getReservedNoneWayaPaymentRequest(String userId){
+		long count = walletNonWayaPaymentRepo.findAllByReserved(userId);
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
+	}
+
+	public ResponseEntity<?>  getPayoutNoneWayaPaymentRequest(String userId){
+		long count = walletNonWayaPaymentRepo.findAllByPayout(userId);
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
+	}
+
+	public ResponseEntity<?>  getPendingNoneWayaPaymentRequest(String userId){
+		long count = walletNonWayaPaymentRepo.findAllByPending(userId);
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
+	}
+
+	public ResponseEntity<?>  getExpierdNoneWayaPaymentRequest(String userId){
+		long count = walletNonWayaPaymentRepo.findAllByExpired(userId);
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
 	}
 
 }
