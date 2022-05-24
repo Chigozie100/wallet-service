@@ -482,7 +482,7 @@ public class WalletTransactionController {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Non Waya Total Reserved Count", notes = "Total Reserved", tags = { "TRANSACTION-WALLET" })
-	@PostMapping("/non-waya/payment/total-reserved/{userId}")
+	@GetMapping("/non-waya/payment/total-reserved/{userId}")
 	public ResponseEntity<?> ReservedNonePaymentRequest(@PathVariable String userId) {
 		return transAccountService.getReservedNoneWayaPaymentRequest(userId);
 	}
