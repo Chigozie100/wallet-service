@@ -571,7 +571,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createEventRedeem("NONWAYAPT", toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-						request);
+						request,transfer.getFullName());
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -1283,12 +1283,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				log.info("WalletAccount :: {} " + xAccount);
 
-				//WalletUser xUser = walletUserRepository.findByAccount(xAccount);
-				//System.out.println("WalletUser :: {} " + xUser);  + " " + xUser.getLastName()
+				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+				log.info("WalletUser :: {} " + xUser);  //+ " " + xUser.getLastName()
+				String fullName = xUser.getFirstName() + " " + xUser.getLastName();
 
-				String fullName = userToken.getFirstName();
-				String email = userToken.getEmail();
-				String phone = userToken.getPhoneNumber();
+				String email = xUser.getEmailAddress();
+				String phone = xUser.getMobileNo();
 
 				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
@@ -2705,8 +2705,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (tranId.equals("")) {
 				return "DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN";
 			}
-			String senderName = "accountDebit";
-			String receiverName = "accountCredit";
+			String senderName = accountDebit.getAcct_name();
+			String receiverName = accountCredit.getAcct_name();
 
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
@@ -2748,7 +2748,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String receiverAcct = accountCredit.getAccountNo();
 			String receiverName2 = accountCredit.getAcct_name();
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
-					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token));
+					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -2939,8 +2939,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String token = request.getHeader(SecurityConstants.HEADER_STRING);
 			String receiverAcct = accountCredit.getAccountNo();
 			String receiverName = accountCredit.getAcct_name();
+			String senderName = accountDebit.getAcct_name();
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
-					new Date(), tranType.getValue(), userId, receiverName, "TRANSFER", token));
+					new Date(), tranType.getValue(), userId, receiverName, "TRANSFER", token, senderName));
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -3133,8 +3134,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String token = request.getHeader(SecurityConstants.HEADER_STRING);
 			String receiverAcct = accountCredit.getAccountNo();
 			String receiverName = accountCredit.getAcct_name();
+			String senderName = accountDebit.getAcct_name();
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
-					new Date(), tranType.getValue(), userId, receiverName, "TRANSFER", token));
+					new Date(), tranType.getValue(), userId, receiverName, "TRANSFER", token,senderName));
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -3333,7 +3335,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String receiverAcct = accountCredit.getAccountNo();
 			String receiverName2 = accountCredit.getAcct_name();
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
-					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token));
+					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
 			return tranId;
 		} catch (Exception ex) {
 			log.error(ex.getMessage());
@@ -3535,7 +3537,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String receiverAcct = accountCredit.getAccountNo();
 			String receiverName2 = accountCredit.getAcct_name();
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
-					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token));
+					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -3758,7 +3760,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String receiverAcct = accountCredit.getAccountNo();
 			String receiverName2 = accountCredit.getAcct_name();
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
-					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token));
+					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -3768,7 +3770,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public String createEventRedeem(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
-			TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request)
+			TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request, String senderName)
 			throws Exception {
 		try {
 			int n = 1;
@@ -3958,7 +3960,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String receiverAcct = accountCredit.getAccountNo();
 			String receiverName = accountCredit.getAcct_name();
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
-					new Date(), tranType.getValue(), userId, receiverName, "TRANSFER", token));
+					new Date(), tranType.getValue(), userId, receiverName, "TRANSFER", token,senderName));
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -4159,7 +4161,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String receiverAcct = accountCredit.getAccountNo();
 			String receiverName2 = accountCredit.getAcct_name();
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
-					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token));
+					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -4336,10 +4338,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 					n, tranCategory,senderName,receiverName);
 
 			//  ################ TERSEER ########################
-			tranCredit.setReceiverName(receiverName);
-			tranCredit.setSenderName(senderName);
-			tranDebit.setSenderName(senderName);
-			tranDebit.setReceiverName(receiverName);
+//			tranCredit.setReceiverName(receiverName);
+//			tranCredit.setSenderName(senderName);
+//			tranDebit.setSenderName(senderName);
+//			tranDebit.setReceiverName(receiverName);
 
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
@@ -4366,7 +4368,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String receiverAcct = accountCredit.getAccountNo();
 			String receiverName1 = accountCredit.getAcct_name();
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
-					new Date(), tranType.getValue(), userId, receiverName1, tranCategory.getValue(), token));
+					new Date(), tranType.getValue(), userId, receiverName1, tranCategory.getValue(), token,senderName));
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
