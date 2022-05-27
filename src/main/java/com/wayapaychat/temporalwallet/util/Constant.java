@@ -7,6 +7,7 @@ public class Constant {
     public static final Long WAYA_USER_ID = 786567886789L;
     public static final String WAYA_SETTLEMENT_ACCOUNT_NO = "4PC17PXGIY";
     public static final String WAYA_COMMISSION_ACCOUNT_NO = "DG66UJRLHA";
+    public static final String TRANSACTION_HAS_OCCURRED = "A transaction Occoured";
 
 
 }

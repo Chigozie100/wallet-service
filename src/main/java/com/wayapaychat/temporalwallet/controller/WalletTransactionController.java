@@ -184,6 +184,16 @@ public class WalletTransactionController {
 
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Send Money to commercial bank", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
+	@PostMapping("/Official/fund/bank/account")
+	public ResponseEntity<?> officialFundBank(HttpServletRequest request, @Valid @RequestBody BankPaymentDTO transfer) {
+		System.out.println("transfer : {} " + transfer);
+		return transAccountService.BankTransferPayment(request, transfer);
+	}
+
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Admin Send Money to Wallet", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/admin/sendmoney")
 	public ResponseEntity<?> AdminsendMoney(HttpServletRequest request,
