@@ -1900,12 +1900,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public ApiResponse<?> AdminsendMoney(HttpServletRequest request, AdminLocalTransferDTO transfer) {
+		log.info("inside AdminsendMoney: {}", transfer);
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 		if (userToken == null) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
 		}
-
+		log.info("Send Money: userToken {}", userToken);
 		UserDetailPojo user = authService.AuthUser(transfer.getUserId().intValue());
 		if (user == null) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID USER ID", null);
@@ -1914,6 +1915,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "USER ID PERFORMING OPERATION IS NOT AN ADMIN",
 					null);
 		}
+		log.info("Send Money: user {}", user);
 		String fromAccountNumber = transfer.getDebitAccountNumber();
 		String toAccountNumber = transfer.getBenefAccountNumber();
 		if(fromAccountNumber.equals(toAccountNumber)) {
@@ -1983,6 +1985,20 @@ public class TransAccountServiceImpl implements TransAccountService {
 			e.printStackTrace();
 		}
 		return resp;
+	}
+
+	@Override
+	public ApiResponse<?> AdminSendMoneyMultiple(HttpServletRequest request, List<AdminLocalTransferDTO> transfer) {
+		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
+		try{
+			for (AdminLocalTransferDTO data: transfer){
+				resp = AdminsendMoney(request, data);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION DONE SUCCESSFULLY", resp.getData());
 	}
 
 	public ApiResponse<?> AdminCommissionMoney(HttpServletRequest request, CommissionTransferDTO transfer) {
