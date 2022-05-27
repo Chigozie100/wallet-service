@@ -184,6 +184,16 @@ public class WalletTransactionController {
 
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Send Money to commercial bank", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
+	@PostMapping("/Official/fund/bank/account")
+	public ResponseEntity<?> officialFundBank(HttpServletRequest request, @Valid @RequestBody BankPaymentDTO transfer) {
+		System.out.println("transfer : {} " + transfer);
+		return transAccountService.BankTransferPayment(request, transfer);
+	}
+
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Admin Send Money to Wallet", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/admin/sendmoney")
 	public ResponseEntity<?> AdminsendMoney(HttpServletRequest request,
@@ -195,6 +205,21 @@ public class WalletTransactionController {
 		log.info("Send Money: {}", transfer);
 		return new ResponseEntity<>(res, HttpStatus.OK);
 	}
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Admin Send Money to Wallet: Multiple Transaction", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
+	@PostMapping("/admin/sendmoney-multiple")
+	public ResponseEntity<?> AdminSendMoneyMultiple(HttpServletRequest request,
+											@Valid @RequestBody List<AdminLocalTransferDTO> transfer) {
+		ApiResponse<?> res = transAccountService.AdminSendMoneyMultiple(request, transfer);
+		if (!res.getStatus()) {
+			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+		}
+		log.info("Send Money: {}", transfer);
+		return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+
 
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
