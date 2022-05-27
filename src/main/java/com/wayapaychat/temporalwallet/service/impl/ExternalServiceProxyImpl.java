@@ -67,7 +67,6 @@ public class ExternalServiceProxyImpl {
 		ReceiptRequest receipt = new ReceiptRequest(amount, "", receiverAccount, "WALLET",
 				name, referenceNumber, senderName, transactionDate, transactionType, category, userId);
 		log.info("Receipt Request: {}", receipt.toString());
-		log.info("Receipt Token: {}", token);
 		ReceiptJson receiptResponse = receiptProxy.receiptOut(receipt, token);
 			if(receiptResponse == null)
 				return null;
