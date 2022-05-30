@@ -24,7 +24,7 @@ public class SetupController {
     @ApiOperation(value = "Create a Temporal-Wallet Reversal Day", tags = { "CONFIGURE-REVERSAL-DAYS" })
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
-    @PostMapping(path = "/")
+    @PostMapping("")
     public ResponseEntity<?> createReversalDay(@RequestParam("days") Integer days) {
         return reversalSetupService.create(days);
     }
@@ -41,7 +41,7 @@ public class SetupController {
     @ApiOperation(value = "View List of Temporal-Wallet Reversal Days", tags = { "CONFIGURE-REVERSAL-DAYS" })
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
-    @GetMapping(path = "/")
+    @GetMapping("")
     public ResponseEntity<?> viewAllReversalDays() {
         return reversalSetupService.viewAll();
     }
