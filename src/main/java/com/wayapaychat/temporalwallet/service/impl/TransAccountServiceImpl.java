@@ -1911,11 +1911,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 		if (user == null) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID USER ID", null);
 		}
+		log.info("UserDetailPojo: user {} ", user);
 		if (!user.is_admin()) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "USER ID PERFORMING OPERATION IS NOT AN ADMIN",
 					null);
 		}
-		log.info("Send Money: user {}", user);
+
 		String fromAccountNumber = transfer.getDebitAccountNumber();
 		String toAccountNumber = transfer.getBenefAccountNumber();
 		if(fromAccountNumber.equals(toAccountNumber)) {
