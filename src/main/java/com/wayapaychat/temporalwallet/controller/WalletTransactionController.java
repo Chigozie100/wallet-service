@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import com.itextpdf.text.DocumentException;
+import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import com.wayapaychat.temporalwallet.util.PDFExporter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,32 +32,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.wayapaychat.temporalwallet.dto.AdminLocalTransferDTO;
-import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
-import com.wayapaychat.temporalwallet.dto.AdminWalletTransactionDTO;
-import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
-import com.wayapaychat.temporalwallet.dto.BulkTransactionCreationDTO;
-import com.wayapaychat.temporalwallet.dto.ClientComTransferDTO;
-import com.wayapaychat.temporalwallet.dto.ClientWalletTransactionDTO;
-import com.wayapaychat.temporalwallet.dto.CommissionTransferDTO;
-import com.wayapaychat.temporalwallet.dto.DirectTransactionDTO;
-import com.wayapaychat.temporalwallet.dto.EventOfficePaymentDTO;
-import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
-import com.wayapaychat.temporalwallet.dto.NonWayaPayPIN;
-import com.wayapaychat.temporalwallet.dto.NonWayaPaymentDTO;
-import com.wayapaychat.temporalwallet.dto.NonWayaRedeemDTO;
-import com.wayapaychat.temporalwallet.dto.OfficeTransferDTO;
-import com.wayapaychat.temporalwallet.dto.OfficeUserTransferDTO;
-import com.wayapaychat.temporalwallet.dto.ReversePaymentDTO;
-import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
-import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
-import com.wayapaychat.temporalwallet.dto.WalletAdminTransferDTO;
-import com.wayapaychat.temporalwallet.dto.WalletTransactionChargeDTO;
-import com.wayapaychat.temporalwallet.dto.WalletTransactionDTO;
-import com.wayapaychat.temporalwallet.dto.WayaPaymentQRCode;
-import com.wayapaychat.temporalwallet.dto.WayaPaymentRequest;
-import com.wayapaychat.temporalwallet.dto.WayaRedeemQRCode;
-import com.wayapaychat.temporalwallet.dto.WayaTradeDTO;
 import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
 import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
@@ -184,7 +159,7 @@ public class WalletTransactionController {
 
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-	@ApiOperation(value = "Send Money to commercial bank", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
+	@ApiOperation(value = "Admin Send Money From Official Account to commercial bank", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/Official/fund/bank/account")
 	public ResponseEntity<?> officialFundBank(HttpServletRequest request, @Valid @RequestBody BankPaymentDTO transfer) {
 		System.out.println("transfer : {} " + transfer);
@@ -440,6 +415,19 @@ public class WalletTransactionController {
 		return transAccountService.EventOfficePayment(request, walletDto);
 
 	}
+//ability to transfer money from the temporal wallet back to waya official account in single or in mass with excel upload
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Office Event: Temporal - Official Transfer", notes = "Transfer amount from Temporal wallet to Official wallet", tags = {
+			"TRANSACTION-WALLET" })
+	@PostMapping("/event/office/temporal-to-official")
+	public ResponseEntity<?> TemporalToOfficialWalletDTO(HttpServletRequest request, @RequestBody() TemporalToOfficialWalletDTO walletDto) {
+		return transAccountService.TemporalWalletToOfficialWallet(request, walletDto);
+
+	}
+
+
+	//
 
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
