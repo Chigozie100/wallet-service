@@ -9,10 +9,13 @@ import java.util.List;
 import java.util.Random;
 import java.util.regex.Pattern;
 
+import com.wayapaychat.temporalwallet.util.ErrorResponse;
+import com.wayapaychat.temporalwallet.util.SuccessResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -415,6 +418,22 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		}
 		return count;
 	}
+
+//	public ResponseEntity<?> transactionCount(String accountNo) {
+//		StringBuilder query = new StringBuilder();
+//		String count = "";
+//		query.append("SELECT tran_id FROM m_accounts_transaction WHERE processed_flg = 'Y' ");
+//		query.append("AND credit_account_no = ?");
+//		String sql = query.toString();
+//		try {
+//			Object[] params = new Object[] {accountNo.trim().toUpperCase()};
+//			count = jdbcTemplate.queryForObject(sql, String.class, params);
+//			log.info("TOTAL TRANSACTION COUNT: {}", count);
+//		} catch (Exception ex) {
+//			log.error(ex.getMessage());
+//		}
+//		return new ResponseEntity<>(new SuccessResponse(count), HttpStatus.OK);
+//	}
 	
 	public AccountLookUp GetAccountLookUp(String account) {
 		AccountLookUp mAccount = null;
