@@ -11,6 +11,7 @@ import com.wayapaychat.temporalwallet.dto.AccountTransChargeDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionHistoryDTO;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
+import org.springframework.http.ResponseEntity;
 
 public interface TemporalWalletDAO {
 
@@ -42,6 +43,8 @@ public interface TemporalWalletDAO {
 	void updateTransaction(String paymentReference, BigDecimal amount, String tranId);
 
 	String transactionCount(String paymentReference, String accountNo);
+
+
 
 	List<AccountStatementDTO> recentTransaction(String acctNo);
 

@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import com.itextpdf.text.DocumentException;
+import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import com.wayapaychat.temporalwallet.util.PDFExporter;
@@ -52,6 +53,9 @@ public class WalletTransactionController {
 
 	@Autowired
 	TransAccountService transAccountService;
+
+	@Autowired
+	TemporalWalletDAO temporalWalletDAO;
 
 	// @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value =
 	// "token", paramType = "header", required = true) })
@@ -165,7 +169,6 @@ public class WalletTransactionController {
 		System.out.println("transfer : {} " + transfer);
 		return transAccountService.BankTransferPayment(request, transfer);
 	}
-
 
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
@@ -576,7 +579,7 @@ public class WalletTransactionController {
 			"TRANSACTION-WALLET" })
 	@PostMapping("/payment/request/transaction")
 	public ResponseEntity<?> transerPaymentUserToUser(HttpServletRequest request, @Valid @RequestBody WayaPaymentRequest transfer) {
-		System.out.println("TK- : {} " + transfer);
+
 		return transAccountService.WayaPaymentRequestUsertoUser(request, transfer);
 	}
 
