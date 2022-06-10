@@ -29,7 +29,7 @@ public class ScheduleJob {
     WalletNonWayaPaymentRepository walletNonWayaPaymentRepo;
 
 
-    @Scheduled(cron = "${job.cron.twelam}")
+    @Scheduled(cron = "${job.cron.nonewaya}")
     public void checkForPending() throws ParseException {
         int checkDays = 30;
         log.info("-----####### START ###### -------");
@@ -54,8 +54,8 @@ public class ScheduleJob {
 
             long difference = today.getTime() - createdDate.getTime();
             daysBetween = (difference / (1000*60*60*24));
-
-            if(checkDays == daysBetween){
+            log.info(checkDays + "-----####### Transaction upto 30 days ###### -------" + daysBetween);
+            if(checkDays == daysBetween && payment.getStatus().equals(PaymentStatus.PENDING)){
                 log.info("-----####### Transaction upto 30 days ###### -------");
                 payment.setStatus(PaymentStatus.EXPIRED);
                 walletNonWayaPaymentRepo.save(payment);
