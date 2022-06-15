@@ -1347,7 +1347,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
 		try {
-			int intRec = tempwallet.PaymenttranInsert("WEMABK", "", toAccountNumber, transfer.getAmount(), reference);
+			int intRec = tempwallet.PaymenttranInsert("", "", toAccountNumber, transfer.getAmount(), reference);
 			log.info("after PaymenttranInsert :: {} " + intRec);
 			if (intRec == 1) {
 				String tranId = BankTransactionPay("WEMABK", toAccountNumber, transfer.getTranCrncy(),
@@ -1378,13 +1378,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				log.info("WalletAccount :: {} " + xAccount);
 
-				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
-				log.info("WalletUser :: {} " + xUser);  //+ " " + xUser.getLastName()
-				String fullName = xUser.getFirstName() + " " + xUser.getLastName();
+//				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+//				log.info("WalletUser :: {} " + xUser);  //+ " " + xUser.getLastName()
 
-				String email = xUser.getEmailAddress();
-				String phone = xUser.getMobileNo();
 
+				String email = userToken.getEmail();
+				String phone = userToken.getPhoneNumber();
+				String fullName = userToken.getFirstName() + " " + userToken.getSurname();
 				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
 				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
