@@ -110,6 +110,8 @@ public interface TransAccountService {
 
 	ResponseEntity<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer);
 
+	ResponseEntity<?> BankTransferPaymentOfficial(HttpServletRequest request, BankPaymentOfficialDTO transfer);
+
 	ApiResponse<?> EventNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer);
 
 	ResponseEntity<?> getListOfNonWayaTransfers(HttpServletRequest request, String userId, int page, int  size);
