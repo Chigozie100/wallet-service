@@ -461,11 +461,37 @@ public class WalletTransactionController {
 
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Non-Waya Payment Multiple ", notes = "Transfer amount from user wallet to Non-waya mutiple transaction", tags = {
+			"TRANSACTION-WALLET" })
+	@PostMapping("/non-waya/transaction/payment-multiple")
+	public ResponseEntity<?> NonWayaPaymentXMultiple(HttpServletRequest request, @RequestBody() List<NonWayaPaymentDTO> walletDto) {
+		ApiResponse<?> res = transAccountService.EventNonPaymentMultiple(request, walletDto);
+		if (!res.getStatus()) {
+			return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+		}
+		return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Non-Waya Redeem", notes = "Transfer amount from user wallet to Non-waya", tags = {
 			"TRANSACTION-WALLET" })
 	@PostMapping("/non-waya/transaction/redeem")
 	public ResponseEntity<?> NonWayaRedeem(HttpServletRequest request, @RequestBody() NonWayaPaymentDTO walletDto) {
 		ApiResponse<?> res = transAccountService.EventNonRedeem(request, walletDto);
+		if (!res.getStatus()) {
+			return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+		}
+		return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Non-Waya Redeem Multiple Tranc", notes = "Transfer amount from user wallet to Non-waya", tags = {
+			"TRANSACTION-WALLET" })
+	@PostMapping("/non-waya/transaction/redeem-multiple")
+	public ResponseEntity<?> NonWayaRedeemMultiple(HttpServletRequest request, @RequestBody() List<NonWayaPaymentDTO> walletDto) {
+		ApiResponse<?> res = transAccountService.EventNonRedeemMultiple(request, walletDto);
 		if (!res.getStatus()) {
 			return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
 		}
