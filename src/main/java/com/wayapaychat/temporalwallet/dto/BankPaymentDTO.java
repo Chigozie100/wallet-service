@@ -15,7 +15,7 @@ public class BankPaymentDTO {
 	private String bankName;
     
 	@NotNull
-	@Size(min=10, max=15)
+	@Size(min=10, max=10)
     private String customerAccountNumber;
    
 	@NotNull
