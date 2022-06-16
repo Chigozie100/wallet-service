@@ -590,6 +590,16 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	}
 
+	public ApiResponse<?> EventNonPaymentMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer){
+		ArrayList<Object> list = new ArrayList<>();
+		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
+		for(NonWayaPaymentDTO data: transfer){
+			resp = EventNonPayment(request, data);
+			list.add(resp.getData());
+		}
+		resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", list);
+		return resp;
+	}
 
 	public ApiResponse<?> EventNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
@@ -707,6 +717,19 @@ public class TransAccountServiceImpl implements TransAccountService {
 			e.printStackTrace();
 		}
 		return resp;
+	}
+
+	@Override
+	public ApiResponse<?> EventNonRedeemMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer) {
+		ArrayList<Object> list = new ArrayList<>();
+		ApiResponse<?> res = null;
+		for (NonWayaPaymentDTO data: transfer){
+			res = EventNonRedeem(request,data);
+		  		list.add(res.getData());
+			res = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", list);
+			log.info("Transaction Response: {}", list.toString());
+		}
+		return res;
 	}
 
 	@Override
