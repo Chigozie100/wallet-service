@@ -733,6 +733,39 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
+	public ResponseEntity<?> TransferNonPaymentMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer){
+		ResponseEntity<?> resp = null;
+		ArrayList<Object> rpp = new ArrayList<>();
+		Provider provider = switchWalletService.getActiveProvider();
+		if (provider == null) {
+			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
+		}
+		log.info("WALLET PROVIDER: " + provider.getName());
+
+		switch (provider.getName()) {
+			case ProviderType.MAINMIFO:
+				for(NonWayaPaymentDTO data: transfer){
+					resp = NonPayment(request, data);
+					rpp.add(resp.getBody());
+				}
+				return resp;
+			case ProviderType.TEMPORAL:
+				for(NonWayaPaymentDTO data: transfer){
+					resp = NonPayment(request, data);
+					rpp.add(resp.getBody());
+				}
+				return new ResponseEntity<>(rpp, HttpStatus.OK);
+			default:
+				for(NonWayaPaymentDTO data: transfer){
+					resp = NonPayment(request, data);
+					rpp.add(resp.getBody());
+				}
+				return resp;
+		}
+
+	}
+
+	@Override
 	public ResponseEntity<?> TransferNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer) {
 		Provider provider = switchWalletService.getActiveProvider();
 		if (provider == null) {

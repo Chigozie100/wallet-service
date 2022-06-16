@@ -459,18 +459,18 @@ public class WalletTransactionController {
 		return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-	@ApiOperation(value = "Non-Waya Payment Multiple ", notes = "Transfer amount from user wallet to Non-waya mutiple transaction", tags = {
-			"TRANSACTION-WALLET" })
-	@PostMapping("/non-waya/transaction/payment-multiple")
-	public ResponseEntity<?> NonWayaPaymentXMultiple(HttpServletRequest request, @RequestBody() List<NonWayaPaymentDTO> walletDto) {
-		ApiResponse<?> res = transAccountService.EventNonPaymentMultiple(request, walletDto);
-		if (!res.getStatus()) {
-			return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
-		}
-		return new ResponseEntity<>(res, HttpStatus.OK);
-	}
+//	@ApiImplicitParams({
+//			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+//	@ApiOperation(value = "Non-Waya Payment Multiple ", notes = "Transfer amount from user wallet to Non-waya mutiple transaction", tags = {
+//			"TRANSACTION-WALLET" })
+//	@PostMapping("/non-waya/transaction/payment-multiple")
+//	public ResponseEntity<?> NonWayaPaymentXMultiple(HttpServletRequest request, @RequestBody() List<NonWayaPaymentDTO> walletDto) {
+//		ApiResponse<?> res = transAccountService.EventNonPaymentMultiple(request, walletDto);
+//		if (!res.getStatus()) {
+//			return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+//		}
+//		return new ResponseEntity<>(res, HttpStatus.OK);
+//	}
 
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
@@ -539,6 +539,16 @@ public class WalletTransactionController {
 	public ResponseEntity<?> NonWayaPayment(HttpServletRequest request,
 			@Valid @RequestBody() NonWayaPaymentDTO walletDto) {
 		return transAccountService.TransferNonPayment(request, walletDto);
+	}
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Non-Waya Payment for multiple transaction ", notes = "Transfer amount from user wallet to Non-waya for multiple transaction", tags = {
+			"TRANSACTION-WALLET" })
+	@PostMapping("/non-waya/payment/new-multiple")
+	public ResponseEntity<?> NonWayaPaymentMultiple(HttpServletRequest request,
+											@Valid @RequestBody() List<NonWayaPaymentDTO> walletDto) {
+		return transAccountService.TransferNonPaymentMultiple(request, walletDto);
 	}
 
 
