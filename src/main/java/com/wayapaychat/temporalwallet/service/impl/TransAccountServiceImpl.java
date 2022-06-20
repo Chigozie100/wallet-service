@@ -1149,6 +1149,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 					NonWayaBenefDTO merchant = new NonWayaBenefDTO(redeem.getMerchantId(), redeem.getTranAmount(),
 							redeem.getCrncyCode(), tranNarrate, payRef);
 					TransferNonRedeem(request, merchant);
+					//BigDecimal amount, String tranId, String tranDate
+					String message = formatMessageRedeem(redeem.getTranAmount(), payRef);
+					CompletableFuture.runAsync(() -> customNotification.pushInApp(token, redeem.getFullName(),
+							redeem.getEmailOrPhone(), message, userToken.getId(),TRANSACTION_PAYOUT));
 				} else {
 					if (transfer.getTranStatus().equals("REJECT")) {
 						messageStatus = "TRANSACTION REJECT.";
@@ -1162,6 +1166,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 						walletNonWayaPaymentRepo.save(redeem);
 						TransferNonReject(request, redeem.getDebitAccountNo(), redeem.getTranAmount(),
 								redeem.getCrncyCode(), tranNarrate, payRef);
+						String message = formatMessengerRejection(redeem.getTranAmount(), payRef);
+						CompletableFuture.runAsync(() -> customNotification.pushInApp(token, redeem.getFullName(),
+								redeem.getEmailOrPhone(), message, userToken.getId(),TRANSACTION_REJECTED));
 					} else {
 						return new ResponseEntity<>(new ErrorResponse("UNABLE TO CONFIRMED TRANSACTION WITH PIN SENT"),
 								HttpStatus.BAD_REQUEST);
@@ -5919,6 +5926,23 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		message = message + "" + "Message :" + "Kindly confirm the reserved transaction with received pin: " + pin;
 		return message;
 	}
+
+	public String formatMessageRedeem(BigDecimal amount, String tranId) {
+
+		String message = "" + "\n";
+		message = message + "" + "Message :" + "Transaction payout has occurred"
+				+ " on your account Amount =" + amount + " Transaction Id = " + tranId;
+		return message;
+	}
+
+	public String formatMessengerRejection(BigDecimal amount, String tranId) {
+
+		String message = "" + "\n";
+		message = message + "" + "Message :" + "Transaction has been request"
+				+ " on your account Amount =" + amount + " Transaction Id = " + tranId;
+		return message;
+	}
+
 
 	@Override
 	public ResponseEntity<?> WayaQRCodePayment(HttpServletRequest request, WayaPaymentQRCode transfer) {
