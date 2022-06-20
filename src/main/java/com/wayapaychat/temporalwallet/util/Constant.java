@@ -8,6 +8,9 @@ public class Constant {
     public static final String WAYA_SETTLEMENT_ACCOUNT_NO = "4PC17PXGIY";
     public static final String WAYA_COMMISSION_ACCOUNT_NO = "DG66UJRLHA";
     public static final String TRANSACTION_HAS_OCCURRED = "A transaction Occurred";
+    public static final String TRANSACTION_PAYOUT = "Transaction Payout";
+    public static final String TRANSACTION_REJECTED = "Transaction Rejected";
+
     public static final String NON_WAYA_REDEEM = "Payment Request has been redeemed";
     public static final String NON_WAYA_PAYMENT_REQUEST = "None Waya Payment Request";
 
