@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.dao;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 import com.wayapaychat.temporalwallet.dto.AccountLookUp;
@@ -10,6 +11,7 @@ import com.wayapaychat.temporalwallet.dto.AccountTransChargeDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionHistoryDTO;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
+import org.springframework.http.ResponseEntity;
 
 public interface TemporalWalletDAO {
 
@@ -42,6 +44,8 @@ public interface TemporalWalletDAO {
 
 	String transactionCount(String paymentReference, String accountNo);
 
+
+
 	List<AccountStatementDTO> recentTransaction(String acctNo);
 
 	List<AccountStatementDTO> TransactionReport(String acctNo);
@@ -53,5 +57,7 @@ public interface TemporalWalletDAO {
 	List<CommissionHistoryDTO> GetCommissionHistory();
 	
 	List<TransWallet> GetTransactionType(String account);
+
+	List<TransWallet> GetTransactionType2(String account, Date fromdate, Date todate);
 
 }

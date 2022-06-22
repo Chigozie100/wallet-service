@@ -37,4 +37,8 @@ public class BankPaymentDTO {
 	@Size(min=3, max=50)
 	private String transactionCategory;
 
+	private String senderName;
+
+	private String receiverName;
+
 }

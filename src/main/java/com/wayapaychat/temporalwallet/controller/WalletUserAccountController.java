@@ -111,6 +111,13 @@ public class WalletUserAccountController {
 		log.info("Request input: {}",user);
 		return userAccountService.AccountAccessClosure(user);
     }
+
+    @ApiOperation(value = "Delete Multiple Account", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+    @PostMapping(path = "/account/closure-multiple")
+    public ResponseEntity<?> postAccountClosureMultiple(@Valid @RequestBody List<AccountCloseDTO> user) {
+        log.info("Request input: {}",user);
+        return userAccountService.AccountAccessClosureMultiple(user);
+    }
 	
 	@ApiOperation(value = "Transaction account block", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/account/block/transaction")

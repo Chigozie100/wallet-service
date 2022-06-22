@@ -87,6 +87,8 @@ public interface UserAccountService {
 	ResponseEntity<?> AccountAccessPause(AccountFreezeDTO user);
 	
 	ResponseEntity<?> AccountAccessClosure(AccountCloseDTO user);
+
+	ResponseEntity<?> AccountAccessClosureMultiple(List<AccountCloseDTO> user);
 	
 	ResponseEntity<?> AccountAccessLien(AccountLienDTO user);
 	

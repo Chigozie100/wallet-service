@@ -15,17 +15,14 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
 import com.wayapaychat.temporalwallet.dto.PaymentRequest;
 import com.wayapaychat.temporalwallet.enumm.CategoryType;
 import com.wayapaychat.temporalwallet.enumm.PaymentRequestStatus;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
+@Data
 @Entity
 @Getter
 @Setter

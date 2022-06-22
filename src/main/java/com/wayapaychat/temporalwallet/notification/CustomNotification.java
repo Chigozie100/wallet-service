@@ -155,7 +155,7 @@ public class CustomNotification {
 		}
 	}
 
-	public void pushInApp(String token, String name, String phone, String message, Long userId) {
+	public void pushInApp(String token, String name, String phone, String message, Long userId, String category) {
 
 		InAppEvent appEvent = new InAppEvent();
 		InAppPayload data = new InAppPayload();
@@ -168,6 +168,7 @@ public class CustomNotification {
 
 		data.setUsers(addUserId);
 		appEvent.setData(data);
+		appEvent.setCategory(category);
 
 		appEvent.setEventType("IN_APP");
 		appEvent.setInitiator(userId.toString());

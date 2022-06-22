@@ -6,37 +6,12 @@ import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.wayapaychat.temporalwallet.dto.*;
+import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
-import com.wayapaychat.temporalwallet.dto.AdminLocalTransferDTO;
-import com.wayapaychat.temporalwallet.dto.AdminUserTransferDTO;
-import com.wayapaychat.temporalwallet.dto.AdminWalletTransactionDTO;
-import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
-import com.wayapaychat.temporalwallet.dto.BulkTransactionCreationDTO;
-import com.wayapaychat.temporalwallet.dto.ClientComTransferDTO;
-import com.wayapaychat.temporalwallet.dto.ClientWalletTransactionDTO;
-import com.wayapaychat.temporalwallet.dto.CommissionTransferDTO;
-import com.wayapaychat.temporalwallet.dto.DirectTransactionDTO;
-import com.wayapaychat.temporalwallet.dto.EventOfficePaymentDTO;
-import com.wayapaychat.temporalwallet.dto.EventPaymentDTO;
-import com.wayapaychat.temporalwallet.dto.NonWayaPayPIN;
-import com.wayapaychat.temporalwallet.dto.NonWayaPaymentDTO;
-import com.wayapaychat.temporalwallet.dto.NonWayaRedeemDTO;
-import com.wayapaychat.temporalwallet.dto.OfficeTransferDTO;
-import com.wayapaychat.temporalwallet.dto.OfficeUserTransferDTO;
-import com.wayapaychat.temporalwallet.dto.ReversePaymentDTO;
-import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
-import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
-import com.wayapaychat.temporalwallet.dto.WalletAdminTransferDTO;
-import com.wayapaychat.temporalwallet.dto.WalletTransactionChargeDTO;
-import com.wayapaychat.temporalwallet.dto.WalletTransactionDTO;
-import com.wayapaychat.temporalwallet.dto.WayaPaymentQRCode;
-import com.wayapaychat.temporalwallet.dto.WayaPaymentRequest;
-import com.wayapaychat.temporalwallet.dto.WayaRedeemQRCode;
-import com.wayapaychat.temporalwallet.dto.WayaTradeDTO;
 import com.wayapaychat.temporalwallet.entity.Transactions;
 import com.wayapaychat.temporalwallet.entity.WalletTransaction;
 import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
@@ -82,6 +57,8 @@ public interface TransAccountService {
 
 	ApiResponse<?> AdminsendMoney(HttpServletRequest request, AdminLocalTransferDTO transfer);
 
+	ApiResponse<?> AdminSendMoneyMultiple(HttpServletRequest request, List<AdminLocalTransferDTO> transfer);
+
 	ApiResponse<?> AdminCommissionMoney(HttpServletRequest request, CommissionTransferDTO transfer);
 
 	ApiResponse<?> ClientCommissionMoney(HttpServletRequest request, ClientComTransferDTO transfer);
@@ -97,6 +74,11 @@ public interface TransAccountService {
 	ResponseEntity<?> EventTransferPayment(HttpServletRequest request, EventPaymentDTO eventPay);
 	
 	ResponseEntity<?> EventOfficePayment(HttpServletRequest request, EventOfficePaymentDTO eventPay);
+
+	ResponseEntity<?> TemporalWalletToOfficialWallet(HttpServletRequest request, TemporalToOfficialWalletDTO transfer);
+
+	//ResponseEntity<?> TemporalWalletToOfficialWalletMutiple(HttpServletRequest request, TemporalToOfficialWalletDTO transfer);
+
 
 	ApiResponse<?> EventBuySellPayment(HttpServletRequest request, WayaTradeDTO eventPay);
 
@@ -119,20 +101,35 @@ public interface TransAccountService {
 	ApiResponse<?> TranALLReverseReport();
 
 	ApiResponse<?> statementReport(Date fromdate, Date todate, String acctNo);
-	
+
+	List<TransWallet> statementReport2(Date fromdate, Date todate, String acctNo);
+
+	ApiResponse<List<AccountStatementDTO>> ReportTransaction2(String accountNo);
+
 	ApiResponse<?> PaymentTransFilter(String acctNo);
 
 	ResponseEntity<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer);
 
+	ResponseEntity<?> BankTransferPaymentOfficial(HttpServletRequest request, BankPaymentOfficialDTO transfer);
+
 	ApiResponse<?> EventNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer);
 
+	ApiResponse<?> EventNonPaymentMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer);
+
+	ResponseEntity<?> getListOfNonWayaTransfers(HttpServletRequest request, String userId, int page, int  size);
+
 	ApiResponse<?> EventNonRedeem(HttpServletRequest request, NonWayaPaymentDTO transfer);
+
+	ApiResponse<?> EventNonRedeemMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer);
 
 	ApiResponse<?> TranChargeReport();
 
 	ApiResponse<?> CommissionPaymentHistory();
 
 	ResponseEntity<?> TransferNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer);
+
+	ResponseEntity<?> TransferNonPaymentMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer);
+
 
 	ResponseEntity<?> NonWayaPaymentRedeem(HttpServletRequest request, NonWayaRedeemDTO transfer);
 
@@ -147,5 +144,15 @@ public interface TransAccountService {
     ResponseEntity<?> PostOTPGenerate(HttpServletRequest request, String emailPhone);
 	
 	ResponseEntity<?> PostOTPVerify(HttpServletRequest request, WalletRequestOTP transfer);
+
+	ResponseEntity<?>  getPendingNoneWayaPaymentRequest(String userId);
+
+	ResponseEntity<?>  getPayoutNoneWayaPaymentRequest(String userId);
+
+	ResponseEntity<?>  getReservedNoneWayaPaymentRequest(String userId);
+
+	ResponseEntity<?>  getTotalNoneWayaPaymentRequest(String userId);
+
+	ResponseEntity<?>  getExpierdNoneWayaPaymentRequest(String userId);
 
 }

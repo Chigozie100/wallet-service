@@ -18,6 +18,8 @@ public class InAppEvent extends EventBase {
     @Pattern(regexp = "(IN_APP)", message = "must match 'IN_APP'")
     private String eventType;
 
+    private String category;
+
     @Valid
     @NotNull(message = "make sure you entered the right key *data* , and the value must not be null")
     private InAppPayload data;

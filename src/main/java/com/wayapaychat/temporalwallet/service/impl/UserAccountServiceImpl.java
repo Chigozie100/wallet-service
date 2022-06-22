@@ -506,7 +506,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 				}
 				caccount.setWalletDefault(true);
 				walletAccountRepository.save(caccount);
-				return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
+				return new ResponseEntity<>(new SuccessResponse("Account set as default successfully.", account),
 						HttpStatus.CREATED);
 			} catch (Exception e) {
 				return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
@@ -1075,6 +1075,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		if (user == null) {
 			return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
 		}
+
 		Optional<WalletAccount> account = walletAccountRepository.findByDefaultAccount(user);
 		if (!account.isPresent()) {
 			return new ResponseEntity<>(new ErrorResponse("Unable to fetch default account"), HttpStatus.BAD_REQUEST);
@@ -1348,6 +1349,16 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage() + " : " + e.getMessage()),
 					HttpStatus.BAD_REQUEST);
 		}
+	}
+
+	@Override
+	public ResponseEntity<?> AccountAccessClosureMultiple(List<AccountCloseDTO> user) {
+		int count = 0;
+		for (AccountCloseDTO data: user){
+			ResponseEntity<?> dd = AccountAccessClosure(data);
+			count ++;
+		}
+		return new ResponseEntity<>(new SuccessResponse(count + "accounts closed successfully.", user), HttpStatus.OK);
 	}
 
 	@Override
