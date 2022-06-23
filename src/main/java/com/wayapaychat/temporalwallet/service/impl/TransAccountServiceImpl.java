@@ -5314,12 +5314,22 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	}
 
 	@Override
-	public ApiResponse<?> PaymentOffTrans() {
-		List<WalletTransaction> transaction = walletTransactionRepository.findByAccountOfficial();
+	public ApiResponse<?> PaymentOffTrans(int page, int size) {
+		Pageable pagable = PageRequest.of(page,size);
+		Page<WalletTransaction> walletTransactionPage = walletTransactionRepository.findByAccountOfficial(pagable);
+		List<WalletTransaction> transaction = walletTransactionPage.getContent();
+		Map<String, Object> response = new HashMap<>();
+
+
+		response.put("transaction", transaction);
+		response.put("currentPage", walletTransactionPage.getNumber());
+		response.put("totalItems", walletTransactionPage.getTotalElements());
+		response.put("totalPages", walletTransactionPage.getTotalPages());
+
 		if (transaction.isEmpty()) {
 			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO REPORT SPECIFIED DATE", null);
 		}
-		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "OFFICIAL ACCOUNT SUCCESSFULLY", transaction);
+		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "OFFICIAL ACCOUNT SUCCESSFULLY", response);
 	}
 
 	@Override

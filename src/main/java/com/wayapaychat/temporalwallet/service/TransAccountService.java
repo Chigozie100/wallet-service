@@ -96,7 +96,7 @@ public interface TransAccountService {
 
 	ApiResponse<?> PaymentAccountTrans(Date date, Date todate, String wayaNo);
 
-	ApiResponse<?> PaymentOffTrans();
+	ApiResponse<?> PaymentOffTrans(int page, int size);
 
 	ApiResponse<?> TranALLReverseReport();
 

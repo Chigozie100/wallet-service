@@ -722,13 +722,15 @@ public class WalletTransactionController {
 
 	}
 
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "To List Official Transaction activities", notes = "Transfer amount from one wallet to another wallet", tags = {
 			"TRANSACTION-WALLET" })
 	@GetMapping("/official/transaction")
-	public ResponseEntity<?> PaymentOffWaya() {
+	public ResponseEntity<?> PaymentOffWaya(@RequestParam( defaultValue = "0") int page, @RequestParam( defaultValue = "10") int size) {
 		ApiResponse<?> res;
 		try {
-			res = transAccountService.PaymentOffTrans();
+			res = transAccountService.PaymentOffTrans(page, size);
 			if (!res.getStatus()) {
 				return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
 			}
