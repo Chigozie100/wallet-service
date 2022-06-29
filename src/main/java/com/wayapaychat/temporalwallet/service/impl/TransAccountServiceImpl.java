@@ -6170,4 +6170,37 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
 	}
 
+
+	// Amount
+
+	public ResponseEntity<?>  getTotalNoneWayaPaymentRequestAmount(String userId){
+		BigDecimal count = walletNonWayaPaymentRepo.findAllByTotalAmount(userId);
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
+	}
+
+	public ResponseEntity<?>  getReservedNoneWayaPaymentRequestAmount(String userId){
+		BigDecimal count = walletNonWayaPaymentRepo.findAllByReservedAmount(userId);
+
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
+	}
+
+	public ResponseEntity<?>  getPayoutNoneWayaPaymentRequestAmount(String userId){
+		BigDecimal count = walletNonWayaPaymentRepo.findAllByPayoutAmount(userId);
+		Map<String, BigDecimal> amount = new HashMap<>();
+		amount.put("amount", count);
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", amount), HttpStatus.OK);
+	}
+
+	public ResponseEntity<?>  getPendingNoneWayaPaymentRequestAmount(String userId){
+		BigDecimal count = walletNonWayaPaymentRepo.findAllByPendingAmount(userId);
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
+	}
+
+	public ResponseEntity<?>  getExpierdNoneWayaPaymentRequestAmount(String userId){
+		BigDecimal count = walletNonWayaPaymentRepo.findAllByExpiredAmount(userId);
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
+	}
+
+
+
 }

@@ -155,4 +155,11 @@ public interface TransAccountService {
 
 	ResponseEntity<?>  getExpierdNoneWayaPaymentRequest(String userId);
 
+	ResponseEntity<?>  getTotalNoneWayaPaymentRequestAmount(String userId);
+	ResponseEntity<?>  getReservedNoneWayaPaymentRequestAmount(String userId);
+	ResponseEntity<?>  getPayoutNoneWayaPaymentRequestAmount(String userId);
+	ResponseEntity<?>  getPendingNoneWayaPaymentRequestAmount(String userId);
+	ResponseEntity<?>  getExpierdNoneWayaPaymentRequestAmount(String userId);
+
+
 }
