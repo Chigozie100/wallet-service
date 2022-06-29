@@ -138,6 +138,15 @@ public class WalletNonWayaPayment {
 		this.status = status;
 		this.fullName = fullName;
 	}
-    
 
+    public BigDecimal sumTranAmount(BigDecimal tranAmount){
+
+//        BigDecimal sum = BigDecimal.ZERO;/
+//        for (Accounting value : values) {
+//
+//            sum = sum.add(value.getAmountBal());
+//        }
+//        return sum;
+        return this.tranAmount.add(tranAmount);
+    }
 }
