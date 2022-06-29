@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,5 +55,23 @@ public interface WalletNonWayaPaymentRepository extends JpaRepository<WalletNonW
 
 	@Query("SELECT count(u.id) FROM WalletNonWayaPayment u WHERE u.createdBy =:userId and u.status = 'EXPIRED'")
 	long findAllByExpired(String userId);
+
+
+	// for amount
+
+	@Query("SELECT sum(u.tranAmount) FROM WalletNonWayaPayment u WHERE u.createdBy =:userId and u.status ='PENDING' ")
+	BigDecimal findAllByPendingAmount(String userId);
+
+	@Query("SELECT sum(u.tranAmount) FROM WalletNonWayaPayment u WHERE u.createdBy =:userId and u.status ='PAYOUT' ")
+	BigDecimal findAllByPayoutAmount(String userId);
+
+	@Query("SELECT sum(u.tranAmount) FROM WalletNonWayaPayment u WHERE u.createdBy =:userId and u.status ='RESERVED' ")
+	BigDecimal findAllByReservedAmount(String userId);
+
+	@Query("SELECT sum(u.tranAmount) FROM WalletNonWayaPayment u WHERE u.createdBy =:userId ")
+	BigDecimal findAllByTotalAmount(String userId);
+
+	@Query("SELECT sum(u.tranAmount) FROM WalletNonWayaPayment u WHERE u.createdBy =:userId and u.status = 'EXPIRED'")
+	BigDecimal findAllByExpiredAmount(String userId);
 
 }

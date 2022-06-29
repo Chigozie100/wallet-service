@@ -96,7 +96,7 @@ public interface TransAccountService {
 
 	ApiResponse<?> PaymentAccountTrans(Date date, Date todate, String wayaNo);
 
-	ApiResponse<?> PaymentOffTrans();
+	ApiResponse<?> PaymentOffTrans(int page, int size);
 
 	ApiResponse<?> TranALLReverseReport();
 
@@ -154,5 +154,12 @@ public interface TransAccountService {
 	ResponseEntity<?>  getTotalNoneWayaPaymentRequest(String userId);
 
 	ResponseEntity<?>  getExpierdNoneWayaPaymentRequest(String userId);
+
+	ResponseEntity<?>  getTotalNoneWayaPaymentRequestAmount(String userId);
+	ResponseEntity<?>  getReservedNoneWayaPaymentRequestAmount(String userId);
+	ResponseEntity<?>  getPayoutNoneWayaPaymentRequestAmount(String userId);
+	ResponseEntity<?>  getPendingNoneWayaPaymentRequestAmount(String userId);
+	ResponseEntity<?>  getExpierdNoneWayaPaymentRequestAmount(String userId);
+
 
 }

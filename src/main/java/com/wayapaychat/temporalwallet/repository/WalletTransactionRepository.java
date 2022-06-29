@@ -51,5 +51,5 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 	List<WalletTransaction> findByOfficialAccount(LocalDate fromtranDate, LocalDate totranDate, String wayaNo);
 	
 	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.acctNum) LIKE UPPER('NGN%') " + " AND u.del_flg = false")
-	List<WalletTransaction> findByAccountOfficial();
+	Page<WalletTransaction> findByAccountOfficial(Pageable pageable);
 }
