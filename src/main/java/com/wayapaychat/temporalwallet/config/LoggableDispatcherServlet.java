@@ -41,14 +41,12 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
 	@Autowired
 	ReqIPUtils reqUtil;
 
-
 	@Autowired
 	private TokenImpl tokenService;
 
 	@Override
 	public void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
-		System.out.println("response " + response);
-		System.out.println("request " + request);
+
 		long startTime = System.currentTimeMillis();
 		if (!(request instanceof ContentCachingRequestWrapper)) {
 			request = new ContentCachingRequestWrapper(request);
@@ -74,31 +72,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
 			return;
 
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
-//		int status = response.getStatus();
-//		JsonObject jsonObject = new JsonObject();
-//		jsonObject.addProperty("httpStatus", status);
-//		jsonObject.addProperty("path", request.getRequestURI());
-//		jsonObject.addProperty("httpMethod", request.getMethod());
-//		jsonObject.addProperty("timeTakenMs", timeTaken);
-//		jsonObject.addProperty("clientIP", reqUtil.getClientIP(request));
-//		jsonObject.addProperty("javaMethod", handler.toString());
-//		//jsonObject.addProperty("session", request.getSession().getId());
-//		jsonObject.addProperty("response", getResponsePayload(response));
-//
-//		if (status > 299) {
-//			String requestData = null;
-//			try {
-//				jsonObject.addProperty("request", request.getReader().readLine());
-//				//requestBody = request.getReader().lines().collect(Collectors.joining(System.lineSeparator()));
-//				requestData = getRequestData(request);
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//			jsonObject.addProperty("requestBody", requestData);
-//			jsonObject.addProperty("requestParams", request.getQueryString());
-//
-//
-//		}
+
 		LogMessage logMessage = new LogMessage();
 		logMessage.setHttpStatus(response.getStatus());
 		logMessage.setHttpMethod(request.getMethod());
@@ -121,13 +95,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 
 		MyData userToken = tokenService.getTokenUser(token);
-//		if (userToken != null) {
-//			log(request, response, handler,startTime, userToken);
-//		}
 
-
-//		Authentication authentication = authenticatedUserFacade.getAuthentication();
-//		System.out.println( " Logger = " + authentication);
 		logRequestAndResponse(logMessage, userToken);
 
 
@@ -200,7 +168,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
 		pojo.setLocation(userToken.getUserLocation());
 		String controller = message.getJavaMethod();
 		if(controller != null && !controller.isBlank() && controller.length() > 45){
-			controller = controller.substring(46, controller.indexOf("#"));
+			controller = controller.substring(48, controller.indexOf("#"));
 		}
 		pojo.setModule(controller);
 		if(userService != null)
