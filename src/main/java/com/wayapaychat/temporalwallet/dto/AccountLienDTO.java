@@ -18,13 +18,13 @@ public class AccountLienDTO {
 	private String customerAccountNo;
 	
 //	@JsonIgnore
-//	private boolean isLien;
+	private boolean isLien;
 	
 	@NotNull
     private BigDecimal lienAmount;
 		
 	@NotBlank(message = "LienReason must not be Null or Blank")
-	@Size(min=10, max=50, message = "LienReason must be aleast 10 character")
+	@Size(min=10, max=50, message = "LienReason must be atleast 10 character")
 	private String lienReason;
 
 }
