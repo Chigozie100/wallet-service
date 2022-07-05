@@ -19,23 +19,17 @@ import java.time.LocalDateTime;
 
 @Component
 public class LogInterceptor implements HandlerInterceptor {
+    private long sTime;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         System.out.println("preHandle :: " + response.getHeaderNames());
         long startTime = System.currentTimeMillis();
 
-        log(request, response, handler,System.currentTimeMillis() - startTime);
+        sTime = startTime;
 
-//        HandlerMethod handlerMethod = (HandlerMethod) handler;
-//
-//        String emailAddress = request.getParameter("username");
-//        String password = request.getParameter("password");
-//
-//        if(StringUtils.isEmpty(emailAddress) || StringUtils.containsWhitespace(emailAddress) ||
-//                StringUtils.isEmpty(password) || StringUtils.containsWhitespace(password)) {
-//            throw new Exception("Invalid User Id or Password. Please try again.");
-//        }
+
+        //log(request, response, handler,startTime);
 
         return true;
     }
@@ -46,8 +40,10 @@ public class LogInterceptor implements HandlerInterceptor {
             ModelAndView modelAndView) throws Exception {
             System.out.println("postHandle :: " + request.getMethod());
 
-//        HttpRequestResponseUtils.updateResponse(response);
-        System.out.println("response :: " + response);
+        long startTime = System.currentTimeMillis() - sTime;
+
+        log(request, response, handler,startTime);
+//        System.out.println("response :: ");
     }
 
     @Override
@@ -59,6 +55,11 @@ public class LogInterceptor implements HandlerInterceptor {
     public void afterCompletion(WebRequest webRequest, Exception e) throws Exception {
         System.out.println("afterCompletion :: " + webRequest);
     }
+
+    private long startTime(long startTime){
+        return this.sTime = startTime;
+    }
+
 
     private void log(HttpServletRequest request, HttpServletResponse response, Object handler,
                      long timeTaken) {
@@ -124,14 +125,17 @@ public class LogInterceptor implements HandlerInterceptor {
         LogRequest pojo2 = new LogRequest();
         pojo2.setAction(action);
         pojo2.setEmail("agbe.terseeer@gmail.com");
-        pojo2.setJsonRequest("string");
-        pojo2.setJsonResponse("{\"timestamp\":\"Mon Jul 04 16:38:44 WAT 2022\",\"message\":\"retrieved successfully\",\"status\":true,\"data\":{\"id\":\"cac0c592-de2b-436a-96b5-9b1bd2ec4faa\",\"email\":\"agbe.terseer@gmail.com\",\"firstName\":\"Terseer\",\"surname\":\"Agbe\",\"dateOfBirth\":\"2020-01-01\",\"gender\":\"MALE\",\"phoneNumber\":\"2347030355396\",\"userId\":\"2\",\"referenceCode\":\"BKiFiPJKzcfygvTq\",\"smsAlertConfig\":true,\"corporate\":true,\"otherDetails\":{\"organisationName\":\"SlitSoft\",\"organisationEmail\":\"agbe.terseer@gmail.com\",\"organisationPhone\":\"2347030355396\",\"organizationCity\":\"MAkurdi\",\"organizationAddress\":\"LAGOS\",\"organizationState\":\"BENUE\",\"organisationType\":\"ICT\",\"businessType\":\"BEANS\"}}}");
+        pojo2.setJsonRequest(HttpRequestResponseUtils.objectToJson(message.getRequestBody()).orElse(""));
+        pojo2.setJsonResponse(message.getResponse());
+//        pojo2.setJsonResponse("{\"timestamp\":\"Mon Jul 04 16:38:44 WAT 2022\",\"message\":\"retrieved successfully\",\"status\":true,\"data\":{\"id\":\"cac0c592-de2b-436a-96b5-9b1bd2ec4faa\",\"email\":\"agbe.terseer@gmail.com\",\"firstName\":\"Terseer\",\"surname\":\"Agbe\",\"dateOfBirth\":\"2020-01-01\",\"gender\":\"MALE\",\"phoneNumber\":\"2347030355396\",\"userId\":\"2\",\"referenceCode\":\"BKiFiPJKzcfygvTq\",\"smsAlertConfig\":true,\"corporate\":true,\"otherDetails\":{\"organisationName\":\"SlitSoft\",\"organisationEmail\":\"agbe.terseer@gmail.com\",\"organisationPhone\":\"2347030355396\",\"organizationCity\":\"MAkurdi\",\"organizationAddress\":\"LAGOS\",\"organizationState\":\"BENUE\",\"organisationType\":\"ICT\",\"businessType\":\"BEANS\"}}}");
         pojo2.setMessage(mess);
         pojo2.setModule("string");
         pojo2.setUserId(id);
         pojo2.setLocation("string");
         pojo2.setName("string");
         pojo2.setPhoneNumber("string");
+
+
 		if(userService != null)
 
 		    //ogPojo :: LogRequest(id=null, action=MODIFY, jsonRequest=null, jsonResponse={"timestamp":"Mon Jul 04 16:38:44 WAT 2022","message":"retrieved successfully","status":true,"data":{"id":"cac0c592-de2b-436a-96b5-9b1bd2ec4faa","email":"agbe.terseer@gmail.com","firstName":"Terseer","surname":"Agbe","dateOfBirth":"2020-01-01","gender":"MALE","phoneNumber":"2347030355396","userId":"2","referenceCode":"BKiFiPJKzcfygvTq","smsAlertConfig":true,"corporate":true,"otherDetails":{"organisationName":"SlitSoft","organisationEmail":"agbe.terseer@gmail.com","organisationPhone":"2347030355396","organizationCity":"MAkurdi","organizationAddress":"LAGOS","organizationState":"BENUE","organisationType":"ICT","businessType":"BEANS"}}}, message=Authentication Service: /api/v1/profile/2, module=ProfileController, requestDate=2022-07-04T16:38:44.988065800, responseDate=2022-07-04T16:38:44.988065800, userId=2, email=agbe.terseer@gmail.com, name=TERSEER AGBE, phoneNumber=234703355396, location=null)

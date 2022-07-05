@@ -18,8 +18,8 @@ public class AdminAccountRestrictionDTO {
 	@NotNull
 	private boolean isAcctfreez;
 	
-	//@NotBlank(message = "FreezCode must not Null or Blank")
-	//@Size(min=1, max=1, message = "Freeze can either be D=DEBIT FREEZE,C=CREDIT FREEZE and T= TOTAL FREEZE")
+//	@NotBlank(message = "FreezCode must not Null or Blank")
+//	@Size(min=1, max=1, message = "Freeze can either be D=DEBIT FREEZE,C=CREDIT FREEZE and T= TOTAL FREEZE")
 	private String freezCode; //Pause = DEBIT/CREDIT Block =TOTAL FREEZ
 	
 	//@NotBlank(message = "FreezReason must not be Null or Blank")
