@@ -1368,13 +1368,17 @@ public class UserAccountServiceImpl implements UserAccountService {
 			if (account == null) {
 				return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"), HttpStatus.NOT_FOUND);
 			}
-
-			double acctAmt = account.getLien_amt() + user.getLienAmount().doubleValue();
-			account.setLien_amt(acctAmt);
-			account.setLien_reason(user.getLienReason());
+			if(user.isLien()){
+				double acctAmt = account.getLien_amt() + user.getLienAmount().doubleValue();
+				account.setLien_amt(acctAmt);
+				account.setLien_reason(user.getLienReason());
+			}else{
+				account.setLien_amt(0);
+				account.setLien_reason(user.getLienReason());
+			}
 
 			walletAccountRepository.save(account);
-			return new ResponseEntity<>(new SuccessResponse("Account closed successfully.", account), HttpStatus.OK);
+			return new ResponseEntity<>(new SuccessResponse("Account Lien successfully.", account), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage() + " : " + e.getMessage()),
 					HttpStatus.BAD_REQUEST);

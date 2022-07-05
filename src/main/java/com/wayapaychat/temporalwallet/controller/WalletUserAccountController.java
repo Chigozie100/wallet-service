@@ -120,7 +120,7 @@ public class WalletUserAccountController {
     }
 	
 	@ApiOperation(value = "Transaction account block / unblock", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
-    @PostMapping(path = "/account/block/transaction")
+    @PostMapping(path = "/account/lien/transaction")
     public ResponseEntity<?> postAccountLien(@Valid @RequestBody AccountLienDTO user, @RequestParam("isLien") boolean isLien) {
 		log.info("Request input: {}",user);
 		return userAccountService.AccountAccessLien(user);
