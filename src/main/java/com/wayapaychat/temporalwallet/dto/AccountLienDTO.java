@@ -17,8 +17,8 @@ public class AccountLienDTO {
 	@Size(min=10, max=10, message = "Account must be 10 digit")
 	private String customerAccountNo;
 	
-	@JsonIgnore
-	private boolean isLien = true;
+//	@JsonIgnore
+//	private boolean isLien;
 	
 	@NotNull
     private BigDecimal lienAmount;

@@ -119,9 +119,9 @@ public class WalletUserAccountController {
         return userAccountService.AccountAccessClosureMultiple(user);
     }
 	
-	@ApiOperation(value = "Transaction account block", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+	@ApiOperation(value = "Transaction account block / unblock", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/account/block/transaction")
-    public ResponseEntity<?> postAccountLien(@Valid @RequestBody AccountLienDTO user) {
+    public ResponseEntity<?> postAccountLien(@Valid @RequestBody AccountLienDTO user, @RequestParam("isLien") boolean isLien) {
 		log.info("Request input: {}",user);
 		return userAccountService.AccountAccessLien(user);
     }

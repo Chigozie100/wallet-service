@@ -71,6 +71,8 @@ waya:
   account:
     accounturl: ${CONFIG_BASEURL_VIRACCOUNT:https://services.staging.wayabank.ng/account-service}
     service: ACCOUNT-SERVICE
+  logging-service:
+    base-url: ${CONFIG_BASEURL_LOGAUDIT:http://localhost:8077/logs-service}
   #   sms:
   #     atalking: ${AFRICATALKING}
   #     infobip: ${INFOBIP}
