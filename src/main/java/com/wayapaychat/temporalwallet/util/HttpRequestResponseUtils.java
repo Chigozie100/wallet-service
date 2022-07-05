@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.util.Optional;
 
 @Slf4j
 public final class HttpRequestResponseUtils {
@@ -185,5 +186,12 @@ public final class HttpRequestResponseUtils {
         responseWrapper.copyBodyToResponse();
     }
 
-
+    public static Optional<String> objectToJson(Object object){
+        try {
+            return Optional.of(new ObjectMapper().writeValueAsString(object));
+        } catch (JsonProcessingException e) {
+            log.error("Unable to generate json equivalent of the provided object");
+            return Optional.empty();
+        }
+    }
 }
