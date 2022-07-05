@@ -1,4 +1,4 @@
-package com.wayapaychat.temporalwallet.config;
+package com.wayapaychat.temporalwallet.security;
 
 import java.io.IOException;
 import java.util.List;
@@ -9,6 +9,8 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.wayapaychat.temporalwallet.config.LoggingActivity;
+import com.wayapaychat.temporalwallet.config.SecurityConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -31,7 +33,7 @@ public class AuthorizationFilter extends BasicAuthenticationFilter {
 
 	@Autowired
 	AuthProxy authProxy;
-	
+
     //private static final Logger LOGGER= LoggerFactory.getLogger(AuthorizationFilter.class);
     
     public AuthorizationFilter(AuthenticationManager authManager) {
@@ -41,6 +43,7 @@ public class AuthorizationFilter extends BasicAuthenticationFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
             throws IOException, ServletException {
+
         String header = req.getHeader(SecurityConstants.HEADER_STRING);
         if (header == null ) {
             chain.doFilter(req, res);
@@ -51,6 +54,18 @@ public class AuthorizationFilter extends BasicAuthenticationFilter {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         chain.doFilter(req, res);
     }
+//
+//    private void processLogs(HttpServletRequest req, HttpServletResponse res){
+//        LoggingActivity loggingActivity = (LoggingActivity) SpringApplicationContext.getBean("loggingActivity");
+//        System.out.println("response " + res);
+//        System.out.println("request " + req);
+//        try {
+//
+//            loggingActivity.doDispatch(req,res);
+//        } catch (Exception exception) {
+//            exception.printStackTrace();
+//        }
+//    }
 
     private UsernamePasswordAuthenticationToken getAuthentication(String request) {
         
