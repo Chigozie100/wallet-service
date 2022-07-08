@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
+import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -12,8 +13,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 import static com.wayapaychat.temporalwallet.util.Constant.*;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.service.TransactionCountService;
@@ -344,7 +347,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				if(transfer.getEventId().equals("SMSCHG")){
 					tranId = createEventTransactionDebitUserCreditWayaAccount(transfer.getEventId(), toAccountNumber, transfer.getTranCrncy(),
-							transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory);
+							transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory, userToken);
 				}else{
 					tranId = createEventTransaction(transfer.getEventId(), toAccountNumber, transfer.getTranCrncy(),
 							transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory);
@@ -373,20 +376,20 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 
 
-				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
-				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
-				String fullName = xUser.getFirstName() + " " + xUser.getLastName();
+//				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+//				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+//				String fullName = xUser.getFirstName() + " " + xUser.getLastName();
 
-				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
-						transfer.getTranNarration());
-				String finalTranId = tranId;
-				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
-						xUser.getEmailAddress(), message, userToken.getId(), transfer.getAmount().toString(), finalTranId,
-						tranDate, transfer.getTranNarration()));
-				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
-						message, userToken.getId()));
-				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getMobileNo(),
-						message, userToken.getId(), TRANSACTION_HAS_OCCURRED));
+//				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+//						transfer.getTranNarration());
+//				String finalTranId = tranId;
+//				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
+//						xUser.getEmailAddress(), message, userToken.getId(), transfer.getAmount().toString(), finalTranId,
+//						tranDate, transfer.getTranNarration()));
+//				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
+//						message, userToken.getId()));
+//				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getMobileNo(),
+//						message, userToken.getId(), TRANSACTION_HAS_OCCURRED));
 			} else {
 				if (intRec == 2) {
 					return new ResponseEntity<>(new ErrorResponse("UNABLE TO PROCESS DUPLICATE TRANSACTION REFERENCE"),
@@ -778,6 +781,85 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
+	public ResponseEntity<?> TransferNonPaymentMultipleWayaOfficial(HttpServletRequest request, List<NonWayaPaymentMultipleOfficialDTO> transfer) {
+		ResponseEntity<?> resp = null;
+		ArrayList<Object> rpp = new ArrayList<>();
+		Provider provider = switchWalletService.getActiveProvider();
+		if (provider == null) {
+			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
+		}
+		log.info("WALLET PROVIDER: " + provider.getName());
+
+		switch (provider.getName()) {
+			case ProviderType.MAINMIFO:
+				for(NonWayaPaymentMultipleOfficialDTO data: transfer){
+
+					resp = NonPaymentFromOfficialAccount(request, data);
+					rpp.add(resp.getBody());
+				}
+				return new ResponseEntity<>(rpp, HttpStatus.OK);
+			case ProviderType.TEMPORAL:
+				for(NonWayaPaymentMultipleOfficialDTO data: transfer){
+					resp = NonPaymentFromOfficialAccount(request, data);
+					rpp.add(resp.getBody());
+				}
+				return new ResponseEntity<>(rpp, HttpStatus.OK);
+			default:
+				for(NonWayaPaymentMultipleOfficialDTO data: transfer){
+					resp = NonPaymentFromOfficialAccount(request, data);
+					rpp.add(resp.getBody());
+				}
+				return new ResponseEntity<>(rpp, HttpStatus.OK);
+		}
+	}
+
+	@Override
+	public ResponseEntity<?> TransferNonPaymentWayaOfficialExcel(HttpServletRequest request, MultipartFile file) {
+		String message;
+		BulkNonWayaTransferExcelDTO bulkLimt = null;
+		Map<String, ArrayList<ResponseHelper>> responseEntity = null;
+		if (ExcelHelper.hasExcelFormat(file)) {
+			try {
+			 responseEntity = MultipleUpload(request,ExcelHelper.excelToNoneWayaTransferPojo(file.getInputStream(), file.getOriginalFilename()));
+
+
+			} catch (Exception e) {
+				throw new CustomException("failed to Parse excel data: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+			}
+		}
+		message = "Please upload an excel file!";
+
+		return new ResponseEntity<>(new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, message, responseEntity), HttpStatus.OK);
+	}
+
+	public ByteArrayInputStream createExcelSheet(boolean isNoneWaya) {
+		List<String> HEADERS = isNoneWaya ? ExcelHelper.PRIVATE_TRANSFER_HEADERS :
+				ExcelHelper.PRIVATE_USER_HEADERS;
+		return ExcelHelper.createExcelSheet(HEADERS);
+	}
+
+
+
+	private Map<String, ArrayList<ResponseHelper>> MultipleUpload(HttpServletRequest request, @Valid BulkNonWayaTransferExcelDTO transferExcelDTO){
+		ResponseEntity<?> resp = null;
+		ArrayList<ResponseHelper> respList = new ArrayList<>();
+		Map<String, ArrayList<ResponseHelper>> map = new HashMap<>();
+
+		if (transferExcelDTO == null || transferExcelDTO.getTransfer().isEmpty())
+			throw new CustomException("Transfer List cannot be null or Empty", BAD_REQUEST);
+
+		for (NonWayaPaymentMultipleOfficialDTO mTransfer : transferExcelDTO.getTransfer()) {
+			resp = NonPaymentFromOfficialAccount(request, mTransfer);
+
+			System.out.println("RESP :: " + resp.getBody());
+
+			respList.add((ResponseHelper) resp.getBody());
+ 		}
+		map.put("Response", respList);
+		return map;
+	}
+
+	@Override
 	public ResponseEntity<?> TransferNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer) {
 		Provider provider = switchWalletService.getActiveProvider();
 		if (provider == null) {
@@ -793,6 +875,19 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return NonPayment(request, transfer);
 		}
 	}
+
+//	public ResponseEntity<?> NonPaymentMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer) {
+//		ResponseEntity<?>  responseEntity = null;
+//		try{
+//			transfer.forEach(data ->{
+//				responseEntity = NonPayment(request, data);
+//			});
+//
+//		}catch (Exception ex){
+//			throw new CustomException(" error here ", HttpStatus.EXPECTATION_FAILED);
+//		}
+//		return new ResponseEntity<>()
+//	}
 
 	public ResponseEntity<?> NonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer) {
 
@@ -821,7 +916,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createEventTransactionNew(transfer.getCustomerDebitAccountNo(), "NONWAYAPT",
 						transfer.getTranCrncy(), transfer.getAmount(), tranType, transfer.getTranNarration(), reference,
-						request, tranCategory);
+						request, tranCategory, false);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 
@@ -866,6 +961,108 @@ public class TransAccountServiceImpl implements TransAccountService {
 				} else {
 					log.info("PHONE: " + transfer.getEmailOrPhoneNo());
 					
+					CompletableFuture.runAsync(() -> customNotification.pushNonWayaEMAIL(token, transfer.getFullName(),
+							userToken.getEmail(), message, userToken.getId(), transfer.getAmount().toString(), tranId,
+							tranDate, transfer.getTranNarration()));
+
+					CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
+							transfer.getEmailOrPhoneNo(), noneWaya, userToken.getId()));
+
+					CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
+							transfer.getEmailOrPhoneNo(), message, userToken.getId(),NON_WAYA_PAYMENT_REQUEST));
+				}
+				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATED", transaction),
+						HttpStatus.CREATED);
+				log.info("Transaction Response: {}", resp);
+
+			} else {
+				if (intRec == 2) {
+					return new ResponseEntity<>(new ErrorResponse("UNABLE TO PROCESS DUPLICATE TRANSACTION REFERENCE"),
+							HttpStatus.BAD_REQUEST);
+				} else {
+					return new ResponseEntity<>(new ErrorResponse("UNKNOWN DATABASE ERROR. PLEASE CONTACT ADMIN"),
+							HttpStatus.BAD_REQUEST);
+				}
+			}
+		} catch (Exception ex) {
+			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+		}
+		return resp;
+	}
+
+	public ResponseEntity<?> NonPaymentFromOfficialAccount(HttpServletRequest request, NonWayaPaymentMultipleOfficialDTO transfer) {
+
+		log.info("Transaction Request Creation: {}", transfer.toString());
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
+		}
+
+		String reference = "";
+		reference = tempwallet.TransactionGenerate();
+		if (reference.equals("")) {
+			reference = transfer.getPaymentReference();
+		}
+
+		String transactionToken = tempwallet.generateToken();
+		String debitAccountNumber = transfer.getOfficialAccountNumber();
+		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("TRANSFER");
+		CategoryType tranCategory = CategoryType.valueOf("TRANSFER");
+
+		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVAILED ACCOUNT NO"), HttpStatus.BAD_REQUEST);
+		try {
+			int intRec = tempwallet.PaymenttranInsert("", debitAccountNumber, "NONWAYAPT", transfer.getAmount(),
+					reference);
+			if (intRec == 1) {
+				String tranId = createEventTransactionNew(transfer.getOfficialAccountNumber(), "NONWAYAPT",
+						transfer.getTranCrncy(), transfer.getAmount(), tranType, transfer.getTranNarration(), reference,
+						request, tranCategory, true);
+				String[] tranKey = tranId.split(Pattern.quote("|"));
+				if (tranKey[0].equals("DJGO")) {
+
+					return new ResponseEntity<>(new ErrorResponse(tranKey[1]), HttpStatus.BAD_REQUEST);
+				}
+				log.info("Transaction ID Response: {}", tranId);
+				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+						.findByTranIdIgnoreCase(tranId);
+				if (!transaction.isPresent()) {
+
+					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
+							HttpStatus.BAD_REQUEST);
+				}
+				WalletNonWayaPayment nonpay = new WalletNonWayaPayment(transactionToken, transfer.getEmailOrPhoneNo(),
+						tranId, transfer.getOfficialAccountNumber(), transfer.getAmount(), transfer.getTranNarration(),
+						transfer.getTranCrncy(), transfer.getPaymentReference(), userToken.getId().toString(),
+						userToken.getEmail(), PaymentStatus.PENDING, transfer.getFullName());
+				walletNonWayaPaymentRepo.save(nonpay);
+
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+
+				String message = formatMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration(), transactionToken);
+
+				String noneWaya = formatMoneWayaMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration(), transactionToken);
+
+				if (!StringUtils.isNumeric(transfer.getEmailOrPhoneNo())) {
+					log.info("EMAIL: " + transfer.getEmailOrPhoneNo());
+
+					CompletableFuture.runAsync(() -> customNotification.pushNonWayaEMAIL(token, transfer.getFullName(),
+							transfer.getEmailOrPhoneNo(), message, userToken.getId(), transfer.getAmount().toString(),
+							tranId, tranDate, transfer.getTranNarration()));
+
+					CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
+							userToken.getPhoneNumber(), noneWaya, userToken.getId()));
+
+					CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
+							transfer.getEmailOrPhoneNo(), message, userToken.getId(),NON_WAYA_PAYMENT_REQUEST));
+				} else {
+					log.info("PHONE: " + transfer.getEmailOrPhoneNo());
+
 					CompletableFuture.runAsync(() -> customNotification.pushNonWayaEMAIL(token, transfer.getFullName(),
 							userToken.getEmail(), message, userToken.getId(), transfer.getAmount().toString(), tranId,
 							tranDate, transfer.getTranNarration()));
@@ -963,7 +1160,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createEventTransactionNew("NONWAYAPT", beneAccount, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-						request, tranCategory);
+						request, tranCategory, false);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					// return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1],
@@ -1046,7 +1243,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			int intRec = tempwallet.PaymenttranInsert("NONWAYAPT", "", beneAccount, amount, paymentReference);
 			if (intRec == 1) {
 				String tranId = createEventTransactionNew("NONWAYAPT", beneAccount, tranCrncy, amount, tranType,
-						tranNarration, paymentReference, request, tranCategory);
+						tranNarration, paymentReference, request, tranCategory, false);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					// return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1],
@@ -3448,7 +3645,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	public String createEventTransactionNew(String debitEvent, String creditEvent, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request,
-			CategoryType tranCategory) {
+			CategoryType tranCategory, boolean isOffical) {
+
+		System.out.println("this is debitEvent :: " + debitEvent);
 		try {
 			int mPartran = 1;
 			log.info("START DEBIT-CREDIT TRANSACTION");
@@ -3465,18 +3664,24 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 
 			final String debitAcctNo, creditAcctNo;
+			if(!isOffical){
+				if (StringUtils.isNumeric(debitEvent)) {
+					debitAcctNo = debitEvent;
+				} else {
+					debitAcctNo = fromEventIdBankAccount(debitEvent).getAccountNo();
+				}
 
-			if (StringUtils.isNumeric(debitEvent)) {
+				if (StringUtils.isNumeric(creditEvent)) {
+
+					creditAcctNo = creditEvent;
+				} else {
+					creditAcctNo = fromEventIdBankAccount(creditEvent).getAccountNo();
+				}
+			}else{
 				debitAcctNo = debitEvent;
-			} else {
-				debitAcctNo = fromEventIdBankAccount(debitEvent).getAccountNo();
-			}
-
-			if (StringUtils.isNumeric(creditEvent)) {
-				creditAcctNo = creditEvent;
-			} else {
 				creditAcctNo = fromEventIdBankAccount(creditEvent).getAccountNo();
 			}
+
 			// To fetch BankAcccount and Does it exist
 			WalletAccount accountDebit = walletAccountRepository.findByAccountNo(debitAcctNo);
 			WalletAccount accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
@@ -3864,7 +4069,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	public String createEventTransactionDebitUserCreditWayaAccount(String eventId, String debitAcctNo, String tranCrncy, BigDecimal amount,
 										 TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request,
-										 CategoryType tranCategory) throws Exception {
+										 CategoryType tranCategory, MyData userToken) throws Exception {
 		String tranDate = getTransactionDate();
 		try {
 			int n = 1;
@@ -4039,13 +4244,32 @@ public class TransAccountServiceImpl implements TransAccountService {
 			accountDebit.setCum_dr_amt(cumbalDrAmtDr);
 			accountDebit.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(accountDebit);
+
 			// HttpServletRequest request
 			String token = request.getHeader(SecurityConstants.HEADER_STRING);
 
+			WalletAccount xAccount = walletAccountRepository.findByAccountNo(accountDebit.getAccountNo());
+			WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+			String fullName = xUser.getFirstName() + " " + xUser.getLastName();
+
 			String message = formatDebitMessage(amount, tranId, tranDate, tranCrncy,tranNarrate);
-			WalletAccount finalAccountDebit = accountDebit;
-			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, finalAccountDebit.getUser().getFirstName(),
-					finalAccountDebit.getUser().getMobileNo(), message, finalAccountDebit.getUser().getUserId(),NON_WAYA_PAYMENT_REQUEST));
+
+
+			String finalTranId = tranId;
+			CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
+					xUser.getEmailAddress(), message, userToken.getId(), amount.toString(), finalTranId,
+					tranDate, tranNarrate));
+			CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
+					message, userToken.getId()));
+			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getMobileNo(),
+					message, userToken.getId(), TRANSACTION_HAS_OCCURRED));
+
+
+//			String messageDebit = formatNewMessage(amount, tranId, tranDate, tranCrncy,tranNarrate);
+//
+//			WalletAccount finalAccountDebit = accountDebit;
+//			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, finalAccountDebit.getUser().getFirstName(),
+//					finalAccountDebit.getUser().getMobileNo(), messageDebit, finalAccountDebit.getUser().getUserId(),NON_WAYA_PAYMENT_REQUEST));
 
 			double clrbalAmtCr = accountCredit.getClr_bal_amt() + amount.doubleValue();
 			double cumbalCrAmtCr = accountCredit.getCum_cr_amt() + amount.doubleValue();
@@ -4055,10 +4279,21 @@ public class TransAccountServiceImpl implements TransAccountService {
 			accountCredit.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(accountCredit);
 
+//			String message2 = formatNewMessage(amount, tranId, tranDate, tranCrncy, tranNarrate);
+//			WalletAccount finalAccountCredit = accountCredit;
+//			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, finalAccountCredit.getUser().getFirstName(),
+//					finalAccountCredit.getUser().getMobileNo(), message2, finalAccountCredit.getUser().getUserId(),NON_WAYA_PAYMENT_REQUEST));
+
+
 			String message2 = formatNewMessage(amount, tranId, tranDate, tranCrncy, tranNarrate);
-			WalletAccount finalAccountCredit = accountCredit;
-			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, finalAccountCredit.getUser().getFirstName(),
-					finalAccountCredit.getUser().getMobileNo(), message2, finalAccountCredit.getUser().getUserId(),NON_WAYA_PAYMENT_REQUEST));
+
+			CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
+					xUser.getEmailAddress(), message2, userToken.getId(), amount.toString(), finalTranId,
+					tranDate, tranNarrate));
+			CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
+					message, userToken.getId()));
+			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getMobileNo(),
+					message, userToken.getId(), TRANSACTION_HAS_OCCURRED));
 
 			log.info("END TRANSACTION");
 
@@ -5982,6 +6217,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 	}
 
+
 	@Override
 	public ApiResponse<?> statementReport(Date fromdate, Date todate, String acctNo) {
 		LocalDate fromDate = fromdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
@@ -6090,9 +6326,10 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	}
 
 	public WalletAccount fromEventIdBankAccount(String eventId) {
+		System.out.println("fromEventIdBankAccount :: " + eventId );
 		WalletEventCharges event = walletEventRepository.findByEventId(eventId)
-				.orElseThrow(() -> new NoSuchElementException("EVENT ID NOT AVAILABLE FOR EventId :" + eventId));
-
+				.orElseThrow(() -> new NoSuchElementException("EVENT ID NOT AVAILABLE FOR EventId FIRST:" + eventId));
+		System.out.println("fromEventIdBankAccount event:: " + event );
 		boolean validate2 = paramValidation.validateDefaultCode(event.getPlaceholder(), "Batch Account");
 		if (!validate2) {
 			throw new CustomException("Event Placeholder Validation Failed", HttpStatus.BAD_REQUEST);

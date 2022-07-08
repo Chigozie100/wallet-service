@@ -2,12 +2,9 @@ package com.wayapaychat.temporalwallet.pojo;
 
 import java.util.List;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-
+@Data
 @Getter
 @Setter
 @AllArgsConstructor
@@ -28,6 +25,7 @@ public class MyData {
     private List<String> roles;
     private List<String> permits;
     private String transactionLimit;
+    private String userLocation;
     public MyData(String email) {
     	this.email = email;
     }
