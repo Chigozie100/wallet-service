@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
+import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -12,8 +13,10 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 import static com.wayapaychat.temporalwallet.util.Constant.*;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.service.TransactionCountService;
@@ -811,6 +814,52 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
+	public ResponseEntity<?> TransferNonPaymentWayaOfficialExcel(HttpServletRequest request, MultipartFile file) {
+		String message;
+		BulkNonWayaTransferExcelDTO bulkLimt = null;
+		Map<String, ArrayList<ResponseHelper>> responseEntity = null;
+		if (ExcelHelper.hasExcelFormat(file)) {
+			try {
+			 responseEntity = MultipleUpload(request,ExcelHelper.excelToNoneWayaTransferPojo(file.getInputStream(), file.getOriginalFilename()));
+
+
+			} catch (Exception e) {
+				throw new CustomException("failed to Parse excel data: " + e.getMessage(), HttpStatus.BAD_REQUEST);
+			}
+		}
+		message = "Please upload an excel file!";
+
+		return new ResponseEntity<>(new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, message, responseEntity), HttpStatus.OK);
+	}
+
+	public ByteArrayInputStream createExcelSheet(boolean isNoneWaya) {
+		List<String> HEADERS = isNoneWaya ? ExcelHelper.PRIVATE_TRANSFER_HEADERS :
+				ExcelHelper.PRIVATE_USER_HEADERS;
+		return ExcelHelper.createExcelSheet(HEADERS);
+	}
+
+
+
+	private Map<String, ArrayList<ResponseHelper>> MultipleUpload(HttpServletRequest request, @Valid BulkNonWayaTransferExcelDTO transferExcelDTO){
+		ResponseEntity<?> resp = null;
+		ArrayList<ResponseHelper> respList = new ArrayList<>();
+		Map<String, ArrayList<ResponseHelper>> map = new HashMap<>();
+
+		if (transferExcelDTO == null || transferExcelDTO.getTransfer().isEmpty())
+			throw new CustomException("Transfer List cannot be null or Empty", BAD_REQUEST);
+
+		for (NonWayaPaymentMultipleOfficialDTO mTransfer : transferExcelDTO.getTransfer()) {
+			resp = NonPaymentFromOfficialAccount(request, mTransfer);
+
+			System.out.println("RESP :: " + resp.getBody());
+
+			respList.add((ResponseHelper) resp.getBody());
+ 		}
+		map.put("Response", respList);
+		return map;
+	}
+
+	@Override
 	public ResponseEntity<?> TransferNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer) {
 		Provider provider = switchWalletService.getActiveProvider();
 		if (provider == null) {
@@ -867,7 +916,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createEventTransactionNew(transfer.getCustomerDebitAccountNo(), "NONWAYAPT",
 						transfer.getTranCrncy(), transfer.getAmount(), tranType, transfer.getTranNarration(), reference,
-						request, tranCategory);
+						request, tranCategory, false);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 
@@ -969,7 +1018,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createEventTransactionNew(transfer.getOfficialAccountNumber(), "NONWAYAPT",
 						transfer.getTranCrncy(), transfer.getAmount(), tranType, transfer.getTranNarration(), reference,
-						request, tranCategory);
+						request, tranCategory, true);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 
@@ -1111,7 +1160,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createEventTransactionNew("NONWAYAPT", beneAccount, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-						request, tranCategory);
+						request, tranCategory, false);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					// return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1],
@@ -1194,7 +1243,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			int intRec = tempwallet.PaymenttranInsert("NONWAYAPT", "", beneAccount, amount, paymentReference);
 			if (intRec == 1) {
 				String tranId = createEventTransactionNew("NONWAYAPT", beneAccount, tranCrncy, amount, tranType,
-						tranNarration, paymentReference, request, tranCategory);
+						tranNarration, paymentReference, request, tranCategory, false);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					// return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1],
@@ -3596,7 +3645,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	public String createEventTransactionNew(String debitEvent, String creditEvent, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request,
-			CategoryType tranCategory) {
+			CategoryType tranCategory, boolean isOffical) {
+
+		System.out.println("this is debitEvent :: " + debitEvent);
 		try {
 			int mPartran = 1;
 			log.info("START DEBIT-CREDIT TRANSACTION");
@@ -3613,18 +3664,24 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 
 			final String debitAcctNo, creditAcctNo;
+			if(!isOffical){
+				if (StringUtils.isNumeric(debitEvent)) {
+					debitAcctNo = debitEvent;
+				} else {
+					debitAcctNo = fromEventIdBankAccount(debitEvent).getAccountNo();
+				}
 
-			if (StringUtils.isNumeric(debitEvent)) {
+				if (StringUtils.isNumeric(creditEvent)) {
+
+					creditAcctNo = creditEvent;
+				} else {
+					creditAcctNo = fromEventIdBankAccount(creditEvent).getAccountNo();
+				}
+			}else{
 				debitAcctNo = debitEvent;
-			} else {
-				debitAcctNo = fromEventIdBankAccount(debitEvent).getAccountNo();
-			}
-
-			if (StringUtils.isNumeric(creditEvent)) {
-				creditAcctNo = creditEvent;
-			} else {
 				creditAcctNo = fromEventIdBankAccount(creditEvent).getAccountNo();
 			}
+
 			// To fetch BankAcccount and Does it exist
 			WalletAccount accountDebit = walletAccountRepository.findByAccountNo(debitAcctNo);
 			WalletAccount accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
@@ -6160,6 +6217,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 	}
 
+
 	@Override
 	public ApiResponse<?> statementReport(Date fromdate, Date todate, String acctNo) {
 		LocalDate fromDate = fromdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
@@ -6268,9 +6326,10 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	}
 
 	public WalletAccount fromEventIdBankAccount(String eventId) {
+		System.out.println("fromEventIdBankAccount :: " + eventId );
 		WalletEventCharges event = walletEventRepository.findByEventId(eventId)
-				.orElseThrow(() -> new NoSuchElementException("EVENT ID NOT AVAILABLE FOR EventId :" + eventId));
-
+				.orElseThrow(() -> new NoSuchElementException("EVENT ID NOT AVAILABLE FOR EventId FIRST:" + eventId));
+		System.out.println("fromEventIdBankAccount event:: " + event );
 		boolean validate2 = paramValidation.validateDefaultCode(event.getPlaceholder(), "Batch Account");
 		if (!validate2) {
 			throw new CustomException("Event Placeholder Validation Failed", HttpStatus.BAD_REQUEST);
