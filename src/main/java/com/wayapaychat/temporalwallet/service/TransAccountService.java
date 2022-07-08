@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.service;
 
+import java.io.ByteArrayInputStream;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
@@ -130,6 +131,11 @@ public interface TransAccountService {
 
 	ResponseEntity<?> TransferNonPaymentMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer);
 
+	ResponseEntity<?> TransferNonPaymentMultipleWayaOfficial(HttpServletRequest request, List<NonWayaPaymentMultipleOfficialDTO> transfer);
+
+	ResponseEntity<?> TransferNonPaymentWayaOfficialExcel(HttpServletRequest request, MultipartFile file);
+
+	ByteArrayInputStream createExcelSheet(boolean isNoneWaya);
 
 	ResponseEntity<?> NonWayaPaymentRedeem(HttpServletRequest request, NonWayaRedeemDTO transfer);
 

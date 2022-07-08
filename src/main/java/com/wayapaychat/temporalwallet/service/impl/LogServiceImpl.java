@@ -17,7 +17,6 @@ public class LogServiceImpl implements LogService {
     @Override
     public void saveLog(LogRequest logPojo) {
         try {
-            System.out.println("pojo :: " +logPojo);
             logServiceProxy.saveNewLog(logPojo);
         } catch (Exception e) {
             log.error("Error saving Logs:: {}", e.getMessage());

@@ -16,8 +16,12 @@ import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import com.wayapaychat.temporalwallet.util.PDFExporter;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -599,6 +603,42 @@ public class WalletTransactionController {
 	public ResponseEntity<?> NonWayaPaymentMultiple(HttpServletRequest request,
 											@Valid @RequestBody() List<NonWayaPaymentDTO> walletDto) {
 		return transAccountService.TransferNonPaymentMultiple(request, walletDto);
+	}
+
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Non-Waya Payment for multiple transaction by waya official", notes = "Transfer amount from user wallet to Non-waya for multiple transaction by waya  official", tags = {
+			"TRANSACTION-WALLET" })
+	@PostMapping("/non-waya/payment/new-multiple-waya-official")
+	public ResponseEntity<?> NonWayaPaymentMultipleWayaOfficial(HttpServletRequest request,
+													@Valid @RequestBody() List<NonWayaPaymentMultipleOfficialDTO> walletDto) {
+		return transAccountService.TransferNonPaymentMultipleWayaOfficial(request, walletDto);
+	}
+
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Waya Admin to create multiple transaction", notes = "Transfer amount from one wallet to another wallet", tags = {
+			"TRANSACTION-WALLET" })
+	@PostMapping(path = "/non-waya/payment/new-multiple-official-excel-upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> TransferNonPaymentWayaOfficialExcel(HttpServletRequest request, @RequestPart("file") MultipartFile file) {
+
+		return new ResponseEntity<>(transAccountService.TransferNonPaymentWayaOfficialExcel(request, file), HttpStatus.OK);
+	}
+
+	@ApiOperation(value = "Download Template for Bulk User Creation ", tags = { "ADMIN" })
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiResponses(value = { @io.swagger.annotations.ApiResponse(code = 200, message = "Response Headers") })
+	@GetMapping("/download/bulk-none-waya-excel")
+	public ResponseEntity<Resource> getFile(@RequestParam("isNoneWaya") boolean isNoneWaya) {
+		String filename = "bulk-none-waya-excel.xlsx";
+		InputStreamResource file = new InputStreamResource(transAccountService.createExcelSheet(isNoneWaya));
+		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+				.contentType(
+						MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+				.body(file);
 	}
 
 
