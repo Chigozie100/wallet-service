@@ -344,7 +344,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				if(transfer.getEventId().equals("SMSCHG")){
 					tranId = createEventTransactionDebitUserCreditWayaAccount(transfer.getEventId(), toAccountNumber, transfer.getTranCrncy(),
-							transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory);
+							transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory, userToken);
 				}else{
 					tranId = createEventTransaction(transfer.getEventId(), toAccountNumber, transfer.getTranCrncy(),
 							transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory);
@@ -373,20 +373,20 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 
 
-				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
-				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
-				String fullName = xUser.getFirstName() + " " + xUser.getLastName();
+//				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+//				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+//				String fullName = xUser.getFirstName() + " " + xUser.getLastName();
 
-				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
-						transfer.getTranNarration());
-				String finalTranId = tranId;
-				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
-						xUser.getEmailAddress(), message, userToken.getId(), transfer.getAmount().toString(), finalTranId,
-						tranDate, transfer.getTranNarration()));
-				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
-						message, userToken.getId()));
-				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getMobileNo(),
-						message, userToken.getId(), TRANSACTION_HAS_OCCURRED));
+//				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+//						transfer.getTranNarration());
+//				String finalTranId = tranId;
+//				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
+//						xUser.getEmailAddress(), message, userToken.getId(), transfer.getAmount().toString(), finalTranId,
+//						tranDate, transfer.getTranNarration()));
+//				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
+//						message, userToken.getId()));
+//				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getMobileNo(),
+//						message, userToken.getId(), TRANSACTION_HAS_OCCURRED));
 			} else {
 				if (intRec == 2) {
 					return new ResponseEntity<>(new ErrorResponse("UNABLE TO PROCESS DUPLICATE TRANSACTION REFERENCE"),
@@ -3864,7 +3864,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	public String createEventTransactionDebitUserCreditWayaAccount(String eventId, String debitAcctNo, String tranCrncy, BigDecimal amount,
 										 TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request,
-										 CategoryType tranCategory) throws Exception {
+										 CategoryType tranCategory, MyData userToken) throws Exception {
 		String tranDate = getTransactionDate();
 		try {
 			int n = 1;
@@ -4039,13 +4039,32 @@ public class TransAccountServiceImpl implements TransAccountService {
 			accountDebit.setCum_dr_amt(cumbalDrAmtDr);
 			accountDebit.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(accountDebit);
+
 			// HttpServletRequest request
 			String token = request.getHeader(SecurityConstants.HEADER_STRING);
 
+			WalletAccount xAccount = walletAccountRepository.findByAccountNo(accountDebit.getAccountNo());
+			WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+			String fullName = xUser.getFirstName() + " " + xUser.getLastName();
+
 			String message = formatDebitMessage(amount, tranId, tranDate, tranCrncy,tranNarrate);
-			WalletAccount finalAccountDebit = accountDebit;
-			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, finalAccountDebit.getUser().getFirstName(),
-					finalAccountDebit.getUser().getMobileNo(), message, finalAccountDebit.getUser().getUserId(),NON_WAYA_PAYMENT_REQUEST));
+
+
+			String finalTranId = tranId;
+			CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
+					xUser.getEmailAddress(), message, userToken.getId(), amount.toString(), finalTranId,
+					tranDate, tranNarrate));
+			CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
+					message, userToken.getId()));
+			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getMobileNo(),
+					message, userToken.getId(), TRANSACTION_HAS_OCCURRED));
+
+
+//			String messageDebit = formatNewMessage(amount, tranId, tranDate, tranCrncy,tranNarrate);
+//
+//			WalletAccount finalAccountDebit = accountDebit;
+//			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, finalAccountDebit.getUser().getFirstName(),
+//					finalAccountDebit.getUser().getMobileNo(), messageDebit, finalAccountDebit.getUser().getUserId(),NON_WAYA_PAYMENT_REQUEST));
 
 			double clrbalAmtCr = accountCredit.getClr_bal_amt() + amount.doubleValue();
 			double cumbalCrAmtCr = accountCredit.getCum_cr_amt() + amount.doubleValue();
@@ -4055,10 +4074,21 @@ public class TransAccountServiceImpl implements TransAccountService {
 			accountCredit.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(accountCredit);
 
+//			String message2 = formatNewMessage(amount, tranId, tranDate, tranCrncy, tranNarrate);
+//			WalletAccount finalAccountCredit = accountCredit;
+//			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, finalAccountCredit.getUser().getFirstName(),
+//					finalAccountCredit.getUser().getMobileNo(), message2, finalAccountCredit.getUser().getUserId(),NON_WAYA_PAYMENT_REQUEST));
+
+
 			String message2 = formatNewMessage(amount, tranId, tranDate, tranCrncy, tranNarrate);
-			WalletAccount finalAccountCredit = accountCredit;
-			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, finalAccountCredit.getUser().getFirstName(),
-					finalAccountCredit.getUser().getMobileNo(), message2, finalAccountCredit.getUser().getUserId(),NON_WAYA_PAYMENT_REQUEST));
+
+			CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
+					xUser.getEmailAddress(), message2, userToken.getId(), amount.toString(), finalTranId,
+					tranDate, tranNarrate));
+			CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
+					message, userToken.getId()));
+			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getMobileNo(),
+					message, userToken.getId(), TRANSACTION_HAS_OCCURRED));
 
 			log.info("END TRANSACTION");
 
