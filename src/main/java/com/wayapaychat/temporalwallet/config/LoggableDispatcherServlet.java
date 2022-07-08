@@ -92,12 +92,14 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
 		logMessage.setRequestBody(Objects.toString(requestData, "null"));
 		String json = gson.toJson(logMessage);
 		log.info(json);
+
+
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		if(token !=null){
+			MyData userToken = tokenService.getTokenUser(token);
 
-		MyData userToken = tokenService.getTokenUser(token);
-
-		logRequestAndResponse(logMessage, userToken);
-
+			logRequestAndResponse(logMessage, userToken);
+		}
 
 	}
 
