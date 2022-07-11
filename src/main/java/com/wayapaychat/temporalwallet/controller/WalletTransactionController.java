@@ -1006,7 +1006,7 @@ public class WalletTransactionController {
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "To Export Account Transaction ", notes = "Account Statement", tags = { "TRANSACTION-WALLET" })
 	@GetMapping("/transaction/export/pdf/{accountNo}")
-	public String exportToPDF(HttpServletResponse response,
+	public ResponseEntity<?> exportToPDF(HttpServletResponse response,
 							  @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
 							  @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
 							  @PathVariable String accountNo) throws DocumentException, IOException, com.lowagie.text.DocumentException {
@@ -1018,11 +1018,11 @@ public class WalletTransactionController {
 		String headerValue = "attachment; filename=receipt_" + currentDateTime + ".pdf";
 		response.setHeader(headerKey, headerValue);
 		List<TransWallet> res = transAccountService.statementReport2(fromdate, todate, accountNo);
-		//OrgAndReceiptUtil receipt = transactionOperations.exportPDF(referenceNumber);
+
 		PDFExporter exporter = new PDFExporter(res,accountNo,fromdate,todate);
 		exporter.export(response);
+		return new ResponseEntity<>(headerValue, HttpStatus.BAD_REQUEST);
 
-		return headerValue;
 	}
 
 }

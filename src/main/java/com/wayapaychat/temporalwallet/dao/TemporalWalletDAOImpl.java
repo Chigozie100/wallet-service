@@ -9,13 +9,11 @@ import java.util.List;
 import java.util.Random;
 import java.util.regex.Pattern;
 
-import com.wayapaychat.temporalwallet.util.ErrorResponse;
-import com.wayapaychat.temporalwallet.util.SuccessResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -502,14 +500,16 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		query.append("THEN 'CARD' WHEN event_id = 'BANKPMT' THEN 'CASH' WHEN event_id = 'NONWAYAPT' ");
 		query.append("THEN 'NON-WAYA' ELSE 'TRANSFER' END) AS categoies ");
 		query.append("FROM m_wallet_transaction a, m_accounts_transaction b WHERE processed_flg ='Y' ");
-//		query.append("AND b.tran_date >= '"+ startDate +"' and b.tran_date < '"+ endDate +"' ");
-//		query.append("AND b.tran_date BETWEEN  (cast(?2 as date)is null )  AND (cast(?3 as date)is null ) ");
-		query.append("AND a.tran_id = b.tran_id AND acct_num = ? ORDER BY a.id asc");
+		query.append("AND a.tran_id = b.tran_id AND acct_num = ?");
+		query.append("AND b.tran_date between ? AND ? ORDER BY a.id asc");
 
 		String sql = query.toString();
 		try {
-			Object[] params = new Object[] { account.trim() };
-			
+			java.sql.Date sqlStartDate= new java.sql.Date(startDate.getTime());
+			java.sql.Date sqlEndDate = new java.sql.Date(endDate.getTime());
+
+			Object[] params = new Object[] { account.trim(), sqlStartDate, sqlEndDate};
+
 			TransWalletMapper rowMapper = new TransWalletMapper();
 			wallet = jdbcTemplate.query(sql, rowMapper, params);
 		} catch (Exception ex) {
