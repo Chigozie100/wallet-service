@@ -815,21 +815,19 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Override
 	public ResponseEntity<?> TransferNonPaymentWayaOfficialExcel(HttpServletRequest request, MultipartFile file) {
-		String message;
+
 		BulkNonWayaTransferExcelDTO bulkLimt = null;
 		Map<String, ArrayList<ResponseHelper>> responseEntity = null;
 		if (ExcelHelper.hasExcelFormat(file)) {
 			try {
 			 responseEntity = MultipleUpload(request,ExcelHelper.excelToNoneWayaTransferPojo(file.getInputStream(), file.getOriginalFilename()));
 
-
 			} catch (Exception e) {
 				throw new CustomException("failed to Parse excel data: " + e.getMessage(), HttpStatus.BAD_REQUEST);
 			}
 		}
-		message = "Please upload an excel file!";
 
-		return new ResponseEntity<>(new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, message, responseEntity), HttpStatus.OK);
+		return new ResponseEntity<>(responseEntity, HttpStatus.OK);
 	}
 
 	public ByteArrayInputStream createExcelSheet(boolean isNoneWaya) {
