@@ -6333,11 +6333,8 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	}
 
 	public List<TransWallet> statementReport2(Date fromdate, Date todate, String acctNo) {
-		LocalDate fromDate = fromdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-		LocalDate toDate = todate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-		//List<WalletTransaction> transaction = walletTransactionRepository.findByStatement(fromDate, toDate, acctNo);
-
 		List<TransWallet> transaction2 = tempwallet.GetTransactionType2(acctNo,fromdate,todate);
+
 		return transaction2;
 	}
 

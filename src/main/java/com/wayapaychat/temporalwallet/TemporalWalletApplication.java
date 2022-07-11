@@ -1,6 +1,6 @@
 package com.wayapaychat.temporalwallet;
 
-import com.wayapaychat.temporalwallet.config.LoggableDispatcherServlet;
+//import com.wayapaychat.temporalwallet.config.LoggableDispatcherServlet;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 //import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
@@ -35,9 +35,9 @@ public class TemporalWalletApplication {
         return new RestTemplate();
     }
 
-    @Bean(name = DispatcherServletAutoConfiguration.DEFAULT_DISPATCHER_SERVLET_BEAN_NAME)
-    public DispatcherServlet dispatcherServlet() {
-        return new LoggableDispatcherServlet();
-    }
+//    @Bean(name = DispatcherServletAutoConfiguration.DEFAULT_DISPATCHER_SERVLET_BEAN_NAME)
+//    public DispatcherServlet dispatcherServlet() {
+//        return new LoggableDispatcherServlet();
+//    }
 
 }

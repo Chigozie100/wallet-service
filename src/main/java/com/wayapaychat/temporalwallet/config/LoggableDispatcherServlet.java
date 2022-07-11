@@ -1,6 +1,7 @@
 package com.wayapaychat.temporalwallet.config;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -8,6 +9,8 @@ import java.util.concurrent.CompletableFuture;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wayapaychat.temporalwallet.SpringApplicationContext;
 import com.wayapaychat.temporalwallet.entity.Users;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
@@ -17,9 +20,12 @@ import com.wayapaychat.temporalwallet.pojo.MyData;
 import com.wayapaychat.temporalwallet.security.AuthenticatedUserFacade;
 import com.wayapaychat.temporalwallet.security.UserPrincipal;
 import com.wayapaychat.temporalwallet.service.LogService;
+import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerExecutionChain;
 import org.springframework.web.util.ContentCachingRequestWrapper;
@@ -57,6 +63,23 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
 		HandlerExecutionChain handler = getHandler(request);
 		try {
 			super.doDispatch(request, response);
+		} catch (HttpMediaTypeNotSupportedException ex) {
+			ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+			String str = convertObjectToJson(errorResponse);
+			PrintWriter pr = response.getWriter();
+			response.setContentType("application/json");
+			response.setCharacterEncoding("UTF-8");
+			pr.write(str);
+		} catch (Exception ex) {
+			ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+			response.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+			response.getWriter().write(convertObjectToJson(errorResponse));
+			String str = convertObjectToJson(errorResponse);
+			PrintWriter pr = response.getWriter();
+			response.setContentType("application/json");
+			response.setCharacterEncoding("UTF-8");
+			pr.write(str);
 		} finally {
 			log(request, response, handler, System.currentTimeMillis() - startTime);
 			updateResponse(response);
@@ -103,7 +126,13 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
 
 
 	}
-
+	private String convertObjectToJson(Object object) throws JsonProcessingException {
+		if (object == null) {
+			return null;
+		}
+		ObjectMapper mapper = new ObjectMapper();
+		return mapper.writeValueAsString(object);
+	}
 	private String getResponsePayload(HttpServletResponse response) {
 		ContentCachingResponseWrapper wrapper = WebUtils.getNativeResponse(response,
 				ContentCachingResponseWrapper.class);
@@ -137,6 +166,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
     }
 
 	private void updateResponse(HttpServletResponse response) throws IOException {
+		response.getHeader("PDF");
 		ContentCachingResponseWrapper responseWrapper = WebUtils.getNativeResponse(response,
 				ContentCachingResponseWrapper.class);
 		assert responseWrapper != null;
