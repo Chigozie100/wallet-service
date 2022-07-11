@@ -5694,7 +5694,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 				trans1.setTranId(tranId);
 				trans1.setTranDate(LocalDate.now());
 				trans1.setTranCategory(tranCategory);
-				PostReverse(trans1, n);
+				PostReverse(request, trans1, n);
 				n++;
 			}
 			List<WalletTransaction> statement = walletTransactionRepository.findByTransaction(tranId, LocalDate.now(),
@@ -5706,7 +5706,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 	}
 
-	public void PostReverse(WalletTransaction trans, Integer n) {
+	public void PostReverse(HttpServletRequest request, WalletTransaction trans, Integer n) {
 		WalletAccount RevAcct = walletAccountRepository.findByAccountNo(trans.getAcctNum());
 
 		MyData tokenData = tokenService.getUserInformation();
@@ -5736,6 +5736,111 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 			RevAcct.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(RevAcct);
 		}
+
+		System.out.println("RevAcct xUser :: " + RevAcct);
+		WalletUser xUser = walletUserRepository.findByAccount(RevAcct);
+		System.out.println("xUser :: " + xUser);
+		if(xUser !=null){
+			String fullName = xUser.getFirstName() + " " + xUser.getLastName();
+
+			String token = request.getHeader(SecurityConstants.HEADER_STRING);
+
+			String message2 = formatNewMessage(trans.getTranAmount(), trans.getTranId(), trans.getTranDate().toString(), trans.getTranCrncyCode(), trans.getTranNarrate());
+
+			CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
+					xUser.getEmailAddress(), message2, tokenData.getId(), trans.getTranAmount().toString(), trans.getTranId(),
+					trans.getTranDate().toString(), trans.getTranNarrate()));
+			CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
+					message2, tokenData.getId()));
+			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getMobileNo(),
+					message2, tokenData.getId(), TRANSACTION_HAS_OCCURRED));
+		}
+
+		log.info("END TRANSACTION");
+
+	}
+
+	public ResponseEntity<?> TranReversePaymentRevised(HttpServletRequest request, ReverseTransactionDTO reverseDto)
+			throws ParseException {
+		Provider provider = switchWalletService.getActiveProvider();
+		if (provider == null) {
+			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
+		}
+		log.info("WALLET PROVIDER: " + provider.getName());
+		switch (provider.getName()) {
+			case ProviderType.MAINMIFO:
+				return ReversePaymentRevised(request, reverseDto);
+			case ProviderType.TEMPORAL:
+				return ReversePaymentRevised(request, reverseDto);
+			default:
+				return ReversePaymentRevised(request, reverseDto);
+		}
+	}
+
+	public ResponseEntity<?> ReversePaymentRevised(HttpServletRequest request, ReverseTransactionDTO reverseDto)
+			throws ParseException {
+		DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+
+		LocalDate reverseDate = reverseDto.getTranDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		BigDecimal debitAmount = new BigDecimal("0"), creditAmount = new BigDecimal("0");
+		ArrayList<String> account = new ArrayList<String>();
+
+			List<WalletTransaction> transRe = walletTransactionRepository.findByRevTrans(reverseDto.getTranId(),
+					reverseDate, reverseDto.getTranCrncy());
+			if (!transRe.isEmpty()) {
+				return new ResponseEntity<>(new ErrorResponse("TRANSACTION ALREADY REVERSED"), HttpStatus.BAD_REQUEST);
+			}
+			List<WalletTransaction> transpo = walletTransactionRepository.findByTransaction(reverseDto.getTranId(),
+					reverseDate, reverseDto.getTranCrncy());
+			if (transpo.isEmpty()) {
+				return new ResponseEntity<>(new ErrorResponse("TRANSACTION DOES NOT EXIST"), HttpStatus.BAD_REQUEST);
+			}
+			for (WalletTransaction tran : transpo) {
+				if (tran.getPartTranType().equalsIgnoreCase("D")) {
+					debitAmount = debitAmount.add(tran.getTranAmount());
+				} else {
+					creditAmount = creditAmount.add(tran.getTranAmount());
+				}
+				account.add(tran.getAcctNum());
+			}
+			int res = debitAmount.compareTo(creditAmount);
+			if (res != 0) {
+				return new ResponseEntity<>(new ErrorResponse("IMBALANCE TRANSACTION"), HttpStatus.BAD_REQUEST);
+			}
+			String tranId = "";
+			if (reverseDto.getTranId().substring(0, 1).equalsIgnoreCase("S")) {
+				tranId = tempwallet.SystemGenerateTranId();
+			} else {
+				tranId = tempwallet.GenerateTranId();
+			}
+			for (int i = 0; i < account.size(); i++) {
+				int n = 1;
+				WalletTransaction trans1 = walletTransactionRepository.findByAcctNumTran(account.get(i),
+						reverseDto.getTranId(), reverseDate, reverseDto.getTranCrncy());
+				if (trans1.getPartTranType().equalsIgnoreCase("D")) {
+					trans1.setPartTranType("C");
+				} else {
+					trans1.setPartTranType("D");
+				}
+				trans1.setTranNarrate("REV-" + trans1.getTranNarrate());
+				TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("REVERSAL");
+				CategoryType tranCategory = CategoryType.valueOf("REVERSAL");
+				trans1.setRelatedTransId(trans1.getTranId());
+				trans1.setTranType(tranType);
+				trans1.setTranId(tranId);
+				trans1.setTranDate(LocalDate.now());
+				trans1.setTranCategory(tranCategory);
+				PostReverse(request, trans1, n);
+				n++;
+			}
+			List<WalletTransaction> statement = walletTransactionRepository.findByTransaction(tranId, LocalDate.now(),
+					reverseDto.getTranCrncy());
+
+			// send notification
+
+			return new ResponseEntity<>(new SuccessResponse("REVERSE SUCCESSFULLY", statement), HttpStatus.CREATED);
+
+
 	}
 
 	@Override
@@ -6305,7 +6410,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 				trans1.setTranType(tranType);
 				trans1.setTranId(tranId);
 				trans1.setTranDate(LocalDate.now());
-				PostReverse(trans1, n);
+				PostReverse(request,trans1, n);
 				n++;
 			}
 			List<WalletTransaction> statement = walletTransactionRepository.findByTransaction(tranId, LocalDate.now(),
@@ -6369,6 +6474,20 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 		String message = "" + "\n";
 		message = message + "" + "Message :" + "A credit transaction has occurred"
+				+ "  on your account see details below" + "\n";
+		message = message + "" + "Amount :" + amount + "\n";
+		message = message + "" + "tranId :" + tranId + "\n";
+		message = message + "" + "tranDate :" + tranDate + "\n";
+		message = message + "" + "Currency :" + tranCrncy + "\n";
+		message = message + "" + "Narration :" + narration + "\n";
+		return message;
+	}
+
+	public String formatNewMessageReversal(BigDecimal amount, String tranId, String tranDate, String tranCrncy,
+								   String narration) {
+
+		String message = "" + "\n";
+		message = message + "" + "Message :" + "A reversal transaction has occurred"
 				+ "  on your account see details below" + "\n";
 		message = message + "" + "Amount :" + amount + "\n";
 		message = message + "" + "tranId :" + tranId + "\n";
