@@ -745,6 +745,18 @@ public class WalletTransactionController {
 
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Admin Transaction Reversal for faild transactions", notes = "Transfer amount from one wallet to another wallet", tags = {
+			"TRANSACTION-WALLET" })
+	@PostMapping("/transaction/reverse-failed-transaction")
+	public ResponseEntity<?> PaymentReversalRevised(HttpServletRequest request,
+											 @RequestBody() ReverseTransactionDTO reverseDto) throws ParseException {
+		return transAccountService.TranReversePaymentRevised(request, reverseDto);
+	}
+
+
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Admin to Fetch all Reversal", notes = "Transfer amount from one wallet to another wallet", tags = {
 			"TRANSACTION-WALLET" })
 	@GetMapping("/reverse/report")
