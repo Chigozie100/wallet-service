@@ -89,6 +89,8 @@ public interface TransAccountService {
 
 	ResponseEntity<?> TranReversePayment(HttpServletRequest request, ReverseTransactionDTO reverseDto) throws ParseException;
 
+	ResponseEntity<?> TranReversePaymentRevised(HttpServletRequest request, ReverseTransactionDTO reverseDto) throws ParseException;
+
 	ApiResponse<?> VirtuPaymentReverse(HttpServletRequest request, ReversePaymentDTO reverseDto) throws ParseException;
 
 	ApiResponse<?> TranRevALLReport(Date date, Date todate);
