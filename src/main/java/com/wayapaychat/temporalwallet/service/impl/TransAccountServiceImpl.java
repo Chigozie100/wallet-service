@@ -781,6 +781,25 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
+	public ResponseEntity<?> TransferNonPaymentSingleWayaOfficial(HttpServletRequest request, NonWayaPaymentMultipleOfficialDTO transfer) {
+
+		Provider provider = switchWalletService.getActiveProvider();
+		if (provider == null) {
+			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
+		}
+		log.info("WALLET PROVIDER: " + provider.getName());
+
+		switch (provider.getName()) {
+			case ProviderType.MAINMIFO:
+				return NonPaymentFromOfficialAccount(request, transfer);
+			case ProviderType.TEMPORAL:
+				return NonPaymentFromOfficialAccount(request, transfer);
+			default:
+				return NonPaymentFromOfficialAccount(request, transfer);
+		}
+	}
+
+	@Override
 	public ResponseEntity<?> TransferNonPaymentMultipleWayaOfficial(HttpServletRequest request, List<NonWayaPaymentMultipleOfficialDTO> transfer) {
 		ResponseEntity<?> resp = null;
 		ArrayList<Object> rpp = new ArrayList<>();
@@ -848,8 +867,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		for (NonWayaPaymentMultipleOfficialDTO mTransfer : transferExcelDTO.getTransfer()) {
 			resp = NonPaymentFromOfficialAccount(request, mTransfer);
-
-			System.out.println("RESP :: " + resp.getBody());
 
 			respList.add((ResponseHelper) resp.getBody());
  		}
