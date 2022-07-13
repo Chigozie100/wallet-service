@@ -133,6 +133,9 @@ public interface TransAccountService {
 
 	ResponseEntity<?> TransferNonPaymentMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer);
 
+	ResponseEntity<?> TransferNonPaymentSingleWayaOfficial(HttpServletRequest request, NonWayaPaymentMultipleOfficialDTO transfer);
+
+
 	ResponseEntity<?> TransferNonPaymentMultipleWayaOfficial(HttpServletRequest request, List<NonWayaPaymentMultipleOfficialDTO> transfer);
 
 	ResponseEntity<?> TransferNonPaymentWayaOfficialExcel(HttpServletRequest request, MultipartFile file);
