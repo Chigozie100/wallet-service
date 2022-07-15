@@ -664,6 +664,17 @@ public class WalletTransactionController {
 	}
 
 
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Non-Waya Payment list", notes = "Non-Waya Payment list", tags = {
+			"TRANSACTION-WALLET" })
+	@GetMapping("/non-waya/payment/list-transactions")
+	public ResponseEntity<?> listOfNonWayaTransfers(HttpServletRequest request,
+													   @RequestParam(defaultValue = "0") int page,
+													   @RequestParam(defaultValue = "10") int size) {
+		return transAccountService.listOfNonWayaTransfers(request, page, size);
+	}
+
 	// Wallet call by other service
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })

@@ -1137,6 +1137,34 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 	}
 
+	public ResponseEntity<?> listOfNonWayaTransfers(HttpServletRequest request, int page, int  size) {
+
+		try{
+			String token = request.getHeader(SecurityConstants.HEADER_STRING);
+			MyData userToken = tokenService.getTokenUser(token);
+			if (userToken == null) {
+				return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
+			}
+
+
+			Pageable paging = PageRequest.of(page, size);
+			Page<WalletNonWayaPayment> walletNonWayaPaymentPage = walletNonWayaPaymentRepo.findAllDetails(paging);
+			List<WalletNonWayaPayment> walletNonWayaPaymentList = walletNonWayaPaymentPage.getContent();
+			Map<String, Object> response = new HashMap<>();
+
+			response.put("nonWayaList", walletNonWayaPaymentList);
+			response.put("currentPage", walletNonWayaPaymentPage.getNumber());
+			response.put("totalItems", walletNonWayaPaymentPage.getTotalElements());
+			response.put("totalPages", walletNonWayaPaymentPage.getTotalPages());
+
+			return new ResponseEntity<>(new SuccessResponse("Data Retrieved", response),
+					HttpStatus.CREATED);
+
+		} catch (Exception ex) {
+			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+		}
+	}
 	public ResponseEntity<?> TransferNonRedeem(HttpServletRequest request, NonWayaBenefDTO transfer) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
 
