@@ -15,7 +15,7 @@ public class EventPaymentSettlementDTO {
 
     @NotNull
     @Size(min=10, max=10)
-    private String customerAccountNumber;
+    private String merchantAccountNumber;
 
 
     @NotNull
@@ -23,7 +23,10 @@ public class EventPaymentSettlementDTO {
     private String customerCommissionNumber;
 
     @NotNull
-    private BigDecimal amount;
+    private BigDecimal merchantFee;
+
+    @NotNull
+    private BigDecimal wayaCommissionFee;
 
     @NotNull
     @Size(min=3, max=5)
