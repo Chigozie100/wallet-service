@@ -99,6 +99,15 @@ public class WalletTransactionController {
 		return transAccountService.sendMoney(request, transfer);
 	}
 
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Send Money to Wallet", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
+	@PostMapping("/sendmoney/wallet-simulated-users")
+	public ResponseEntity<?> sendMoneyForSimulatedUsers(HttpServletRequest request,
+									   @Valid @RequestBody List<TransferSimulationDTO> transfer) {
+		return transAccountService.sendMoneyToSimulatedUser(request, transfer);
+	}
+
 	@ApiOperation(value = "Notify Transaction", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/notify/transaction")
 	public ResponseEntity<?> VirtuPaymentMoney(HttpServletRequest request,
@@ -409,6 +418,16 @@ public class WalletTransactionController {
 			"TRANSACTION-WALLET" })
 	@PostMapping("/event/charge/payment")
 	public ResponseEntity<?> EventPayment(HttpServletRequest request, @RequestBody() EventPaymentDTO walletDto) {
+		return transAccountService.EventTransferPayment(request, walletDto);
+
+	}
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Event and Service Payment for Merchant Settlement", notes = "Transfer amount from one wallet to another wallet", tags = {
+			"TRANSACTION-WALLET" })
+	@PostMapping("/event/charge/payment-merchant-settlement")
+	public ResponseEntity<?> EventPaymentSettlement(HttpServletRequest request, @RequestBody() EventPaymentSettlementDTO walletDto) {
 		return transAccountService.EventTransferPayment(request, walletDto);
 
 	}

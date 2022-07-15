@@ -44,6 +44,8 @@ public interface TransAccountService {
 
 	ResponseEntity<?> sendMoney(HttpServletRequest request, TransferTransactionDTO transfer);
 
+	ResponseEntity<?> sendMoneyToSimulatedUser(HttpServletRequest request, List<TransferSimulationDTO> transfer);
+
 	ResponseEntity<?> VirtuPaymentMoney(HttpServletRequest request, DirectTransactionDTO transfer);
 
 	ResponseEntity<?> PostExternalMoney(HttpServletRequest request, CardRequestPojo transfer, Long userId);
@@ -73,6 +75,9 @@ public interface TransAccountService {
 	ApiResponse<?> getStatement(String accountNumber);
 
 	ResponseEntity<?> EventTransferPayment(HttpServletRequest request, EventPaymentDTO eventPay);
+
+	ResponseEntity<?> EventPaymentSettlement(HttpServletRequest request, EventPaymentSettlementDTO eventPay);
+	//
 	
 	ResponseEntity<?> EventOfficePayment(HttpServletRequest request, EventOfficePaymentDTO eventPay);
 
