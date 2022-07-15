@@ -428,7 +428,7 @@ public class WalletTransactionController {
 			"TRANSACTION-WALLET" })
 	@PostMapping("/event/charge/payment-merchant-settlement")
 	public ResponseEntity<?> EventPaymentSettlement(HttpServletRequest request, @RequestBody() EventPaymentSettlementDTO walletDto) {
-		return transAccountService.EventTransferPayment(request, walletDto);
+		return transAccountService.EventPaymentSettlement(request, walletDto);
 
 	}
 
