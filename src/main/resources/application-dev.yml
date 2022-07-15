@@ -54,7 +54,7 @@ eureka:
 waya:
   wallet:
     auth: AUTHENTICATION-SERVICE
-    authurl: ${CONFIG_BASEURL_AUTH:http://localhost:8091/auth-service/api/v1}
+    authurl: ${CONFIG_BASEURL_AUTH:https://services.staging.wayabank.ng/auth-service/api/v1}
     mifos: MIFOS-WALLET-SERVICE
     mifosurl: ${CONFIG_BASEURL_MWALLET:https://services.staging.wayabank.ng/wallet-service}
     productcode: ${CONFIG_PRODUCT_SAVINGS:SB601}
@@ -72,7 +72,7 @@ waya:
     accounturl: ${CONFIG_BASEURL_VIRACCOUNT:https://services.staging.wayabank.ng/account-service}
     service: ACCOUNT-SERVICE
   logging-service:
-    base-url: ${CONFIG_BASEURL_LOGAUDIT:http://localhost:8077/logs-service}
+    base-url: ${CONFIG_BASEURL_LOGAUDIT:https://services.staging.wayabank.ng/logs-service}
   #   sms:
   #     atalking: ${AFRICATALKING}
   #     infobip: ${INFOBIP}
