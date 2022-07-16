@@ -19,7 +19,7 @@ public class EventPaymentSettlementDTO {
 
     @NotNull
     @Size(min=10, max=10)
-    private String merchantCommissionNumber;
+    private String wayaCommAccountNumber;
 
     @NotNull
     private BigDecimal merchantFee;
