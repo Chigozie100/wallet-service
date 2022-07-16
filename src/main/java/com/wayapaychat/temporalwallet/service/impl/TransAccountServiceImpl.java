@@ -3468,7 +3468,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					n, tranCategory, senderName, receiverName);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
-			//tempwallet.updateTransaction(paymentRef, amount, tranId);
+			tempwallet.updateTransaction(paymentRef, amount, tranId);
 
 			double clrbalAmtDr = accountDebit.getClr_bal_amt() - amount.doubleValue();
 			double cumbalDrAmtDr = accountDebit.getCum_dr_amt() + amount.doubleValue();
