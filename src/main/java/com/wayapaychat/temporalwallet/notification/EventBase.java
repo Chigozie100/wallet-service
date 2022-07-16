@@ -11,7 +11,5 @@ import lombok.ToString;
 @Setter
 @ToString
 public class EventBase {
-    @NotNull(message = "make sure you entered the right key *initiator* , and the value must not be null")
-    @NotBlank(message = "initiator field must not be blank, and make sure you use the right key *initiator*")
-    private String initiator;
+
 }
