@@ -2124,6 +2124,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Override
 	public ResponseEntity<?> sendMoney(HttpServletRequest request, TransferTransactionDTO transfer) {
+
 		Provider provider = switchWalletService.getActiveProvider();
 		if (provider == null) {
 			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
@@ -2256,6 +2257,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public ResponseEntity<?> MoneyTransfer(HttpServletRequest request, TransferTransactionDTO transfer, boolean isSimulated) {
+		String tansactionCart = "";
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 
@@ -2322,7 +2324,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName, xUser.getMobileNo(),
 							message1, userToken.getId()));
 					CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, xUser.getMobileNo(),
-							message1, userToken.getId(),TRANSACTION_HAS_OCCURRED));
+							message1, userToken.getId(),transfer.getTransactionCategory()));
 
 					WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 					WalletUser yUser = walletUserRepository.findByAccount(yAccount);
@@ -3466,7 +3468,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					n, tranCategory, senderName, receiverName);
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
-			tempwallet.updateTransaction(paymentRef, amount, tranId);
+			//tempwallet.updateTransaction(paymentRef, amount, tranId);
 
 			double clrbalAmtDr = accountDebit.getClr_bal_amt() - amount.doubleValue();
 			double cumbalDrAmtDr = accountDebit.getCum_dr_amt() + amount.doubleValue();
