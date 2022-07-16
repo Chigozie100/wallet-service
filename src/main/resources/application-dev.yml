@@ -61,6 +61,7 @@ waya:
     commissioncode: ${CONFIG_PRODUCT_COMMISSION:SB901}
     wayaglCode: ${CONFIG_PRODUCT_SAVINGS_CODE:21200}
     wayacommglCode: ${CONFIG_PRODUCT_COMMISSION_CODE:21105}
+    wayaposCode: ${CONFIG_PRODUCT_COMMISSION_CODE:21312}
 
   card:
     cardurl: ${CONFIG_BASEURL_CARD:https://services.staging.wayabank.ng/card-service}
