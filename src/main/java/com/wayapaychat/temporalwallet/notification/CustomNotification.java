@@ -186,7 +186,7 @@ public class CustomNotification {
 		try {
 			ResponseEntity<ResponseObj<?>> responseEntity = notificationFeignClient.InAppNotify(appEvent, token);
 			ResponseObj<?> infoResponse = responseEntity.getBody();
-			log.info("user response sms sent status :: " + infoResponse.status);
+			log.info("user response in-app sent status :: " + infoResponse.status);
 		} catch (Exception e) {
 			log.error("Unable to send SMS", e.getMessage());
 			throw new CustomException(e.getMessage(), HttpStatus.EXPECTATION_FAILED);
