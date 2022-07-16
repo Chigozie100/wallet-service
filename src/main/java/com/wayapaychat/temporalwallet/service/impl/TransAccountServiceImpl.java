@@ -441,7 +441,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		//String toAccountNumber = transfer.getCustomerAccountNumber();
 
 		String merchantDefultAccount = transfer.getMerchantAccountNumber();
-		String merchantCommissionAccount = transfer.getMerchantCommissionNumber();
+		String merchantCommissionAccount = transfer.getWayaCommAccountNumber();
 
 		BigDecimal merchantFee = transfer.getMerchantFee();
 		BigDecimal wayaCommissionFee = transfer.getWayaCommissionFee();
@@ -455,8 +455,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 		try {
 			int intRec = tempwallet.PaymenttranInsert(transfer.getEventId(), "", merchantDefultAccount, merchantFee,
 					reference);
-			int intRec2 = tempwallet.PaymenttranInsert(transfer.getEventId(), "", merchantCommissionAccount, wayaCommissionFee,
-					reference);
+//			int intRec2 = tempwallet.PaymenttranInsert(transfer.getEventId(), "", merchantCommissionAccount, wayaCommissionFee,
+//					reference);
 			String tranId = "";
 			if (intRec == 1) {
 
@@ -4201,7 +4201,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if ((!keyCredit[1].equals(creditWayaCommissionAcct.getAccountNo()))
 					|| (!keyCredit[2].equals(creditWayaCommissionAcct.getProduct_code()))
 					|| (!keyCredit[3].equals(creditWayaCommissionAcct.getAcct_crncy_code()))) {
-				return "DJGO|CREDIT ACCOUNT DATA INTEGRITY ISSUE";
+				return "DJGO|CREDIT ACCOUNT DATA INTEGRITY ISSUE" +creditWayaCommissionAcct.getAccountNo();
 			}
 
 
@@ -4212,11 +4212,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 			String secureCreditM = reqIPUtils.WayaDecrypt(creditMerchantAcct.getHashed_no());
 			log.info(secureCreditM);
-			String[] keyCreditM = secureCredit.split(Pattern.quote("|"));
+			String[] keyCreditM = secureCreditM.split(Pattern.quote("|"));
 			if ((!keyCreditM[1].equals(creditMerchantAcct.getAccountNo()))
 					|| (!keyCreditM[2].equals(creditMerchantAcct.getProduct_code()))
 					|| (!keyCreditM[3].equals(creditMerchantAcct.getAcct_crncy_code()))) {
-				return "DJGO|CREDIT ACCOUNT DATA INTEGRITY ISSUE";
+				return "DJGO|CREDIT ACCOUNT DATA INTEGRITY ISSUE" + creditMerchantAcct.getAccountNo();
 			}
 			// Check for Amount Limit
 			if (!accountDebit.getAcct_ownership().equals("O")) {
@@ -4323,12 +4323,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 					n, tranCategory,senderName,receiverName);
 
 			n = n + 1;
-			WalletTransaction tranCreditMerhAcct = new WalletTransaction(tranId, creditMerchantAcct.getAccountNo(), amount, tranType,
+			WalletTransaction tranCreditMerhAcct = new WalletTransaction(tranId, creditMerchantAcct.getAccountNo(), merchantAmount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "C", creditMerchantAcct.getGl_code(), paymentRef, userId, email,
 					n, tranCategory,senderName,receiverName);
 			log.info("TRANSACTION CREATION DEBIT: {} WITH CREDIT: {}", tranDebit.toString(), tranCreditMerhAcct.toString());
 
-			WalletTransaction tranCreditWayaComm = new WalletTransaction(tranId, creditWayaCommissionAcct.getAccountNo(), amount, tranType,
+			WalletTransaction tranCreditWayaComm = new WalletTransaction(tranId, creditWayaCommissionAcct.getAccountNo(), wayaCommAmount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "C", creditWayaCommissionAcct.getGl_code(), paymentRef, userId, email,
 					n, tranCategory,senderName,receiverNameCommission);
 			log.info("TRANSACTION CREATION DEBIT: {} WITH CREDIT: {}", tranDebit.toString(), tranCreditMerhAcct.toString());
@@ -4361,7 +4361,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			creditMerchantAcct.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(creditMerchantAcct);
 
-			String message2 = formatNewMessage(amount, tranId, tranDate, tranCrncy, tranNarrate);
+			String message2 = formatNewMessage(merchantAmount, tranId, tranDate, tranCrncy, tranNarrate);
 			WalletAccount finalAccountCredit = creditMerchantAcct;
 			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, finalAccountCredit.getUser().getFirstName(),
 					finalAccountCredit.getUser().getMobileNo(), message2, finalAccountCredit.getUser().getUserId(),WAYA_POS_SETTLEMENT));
@@ -4375,7 +4375,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			creditWayaCommissionAcct.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(creditWayaCommissionAcct);
 
-			String messageComm = formatNewMessage(amount, tranId, tranDate, tranCrncy, tranNarrate);
+			String messageComm = formatNewMessage(wayaCommAmount, tranId, tranDate, tranCrncy, tranNarrate);
 			WalletAccount finalAccountCreditComm = creditWayaCommissionAcct;
 			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, finalAccountCreditComm.getUser().getFirstName(),
 					finalAccountCredit.getUser().getMobileNo(), messageComm, finalAccountCreditComm.getUser().getUserId(),WAYA_POS_SETTLEMENT));
@@ -4383,14 +4383,20 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			log.info("END TRANSACTION");
 
+			String debitAcct = accountDebit.getAccountNo();
+			String debitName2 = accountDebit.getAcct_name();
+			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, debitAcct, paymentRef,
+					new Date(), tranType.getValue(), userId, debitName2, tranCategory.getValue(), token,senderName));
+
+
 			String receiverAcct = creditMerchantAcct.getAccountNo();
 			String receiverName2 = creditMerchantAcct.getAcct_name();
-			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
+			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(merchantAmount, receiverAcct, paymentRef+1,
 					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
 
 			String receiverAcctComm = creditWayaCommissionAcct.getAccountNo();
 			String receiverNameComm = creditWayaCommissionAcct.getAcct_name();
-			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcctComm, paymentRef,
+			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(wayaCommAmount, receiverAcctComm, paymentRef+2,
 					new Date(), tranType.getValue(), userId, receiverNameComm, tranCategory.getValue(), token,senderName));
 
 
