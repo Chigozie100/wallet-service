@@ -80,7 +80,7 @@ waya:
   #     twilio: ${TWILIO}
   notification:
     service: NOTIFICATION-SERVICE
-    notificationurl: ${CONFIG_BASEURL_NOTIFICATION:https://services.staging.wayabank.ng/notification-service}
+    notificationurl: ${CONFIG_BASEURL_NOTIFICATION:http://localhost:8099/notification-service}
   receipt:
     service: RECEIPT-SERVICE
     receipturl: ${CONFIG_BASEURL_RECEIPT:https://services.staging.wayabank.ng/transaction-receipt}

@@ -155,14 +155,14 @@ public class CustomNotification {
 		}
 	}
 
-	public void pushInApp(String token, String name, String phone, String message, Long userId, String category) {
+	public void pushInApp(String token, String name, String recipient, String message, Long userId, String category) {
 
 		InAppEvent appEvent = new InAppEvent();
 		InAppPayload data = new InAppPayload();
 		data.setMessage(message);
 
 		InAppRecipient appRecipient = new InAppRecipient();
-		appRecipient.setUserId(userId.toString());
+		appRecipient.setUserId(recipient);
 		List<InAppRecipient> addUserId = new ArrayList<>();
 		addUserId.add(appRecipient);
 
