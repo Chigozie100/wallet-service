@@ -160,7 +160,6 @@ public class CustomNotification {
 		InAppEvent appEvent = new InAppEvent();
 		InAppPayload data = new InAppPayload();
 		data.setMessage(message);
-		data.setRecipientMessage(recipientMessage);
 
 		InAppRecipient appRecipient = new InAppRecipient();
 		if(recipient !=null) {
