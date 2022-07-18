@@ -22,6 +22,8 @@ public class InAppPayload {
     @NotBlank(message = "message cannot be blank, and make sure you use the right key *message*")
     private String message;
 
+    private String recipientMessage;
+
     private String type;
 
     @Valid
