@@ -179,5 +179,8 @@ public interface TransAccountService {
 	ResponseEntity<?>  getPendingNoneWayaPaymentRequestAmount(String userId);
 	ResponseEntity<?>  getExpierdNoneWayaPaymentRequestAmount(String userId);
 
+	ResponseEntity<?>  debitTransactionAmount();
+	ResponseEntity<?>  creditTransactionAmount();
+	ResponseEntity<?>  debitAndCreditTransactionAmount();
 
 }

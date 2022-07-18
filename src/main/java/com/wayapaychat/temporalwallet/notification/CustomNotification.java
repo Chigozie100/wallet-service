@@ -155,6 +155,44 @@ public class CustomNotification {
 		}
 	}
 
+	public void pushInApp(String token, String name, String recipient, String recipientMessage, String message, Long userId, String category) {
+
+		InAppEvent appEvent = new InAppEvent();
+		InAppPayload data = new InAppPayload();
+		data.setMessage(message);
+		data.setRecipientMessage(recipientMessage);
+
+		InAppRecipient appRecipient = new InAppRecipient();
+		if(recipient !=null) {
+			appRecipient.setUserId(recipient);
+		}else {
+			appRecipient.setUserId("0");
+		}
+		List<InAppRecipient> addUserId = new ArrayList<>();
+		addUserId.add(appRecipient);
+
+		data.setUsers(addUserId);
+		appEvent.setData(data);
+		appEvent.setCategory(category);
+
+		appEvent.setEventType("IN_APP");
+		if(userId !=null){
+			appEvent.setInitiator(userId.toString());
+		}else{
+			appEvent.setInitiator("0");
+		}
+
+		log.info(appEvent.toString());
+
+		try {
+			appNotification(appEvent, token);
+
+		} catch (Exception ex) {
+			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+		}
+	}
+
+
 	public void pushInApp(String token, String name, String recipient, String message, Long userId, String category) {
 
 		InAppEvent appEvent = new InAppEvent();
