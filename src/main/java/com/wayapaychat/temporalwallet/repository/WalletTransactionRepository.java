@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -52,4 +53,14 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 	
 	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.acctNum) LIKE UPPER('NGN%') " + " AND u.del_flg = false")
 	Page<WalletTransaction> findByAccountOfficial(Pageable pageable);
+
+
+	@Query("SELECT sum(u.tranAmount) FROM WalletTransaction u " + "WHERE u.partTranType = 'D'" + " AND u.del_flg = false")
+	BigDecimal findByAllDTransaction();
+
+	@Query("SELECT sum(u.tranAmount) FROM WalletTransaction u " + "WHERE u.partTranType = 'C'" + " AND u.del_flg = false")
+	BigDecimal findByAllCTransaction();
+
+	@Query("SELECT sum(u.tranAmount) FROM WalletTransaction u " + "WHERE u.partTranType = 'C'" + "AND u.partTranType = 'D'" + " AND u.del_flg = false")
+	BigDecimal findByAllCandDTransaction();
 }

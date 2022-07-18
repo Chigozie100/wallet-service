@@ -1892,21 +1892,26 @@ public class TransAccountServiceImpl implements TransAccountService {
 				log.info("WalletAccount :: {} " + xAccount);
 
 				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
-				log.info("WalletUser :: {} " + xUser);  //+ " " + xUser.getLastName()
+				log.info("WalletUser :: {} " + xUser);
 				String fullName = xUser.getFirstName() + " " + xUser.getLastName();
 
 				String email = xUser.getEmailAddress();
 				String phone = xUser.getMobileNo();
 
+				String description = "Withdrawal " + " - to " + fullName;
+				String sender = userToken.getSurname()+ " " + userToken.getFirstName();
+
 				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
-						transfer.getTranNarration());
+						transfer.getTranNarration(),transfer.getSenderName(), transfer.getReceiverName(), xAccount.getClr_bal_amt(), description, transfer.getBankName());
 				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
 						email, message, userToken.getId(), transfer.getAmount().toString(), tranId,
 						tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, phone,
 						message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, phone,
-						message, userToken.getId(),TRANSACTION_HAS_OCCURRED));
+						message, userToken.getId(),CategoryType.WITHDRAW.name()));
+
+				// notifiy debit account
 			} else {
 				if (intRec == 2) {
 					return new ResponseEntity<>(new ErrorResponse("UNABLE TO PROCESS DUPLICATE TRANSACTION REFERENCE"),
@@ -2257,7 +2262,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public ResponseEntity<?> MoneyTransfer(HttpServletRequest request, TransferTransactionDTO transfer, boolean isSimulated) {
-		String tansactionCart = "";
+
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 
@@ -2323,28 +2328,35 @@ public class TransAccountServiceImpl implements TransAccountService {
 					String yfullName = yUser.getFirstName() + " " + yUser.getLastName();
 					Long userId = yUser.getUserId();
 
+
+
+					String description = "From" + xfullName + " - to" + yfullName;
+
 					String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
-							transfer.getTranNarration());
+							transfer.getTranNarration(), xUserId.toString(), xAccount.getClr_bal_amt(), description);
+
+
 					CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, xfullName,
 							xUser.getEmailAddress(), message1, xUserId, transfer.getAmount().toString(), tranId,
 							tranDate, transfer.getTranNarration()));
 					CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName, xUser.getMobileNo(),
 							message1, xUserId));
-					CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, userId.toString(),
-							message1, xUserId, transfer.getTransactionCategory()));
+					CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,  userId.toString(),
+							"",message1, xUserId, transfer.getTransactionCategory()));
 
 
+					String message2 = formatSMSRecipient(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+							transfer.getTranNarration(), xUserId.toString(), yAccount.getClr_bal_amt(), description);
 
-					String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
-							transfer.getTranNarration());
 					CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, yfullName,
 							yUser.getEmailAddress(), message2, userId, transfer.getAmount().toString(), tranId,
 							tranDate, transfer.getTranNarration()));
 					CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName, yUser.getMobileNo(),
 							message2, userId));
 					CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, userId.toString(),
-							message2, xUserId,transfer.getTransactionCategory()));
+							"", message2, null, transfer.getTransactionCategory()));
 				}
+
 
 			} else {
 				if (intRec == 2) {
@@ -2361,6 +2373,36 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		return resp;
 	}
+
+//
+//	private void processNotification(WalletAccount xAccount, WalletAccount yAccount, WalletUser xUser, WalletUser yUser, String token, String xfullName, String yfullName, String tranId,
+//	BigDecimal amount, String tranDate, String tranCrncy, String tranNarration, String transactionCategory){
+//		String description = "From" + xfullName + " - to" + yfullName;
+//
+//		String message1 = formatDebitMessage(amount, tranId, tranDate, tranCrncy,
+//				tranNarration, xUserId.toString(), xAccount.getClr_bal_amt(), description);
+//
+//
+//		CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, xfullName,
+//				xUser.getEmailAddress(), message1, xUserId, transfer.getAmount().toString(), tranId,
+//				tranDate, transfer.getTranNarration()));
+//		CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName, xUser.getMobileNo(),
+//				message1, xUserId));
+//		CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,  userId.toString(),
+//				"",message1, xUserId, transactionCategory));
+//
+//
+//		String message2 = formatSMSRecipient(amount, tranId, tranDate, tranCrncy,
+//				tranNarration, xUserId.toString(), yAccount.getClr_bal_amt(), description);
+//
+//		CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, yfullName,
+//				yUser.getEmailAddress(), message2, userId, transfer.getAmount().toString(), tranId,
+//				tranDate, transfer.getTranNarration()));
+//		CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName, yUser.getMobileNo(),
+//				message2, userId));
+//		CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, userId.toString(),
+//				"", message2, null, transfer.getTransactionCategory()));
+//	}
 
 	@Override
 	public ResponseEntity<?> VirtuPaymentMoney(HttpServletRequest request, DirectTransactionDTO transfer) {
@@ -7037,6 +7079,42 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		return message;
 	}
 
+	public String formatNewMessage(BigDecimal amount, String tranId, String tranDate, String tranCrncy,
+								   String narration, String sender, String reciever, double availableBalance, String description, String bank) {
+
+		String message = "" + "\n";
+		message = message + "" + "Message :" + "A bank withdrawl has occurred"
+				+ " see details below" + "\n";
+		message = message + "" + "Amount :" + amount + "\n";
+		message = message + "" + "tranId :" + tranId + "\n";
+		message = message + "" + "tranDate :" + tranDate + "\n";
+		message = message + "" + "Currency :" + tranCrncy + "\n";
+		message = message + "" + "Narration :" + narration + "\n";
+		message = message + "" + "Desc :" + description + "\n";
+		message = message + "" + "Avail Bal :" + availableBalance + "\n";
+		message = message + "" + "Sender :" + sender + "\n";
+		message = message + "" + "Reciever :" + reciever + "\n";
+		message = message + "" + "Bank :" + bank + "\n";
+		return message;
+	}
+
+	public String formatSMSRecipient(BigDecimal amount, String tranId, String tranDate, String tranCrncy,
+								   String narration, String sender, double availableBalance, String description) {
+
+		String message = "" + "\n";
+		message = message + "" + "Message :" + "A credit transaction has occurred"
+				+ "  on your account see details below" + "\n";
+		message = message + "" + "Amount :" + amount + "\n";
+		message = message + "" + "tranId :" + tranId + "\n";
+		message = message + "" + "tranDate :" + tranDate + "\n";
+		message = message + "" + "Currency :" + tranCrncy + "\n";
+		message = message + "" + "Narration :" + narration + "\n";
+		message = message + "" + "Desc :" + description + "\n";
+		message = message + "" + "Avail Bal :" + availableBalance + "\n";
+		message = message + "" + "Sender :" + sender + "\n";
+		return message;
+	}
+
 	public String formatNewMessageReversal(BigDecimal amount, String tranId, String tranDate, String tranCrncy,
 								   String narration) {
 
@@ -7062,6 +7140,23 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		message = message + "" + "tranDate :" + tranDate + "\n";
 		message = message + "" + "Currency :" + tranCrncy + "\n";
 		message = message + "" + "Narration :" + narration + "\n";
+		return message;
+	}
+
+	public String formatDebitMessage(BigDecimal amount, String tranId, String tranDate, String tranCrncy,
+									 String narration, String sender, double availableBalance, String description) {
+
+		String message = "" + "\n";
+		message = message + "" + "Message :" + "A debit transaction has occurred"
+				+ "  on your account see details below" + "\n";
+		message = message + "" + "Amount :" + amount + "\n";
+		message = message + "" + "tranId :" + tranId + "\n";
+		message = message + "" + "tranDate :" + tranDate + "\n";
+		message = message + "" + "Currency :" + tranCrncy + "\n";
+		message = message + "" + "Narration :" + narration + "\n";
+		message = message + "" + "Desc :" + description + "\n";
+		message = message + "" + "Avail Bal :" + availableBalance + "\n";
+		message = message + "" + "Sender :" + sender + "\n";
 		return message;
 	}
 
@@ -7336,6 +7431,25 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
 	}
 
+	public ResponseEntity<?>  debitTransactionAmount(){
+		//WalletTransactionRepository
+		BigDecimal count = walletTransactionRepository.findByAllDTransaction();
+		Map<String, BigDecimal> amount = new HashMap<>();
+		amount.put("amount", count);
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", amount), HttpStatus.OK);
+	}
+
+	public ResponseEntity<?>  creditTransactionAmount(){
+		BigDecimal amount = walletTransactionRepository.findByAllCTransaction();
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", amount), HttpStatus.OK);
+	}
+
+	public ResponseEntity<?>  debitAndCreditTransactionAmount(){
+		BigDecimal count = walletTransactionRepository.findByAllDTransaction();
+		BigDecimal amount = walletTransactionRepository.findByAllCTransaction();
+		BigDecimal total = BigDecimal.valueOf(count.doubleValue() + amount.doubleValue());
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", total), HttpStatus.OK);
+	}
 
 
 }

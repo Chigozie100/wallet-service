@@ -1063,4 +1063,33 @@ public class WalletTransactionController {
 
 	}
 
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Total Credit Transactions Amount", notes = "Total Credit Transactions", tags = { "TRANSACTION-WALLET" })
+	@GetMapping("/transaction/total-credit")
+	public ResponseEntity<?> totalCreditTransaction() {
+		return transAccountService.creditTransactionAmount();
+	}
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Total Debit Transactions Amount", notes = "Total Debit Transactions", tags = { "TRANSACTION-WALLET" })
+	@GetMapping("/transaction/total-debit")
+	public ResponseEntity<?> totalDebitTransaction() {
+		return transAccountService.debitTransactionAmount();
+	}
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Total Credit And Debit Transactions Amount", notes = "Total Credit And Debit Transactions", tags = { "TRANSACTION-WALLET" })
+	@GetMapping("/transaction/total-credit-debit")
+	public ResponseEntity<?> totalCreditAndDebitTransaction() {
+		return transAccountService.debitAndCreditTransactionAmount();
+	}
+
+
+
+
+
 }
