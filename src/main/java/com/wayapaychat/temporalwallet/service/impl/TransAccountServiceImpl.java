@@ -2341,7 +2341,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 							tranDate, transfer.getTranNarration()));
 					CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName, xUser.getMobileNo(),
 							message1, xUserId));
-					CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,  userId.toString(),
+					CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName,  null,
 							"",message1, xUserId, transfer.getTransactionCategory()));
 
 
