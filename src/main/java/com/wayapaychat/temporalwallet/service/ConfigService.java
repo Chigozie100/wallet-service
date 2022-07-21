@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.service;
 
+import com.wayapaychat.temporalwallet.pojo.RecurrentConfigPojo;
 import org.springframework.http.ResponseEntity;
 
 import com.wayapaychat.temporalwallet.dto.AccountGLDTO;
@@ -37,5 +38,11 @@ public interface ConfigService {
 	ResponseEntity<?> ListTranCharge();
 	ResponseEntity<?> findTranCharge(Long id);
 	ResponseEntity<?> updateTranCharge(ModifyChargeDTO event, Long chargeId);
+
+	ResponseEntity<?> createRecurrentPayment(RecurrentConfigPojo request);
+	ResponseEntity<?> updateRecurrentPayment(RecurrentConfigPojo request, Long id);
+	ResponseEntity<?> toggleRecurrentPayment(Long id);
+	ResponseEntity<?> getAllRecurrentPayment();
+	ResponseEntity<?> getRecurrentPayment(Long id);
 
 }

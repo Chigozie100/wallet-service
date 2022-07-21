@@ -2,6 +2,9 @@ package com.wayapaychat.temporalwallet.controller;
 
 import javax.validation.Valid;
 
+import com.wayapaychat.temporalwallet.pojo.RecurrentConfigPojo;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -165,6 +168,52 @@ public class WalletBankController {
     		@PathVariable("chargeId") Long chargeId) {
         return configService.updateTranCharge(charge,chargeId);
     }
+
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Create RecurrentConfig ", tags = { "BANK-WALLET" })
+    @PostMapping(path = "/recurrent-config")
+    public ResponseEntity<?> createRecurrentConfig(@Valid @RequestBody RecurrentConfigPojo request) {
+        return configService.createRecurrentPayment(request);
+    }
+
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Update RecurrentConfig", tags = { "BANK-WALLET" })
+    @PutMapping(path = "/recurrent-config/{id}")
+    public ResponseEntity<?> updateRecurrentPayment(@Valid @RequestBody RecurrentConfigPojo request,
+                                              @PathVariable("id") Long id) {
+        return configService.updateRecurrentPayment(request,id);
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "toggle RecurrentConfig", tags = { "BANK-WALLET" })
+    @PutMapping(path = "/recurrent-config/{id}/toggle")
+    public ResponseEntity<?> toggleRecurrentPayment(@PathVariable("id") Long id) {
+        return configService.toggleRecurrentPayment(id);
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Get Single RecurrentConfig", tags = { "BANK-WALLET" })
+    @GetMapping(path = "/recurrent-config/{id}")
+    public ResponseEntity<?> getRecurrentPayment(@PathVariable("id") Long id) {
+        return configService.getRecurrentPayment(id);
+    }
+
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Get All RecurrentConfig", tags = { "BANK-WALLET" })
+    @GetMapping(path = "/recurrent-config")
+    public ResponseEntity<?> getAllRecurrentPayment() {
+        return configService.getAllRecurrentPayment();
+    }
+
+    ///
     
 
 }

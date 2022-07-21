@@ -2655,7 +2655,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName, xUser.getMobileNo(),
 						message1, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, xUser.getMobileNo(),
-						message1, userToken.getId(),TRANSACTION_HAS_OCCURRED));
+						message1, userToken.getId(),tranCategory.name()));
 
 				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
@@ -2669,7 +2669,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName, yUser.getMobileNo(),
 						message2, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, yUser.getMobileNo(),
-						message2, userToken.getId(),TRANSACTION_HAS_OCCURRED));
+						message2, userToken.getId(),tranCategory.name()));
 			} else {
 				if (intRec == 2) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
@@ -2682,6 +2682,19 @@ public class TransAccountServiceImpl implements TransAccountService {
 			e.printStackTrace();
 		}
 		return resp;
+	}
+
+	@Override
+	public ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, List<OfficeUserTransferDTO> transfer) {
+		ApiResponse<?> response = null;
+		ArrayList<Object> resObjects = new ArrayList<>();
+		for(OfficeUserTransferDTO data: transfer){
+			response = OfficialUserTransfer(request, data);
+
+			resObjects.add(response.getData());
+		}
+
+		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", resObjects);
 	}
 
 	public ApiResponse<?> AdminsendMoney(HttpServletRequest request, AdminLocalTransferDTO transfer) {
