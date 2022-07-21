@@ -54,6 +54,8 @@ public interface TransAccountService {
 
 	ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer);
 
+	ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, List<OfficeUserTransferDTO> transfer);
+
 	ApiResponse<?> createBulkTransaction(HttpServletRequest request, BulkTransactionCreationDTO bulk);
 
 	ApiResponse<?> createBulkExcelTrans(HttpServletRequest request, MultipartFile file);

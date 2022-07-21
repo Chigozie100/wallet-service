@@ -2,6 +2,9 @@ package com.wayapaychat.temporalwallet.controller;
 
 import javax.validation.Valid;
 
+import com.wayapaychat.temporalwallet.pojo.RecurrentConfigPojo;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -165,6 +168,8 @@ public class WalletBankController {
     		@PathVariable("chargeId") Long chargeId) {
         return configService.updateTranCharge(charge,chargeId);
     }
-    
+
+
+
 
 }

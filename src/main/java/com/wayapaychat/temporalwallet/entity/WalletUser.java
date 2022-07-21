@@ -75,7 +75,7 @@ public class WalletUser {
 
 	@Column(nullable = false)
 	private LocalDate rcre_time;
-	
+
 	@JsonIgnore
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	@JoinColumn(name="cif_id")
