@@ -533,7 +533,18 @@ public class TransAccountServiceImpl implements TransAccountService {
 				return OfficePaymentTemporalWalletToOfficialWallet(request, transfer);
 		}
 	}
-	
+
+	@Override
+	public ResponseEntity<?> TemporalWalletToOfficialWalletMutiple(HttpServletRequest request, List<TemporalToOfficialWalletDTO> transfer) {
+		ArrayList<Object> list = new ArrayList<>();
+		ResponseEntity<?> resp = null;
+		for(TemporalToOfficialWalletDTO data: transfer){
+			resp = TemporalWalletToOfficialWallet(request, data);
+			list.add(resp);
+		}
+		return new ResponseEntity<>(list , HttpStatus.BAD_REQUEST);
+	}
+
 	public ResponseEntity<?> OfficePayment(HttpServletRequest request, EventOfficePaymentDTO transfer) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
 
@@ -7243,6 +7254,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		return account;
 	}
 
+
 	public WalletPaymentRequest getWalletPaymentRequest(PaymentRequest request) {
 		WalletPaymentRequest wayauser = new WalletPaymentRequest();
 		wayauser.setReceiverEmail(request.getReceiverEmail());
@@ -7294,7 +7306,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 					txt.setBenefAccountNumber(chargesAccount);
 					txt.setAmount(BigDecimal.valueOf(10.00));
 
-					CompletableFuture.runAsync(() -> debitTransactionFee(request, txt));
+					//CompletableFuture.runAsync(() -> debitTransactionFee(request, txt));
 				}
 				log.info("Send Money: {}", transfer);
 				mPayRequest.setStatus(PaymentRequestStatus.PAID);
