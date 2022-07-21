@@ -85,7 +85,7 @@ public interface TransAccountService {
 
 	ResponseEntity<?> TemporalWalletToOfficialWallet(HttpServletRequest request, TemporalToOfficialWalletDTO transfer);
 
-	//ResponseEntity<?> TemporalWalletToOfficialWalletMutiple(HttpServletRequest request, TemporalToOfficialWalletDTO transfer);
+	ResponseEntity<?> TemporalWalletToOfficialWalletMutiple(HttpServletRequest request, List<TemporalToOfficialWalletDTO> transfer);
 
 
 	ApiResponse<?> EventBuySellPayment(HttpServletRequest request, WayaTradeDTO eventPay);

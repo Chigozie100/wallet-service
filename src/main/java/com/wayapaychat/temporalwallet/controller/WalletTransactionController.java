@@ -451,9 +451,14 @@ public class WalletTransactionController {
 		return transAccountService.TemporalWalletToOfficialWallet(request, walletDto);
 
 	}
-
-
-	//
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Office Event: Temporal - Official Transfer Multiple", notes = "Transfer amount from Temporal wallet to Official wallet mutiliple transaction", tags = {
+			"TRANSACTION-WALLET" })
+	@PostMapping("/event/office/temporal-to-official-multiple")
+	public ResponseEntity<?> TemporalToOfficialWalletDTO(HttpServletRequest request, @RequestBody() List<TemporalToOfficialWalletDTO> walletDto) {
+		return transAccountService.TemporalWalletToOfficialWalletMutiple(request, walletDto);
+	}
 
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
