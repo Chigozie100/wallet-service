@@ -3,6 +3,7 @@ package com.wayapaychat.temporalwallet.controller;
 import javax.validation.Valid;
 
 
+import com.wayapaychat.temporalwallet.dto.*;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,15 +17,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.wayapaychat.temporalwallet.dto.AccountGLDTO;
-import com.wayapaychat.temporalwallet.dto.ChargeDTO;
-import com.wayapaychat.temporalwallet.dto.EventChargeDTO;
-import com.wayapaychat.temporalwallet.dto.InterestDTO;
-import com.wayapaychat.temporalwallet.dto.ModifyChargeDTO;
-import com.wayapaychat.temporalwallet.dto.ProductCodeDTO;
-import com.wayapaychat.temporalwallet.dto.ProductDTO;
-import com.wayapaychat.temporalwallet.dto.WalletConfigDTO;
-import com.wayapaychat.temporalwallet.dto.WalletTellerDTO;
 import com.wayapaychat.temporalwallet.service.ConfigService;
 
 import io.swagger.annotations.ApiOperation;
@@ -147,6 +139,14 @@ public class WalletBankController {
     @PostMapping(path = "/create/event")
     public ResponseEntity<?> createEventCharge(@Valid @RequestBody EventChargeDTO eventPojo) {
         return configService.createdEvents(eventPojo);
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Update a Wallet Event", tags = { "BANK-WALLET" })
+    @PutMapping(path = "/update/event/{eventId}")
+    public ResponseEntity<?> updateEventCharge(@Valid @RequestBody UpdateEventChargeDTO eventPojo, @PathVariable("eventId") Long eventId) {
+        return configService.updateEvents(eventPojo,eventId);
     }
 
     @ApiImplicitParams({
