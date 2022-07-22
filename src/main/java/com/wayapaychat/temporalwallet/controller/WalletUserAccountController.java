@@ -128,7 +128,8 @@ public class WalletUserAccountController {
 		 return userAccountService.createCashAccount(user);
 	        //return userAccountService.createCashAccount(user);
 	 }
-	 
+
+	 @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	 @ApiOperation(value = "Create Event Wallet Account - (Admin COnsumption Only)", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
 	 @PostMapping(path = "/event/account")
 	 public ResponseEntity<?> createEventAccounts(@Valid @RequestBody WalletEventAccountDTO user) {
