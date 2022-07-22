@@ -7534,11 +7534,12 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 				ResponseEntity<?> res = sendMoney(request, txt);
 				if (res.getStatusCodeValue() != 200 && res.getStatusCodeValue() != 201) {
 					return res;
-				}else{
-					txt.setBenefAccountNumber(chargesAccount);
-					txt.setAmount(BigDecimal.valueOf(10.00));
-					CompletableFuture.runAsync(() -> debitTransactionFee(request, txt));
 				}
+//				else{
+//					txt.setBenefAccountNumber(chargesAccount);
+//					txt.setAmount(BigDecimal.valueOf(10.00));
+//					CompletableFuture.runAsync(() -> debitTransactionFee(request, txt));
+//				}
 				log.info("Send Money: {}", transfer);
 				mPayRequest.setReceiverId(mPay.getReceiverId());
 				mPayRequest.setStatus(PaymentRequestStatus.PAID);
