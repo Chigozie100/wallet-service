@@ -1,17 +1,8 @@
 package com.wayapaychat.temporalwallet.service;
 
+import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.pojo.RecurrentConfigPojo;
 import org.springframework.http.ResponseEntity;
-
-import com.wayapaychat.temporalwallet.dto.AccountGLDTO;
-import com.wayapaychat.temporalwallet.dto.ChargeDTO;
-import com.wayapaychat.temporalwallet.dto.EventChargeDTO;
-import com.wayapaychat.temporalwallet.dto.InterestDTO;
-import com.wayapaychat.temporalwallet.dto.ModifyChargeDTO;
-import com.wayapaychat.temporalwallet.dto.ProductCodeDTO;
-import com.wayapaychat.temporalwallet.dto.ProductDTO;
-import com.wayapaychat.temporalwallet.dto.WalletConfigDTO;
-import com.wayapaychat.temporalwallet.dto.WalletTellerDTO;
 
 public interface ConfigService {
 	
@@ -33,6 +24,7 @@ public interface ConfigService {
 	ResponseEntity<?> createdTeller(WalletTellerDTO teller);
 	ResponseEntity<?> ListTellersTill();
 	ResponseEntity<?> createdEvents(EventChargeDTO event);
+	ResponseEntity<?> updateEvents(UpdateEventChargeDTO event, Long eventId);
 	ResponseEntity<?> ListEvents();
 	ResponseEntity<?> createCharge(ChargeDTO event);
 	ResponseEntity<?> ListTranCharge();
