@@ -26,6 +26,7 @@ public class MyData {
     private List<String> permits;
     private String transactionLimit;
     private String userLocation;
+    private String token;
     public MyData(String email) {
     	this.email = email;
     }

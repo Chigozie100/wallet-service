@@ -479,6 +479,7 @@ public class WalletTransactionController {
 			"TRANSACTION-WALLET" })
 	@PostMapping("/non-waya/transaction/payment")
 	public ResponseEntity<?> NonWayaPaymentX(HttpServletRequest request, @RequestBody() NonWayaPaymentDTO walletDto) {
+		System.out.println("HERE  IS THE ENTRY POINT");
 		ApiResponse<?> res = transAccountService.EventNonPayment(request, walletDto);
 		if (!res.getStatus()) {
 			return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);

@@ -725,6 +725,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 	public ApiResponse<?> EventNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
 
+		System.out.println("HERE  IS THE ENTRY POINT");
+
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 		if (userToken == null) {
@@ -758,17 +760,22 @@ public class TransAccountServiceImpl implements TransAccountService {
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
 				log.info("Transaction Response: {}", resp.toString());
 
-				Date tDate = Calendar.getInstance().getTime();
+				Date tDate = new Date();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 				String tranDate = dateFormat.format(tDate);
 
-				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
-						transfer.getTranNarration());
+				String message = formatMoneWayaMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration(), token);
+
 				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, transfer.getFullName(),
 						transfer.getEmailOrPhoneNo(), message, userToken.getId(), transfer.getAmount().toString(),
 						tranId, tranDate, transfer.getTranNarration()));
-				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
-						transfer.getEmailOrPhoneNo(), message, userToken.getId()));
+
+				if(transfer.getEmailOrPhoneNo().startsWith("234")){
+					CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
+							transfer.getEmailOrPhoneNo(), message, userToken.getId()));
+				}
+
 
 			} else {
 				if (intRec == 2) {
@@ -1164,7 +1171,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 						userToken.getEmail(), PaymentStatus.PENDING, transfer.getFullName());
 				walletNonWayaPaymentRepo.save(nonpay);
 
-				Date tDate = Calendar.getInstance().getTime();
+				Date tDate = new Date();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 				String tranDate = dateFormat.format(tDate);
 
@@ -1331,7 +1338,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 							HttpStatus.BAD_REQUEST);
 				}
 
-				Date tDate = Calendar.getInstance().getTime();
+				Date tDate = new Date();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 				String tranDate = dateFormat.format(tDate);
 
@@ -1414,7 +1421,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 							HttpStatus.BAD_REQUEST);
 				}
 
-				Date tDate = Calendar.getInstance().getTime();
+				Date tDate = new Date();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 				String tranDate = dateFormat.format(tDate);
 
@@ -1613,7 +1620,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
 				log.info("Transaction Response: {}", resp.toString());
 
-				Date tDate = Calendar.getInstance().getTime();
+				Date tDate = new Date();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 				String tranDate = dateFormat.format(tDate);
 
@@ -1703,7 +1710,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", transaction), HttpStatus.CREATED);
 				log.info("Transaction Response: {}", resp.toString());
 
-				Date tDate = Calendar.getInstance().getTime();
+				Date tDate = new Date();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 				String tranDate = dateFormat.format(tDate);
 
@@ -1805,9 +1812,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				log.info("WalletAccount :: {} " + xAccount);
 
-//				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
-//				log.info("WalletUser :: {} " + xUser);  //+ " " + xUser.getLastName()
-
 
 				String email = userToken.getEmail();
 				String phone = userToken.getPhoneNumber();
@@ -1886,7 +1890,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return new ResponseEntity<>(new ErrorResponse(tranKey[1]), HttpStatus.BAD_REQUEST);
 				}
 
-				System.out.println("After BankTransactionPay :: " + tranId );
+
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
@@ -2067,7 +2071,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			int intRec = tempwallet.PaymenttranInsert("WAYATRAN", fromAccountNumber, toAccountNumber, transfer.getAmount(),
 					transfer.getPaymentReference());
 			if (intRec == 1) {
-				String tranId = createTransaction("WAYATRAN",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+				String tranId = createTransaction(token, "WAYATRAN",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
 						request, tranCategory);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
@@ -2086,7 +2090,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", 
 						transaction), HttpStatus.CREATED);
 
-				Date tDate = Calendar.getInstance().getTime();
+				Date tDate = new Date();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 				String tranDate = dateFormat.format(tDate);
 
@@ -2209,7 +2213,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			int intRec = tempwallet.PaymenttranInsert("WAYASIMU", fromAccountNumber, toAccountNumber, transfer.getAmount(),
 					reference);
 			if (intRec == 1) {
-				String tranId = createTransaction("WAYASIMU", fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+				String tranId = createTransaction(token, "WAYASIMU", fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
@@ -2310,7 +2314,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			int intRec = tempwallet.PaymenttranInsert("WAYATRAN", fromAccountNumber, toAccountNumber, transfer.getAmount(),
 					reference);
 			if (intRec == 1) {
-				String tranId = createTransaction("WAYATRAN",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+				String tranId = createTransaction(token, "WAYATRAN",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
@@ -2582,7 +2586,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			int intRec = tempwallet.PaymenttranInsert("WAYAOFFTOOFF", fromAccountNumber, toAccountNumber, transfer.getAmount(),
 					transfer.getPaymentReference());
 			if (intRec == 1) {
-				String tranId = createTransaction("WAYAOFFTOOFF", fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+				String tranId = createTransaction(token, "WAYAOFFTOOFF", fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
 						request, tranCategory);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
@@ -2640,7 +2644,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			int intRec = tempwallet.PaymenttranInsert("WAYAOFFTOCUS", fromAccountNumber, toAccountNumber, transfer.getAmount(),
 					transfer.getPaymentReference());
 			if (intRec == 1) {
-				String tranId = createTransaction("WAYAOFFTOCUS",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+				String tranId = createTransaction(token, "WAYAOFFTOCUS",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
 						request, tranCategory);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
@@ -2702,6 +2706,85 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
+	public ApiResponse<?> OfficialUserTransferSystem(Map<String, String > mapp,String token, HttpServletRequest request, OfficeUserTransferDTO transfer) {
+
+		MyData userToken = tokenService.getTokenUser(token);
+		if (userToken == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
+		}
+
+		String fromAccountNumber = transfer.getOfficeDebitAccount();
+		String toAccountNumber = transfer.getCustomerCreditAccount();
+		if(fromAccountNumber.equals(toAccountNumber)) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "DEBIT ACCOUNT CAN'T BE THE SAME WITH CREDIT ACCOUNT", null);
+		}
+		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
+		CategoryType tranCategory = CategoryType.valueOf("REVERSAL");
+
+		List<WalletTransaction> transRef = walletTransactionRepository.findByReference(transfer.getPaymentReference(),
+				LocalDate.now(), transfer.getTranCrncy());
+		if (!transRef.isEmpty()) {
+			Optional<WalletTransaction> ret = transRef.stream()
+					.filter(code -> code.getPaymentReference().equals(transfer.getPaymentReference())).findAny();
+			if (ret.isPresent()) {
+				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+						"Duplicate Payment Reference on the same Day", null);
+			}
+		}
+
+		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
+		try {
+			int intRec = tempwallet.PaymenttranInsert("WAYAOFFTOCUS", fromAccountNumber, toAccountNumber, transfer.getAmount(),
+					transfer.getPaymentReference());
+			if (intRec == 1) {
+				String tranId = createTransaction(token, "WAYAOFFTOCUS",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
+						request, tranCategory);
+				String[] tranKey = tranId.split(Pattern.quote("|"));
+				if (tranKey[0].equals("DJGO")) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
+				}
+				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+						.findByTranIdIgnoreCase(tranId);
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				if (!transaction.isPresent()) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
+				}
+
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+
+				Date tDate = new Date();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+
+				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+
+				String emailAddress = mapp.get("receiverEmail");
+				String yfullName = yAccount.getAcct_name();
+
+				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, yfullName,
+						emailAddress, message2, userToken.getId(), transfer.getAmount().toString(), tranId,
+						tranDate, transfer.getTranNarration()));
+
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, null,
+						message2, userToken.getId(),tranCategory.name()));
+			} else {
+				if (intRec == 2) {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
+							"Unable to process duplicate transaction", null);
+				} else {
+					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return resp;
+	}
+
+	@Override
 	public ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, List<OfficeUserTransferDTO> transfer) {
 		ApiResponse<?> response = null;
 		ArrayList<Object> resObjects = new ArrayList<>();
@@ -2745,7 +2828,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			int intRec = tempwallet.PaymenttranInsert("WAYAADMTOCUS", fromAccountNumber, toAccountNumber, transfer.getAmount(),
 					transfer.getPaymentReference());
 			if (intRec == 1) {
-				String tranId = createTransaction("WAYAADMTOCUS", fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+				String tranId = createTransaction(token, "WAYAADMTOCUS", fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
 						request, tranCategory);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
@@ -2855,7 +2938,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			int intRec = tempwallet.PaymenttranInsert("WAYAADMTOCOMTODEFULT", fromAccountNumber, toAccountNumber, transfer.getAmount(),
 					transfer.getPaymentReference());
 			if (intRec == 1) {
-				String tranId = createTransaction("WAYAADMTOCOMTODEFULT",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+				String tranId = createTransaction(token, "WAYAADMTOCOMTODEFULT",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
 						request, tranCategory);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
@@ -2941,7 +3024,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			int intRec = tempwallet.PaymenttranInsert("WAYAADMTOCUMTODEFULT", fromAccountNumber, toAccountNumber, transfer.getAmount(),
 					transfer.getPaymentReference());
 			if (intRec == 1) {
-				String tranId = createTransaction("WAYAADMTOCUMTODEFULT",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+				String tranId = createTransaction(token, "WAYAADMTOCUMTODEFULT",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
 						request, tranCategory);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
@@ -3122,7 +3205,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			int intRec = tempwallet.PaymenttranInsert("WAYATRAN", fromAccountNumber, toAccountNumber, transfer.getAmount(),
 					transfer.getPaymentReference());
 			if (intRec == 1) {
-				String tranId = createTransaction("WAYATRAN",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+				String tranId = createTransaction(token, "WAYATRAN",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
 						request, tranCategory);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
@@ -3233,7 +3316,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			int intRec = tempwallet.PaymenttranInsert("WAYAADMTOCUS", fromAccountNumber, toAccountNumber, transfer.getAmount(),
 					transfer.getPaymentReference());
 			if (intRec == 1) {
-				String tranId = createTransaction("WAYAADMTOCUS",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+				String tranId = createTransaction(token, "WAYAADMTOCUS",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
 						request, tranCategory);
 
@@ -3345,7 +3428,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			int intRec = tempwallet.PaymenttranInsert("WAYATRAN", fromAccountNumber, toAccountNumber, transfer.getAmount(),
 					transfer.getPaymentReference());
 			if (intRec == 1) {
-				String tranId = createTransaction("WAYATRAN",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+				String tranId = createTransaction(token, "WAYATRAN",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
 						request, tranCategory);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
@@ -3407,7 +3490,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return resp;
 	}
 
-	public String createTransaction(String eventId, String debitAcctNo, String creditAcctNo, String tranCrncy, BigDecimal amount,
+	public String createTransaction(String token, String eventId, String debitAcctNo, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request,
 			CategoryType tranCategory) throws Exception {
 		try {
@@ -3574,8 +3657,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			if (eventInfo.isPresent()) {
 				WalletEventCharges charge = eventInfo.get();
-
-
 				WalletAccount eventAcct = walletAccountRepository.findByAccountNo(creditAcctNo);
 
 				WalletAccount accountDebitTeller = walletAccountRepository
@@ -3592,17 +3673,19 @@ public class TransAccountServiceImpl implements TransAccountService {
 				tranAmCharges = charge.getTranAmt();
 			}
 
-			WalletAccount finalAccountCredit = accountCredit;
-			WalletAccount finalAccountDebit = accountDebit;
-			BigDecimal finalTranAmCharges = tranAmCharges;
-			CompletableFuture.runAsync(() -> doDeductTransactionCharges(tokenData, senderName, receiverName, paymentRef, "Wallet Transfer", tranCrncy, tranCategory, tranType, finalTranAmCharges, finalAccountDebit, finalAccountCredit));
+			if(!eventId.equals("WAYAOFFTOCUS")){
+				WalletAccount finalAccountCredit = accountCredit;
+				WalletAccount finalAccountDebit = accountDebit;
+				BigDecimal finalTranAmCharges = tranAmCharges;
+				CompletableFuture.runAsync(() -> doDeductTransactionCharges(tokenData, senderName, receiverName, paymentRef, "Wallet Transfer", tranCrncy, tranCategory, TransactionTypeEnum.CHARGES, finalTranAmCharges, finalAccountDebit, finalAccountCredit));
+			}
 
 		}
 			// To generate transaction receipt
 
 			log.info("END TRANSACTION");
 			// HttpServletRequest request
-			String token = request.getHeader(SecurityConstants.HEADER_STRING);
+//			String token = request.getHeader(SecurityConstants.HEADER_STRING);
 			String receiverAcct = accountCredit.getAccountNo();
 			String receiverName2 = accountCredit.getAcct_name();
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,

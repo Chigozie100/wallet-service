@@ -85,8 +85,8 @@ waya:
     service: RECEIPT-SERVICE
     receipturl: ${CONFIG_BASEURL_RECEIPT:https://services.staging.wayabank.ng/transaction-receipt}
   service:
-    username: tbaadm@wayapaychat.com
-    password: fintemp@#123
+    username: admin@wayapaychat.com
+    password: kKo0a9@=&?*#
     keysecret: d2F5YXByb2QxNzI2MjAyMg==
     keytemporal: MWtLMW01czA3SFpMc2dpRWlhR2psQTV2SjdISTJqNUcxU3d5UmlKbmFXMTA2alJnK1NuVzBBUDMySTVKQ0hlRQ==
     keymifos: bzVkbElFTWl2MmkwUEcxNFd0eXU4ZzV2SjdISTJqNUcxU3d5UmlKbmFXMnROQWE0V1drWDRMY1EyZ2R4d2hXRQ==
@@ -95,3 +95,4 @@ waya:
   official:
     email: info@wayabank.ng
     phone: 2347030355396
+

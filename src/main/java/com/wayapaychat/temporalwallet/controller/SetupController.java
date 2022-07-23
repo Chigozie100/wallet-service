@@ -28,7 +28,7 @@ public class SetupController {
     ConfigService configService;
 
 
-    @ApiOperation(value = "Create a Temporal-Wallet Reversal Day", tags = { "CONFIGURATIONS" })
+    @ApiOperation(value = "Create a Reversal Day", tags = { "CONFIGURATIONS" })
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
     @PostMapping("")
@@ -37,7 +37,7 @@ public class SetupController {
     }
 
 
-    @ApiOperation(value = "View a Temporal-Wallet Reversal Day", tags = { "CONFIGURATIONS" })
+    @ApiOperation(value = "View Reversal Day", tags = { "CONFIGURATIONS" })
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
     @GetMapping(path = "/{id}")
@@ -45,7 +45,7 @@ public class SetupController {
         return reversalSetupService.view(Long.parseLong(id));
     }
 
-    @ApiOperation(value = "View List of Temporal-Wallet Reversal Days", tags = { "CONFIGURATIONS" })
+    @ApiOperation(value = "View List of Reversal Days", tags = { "CONFIGURATIONS" })
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
     @GetMapping("")
@@ -53,7 +53,7 @@ public class SetupController {
         return reversalSetupService.viewAll();
     }
 
-    @ApiOperation(value = "Update active a Temporal-Wallet Reversal Day", tags = { "CONFIGURATIONS" })
+    @ApiOperation(value = "Update active a Reversal Day", tags = { "CONFIGURATIONS" })
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
     @PutMapping(path = "/{id}")
@@ -61,7 +61,7 @@ public class SetupController {
         return reversalSetupService.update(days,Long.parseLong(id));
     }
 
-    @ApiOperation(value = "Toggle active a Temporal-Wallet Reversal Day", tags = { "CONFIGURATIONS" })
+    @ApiOperation(value = "Toggle active Reversal Day", tags = { "CONFIGURATIONS" })
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
     @PutMapping(path = "/{id}/toggle")
