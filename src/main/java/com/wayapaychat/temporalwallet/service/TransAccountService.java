@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -53,6 +54,8 @@ public interface TransAccountService {
 	ApiResponse<?> OfficialMoneyTransfer(HttpServletRequest request, OfficeTransferDTO transfer);
 
 	ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer);
+
+	ApiResponse<?> OfficialUserTransferSystem(Map<String, String > mapp, String token, HttpServletRequest request, OfficeUserTransferDTO transfer);
 
 	ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, List<OfficeUserTransferDTO> transfer);
 
