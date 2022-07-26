@@ -2,6 +2,10 @@ package com.wayapaychat.temporalwallet.controller;
 
 import javax.validation.Valid;
 
+
+import com.wayapaychat.temporalwallet.dto.*;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -13,15 +17,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.wayapaychat.temporalwallet.dto.AccountGLDTO;
-import com.wayapaychat.temporalwallet.dto.ChargeDTO;
-import com.wayapaychat.temporalwallet.dto.EventChargeDTO;
-import com.wayapaychat.temporalwallet.dto.InterestDTO;
-import com.wayapaychat.temporalwallet.dto.ModifyChargeDTO;
-import com.wayapaychat.temporalwallet.dto.ProductCodeDTO;
-import com.wayapaychat.temporalwallet.dto.ProductDTO;
-import com.wayapaychat.temporalwallet.dto.WalletConfigDTO;
-import com.wayapaychat.temporalwallet.dto.WalletTellerDTO;
 import com.wayapaychat.temporalwallet.service.ConfigService;
 
 import io.swagger.annotations.ApiOperation;
@@ -37,25 +32,34 @@ public class WalletBankController {
 	
 	@Autowired
     ConfigService configService;
-	
+
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Create a Wallet Default Special Code", tags = { "BANK-WALLET" })
     @PostMapping(path = "/create/code")
     public ResponseEntity<?> creteDefaultCode(@Valid @RequestBody WalletConfigDTO configPojo) {
         return configService.createDefaultCode(configPojo);
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Get List of Wallet Default Special Code", tags = { "BANK-WALLET" })
     @GetMapping(path = "/codes")
     public ResponseEntity<?> getDefaultCode() {
         return configService.getListDefaultCode();
     }
-    
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Get Wallet CodeValues using codeValueId", tags = { "BANK-WALLET" })
     @GetMapping(path = "/codeValue/{codeValueId}")
     public ResponseEntity<?> getCodeValue(@PathVariable("codeValueId") Long codeValueId) {
         return configService.getListCodeValue(codeValueId);
     }
-    
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Get Wallet CodeValues using codename", tags = { "BANK-WALLET" })
     @GetMapping(path = "/codeValue/{codeName}/command")
     public ResponseEntity<?> FetchCodeValue(@PathVariable("codeName") String codeName) {
@@ -128,43 +132,67 @@ public class WalletBankController {
     public ResponseEntity<?> getListTellersTill() {
         return configService.ListTellersTill();
     }
-    
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Create a Wallet Event", tags = { "BANK-WALLET" })
     @PostMapping(path = "/create/event")
     public ResponseEntity<?> createEventCharge(@Valid @RequestBody EventChargeDTO eventPojo) {
         return configService.createdEvents(eventPojo);
     }
-    
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Update a Wallet Event", tags = { "BANK-WALLET" })
+    @PutMapping(path = "/update/event/{eventId}")
+    public ResponseEntity<?> updateEventCharge(@Valid @RequestBody UpdateEventChargeDTO eventPojo, @PathVariable("eventId") Long eventId) {
+        return configService.updateEvents(eventPojo,eventId);
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "List Wallet Event", tags = { "BANK-WALLET" })
     @GetMapping(path = "/event/charges")
     public ResponseEntity<?> getListEventChrg() {
         return configService.ListEvents();
     }
-    
+
+
     @ApiOperation(value = "Create a Transaction Charge", tags = { "BANK-WALLET" })
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
     @PostMapping(path = "/create/transaction/charge")
     public ResponseEntity<?> createTransactionCharge(@Valid @RequestBody ChargeDTO charge) {
         return configService.createCharge(charge);
     }
-    
+
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "List Transaction Charge", tags = { "BANK-WALLET" })
     @GetMapping(path = "/transaction/charges")
     public ResponseEntity<?> ListAllCharge() {
         return configService.ListTranCharge();
     }
-    
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Get Transaction Charge", tags = { "BANK-WALLET" })
     @GetMapping(path = "/transaction/charges/{chargeId}")
     public ResponseEntity<?> GetTranCharge(@PathVariable("chargeId") Long chargeId) {
         return configService.findTranCharge(chargeId);
     }
-    
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Update Transaction Charge", tags = { "BANK-WALLET" })
     @PutMapping(path = "/transaction/charges/{chargeId}")
     public ResponseEntity<?> creteDefaultCode(@Valid @RequestBody ModifyChargeDTO charge,
     		@PathVariable("chargeId") Long chargeId) {
         return configService.updateTranCharge(charge,chargeId);
     }
-    
+
+
+
 
 }

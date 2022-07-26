@@ -14,6 +14,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.wayapaychat.temporalwallet.dto.BulkNonWayaTransferExcelDTO;
+import com.wayapaychat.temporalwallet.dto.NonWayaPaymentMultipleOfficialDTO;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.DataFormatter;
@@ -39,6 +41,10 @@ public class ExcelHelper {
     public static String[] TYPE = {"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/vnd.ms-excel"};
     public static List<String> PRIVATE_USER_HEADERS = Arrays.asList("ACCOUNT", "PHONE_NUMBER", "EMAIL", "AMOUNT", "TRANTYPE", 
     		"TRANCRNCY", "TRANNARRATION", "PAYMENTREF", "OFFICEACCOUNT" );
+
+    public static List<String> PRIVATE_TRANSFER_HEADERS = Arrays.asList("OFFICEACCOUNT", "EMAIL_PHONE_NUMBER", "FULLNAME", "AMOUNT","TRANCRNCY", "TRANNARRATION", "PAYMENTREF" );
+
+    static String SHEET_NON_WAYA = "NoneWayaTransfer";
 
     static String SHEET = "Transaction";
     static Pattern alphabetsPattern = Pattern.compile("^[a-zA-Z]*$");
@@ -144,9 +150,96 @@ public class ExcelHelper {
         }
     }
 
+
+
+    public static BulkNonWayaTransferExcelDTO excelToNoneWayaTransferPojo(InputStream is, String fileName){
+
+        try(Workbook workbook = getWorkBook(is, fileName)) {
+            if(workbook == null){
+                throw new CustomException("Invalid Excel File Check Extension", HttpStatus.BAD_REQUEST);
+            }
+            Set<NonWayaPaymentMultipleOfficialDTO> models = new HashSet<>();
+
+            Sheet sheet = workbook.getSheet(SHEET_NON_WAYA);
+            if(sheet == null) throw new CustomException("Invalid Excel File Format Passed, Check Sheet Name", HttpStatus.BAD_REQUEST);
+            Iterator<Row> rows = sheet.iterator();
+
+            int rowNumber = 0;
+            while (rows.hasNext()){
+                Row currentRow = rows.next();
+                Iterator<Cell> cellsInRow = currentRow.iterator();
+                NonWayaPaymentMultipleOfficialDTO pojo = new NonWayaPaymentMultipleOfficialDTO();
+
+                // If First Cell is empty break from loop
+                if (currentRow == null || isCellEmpty(currentRow.getCell(0))) {
+                    break;
+                }
+
+                // Skip header After Check of Header Formats
+                if (rowNumber == 0) {
+                    List<String> excelColNames = new ArrayList<>();
+                    int i = 0;
+                    while (cellsInRow.hasNext()) {
+                        Cell cell = cellsInRow.next();
+                        String cellValue = dataFormatter.formatCellValue(cell).trim().toUpperCase();
+                        excelColNames.add(cellValue);
+                        i++;
+                        if (i == PRIVATE_TRANSFER_HEADERS.size()) {
+                            break;
+                        }
+                    }
+                    boolean value = checkExcelFileValidity(PRIVATE_TRANSFER_HEADERS, excelColNames);
+                    if (!value) {
+                        String errorMessage = "Failure, Incorrect File Format";
+                        throw new CustomException(errorMessage, HttpStatus.BAD_REQUEST);
+                    }
+                    rowNumber++;
+                    continue;
+                }
+
+                int cellIdx = 0;
+                while (cellsInRow.hasNext()){
+                    Cell cell = cellsInRow.next();
+                    String colName = CellReference.convertNumToColString(cell.getColumnIndex()).toUpperCase();
+                    switch (colName) {
+                        case "A":
+                            pojo.setOfficialAccountNumber(defaultStringCell(cell));
+                            break;
+                        case "B":
+                            pojo.setEmailOrPhoneNo(defaultStringCell(cell));
+                            break;
+                        case "C":
+                            pojo.setFullName(defaultStringCell(cell));
+                            break;
+                        case "D":
+                            pojo.setAmount(validateStringBigDecimalOnly(cell, cellIdx, rowNumber));
+                            break;
+                        case "E":
+                            pojo.setTranCrncy(defaultStringCell(cell));
+                            break;
+                        case "F":
+                            pojo.setTranNarration(defaultStringCell(cell));
+                            break;
+                        case "G":
+                            pojo.setPaymentReference(defaultStringCell(cell));
+                            break;
+                        default:
+                            break;
+                    }
+                    cellIdx++;
+                }
+                models.add(pojo);
+                rowNumber++;
+            }
+            return new BulkNonWayaTransferExcelDTO(models);
+        }catch (Exception ex){
+            throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
     public static ByteArrayInputStream createExcelSheet(List<String> HEADERS){
         try (Workbook workbook = new XSSFWorkbook(); ByteArrayOutputStream out = new ByteArrayOutputStream();) {
-            Sheet sheet = workbook.createSheet(SHEET);
+            Sheet sheet = workbook.createSheet(SHEET_NON_WAYA);
             Row headerRow = sheet.createRow(0);
             for (int col = 0; col < HEADERS.size(); col++) {
                 Cell cell = headerRow.createCell(col);

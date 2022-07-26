@@ -1,10 +1,12 @@
 package com.wayapaychat.temporalwallet.controller;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import javax.validation.Valid;
 
+import com.wayapaychat.temporalwallet.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -18,20 +20,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.wayapaychat.temporalwallet.dto.AccountCloseDTO;
-import com.wayapaychat.temporalwallet.dto.AccountFreezeDTO;
-import com.wayapaychat.temporalwallet.dto.AccountLienDTO;
-import com.wayapaychat.temporalwallet.dto.AccountProductDTO;
-import com.wayapaychat.temporalwallet.dto.AccountToggleDTO;
-import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
-import com.wayapaychat.temporalwallet.dto.OfficialAccountDTO;
-import com.wayapaychat.temporalwallet.dto.SecureDTO;
-import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
-import com.wayapaychat.temporalwallet.dto.UserAccountDelete;
-import com.wayapaychat.temporalwallet.dto.UserDTO;
-import com.wayapaychat.temporalwallet.dto.WalletCashAccountDTO;
-import com.wayapaychat.temporalwallet.dto.WalletEventAccountDTO;
-import com.wayapaychat.temporalwallet.dto.WalletUserDTO;
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.service.UserAccountService;
@@ -98,14 +86,22 @@ public class WalletUserAccountController {
 		return userAccountService.AccountAccessDelete(user);
     }
 	
-	@ApiOperation(value = "Pause Account", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+	@ApiOperation(value = "Pause Account / Freeze Account", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/account/pause")
     public ResponseEntity<?> postAccountPause(@Valid @RequestBody AccountFreezeDTO user) {
 		log.info("Request input: {}",user);
 		return userAccountService.AccountAccessPause(user);
     }
+
+
+    @ApiOperation(value = " Block / UnBlock", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+    @PostMapping(path = "/account/block")
+    public ResponseEntity<?> postAccountBlock(@Valid @RequestBody AccountBlockDTO user) {
+        log.info("Request input: {}",user);
+        return userAccountService.AccountAccessBlockAndUnblock(user);
+    }
 	
-	@ApiOperation(value = "Delete Account", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+	@ApiOperation(value = "Delete Account / Block / UnBlock", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/account/closure")
     public ResponseEntity<?> postAccountClosure(@Valid @RequestBody AccountCloseDTO user) {
 		log.info("Request input: {}",user);
@@ -119,9 +115,9 @@ public class WalletUserAccountController {
         return userAccountService.AccountAccessClosureMultiple(user);
     }
 	
-	@ApiOperation(value = "Transaction account block", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
-    @PostMapping(path = "/account/block/transaction")
-    public ResponseEntity<?> postAccountLien(@Valid @RequestBody AccountLienDTO user) {
+	@ApiOperation(value = "Transaction account block / unblock", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+    @PostMapping(path = "/account/lien/transaction")
+    public ResponseEntity<?> postAccountLien(@Valid @RequestBody AccountLienDTO user, @RequestParam("isLien") boolean isLien) {
 		log.info("Request input: {}",user);
 		return userAccountService.AccountAccessLien(user);
     }
@@ -132,7 +128,8 @@ public class WalletUserAccountController {
 		 return userAccountService.createCashAccount(user);
 	        //return userAccountService.createCashAccount(user);
 	 }
-	 
+
+	 @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	 @ApiOperation(value = "Create Event Wallet Account - (Admin COnsumption Only)", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
 	 @PostMapping(path = "/event/account")
 	 public ResponseEntity<?> createEventAccounts(@Valid @RequestBody WalletEventAccountDTO user) {
@@ -160,8 +157,16 @@ public class WalletUserAccountController {
     public ResponseEntity<?> createOfficialAccount(@Valid @RequestBody OfficialAccountDTO account) {
 		return userAccountService.createOfficialAccount(account);
     }
-	
-	@ApiOperation(value = "Create a Wallet", tags = { "USER-ACCOUNT-WALLET" })
+
+    @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Create a waya official account", tags = { "USER-ACCOUNT-WALLET" })
+    @PostMapping(path = "/official/waya/account-multiple")
+    public ArrayList<Object> createOfficialAccount(@Valid @RequestBody List<OfficialAccountDTO> account) {
+        return userAccountService.createOfficialAccount(account);
+    }
+
+
+    @ApiOperation(value = "Create a Wallet", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/account/product")
     public ResponseEntity<?> createProductAccount(@Valid @RequestBody AccountProductDTO accountPojo) {
 		return userAccountService.createAccountProduct(accountPojo);

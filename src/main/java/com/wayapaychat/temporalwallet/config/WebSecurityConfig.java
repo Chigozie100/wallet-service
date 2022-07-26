@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.config;
 
 import java.util.Arrays;
 
+import com.wayapaychat.temporalwallet.security.AuthorizationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;

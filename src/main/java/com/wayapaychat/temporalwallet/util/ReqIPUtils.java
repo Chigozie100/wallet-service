@@ -8,7 +8,9 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.text.SimpleDateFormat;
 import java.util.Base64;
+import java.util.Date;
 import java.util.Random;
 
 import javax.crypto.BadPaddingException;
@@ -182,4 +184,7 @@ public class ReqIPUtils {
 		new SecureRandom().nextBytes(iv);
 		return new IvParameterSpec(iv);
 	}
+
+
+
 }

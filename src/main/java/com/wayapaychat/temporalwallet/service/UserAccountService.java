@@ -1,24 +1,12 @@
 package com.wayapaychat.temporalwallet.service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.wayapaychat.temporalwallet.dto.*;
 import org.springframework.http.ResponseEntity;
 
-import com.wayapaychat.temporalwallet.dto.AccountCloseDTO;
-import com.wayapaychat.temporalwallet.dto.AccountFreezeDTO;
-import com.wayapaychat.temporalwallet.dto.AccountLienDTO;
-import com.wayapaychat.temporalwallet.dto.AccountProductDTO;
-import com.wayapaychat.temporalwallet.dto.AccountToggleDTO;
-import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
-import com.wayapaychat.temporalwallet.dto.OfficialAccountDTO;
-import com.wayapaychat.temporalwallet.dto.SecureDTO;
-import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
-import com.wayapaychat.temporalwallet.dto.UserAccountDelete;
-import com.wayapaychat.temporalwallet.dto.UserDTO;
-import com.wayapaychat.temporalwallet.dto.WalletCashAccountDTO;
-import com.wayapaychat.temporalwallet.dto.WalletEventAccountDTO;
-import com.wayapaychat.temporalwallet.dto.WalletUserDTO;
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 
@@ -35,6 +23,8 @@ public interface UserAccountService {
 	ResponseEntity<?> createAccount(AccountPojo2 accountPojo);
 	
 	ResponseEntity<?> createOfficialAccount(OfficialAccountDTO account);
+
+	ArrayList<Object> createOfficialAccount(List<OfficialAccountDTO> account);
 	
 	ResponseEntity<?> createAccountProduct(AccountProductDTO accountPojo);
 	
@@ -86,6 +76,8 @@ public interface UserAccountService {
 	
 	ResponseEntity<?> AccountAccessPause(AccountFreezeDTO user);
 	
+	ResponseEntity<?> AccountAccessBlockAndUnblock(AccountBlockDTO user);
+
 	ResponseEntity<?> AccountAccessClosure(AccountCloseDTO user);
 
 	ResponseEntity<?> AccountAccessClosureMultiple(List<AccountCloseDTO> user);

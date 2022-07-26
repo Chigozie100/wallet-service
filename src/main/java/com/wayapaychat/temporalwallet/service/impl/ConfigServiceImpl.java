@@ -5,40 +5,18 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import com.wayapaychat.temporalwallet.dto.*;
+import com.wayapaychat.temporalwallet.entity.*;
+import com.wayapaychat.temporalwallet.exception.CustomException;
+import com.wayapaychat.temporalwallet.pojo.RecurrentConfigPojo;
+import com.wayapaychat.temporalwallet.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
-import com.wayapaychat.temporalwallet.dto.AccountGLDTO;
-import com.wayapaychat.temporalwallet.dto.ChargeDTO;
-import com.wayapaychat.temporalwallet.dto.EventChargeDTO;
-import com.wayapaychat.temporalwallet.dto.InterestDTO;
-import com.wayapaychat.temporalwallet.dto.ModifyChargeDTO;
-import com.wayapaychat.temporalwallet.dto.ProductCodeDTO;
-import com.wayapaychat.temporalwallet.dto.ProductDTO;
-import com.wayapaychat.temporalwallet.dto.WalletConfigDTO;
-import com.wayapaychat.temporalwallet.dto.WalletTellerDTO;
-import com.wayapaychat.temporalwallet.entity.WalletBankConfig;
-import com.wayapaychat.temporalwallet.entity.WalletConfig;
-import com.wayapaychat.temporalwallet.entity.WalletEventCharges;
-import com.wayapaychat.temporalwallet.entity.WalletGLAccount;
-import com.wayapaychat.temporalwallet.entity.WalletInterest;
-import com.wayapaychat.temporalwallet.entity.WalletProduct;
-import com.wayapaychat.temporalwallet.entity.WalletProductCode;
-import com.wayapaychat.temporalwallet.entity.WalletTeller;
-import com.wayapaychat.temporalwallet.entity.WalletTransactionCharge;
 import com.wayapaychat.temporalwallet.pojo.UserDetailPojo;
-import com.wayapaychat.temporalwallet.repository.WalletBankConfigRepository;
-import com.wayapaychat.temporalwallet.repository.WalletConfigRepository;
-import com.wayapaychat.temporalwallet.repository.WalletEventRepository;
-import com.wayapaychat.temporalwallet.repository.WalletGLAccountRepository;
-import com.wayapaychat.temporalwallet.repository.WalletInterestRepository;
-import com.wayapaychat.temporalwallet.repository.WalletProductCodeRepository;
-import com.wayapaychat.temporalwallet.repository.WalletProductRepository;
-import com.wayapaychat.temporalwallet.repository.WalletTellerRepository;
-import com.wayapaychat.temporalwallet.repository.WalletTransactionChargeRepository;
 import com.wayapaychat.temporalwallet.service.ConfigService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.ParamDefaultValidation;
@@ -80,6 +58,9 @@ public class ConfigServiceImpl implements ConfigService {
 	
 	@Autowired
 	WalletTransactionChargeRepository walletTransactionChargeRepository;
+
+	@Autowired
+	RecurrentConfigRepository recurrentConfigRepository;
 
 	@Override
 	public ResponseEntity<?> createDefaultCode(WalletConfigDTO configPojo) {
@@ -346,7 +327,38 @@ public class ConfigServiceImpl implements ConfigService {
             return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
 	}
-	
+
+	@Override
+	public ResponseEntity<?> updateEvents(UpdateEventChargeDTO event, Long eventId) {
+		boolean validate = paramValidation.validateDefaultCode(event.getCrncyCode(),"Currency");
+		if(!validate) {
+			return new ResponseEntity<>(new ErrorResponse("Currency Code Validation Failed"), HttpStatus.BAD_REQUEST);
+		}
+
+		Optional<WalletEventCharges> walletEventCharges = walletEventRepository.findById(eventId);
+		if(!walletEventCharges.isPresent()){
+			return new ResponseEntity<>(new ErrorResponse("Event Not Found"), HttpStatus.BAD_REQUEST);
+		}
+		WalletEventCharges eventCharges = walletEventCharges.get();
+		eventCharges.setChargeCustomer(event.isChargeCustomer());
+		eventCharges.setChargeWaya(event.isChargeWaya());
+		eventCharges.setCrncyCode(event.getCrncyCode());
+		eventCharges.setTaxable(event.isTaxable());
+		eventCharges.setTaxAmt(event.getTaxAmt());
+		eventCharges.setTranAmt(event.getTranAmt());
+
+//
+//		WalletEventCharges charge = new WalletEventCharges(event.getEventId(), event.getTranAmt(), event.getPlaceholder(),
+//				event.isTaxable(), event.getTaxAmt(), event.getTranNarration(), event.isChargeCustomer(),
+//				event.isChargeWaya(), event.getCrncyCode());
+		try {
+			walletEventRepository.save(eventCharges);
+			return new ResponseEntity<>(new SuccessResponse("Event Updated Successfully.", eventCharges), HttpStatus.CREATED);
+		} catch (Exception e) {
+			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+		}
+	}
+
 	@Override
 	public ResponseEntity<?> createCharge(ChargeDTO event) {
 		
@@ -467,5 +479,84 @@ public class ConfigServiceImpl implements ConfigService {
             return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
 	}
+
+
+	//RecurrentConfigRepository recurrentConfigRepository;
+	public ResponseEntity<?> createRecurrentPayment(RecurrentConfigPojo request) {
+		try {
+			RecurrentConfig recurrentConfig = new RecurrentConfig();
+			recurrentConfig.setAmount(request.getAmount());
+			recurrentConfig.setOfficialAccountNumber(request.getOfficialAccountNumber());
+			recurrentConfig.setPayDate(request.getPayDate());
+			recurrentConfig.setDuration(request.getDuration());
+			recurrentConfig.setInterval(request.getInterval());
+			recurrentConfig = recurrentConfigRepository.save(recurrentConfig);
+			return new ResponseEntity<>(new SuccessResponse("Success.", recurrentConfig), HttpStatus.CREATED);
+		} catch (Exception e) {
+			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	public ResponseEntity<?> updateRecurrentPayment(RecurrentConfigPojo request, Long id) {
+		try {
+			Optional<RecurrentConfig> recurrentConfig = recurrentConfigRepository.findById(id);
+			if (!recurrentConfig.isPresent()){
+				throw new CustomException("Record not Found !!", HttpStatus.BAD_REQUEST);
+			}
+				RecurrentConfig recurrentConfig1 = recurrentConfig.get();
+				recurrentConfig1.setAmount(request.getAmount());
+				recurrentConfig1.setOfficialAccountNumber(request.getOfficialAccountNumber());
+				recurrentConfig1.setPayDate(request.getPayDate());
+				recurrentConfig1.setDuration(request.getDuration());
+				recurrentConfig1.setInterval(request.getInterval());
+				recurrentConfig1 = recurrentConfigRepository.save(recurrentConfig1);
+
+			return new ResponseEntity<>(new SuccessResponse("Success.", recurrentConfig1), HttpStatus.CREATED);
+		} catch (Exception e) {
+			throw new CustomException("", HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	public ResponseEntity<?> toggleRecurrentPayment(Long id) {
+		try {
+			Optional<RecurrentConfig> recurrentConfig = recurrentConfigRepository.findById(id);
+			if (!recurrentConfig.isPresent()){
+				throw new CustomException("Record not Found !!", HttpStatus.BAD_REQUEST);
+			}
+			RecurrentConfig recurrentConfig1 = recurrentConfig.get();
+			recurrentConfig1.setActive(!recurrentConfig1.isActive());
+			recurrentConfig1 = recurrentConfigRepository.save(recurrentConfig1);
+
+			return new ResponseEntity<>(new SuccessResponse("Success.", recurrentConfig1), HttpStatus.CREATED);
+		} catch (Exception e) {
+			throw new CustomException("", HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	public ResponseEntity<?> getAllRecurrentPayment() {
+		try {
+			List<RecurrentConfig> recurrentConfig = recurrentConfigRepository.findAll();
+			if (recurrentConfig.isEmpty()){
+				throw new CustomException("Record not Found !!", HttpStatus.BAD_REQUEST);
+			}
+			return new ResponseEntity<>(new SuccessResponse("Success.", recurrentConfig), HttpStatus.CREATED);
+		} catch (Exception e) {
+			throw new CustomException("", HttpStatus.BAD_REQUEST);
+		}
+	}
+
+
+	public ResponseEntity<?> getRecurrentPayment(Long id) {
+		try {
+			Optional<RecurrentConfig> recurrentConfig = recurrentConfigRepository.findById(id);
+			if (!recurrentConfig.isPresent()){
+				throw new CustomException("Record not Found !!", HttpStatus.BAD_REQUEST);
+			}
+			return new ResponseEntity<>(new SuccessResponse("Success.", recurrentConfig.get()), HttpStatus.CREATED);
+ 		} catch (Exception e) {
+			throw new CustomException("", HttpStatus.BAD_REQUEST);
+		}
+	}
+
 }
 

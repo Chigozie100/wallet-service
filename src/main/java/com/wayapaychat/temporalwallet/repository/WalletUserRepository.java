@@ -40,4 +40,6 @@ public interface WalletUserRepository extends JpaRepository<WalletUser, Long> {
 	@Query(value = "SELECT u FROM WalletUser u " + "WHERE u.cust_sex = ('S') " + " AND u.del_flg = false")
 	List<WalletUser> findBySimulated();
 
+	//Select CASE WHEN ID = 5 THEN 1 ELSE 2 END as ord, ID FROM tbl ORDER BY ord ASC, ID ASC
+
 }
