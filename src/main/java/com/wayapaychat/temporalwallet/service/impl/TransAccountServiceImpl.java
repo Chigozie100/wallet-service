@@ -2229,12 +2229,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 		try{
 			for (TransferSimulationDTO data: transfer){
 				resp = MoneyTransferSimulation(request,data,true);
-				rpp.add(resp);
+				rpp.add(resp.getBody());
 			}
-			return new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", resp),
-					HttpStatus.BAD_REQUEST);
+			return resp;
 		}catch (Exception ex){
-			throw new CustomException("", HttpStatus.EXPECTATION_FAILED);
+			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
 		}
 	}
 
