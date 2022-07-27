@@ -45,4 +45,18 @@ public class OfficeUserTransferDTO {
 		@Size(min = 3, max = 50, message = "paymentReference must be aleast 3 alphanumeric")
 		private String paymentReference;
 
+	public OfficeUserTransferDTO(String officeDebitAccount, String customerCreditAccount, BigDecimal amount, String tranType,  String tranCrncy,  String tranNarration,  String paymentReference) {
+		super();
+		this.officeDebitAccount = officeDebitAccount;
+		this.customerCreditAccount = customerCreditAccount;
+		this.amount = amount;
+		this.tranType = tranType;
+		this.tranCrncy = tranCrncy;
+		this.tranNarration = tranNarration;
+		this.paymentReference = paymentReference;
+	}
+
+	public OfficeUserTransferDTO() {
+
+	}
 }

@@ -51,4 +51,6 @@ public class PaymentRequest {
 
     private LocalDateTime createdAt;
 
+    private boolean isWayaOfficial = false;
+
 }
