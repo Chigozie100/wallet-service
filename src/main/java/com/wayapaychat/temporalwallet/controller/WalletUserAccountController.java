@@ -356,5 +356,22 @@ public class WalletUserAccountController {
         return userAccountService.getUserAccountCount(userId);
     }
 
+    @ApiOperation(value = "Total Active Accounts", notes = "Total Transaction", tags = { "USER-ACCOUNT-WALLET" })
+    @GetMapping("/account/total-active-amount")
+    public ResponseEntity<?> getTotalActiveAccount() {
+        return userAccountService.getTotalActiveAccount();
+    }
+
+    @ApiOperation(value = "Total Active Accounts", notes = "Total Active Accounts", tags = { "USER-ACCOUNT-WALLET" })
+    @GetMapping("/account/total-active-count")
+    public ResponseEntity<?> countActiveAccount() {
+        return userAccountService.countActiveAccount();
+    }
+
+    @ApiOperation(value = "Total InActive Accounts", notes = "Total InActive Accounts", tags = { "USER-ACCOUNT-WALLET" })
+    @GetMapping("/account/total-inactive-count")
+    public ResponseEntity<?> countInActiveAccount() {
+        return userAccountService.countInActiveAccount();
+    }
 
 }

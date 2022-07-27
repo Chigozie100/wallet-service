@@ -163,6 +163,21 @@ public class WalletTransactionController {
 		return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "To transfer money from one waya official account to multiple user wallets", notes = "Post Money", tags = {
+			"TRANSACTION-WALLET" })
+	@PostMapping("/official/user/transfer-multiple")
+	public ResponseEntity<?> OfficialUserMoneyMultiple(HttpServletRequest request,
+											   @Valid @RequestBody List<OfficeUserTransferDTO> transfer) {
+		ApiResponse<?> res = transAccountService.OfficialUserTransfer(request, transfer);
+		if (!res.getStatus()) {
+			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+		}
+		log.info("Send Money: {}", transfer);
+		return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+
 	// Wallet call by other service
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
@@ -631,6 +646,16 @@ public class WalletTransactionController {
 
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Admin send Non-Waya Payment with excel upload on behalf of users", notes = "Admin send Non-Waya Payment with excel upload on behalf of users", tags = {
+			"TRANSACTION-WALLET" })
+	@PostMapping(path = "/non-waya/payment/new-multiple-excel-upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> NonWayaPaymentMultipleUpload(HttpServletRequest request, @RequestPart("file") MultipartFile file) {
+		return transAccountService.TransferNonPaymentMultipleUpload(request, file);
+	}
+
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Non-Waya Payment for Single transaction by waya official", notes = "Transfer amount from user wallet to Non-waya for single transaction by waya  official", tags = {
 			"TRANSACTION-WALLET" })
 	@PostMapping("/non-waya/payment/new-single-waya-official")
@@ -665,7 +690,7 @@ public class WalletTransactionController {
 			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
 	@ApiResponses(value = { @io.swagger.annotations.ApiResponse(code = 200, message = "Response Headers") })
 	@GetMapping("/download/bulk-none-waya-excel")
-	public ResponseEntity<Resource> getFile(@RequestParam("isNoneWaya") boolean isNoneWaya) {
+	public ResponseEntity<Resource> getFile(@RequestParam("isNoneWaya") String isNoneWaya) {
 		String filename = "bulk-none-waya-excel.xlsx";
 		InputStreamResource file = new InputStreamResource(transAccountService.createExcelSheet(isNoneWaya));
 		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)

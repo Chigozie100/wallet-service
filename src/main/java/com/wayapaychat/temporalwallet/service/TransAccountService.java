@@ -54,7 +54,7 @@ public interface TransAccountService {
 	ApiResponse<?> OfficialMoneyTransfer(HttpServletRequest request, OfficeTransferDTO transfer);
 
 	ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer);
-
+	
 	ApiResponse<?> OfficialUserTransferSystem(Map<String, String > mapp, String token, HttpServletRequest request, OfficeUserTransferDTO transfer);
 
 	ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, List<OfficeUserTransferDTO> transfer);
@@ -145,6 +145,8 @@ public interface TransAccountService {
 
 	ResponseEntity<?> TransferNonPaymentMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer);
 
+	ResponseEntity<?> TransferNonPaymentMultipleUpload(HttpServletRequest request, MultipartFile file);
+
 	ResponseEntity<?> TransferNonPaymentSingleWayaOfficial(HttpServletRequest request, NonWayaPaymentMultipleOfficialDTO transfer);
 
 
@@ -152,7 +154,7 @@ public interface TransAccountService {
 
 	ResponseEntity<?> TransferNonPaymentWayaOfficialExcel(HttpServletRequest request, MultipartFile file);
 
-	ByteArrayInputStream createExcelSheet(boolean isNoneWaya);
+	ByteArrayInputStream createExcelSheet(String isNoneWaya);
 
 	ResponseEntity<?> NonWayaPaymentRedeem(HttpServletRequest request, NonWayaRedeemDTO transfer);
 
