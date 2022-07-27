@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -44,6 +45,14 @@ public interface WalletAccountRepository extends JpaRepository<WalletAccount, Lo
     @Query("SELECT u FROM WalletAccount u WHERE u.product_code = (:productCode)" + " AND u.acct_name LIKE ('%COMMISSION%')")
     List<WalletAccount> findByProductList(String productCode);
 
+    @Query("SELECT count(u.id) FROM WalletAccount u WHERE u.del_flg = true")
+    long countActiveAccount();
+
+    @Query("SELECT count(u.id) FROM WalletAccount u WHERE u.del_flg = false")
+    long countInActiveAccount();
+
+    @Query("SELECT sum(u.clr_bal_amt) FROM WalletAccount u WHERE u.del_flg = false")
+    BigDecimal totalActiveAccount();
 
 
 }
