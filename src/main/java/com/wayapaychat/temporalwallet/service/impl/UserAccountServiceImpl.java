@@ -15,6 +15,7 @@ import com.wayapaychat.temporalwallet.exception.CustomException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -1477,5 +1478,22 @@ public class UserAccountServiceImpl implements UserAccountService {
 		
 		return new ResponseEntity<>(new SuccessResponse("ACCOUNT SEARCH", mAccount), HttpStatus.OK);
 	}
+
+
+	public ResponseEntity<?>  getTotalActiveAccount(){
+		BigDecimal count = walletAccountRepository.totalActiveAccount();
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
+	}
+
+	public ResponseEntity<?>  countActiveAccount(){
+		long count = walletAccountRepository.countActiveAccount();
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
+	}
+
+	public ResponseEntity<?>  countInActiveAccount(){
+		long count = walletAccountRepository.countInActiveAccount();
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
+	}
+
 
 }

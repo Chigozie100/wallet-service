@@ -94,4 +94,10 @@ public interface UserAccountService {
 	
 	ResponseEntity<?> AccountLookUp(String account, SecureDTO secureKey);
 
+	ResponseEntity<?>  getTotalActiveAccount();
+
+	ResponseEntity<?>  countActiveAccount();
+
+	ResponseEntity<?>  countInActiveAccount();
+
 }

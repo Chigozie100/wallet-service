@@ -112,6 +112,12 @@ public class ReversalSetupServiceImpl implements ReversalSetupService {
         if (!reversalSetup.isPresent()){
           throw new CustomException(NO_RECORDS_FOUND,HttpStatus.NOT_FOUND);
         }else {
+            List<ReversalSetup> list = reversalSetupRepository.findAll();
+            for (ReversalSetup data: list){
+                data.setActive(false);
+                reversalSetupRepository.save(data);
+            }
+
             ReversalSetup data = reversalSetup.get();
             data.setActive(!data.isActive());
             reversalSetupRepository.save(data);

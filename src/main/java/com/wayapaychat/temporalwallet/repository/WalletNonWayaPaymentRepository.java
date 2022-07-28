@@ -16,7 +16,7 @@ import org.springframework.data.repository.query.Param;
 public interface WalletNonWayaPaymentRepository extends JpaRepository<WalletNonWayaPayment, Long> {
 	
 	@Query("SELECT u FROM WalletNonWayaPayment u " + "WHERE UPPER(u.tokenId) = UPPER(:tokenId) " + " AND u.del_flg = false"
-			+ " AND u.crncyCode = UPPER(:tranCrncy)")
+			+ " AND u.crncyCode = UPPER(:tranCrncy)"+ "order by  u.createdAt DESC ")
 	Optional<WalletNonWayaPayment> findByTransaction(String tokenId, String tranCrncy);
 
 	@Query("SELECT u FROM WalletNonWayaPayment u WHERE u.status =:status and u.del_flg = false order by u.id")
