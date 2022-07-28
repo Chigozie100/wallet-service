@@ -1783,8 +1783,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
 						message, userToken.getId()));
-				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getMobileNo(),
-						message, userToken.getId(),TRANSACTION_HAS_OCCURRED));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getUserId().toString(),
+						message, userToken.getId(),COMMISSION));
 			} else {
 				if (intRec == 2) {
 					return new ResponseEntity<>(new ErrorResponse("UNABLE TO PROCESS DUPLICATE TRANSACTION REFERENCE"),
@@ -1882,7 +1882,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, phone,
 						message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, phone,
-						message, userToken.getId(),TRANSACTION_HAS_OCCURRED));
+						message, userToken.getId(),BANK_TRANSACTION));
 			} else {
 				if (intRec == 2) {
 					return new ResponseEntity<>(new ErrorResponse("UNABLE TO PROCESS DUPLICATE TRANSACTION REFERENCE"),
@@ -2304,7 +2304,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName, xUser.getMobileNo(),
 							message1, userToken.getId()));
 					CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, xUser.getMobileNo(),
-							message1, userToken.getId(),TRANSACTION_HAS_OCCURRED));
+							message1, userToken.getId(),SIMULATED_TRANSACTION));
 
 					WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 					WalletUser yUser = walletUserRepository.findByAccount(yAccount);
@@ -2318,7 +2318,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName, yUser.getMobileNo(),
 							message2, userToken.getId()));
 					CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, yUser.getMobileNo(),
-							message2, userToken.getId(),TRANSACTION_HAS_OCCURRED));
+							message2, userToken.getId(),SIMULATED_TRANSACTION));
 				}
 
 			} else {
@@ -2393,8 +2393,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 				String tranDate = dateFormat.format(tDate);
 
 				if(!isSimulated){
-
-
 
 						WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
 						WalletUser xUser = walletUserRepository.findByAccount(xAccount);
@@ -2556,7 +2554,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", transaction), HttpStatus.CREATED);
 				log.info("Transaction Response: {}", resp.toString());
 
-				//Date tDate = Calendar.getInstance().getTime();
 				Date tDate = new Date();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 				String tranDate = dateFormat.format(tDate);
@@ -2572,8 +2569,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
 						message, userToken.getId()));
-				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getMobileNo(),
-						message, userToken.getId(),TRANSACTION_HAS_OCCURRED));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getUserId().toString(),
+						message, userToken.getId(),VIRTUAL_TRANSACTION));
 
 				BigDecimal newAmount = mvirt.getActualBalance().add(transfer.getAmount());
 				mvirt.setActualBalance(newAmount);
@@ -2922,7 +2919,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName, xUser.getMobileNo(),
 						message1, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, xUser.getMobileNo(),
-						message1, userToken.getId(),TRANSACTION_HAS_OCCURRED));
+						message1, userToken.getId(),ADMIN_TRANSACTION));
 
 				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
@@ -2935,6 +2932,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName, yUser.getMobileNo(),
 						message2, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, yUser.getUserId().toString(),
+						message2, userToken.getId(),ADMIN_TRANSACTION));
 
 			} else {
 				if (intRec == 2) {
@@ -3031,6 +3030,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName, xUser.getMobileNo(),
 						message1, userToken.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, xUser.getUserId().toString(),
+						message1, userToken.getId(),COMMISSION));
 
 				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
@@ -3044,7 +3045,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName, yUser.getMobileNo(),
 						message2, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, yUser.getMobileNo(),
-						message2, userToken.getId(),TRANSACTION_HAS_OCCURRED));
+						message2, userToken.getId(),COMMISSION));
 
 			} else {
 				if (intRec == 2) {
@@ -3117,8 +3118,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName, xUser.getMobileNo(),
 						message1, userToken.getId()));
-				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, xUser.getMobileNo(),
-						message1, userToken.getId(),TRANSACTION_HAS_OCCURRED));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, xUser.getUserId().toString(),
+						message1, userToken.getId(),COMMISSION));
 
 				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
@@ -3131,8 +3132,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName, yUser.getMobileNo(),
 						message2, userToken.getId()));
-				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, yUser.getMobileNo(),
-						message2, userToken.getId(),TRANSACTION_HAS_OCCURRED));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, yUser.getUserId().toString(),
+						message2, userToken.getId(),COMMISSION));
 
 			} else {
 				if (intRec == 2) {
@@ -3197,8 +3198,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName, xUser.getMobileNo(),
 						message1, userToken.getId()));
-				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, xUser.getMobileNo(),
-						message1, userToken.getId(),TRANSACTION_HAS_OCCURRED));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, xUser.getUserId().toString(),
+						message1, userToken.getId(),TRANSFER));
 
 				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
@@ -3211,8 +3212,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName, yUser.getMobileNo(),
 						message2, userToken.getId()));
-				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, yUser.getMobileNo(),
-						message2, userToken.getId(),TRANSACTION_HAS_OCCURRED));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, yUser.getUserId().toString(),
+						message2, userToken.getId(),TRANSFER));
 
 			} else {
 				if (intRec == 2) {
@@ -3300,8 +3301,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName, xUser.getMobileNo(),
 						message1, userToken.getId()));
-				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, xUser.getMobileNo(),
-						message1, userToken.getId(),TRANSACTION_HAS_OCCURRED));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, xUser.getUserId().toString(),
+						message1, userToken.getId(),transfer.getTranNarration()));
 
 				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
@@ -3314,8 +3315,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName, yUser.getMobileNo(),
 						message2, userToken.getId()));
-				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, yUser.getMobileNo(),
-						message2, userToken.getId(),TRANSACTION_HAS_OCCURRED));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, yUser.getUserId().toString(),
+						message2, userToken.getId(),transfer.getTranNarration()));
 
 			} else {
 				if (intRec == 2) {
@@ -3412,8 +3413,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName, xUser.getMobileNo(),
 						message1, userToken.getId()));
-				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, xUser.getMobileNo(),
-						message1, userToken.getId(), TRANSACTION_HAS_OCCURRED));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, xUser.getUserId().toString(),
+						message1, userToken.getId(), TRANSFER));
 
 				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
@@ -3426,8 +3427,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName, yUser.getMobileNo(),
 						message2, userToken.getId()));
-				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, yUser.getMobileNo(),
-						message2, userToken.getId(),TRANSACTION_HAS_OCCURRED));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, yUser.getUserId().toString(),
+						message2, userToken.getId(),TRANSFER));
 
 			} else {
 				if (intRec == 2) {
@@ -3508,7 +3509,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
 
-				Date tDate = Calendar.getInstance().getTime();
+				Date tDate = new Date();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 				String tranDate = dateFormat.format(tDate);
 
@@ -3523,8 +3524,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName, xUser.getMobileNo(),
 						message1, userToken.getId()));
-				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, xUser.getMobileNo(),
-						message1, userToken.getId(),TRANSACTION_HAS_OCCURRED));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, xUser.getUserId().toString(),
+						message1, userToken.getId(),TRANSFER));
 
 				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
@@ -3537,8 +3538,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName, yUser.getMobileNo(),
 						message2, userToken.getId()));
-				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, yUser.getMobileNo(),
-						message2, userToken.getId(),TRANSACTION_HAS_OCCURRED));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, yUser.getUserId().toString(),
+						message2, userToken.getId(),TRANSFER));
 
 			} else {
 				if (intRec == 2) {
@@ -5081,8 +5082,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 					tranDate, tranNarrate));
 			CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
 					message, userToken.getId()));
-			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getMobileNo(),
-					message, userToken.getId(), TRANSACTION_HAS_OCCURRED));
+			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getUserId().toString(),
+					message, userToken.getId(), TRANSFER));
 
 
 //			String messageDebit = formatNewMessage(amount, tranId, tranDate, tranCrncy,tranNarrate);
@@ -5112,8 +5113,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 					tranDate, tranNarrate));
 			CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
 					message, userToken.getId()));
-			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getMobileNo(),
-					message, userToken.getId(), TRANSACTION_HAS_OCCURRED));
+			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getUserId().toString(),
+					message, userToken.getId(), TRANSFER));
 
 			log.info("END TRANSACTION");
 
@@ -5779,7 +5780,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String message1 = formatDebitMessage(amount, tranId, tranDate, tranCrncy,tranNarrate);
 			WalletAccount finalAccountDebit = accountDebit;
 			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, "fullName", "",
-					message1, finalAccountDebit.getUser().getUserId(),TRANSACTION_HAS_OCCURRED));
+					message1, finalAccountDebit.getUser().getUserId(),TRANSFER));
 
 			double clrbalAmtCr = accountCredit.getClr_bal_amt() + amount.doubleValue();
 			double cumbalCrAmtCr = accountCredit.getCum_cr_amt() + amount.doubleValue();
@@ -7683,7 +7684,8 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 							mPayRequest.getReference(), mPayRequest.getCategory().getValue());
 					try{
 						ResponseEntity<?> res = sendMoney(request, txt);
-						if (res.getStatusCodeValue() != 200 && res.getStatusCodeValue() != 201) {
+
+						if (res.getStatusCodeValue() == 200 || res.getStatusCodeValue() == 201) {
 							//
 							log.info("Send Money: {}", transfer);
 							mPayRequest.setStatus(PaymentRequestStatus.PAID);
