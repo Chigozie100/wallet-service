@@ -155,14 +155,51 @@ public class CustomNotification {
 		}
 	}
 
-	public void pushInApp(String token, String name, String phone, String message, Long userId, String category) {
+	public void pushInApp(String token, String name, String recipient, String recipientMessage, String message, Long userId, String category) {
 
 		InAppEvent appEvent = new InAppEvent();
 		InAppPayload data = new InAppPayload();
 		data.setMessage(message);
 
 		InAppRecipient appRecipient = new InAppRecipient();
-		appRecipient.setUserId(userId.toString());
+		if(recipient !=null) {
+			appRecipient.setUserId(recipient);
+		}else {
+			appRecipient.setUserId("0");
+		}
+		List<InAppRecipient> addUserId = new ArrayList<>();
+		addUserId.add(appRecipient);
+
+		data.setUsers(addUserId);
+		appEvent.setData(data);
+		appEvent.setCategory(category);
+
+		appEvent.setEventType("IN_APP");
+		if(userId !=null){
+			appEvent.setInitiator(userId.toString());
+		}else{
+			appEvent.setInitiator("0");
+		}
+
+		log.info(appEvent.toString());
+
+		try {
+			appNotification(appEvent, token);
+
+		} catch (Exception ex) {
+			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+		}
+	}
+
+
+	public void pushInApp(String token, String name, String recipient, String message, Long userId, String category) {
+
+		InAppEvent appEvent = new InAppEvent();
+		InAppPayload data = new InAppPayload();
+		data.setMessage(message);
+
+		InAppRecipient appRecipient = new InAppRecipient();
+		appRecipient.setUserId(recipient);
 		List<InAppRecipient> addUserId = new ArrayList<>();
 		addUserId.add(appRecipient);
 
@@ -186,7 +223,7 @@ public class CustomNotification {
 		try {
 			ResponseEntity<ResponseObj<?>> responseEntity = notificationFeignClient.InAppNotify(appEvent, token);
 			ResponseObj<?> infoResponse = responseEntity.getBody();
-			log.info("user response sms sent status :: " + infoResponse.status);
+			log.info("user response in-app sent status :: " + infoResponse.status);
 		} catch (Exception e) {
 			log.error("Unable to send SMS", e.getMessage());
 			throw new CustomException(e.getMessage(), HttpStatus.EXPECTATION_FAILED);

@@ -34,13 +34,24 @@ public class ReversalSetupServiceImpl implements ReversalSetupService {
     @Override
     public ResponseEntity<?> create(Integer days) {
         try {
-            ReversalSetup reversalSetup = new ReversalSetup();
-            reversalSetup.setActive(false);
-            reversalSetup.setCreatedAt(new Date());
-            reversalSetup.setDays(days);
-            reversalSetupRepository.save(reversalSetup);
+            List<ReversalSetup> list = reversalSetupRepository.findAll();
+            if (list.size() == 0){
+                ReversalSetup reversalSetup1 = new ReversalSetup();
+                reversalSetup1.setActive(true);
+                reversalSetup1.setCreatedAt(new Date());
+                reversalSetup1.setDays(days);
+                return new ResponseEntity<>(new SuccessResponse(DAYS_ADDED, reversalSetupRepository.save(reversalSetup1)), HttpStatus.OK);
+            }else {
+                ReversalSetup reversalSetup1 = null;
+                for (int i = 0; i < list.size(); i++) {
+                    reversalSetup1 = list.get(0);
+                    reversalSetup1.setActive(true);
+                    reversalSetup1.setDays(days);
+                }
+                return new ResponseEntity<>(new SuccessResponse(DAYS_ADDED,  reversalSetupRepository.save(reversalSetup1)), HttpStatus.OK);
+            }
 
-            return new ResponseEntity<>(new SuccessResponse(DAYS_ADDED, reversalSetup), HttpStatus.OK);
+
         } catch (Exception e) {
             log.error("UNABLE TO CREATE: {}", e.getMessage());
             return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
@@ -53,7 +64,7 @@ public class ReversalSetupServiceImpl implements ReversalSetupService {
         try {
             ReversalSetup reversalSetup = reversalSetupRepository.findById(id).orElse(null);
             if (reversalSetup !=null){
-                reversalSetup.setActive(false);
+                reversalSetup.setActive(true);
                 reversalSetup.setDays(days);
                 reversalSetupRepository.save(reversalSetup);
             }
@@ -101,6 +112,12 @@ public class ReversalSetupServiceImpl implements ReversalSetupService {
         if (!reversalSetup.isPresent()){
           throw new CustomException(NO_RECORDS_FOUND,HttpStatus.NOT_FOUND);
         }else {
+            List<ReversalSetup> list = reversalSetupRepository.findAll();
+            for (ReversalSetup data: list){
+                data.setActive(false);
+                reversalSetupRepository.save(data);
+            }
+
             ReversalSetup data = reversalSetup.get();
             data.setActive(!data.isActive());
             reversalSetupRepository.save(data);

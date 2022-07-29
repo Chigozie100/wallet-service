@@ -1,8 +1,10 @@
 package com.wayapaychat.temporalwallet.service;
 
+import java.io.ByteArrayInputStream;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -43,6 +45,8 @@ public interface TransAccountService {
 
 	ResponseEntity<?> sendMoney(HttpServletRequest request, TransferTransactionDTO transfer);
 
+	ResponseEntity<?> sendMoneyToSimulatedUser(HttpServletRequest request, List<TransferSimulationDTO> transfer);
+
 	ResponseEntity<?> VirtuPaymentMoney(HttpServletRequest request, DirectTransactionDTO transfer);
 
 	ResponseEntity<?> PostExternalMoney(HttpServletRequest request, CardRequestPojo transfer, Long userId);
@@ -50,6 +54,10 @@ public interface TransAccountService {
 	ApiResponse<?> OfficialMoneyTransfer(HttpServletRequest request, OfficeTransferDTO transfer);
 
 	ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer);
+	
+	ApiResponse<?> OfficialUserTransferSystem(Map<String, String > mapp, String token, HttpServletRequest request, OfficeUserTransferDTO transfer);
+
+	ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, List<OfficeUserTransferDTO> transfer);
 
 	ApiResponse<?> createBulkTransaction(HttpServletRequest request, BulkTransactionCreationDTO bulk);
 
@@ -72,12 +80,15 @@ public interface TransAccountService {
 	ApiResponse<?> getStatement(String accountNumber);
 
 	ResponseEntity<?> EventTransferPayment(HttpServletRequest request, EventPaymentDTO eventPay);
+
+	ResponseEntity<?> EventPaymentSettlement(HttpServletRequest request, EventPaymentSettlementDTO eventPay);
+	//
 	
 	ResponseEntity<?> EventOfficePayment(HttpServletRequest request, EventOfficePaymentDTO eventPay);
 
 	ResponseEntity<?> TemporalWalletToOfficialWallet(HttpServletRequest request, TemporalToOfficialWalletDTO transfer);
 
-	//ResponseEntity<?> TemporalWalletToOfficialWalletMutiple(HttpServletRequest request, TemporalToOfficialWalletDTO transfer);
+	ResponseEntity<?> TemporalWalletToOfficialWalletMutiple(HttpServletRequest request, List<TemporalToOfficialWalletDTO> transfer);
 
 
 	ApiResponse<?> EventBuySellPayment(HttpServletRequest request, WayaTradeDTO eventPay);
@@ -87,6 +98,8 @@ public interface TransAccountService {
 	ApiResponse<?> sendMoneyCharge(HttpServletRequest request, WalletTransactionChargeDTO transfer);
 
 	ResponseEntity<?> TranReversePayment(HttpServletRequest request, ReverseTransactionDTO reverseDto) throws ParseException;
+
+	ResponseEntity<?> TranReversePaymentRevised(HttpServletRequest request, ReverseTransactionDTO reverseDto) throws ParseException;
 
 	ApiResponse<?> VirtuPaymentReverse(HttpServletRequest request, ReversePaymentDTO reverseDto) throws ParseException;
 
@@ -118,6 +131,8 @@ public interface TransAccountService {
 
 	ResponseEntity<?> getListOfNonWayaTransfers(HttpServletRequest request, String userId, int page, int  size);
 
+	ResponseEntity<?> listOfNonWayaTransfers(HttpServletRequest request, int page, int  size);
+
 	ApiResponse<?> EventNonRedeem(HttpServletRequest request, NonWayaPaymentDTO transfer);
 
 	ApiResponse<?> EventNonRedeemMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer);
@@ -130,7 +145,16 @@ public interface TransAccountService {
 
 	ResponseEntity<?> TransferNonPaymentMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer);
 
+	ResponseEntity<?> TransferNonPaymentMultipleUpload(HttpServletRequest request, MultipartFile file);
+
+	ResponseEntity<?> TransferNonPaymentSingleWayaOfficial(HttpServletRequest request, NonWayaPaymentMultipleOfficialDTO transfer);
+
+
 	ResponseEntity<?> TransferNonPaymentMultipleWayaOfficial(HttpServletRequest request, List<NonWayaPaymentMultipleOfficialDTO> transfer);
+
+	ResponseEntity<?> TransferNonPaymentWayaOfficialExcel(HttpServletRequest request, MultipartFile file);
+
+	ByteArrayInputStream createExcelSheet(String isNoneWaya);
 
 	ResponseEntity<?> NonWayaPaymentRedeem(HttpServletRequest request, NonWayaRedeemDTO transfer);
 
@@ -162,5 +186,8 @@ public interface TransAccountService {
 	ResponseEntity<?>  getPendingNoneWayaPaymentRequestAmount(String userId);
 	ResponseEntity<?>  getExpierdNoneWayaPaymentRequestAmount(String userId);
 
+	ResponseEntity<?>  debitTransactionAmount();
+	ResponseEntity<?>  creditTransactionAmount();
+	ResponseEntity<?>  debitAndCreditTransactionAmount();
 
 }

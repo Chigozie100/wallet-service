@@ -9,11 +9,10 @@ import javax.validation.constraints.Size;
 import java.math.BigDecimal;
 
 @Data
-public class NonWayaPaymentMultipleOfficialDTO {
-
+public class NoneWayaPaymentRequest {
     @NotBlank(message = "Official Account must not Null or Blank")
     @Size(min=10, max=15, message = "Official Account must be 15 digit")
-    private String officialAccountNumber;
+    private String customerAccountNumber;
 
     @NotBlank(message = "EmailOrPhone must not be Null or Blank")
     @Size(min=1, max=50, message = "EmailOrPhone must be between 1 to 50 digit")

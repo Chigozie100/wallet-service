@@ -11,13 +11,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
-import com.itextpdf.text.DocumentException;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import com.wayapaychat.temporalwallet.util.PDFExporter;
+import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -95,6 +98,15 @@ public class WalletTransactionController {
 		return transAccountService.sendMoney(request, transfer);
 	}
 
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Send Money to Wallet", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
+	@PostMapping("/sendmoney/wallet-simulated-users")
+	public ResponseEntity<?> sendMoneyForSimulatedUsers(HttpServletRequest request,
+									   @Valid @RequestBody List<TransferSimulationDTO> transfer) {
+		return transAccountService.sendMoneyToSimulatedUser(request, transfer);
+	}
+
 	@ApiOperation(value = "Notify Transaction", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/notify/transaction")
 	public ResponseEntity<?> VirtuPaymentMoney(HttpServletRequest request,
@@ -143,6 +155,21 @@ public class WalletTransactionController {
 	@PostMapping("/official/user/transfer")
 	public ResponseEntity<?> OfficialUserMoney(HttpServletRequest request,
 			@Valid @RequestBody OfficeUserTransferDTO transfer) {
+		ApiResponse<?> res = transAccountService.OfficialUserTransfer(request, transfer);
+		if (!res.getStatus()) {
+			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+		}
+		log.info("Send Money: {}", transfer);
+		return new ResponseEntity<>(res, HttpStatus.OK);
+	}
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "To transfer money from one waya official account to multiple user wallets", notes = "Post Money", tags = {
+			"TRANSACTION-WALLET" })
+	@PostMapping("/official/user/transfer-multiple")
+	public ResponseEntity<?> OfficialUserMoneyMultiple(HttpServletRequest request,
+											   @Valid @RequestBody List<OfficeUserTransferDTO> transfer) {
 		ApiResponse<?> res = transAccountService.OfficialUserTransfer(request, transfer);
 		if (!res.getStatus()) {
 			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
@@ -409,6 +436,16 @@ public class WalletTransactionController {
 
 	}
 
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Event and Service Payment for Merchant Settlement", notes = "Transfer amount from one wallet to another wallet", tags = {
+			"TRANSACTION-WALLET" })
+	@PostMapping("/event/charge/payment-merchant-settlement")
+	public ResponseEntity<?> EventPaymentSettlement(HttpServletRequest request, @RequestBody() EventPaymentSettlementDTO walletDto) {
+		return transAccountService.EventPaymentSettlement(request, walletDto);
+
+	}
+
 	// Wallet call by other service
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
@@ -429,9 +466,14 @@ public class WalletTransactionController {
 		return transAccountService.TemporalWalletToOfficialWallet(request, walletDto);
 
 	}
-
-
-	//
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Office Event: Temporal - Official Transfer Multiple", notes = "Transfer amount from Temporal wallet to Official wallet mutiliple transaction", tags = {
+			"TRANSACTION-WALLET" })
+	@PostMapping("/event/office/temporal-to-official-multiple")
+	public ResponseEntity<?> TemporalToOfficialWalletDTO(HttpServletRequest request, @RequestBody() List<TemporalToOfficialWalletDTO> walletDto) {
+		return transAccountService.TemporalWalletToOfficialWalletMutiple(request, walletDto);
+	}
 
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
@@ -452,6 +494,7 @@ public class WalletTransactionController {
 			"TRANSACTION-WALLET" })
 	@PostMapping("/non-waya/transaction/payment")
 	public ResponseEntity<?> NonWayaPaymentX(HttpServletRequest request, @RequestBody() NonWayaPaymentDTO walletDto) {
+		System.out.println("HERE  IS THE ENTRY POINT");
 		ApiResponse<?> res = transAccountService.EventNonPayment(request, walletDto);
 		if (!res.getStatus()) {
 			return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
@@ -601,6 +644,25 @@ public class WalletTransactionController {
 		return transAccountService.TransferNonPaymentMultiple(request, walletDto);
 	}
 
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Admin send Non-Waya Payment with excel upload on behalf of users", notes = "Admin send Non-Waya Payment with excel upload on behalf of users", tags = {
+			"TRANSACTION-WALLET" })
+	@PostMapping(path = "/non-waya/payment/new-multiple-excel-upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> NonWayaPaymentMultipleUpload(HttpServletRequest request, @RequestPart("file") MultipartFile file) {
+		return transAccountService.TransferNonPaymentMultipleUpload(request, file);
+	}
+
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Non-Waya Payment for Single transaction by waya official", notes = "Transfer amount from user wallet to Non-waya for single transaction by waya  official", tags = {
+			"TRANSACTION-WALLET" })
+	@PostMapping("/non-waya/payment/new-single-waya-official")
+	public ResponseEntity<?> NonWayaPaymentSingleWayaOfficial(HttpServletRequest request,
+																@Valid @RequestBody() NonWayaPaymentMultipleOfficialDTO walletDto) {
+		return transAccountService.TransferNonPaymentSingleWayaOfficial(request, walletDto);
+	}
 
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
@@ -612,7 +674,30 @@ public class WalletTransactionController {
 		return transAccountService.TransferNonPaymentMultipleWayaOfficial(request, walletDto);
 	}
 
-	//
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Waya Admin to create multiple transaction", notes = "Transfer amount from one wallet to another wallet", tags = {
+			"TRANSACTION-WALLET" })
+	@PostMapping(path = "/non-waya/payment/new-multiple-official-excel-upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<?> TransferNonPaymentWayaOfficialExcel(HttpServletRequest request, @RequestPart("file") MultipartFile file) {
+
+		return new ResponseEntity<>(transAccountService.TransferNonPaymentWayaOfficialExcel(request, file), HttpStatus.OK);
+	}
+
+	@ApiOperation(value = "Download Template for Bulk User Creation ", tags = { "ADMIN" })
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiResponses(value = { @io.swagger.annotations.ApiResponse(code = 200, message = "Response Headers") })
+	@GetMapping("/download/bulk-none-waya-excel")
+	public ResponseEntity<Resource> getFile(@RequestParam("isNoneWaya") String isNoneWaya) {
+		String filename = "bulk-none-waya-excel.xlsx";
+		InputStreamResource file = new InputStreamResource(transAccountService.createExcelSheet(isNoneWaya));
+		return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
+				.contentType(
+						MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+				.body(file);
+	}
 
 
 	@ApiImplicitParams({
@@ -627,6 +712,17 @@ public class WalletTransactionController {
 		return transAccountService.getListOfNonWayaTransfers(request, userId, page, size);
 	}
 
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Non-Waya Payment list", notes = "Non-Waya Payment list", tags = {
+			"TRANSACTION-WALLET" })
+	@GetMapping("/non-waya/payment/list-transactions")
+	public ResponseEntity<?> listOfNonWayaTransfers(HttpServletRequest request,
+													   @RequestParam(defaultValue = "0") int page,
+													   @RequestParam(defaultValue = "10") int size) {
+		return transAccountService.listOfNonWayaTransfers(request, page, size);
+	}
 
 	// Wallet call by other service
 	@ApiImplicitParams({
@@ -715,6 +811,18 @@ public class WalletTransactionController {
 			@RequestBody() ReverseTransactionDTO reverseDto) throws ParseException {
 		return transAccountService.TranReversePayment(request, reverseDto);
 	}
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Admin Transaction Reversal for faild transactions", notes = "Transfer amount from one wallet to another wallet", tags = {
+			"TRANSACTION-WALLET" })
+	@PostMapping("/transaction/reverse-failed-transaction")
+	public ResponseEntity<?> PaymentReversalRevised(HttpServletRequest request,
+											 @RequestBody() ReverseTransactionDTO reverseDto) throws ParseException {
+		return transAccountService.TranReversePaymentRevised(request, reverseDto);
+	}
+
+
 
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
@@ -967,10 +1075,10 @@ public class WalletTransactionController {
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "To Export Account Transaction ", notes = "Account Statement", tags = { "TRANSACTION-WALLET" })
 	@GetMapping("/transaction/export/pdf/{accountNo}")
-	public String exportToPDF(HttpServletResponse response,
+	public ResponseEntity<?> exportToPDF(HttpServletResponse response,
 							  @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
 							  @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
-							  @PathVariable String accountNo) throws DocumentException, IOException, com.lowagie.text.DocumentException {
+							  @PathVariable String accountNo) throws IOException, com.lowagie.text.DocumentException {
 		response.setContentType("application/pdf");
 		DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
 		String currentDateTime = dateFormatter.format(new Date());
@@ -979,11 +1087,40 @@ public class WalletTransactionController {
 		String headerValue = "attachment; filename=receipt_" + currentDateTime + ".pdf";
 		response.setHeader(headerKey, headerValue);
 		List<TransWallet> res = transAccountService.statementReport2(fromdate, todate, accountNo);
-		//OrgAndReceiptUtil receipt = transactionOperations.exportPDF(referenceNumber);
+
 		PDFExporter exporter = new PDFExporter(res,accountNo,fromdate,todate);
 		exporter.export(response);
+		return new ResponseEntity<>(headerValue, HttpStatus.BAD_REQUEST);
 
-		return headerValue;
 	}
+
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Total Credit Transactions Amount", notes = "Total Credit Transactions", tags = { "TRANSACTION-WALLET" })
+	@GetMapping("/transaction/total-credit")
+	public ResponseEntity<?> totalCreditTransaction() {
+		return transAccountService.creditTransactionAmount();
+	}
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Total Debit Transactions Amount", notes = "Total Debit Transactions", tags = { "TRANSACTION-WALLET" })
+	@GetMapping("/transaction/total-debit")
+	public ResponseEntity<?> totalDebitTransaction() {
+		return transAccountService.debitTransactionAmount();
+	}
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Total Credit And Debit Transactions Amount", notes = "Total Credit And Debit Transactions", tags = { "TRANSACTION-WALLET" })
+	@GetMapping("/transaction/total-credit-debit")
+	public ResponseEntity<?> totalCreditAndDebitTransaction() {
+		return transAccountService.debitAndCreditTransactionAmount();
+	}
+
+
+
+
 
 }

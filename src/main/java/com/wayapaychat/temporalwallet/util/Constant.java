@@ -8,11 +8,19 @@ public class Constant {
     public static final String WAYA_SETTLEMENT_ACCOUNT_NO = "4PC17PXGIY";
     public static final String WAYA_COMMISSION_ACCOUNT_NO = "DG66UJRLHA";
     public static final String TRANSACTION_HAS_OCCURRED = "A transaction Occurred";
+    public static final String BANK_TRANSACTION = "BANK_TRANSACTION";
+    public static final String SIMULATED_TRANSACTION = "SIMULATED_TRANSACTION";
+    public static final String VIRTUAL_TRANSACTION = "VIRTUAL_TRANSACTION";
+    public static final String ADMIN_TRANSACTION = "ADMIN_TRANSACTION";
+    public static final String COMMISSION = "COMMISSION";
+    public static final String TRANSFER = "TRANSFER";
     public static final String TRANSACTION_PAYOUT = "Transaction Payout";
     public static final String TRANSACTION_REJECTED = "Transaction Rejected";
 
     public static final String NON_WAYA_REDEEM = "Payment Request has been redeemed";
     public static final String NON_WAYA_PAYMENT_REQUEST = "None Waya Payment Request";
+
+    public static final String WAYA_POS_SETTLEMENT = "Waya Pos Settlement";
 
     public static final String WAYA_REDEEM = "Payment Request has been redeemed";
     public static final String RETRIEVE_DATA = "Retrieve Data";

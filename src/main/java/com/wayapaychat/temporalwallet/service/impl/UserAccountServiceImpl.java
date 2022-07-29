@@ -10,32 +10,18 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.wayapaychat.temporalwallet.dto.*;
+import com.wayapaychat.temporalwallet.exception.CustomException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
-import com.wayapaychat.temporalwallet.dto.AccountCloseDTO;
-import com.wayapaychat.temporalwallet.dto.AccountDetailDTO;
-import com.wayapaychat.temporalwallet.dto.AccountFreezeDTO;
-import com.wayapaychat.temporalwallet.dto.AccountLienDTO;
-import com.wayapaychat.temporalwallet.dto.AccountProductDTO;
-import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
-import com.wayapaychat.temporalwallet.dto.AccountToggleDTO;
-import com.wayapaychat.temporalwallet.dto.AdminAccountRestrictionDTO;
-import com.wayapaychat.temporalwallet.dto.NewWalletAccount;
-import com.wayapaychat.temporalwallet.dto.OfficialAccountDTO;
-import com.wayapaychat.temporalwallet.dto.SecureDTO;
-import com.wayapaychat.temporalwallet.dto.UserAccountDTO;
-import com.wayapaychat.temporalwallet.dto.UserAccountDelete;
-import com.wayapaychat.temporalwallet.dto.UserDTO;
-import com.wayapaychat.temporalwallet.dto.WalletCashAccountDTO;
-import com.wayapaychat.temporalwallet.dto.WalletEventAccountDTO;
-import com.wayapaychat.temporalwallet.dto.WalletUserDTO;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.entity.WalletEventCharges;
 import com.wayapaychat.temporalwallet.entity.WalletProduct;
@@ -727,7 +713,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Default Wallet Not Created"), HttpStatus.BAD_REQUEST);
 		}
 		if (!y.getEmailAddress().equals(x.getEmailAddress())) {
-			return new ResponseEntity<>(new ErrorResponse("Wallet Data Integity.please contact Admin"),
+			return new ResponseEntity<>(new ErrorResponse("Wallet Data Integrity.please contact Admin"),
 					HttpStatus.BAD_REQUEST);
 		} else if (y.getEmailAddress().equals(x.getEmailAddress())) {
 			WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
@@ -1229,6 +1215,23 @@ public class UserAccountServiceImpl implements UserAccountService {
 	}
 
 	@Override
+	public ArrayList<Object> createOfficialAccount(List<OfficialAccountDTO> account) {
+		ResponseEntity<?> responseEntity = null;
+		ArrayList<Object> objectArrayList = new ArrayList<>();
+		try{
+			for(OfficialAccountDTO data: account){
+
+				responseEntity = createOfficialAccount(data);
+				objectArrayList.add(responseEntity.getBody());
+			}
+			return objectArrayList;
+
+		} catch (Exception e) {
+			throw new CustomException(e.getMessage(), HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@Override
 	public ResponseEntity<?> AccountAccessDelete(UserAccountDelete user) {
 		try {
 
@@ -1312,7 +1315,42 @@ public class UserAccountServiceImpl implements UserAccountService {
 					HttpStatus.BAD_REQUEST);
 		}
 	}
+	@Override
+	public ResponseEntity<?>  AccountAccessBlockAndUnblock(AccountBlockDTO user) {
+		try {
 
+			WalletAccount account = walletAccountRepository.findByAccountNo(user.getCustomerAccountNo());
+			if (account == null) {
+				return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"), HttpStatus.NOT_FOUND);
+			}
+
+			if (account.isAcct_cls_flg() && account.getClr_bal_amt() != 0) {
+				return new ResponseEntity<>(
+						new ErrorResponse("Account balance must be equal to zero before it can be closed"),
+						HttpStatus.NOT_FOUND);
+			} else {
+				if (account.isAcct_cls_flg())
+					return new ResponseEntity<>(new ErrorResponse("Account already blocked"), HttpStatus.NOT_FOUND);
+			}
+
+			if(user.isBlock()){
+				account.setAcct_cls_date(LocalDate.now());
+				account.setAcct_cls_flg(true);
+				walletAccountRepository.save(account);
+				return new ResponseEntity<>(new SuccessResponse("Account blocked successfully.", account), HttpStatus.OK);
+
+			}else{
+				account.setAcct_cls_date(LocalDate.now());
+				account.setAcct_cls_flg(true);
+				walletAccountRepository.save(account);
+				return new ResponseEntity<>(new SuccessResponse("Account Unblock successfully.", account), HttpStatus.OK);
+
+			}
+ 		} catch (Exception e) {
+			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage() + " : " + e.getMessage()),
+					HttpStatus.BAD_REQUEST);
+		}
+	}
 	@Override
 	public ResponseEntity<?> AccountAccessClosure(AccountCloseDTO user) {
 		try {
@@ -1330,6 +1368,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 				if (account.isAcct_cls_flg())
 					return new ResponseEntity<>(new ErrorResponse("Account already closed"), HttpStatus.NOT_FOUND);
 			}
+
 
 			if (account.getClr_bal_amt() == 0) {
 				account.setAcct_cls_date(LocalDate.now());
@@ -1435,5 +1474,22 @@ public class UserAccountServiceImpl implements UserAccountService {
 		
 		return new ResponseEntity<>(new SuccessResponse("ACCOUNT SEARCH", mAccount), HttpStatus.OK);
 	}
+
+
+	public ResponseEntity<?>  getTotalActiveAccount(){
+		BigDecimal count = walletAccountRepository.totalActiveAccount();
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
+	}
+
+	public ResponseEntity<?>  countActiveAccount(){
+		long count = walletAccountRepository.countActiveAccount();
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
+	}
+
+	public ResponseEntity<?>  countInActiveAccount(){
+		long count = walletAccountRepository.countInActiveAccount();
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
+	}
+
 
 }

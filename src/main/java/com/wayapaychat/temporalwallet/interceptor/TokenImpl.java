@@ -1,6 +1,9 @@
 package com.wayapaychat.temporalwallet.interceptor;
 
+import com.wayapaychat.temporalwallet.dto.TokenData;
+import com.wayapaychat.temporalwallet.util.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -12,13 +15,20 @@ import com.wayapaychat.temporalwallet.proxy.AuthProxy;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.HashMap;
+
 @Service
 @Slf4j
 public class TokenImpl {
 	
 	@Autowired
 	private AuthProxy authProxy;
-	
+
+
+	@Autowired
+	private Environment environment;
+
+
 	public MyData getUserInformation() {
 		MyData data = null;
 		try {
@@ -57,6 +67,24 @@ public class TokenImpl {
 			data = null;
 		}
 		return data;
+	}
+
+	public String getToken() {
+
+		try {
+			HashMap<String, String> map = new HashMap();
+			map.put("emailOrPhoneNumber",  environment.getProperty("waya.service.username"));
+			map.put("password", environment.getProperty("waya.service.password"));
+
+
+			TokenCheckResponse tokenData = authProxy.getToken(map);
+
+			return tokenData.getData().getToken();
+
+		} catch (Exception ex) {
+			throw new CustomException(ex.getMessage(), HttpStatus.NOT_FOUND);
+		}
+
 	}
 
 }

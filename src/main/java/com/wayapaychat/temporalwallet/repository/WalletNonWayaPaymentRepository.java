@@ -16,7 +16,7 @@ import org.springframework.data.repository.query.Param;
 public interface WalletNonWayaPaymentRepository extends JpaRepository<WalletNonWayaPayment, Long> {
 	
 	@Query("SELECT u FROM WalletNonWayaPayment u " + "WHERE UPPER(u.tokenId) = UPPER(:tokenId) " + " AND u.del_flg = false"
-			+ " AND u.crncyCode = UPPER(:tranCrncy)")
+			+ " AND u.crncyCode = UPPER(:tranCrncy)"+ "order by  u.createdAt DESC ")
 	Optional<WalletNonWayaPayment> findByTransaction(String tokenId, String tranCrncy);
 
 	@Query("SELECT u FROM WalletNonWayaPayment u WHERE u.status =:status and u.del_flg = false order by u.id")
@@ -40,6 +40,9 @@ public interface WalletNonWayaPaymentRepository extends JpaRepository<WalletNonW
 
 	@Query("SELECT u FROM WalletNonWayaPayment u WHERE u.createdBy =:userId order by u.createdAt desc")
 	Page<WalletNonWayaPayment> findAllByCreatedBy(String userId, Pageable pageable);
+
+	@Query("SELECT u FROM WalletNonWayaPayment u order by u.createdAt desc")
+	Page<WalletNonWayaPayment> findAllDetails(Pageable pageable);
 
 	@Query("SELECT count(u.id) FROM WalletNonWayaPayment u WHERE u.createdBy =:userId and u.status ='PENDING' ")
 	long findAllByPending(String userId);
