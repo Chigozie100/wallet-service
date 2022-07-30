@@ -957,6 +957,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> getUserAccountList(long userId) {
+		System.out.println("USER ID" + userId);
 		int uId = (int) userId;
 		UserDetailPojo ur = authService.AuthUser(uId);
 		if (ur == null) {

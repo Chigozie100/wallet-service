@@ -55,8 +55,14 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.acctNum) = UPPER(:wayaNo) " + " AND u.del_flg = false" + " AND u.tranDate BETWEEN  (:fromtranDate)" + " AND (:totranDate)" + " order by u.tranDate DESC ")
 	List<WalletTransaction> findByOfficialAccount(LocalDate fromtranDate, LocalDate totranDate, String wayaNo);
 	
-	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.acctNum) LIKE UPPER('NGN%') " + " AND u.del_flg = false" + " order by u.tranDate DESC ")
+	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.acctNum) LIKE UPPER('NGN%') " + " AND u.del_flg = false" + " order by u.createdAt DESC ")
 	Page<WalletTransaction> findByAccountOfficial(Pageable pageable);
+
+	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.acctNum) LIKE UPPER('NGN%') " + " AND u.del_flg = false" + " AND u.partTranType = 'C'"  +" AND u.partTranType = 'D'" + " order by u.createdAt DESC ")
+	Page<WalletTransaction> findByAccountOfficial2(Pageable pageable);
+
+	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.acctNum) LIKE UPPER('NGN%') AND u.del_flg = false AND u.partTranType =: partTranType " + " order by u.createdAt DESC ")
+	Page<WalletTransaction> findByAccountOfficial3(Pageable pageable, @Param("partTranType") String partTranType);
 
 
 	@Query("SELECT sum(u.tranAmount) FROM WalletTransaction u " + "WHERE u.partTranType = 'D'" + " AND u.del_flg = false")
