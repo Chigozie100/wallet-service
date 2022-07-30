@@ -2385,7 +2385,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 							HttpStatus.BAD_REQUEST);
 				}
 
-				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", transaction), HttpStatus.CREATED);
+				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION SUCCESSFULL", transaction), HttpStatus.CREATED);
 
 //				Date tDate = Calendar.getInstance().getTime();
 				Date tDate = new Date();
@@ -2551,7 +2551,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
 							HttpStatus.BAD_REQUEST);
 				}
-				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", transaction), HttpStatus.CREATED);
+				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION SUCCESSFULl", transaction), HttpStatus.CREATED);
 				log.info("Transaction Response: {}", resp.toString());
 
 				Date tDate = new Date();
@@ -2649,7 +2649,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction);
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
@@ -2714,7 +2714,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction);
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
@@ -2807,7 +2807,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction);
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
@@ -2855,7 +2855,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			resObjects.add(response.getData());
 		}
 
-		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", resObjects);
+		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", resObjects);
 	}
 
 	public ApiResponse<?> AdminsendMoney(HttpServletRequest request, AdminLocalTransferDTO transfer) {
@@ -2901,7 +2901,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction.get());
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction.get());
 
 				Date tDate = Calendar.getInstance().getTime();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
@@ -3013,7 +3013,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction.get());
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction.get());
 
 				Date tDate = Calendar.getInstance().getTime();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
@@ -3101,7 +3101,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction.get());
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction.get());
 
 				Date tDate = Calendar.getInstance().getTime();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
@@ -3181,7 +3181,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				if (!transaction.isPresent()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction.get());
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction.get());
 
 				Date tDate = Calendar.getInstance().getTime();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
@@ -3284,9 +3284,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction);
 
-				Date tDate = Calendar.getInstance().getTime();
+				Date tDate = new Date();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 				String tranDate = dateFormat.format(tDate);
 
@@ -3376,7 +3376,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		CategoryType tranCategory = CategoryType.valueOf("TRANSFER");
 
-		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
+		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID ACCOUNT NO", null);
 		try {
 			int intRec = tempwallet.PaymenttranInsert("WAYAADMTOCUS", fromAccountNumber, toAccountNumber, transfer.getAmount(),
 					transfer.getPaymentReference());
@@ -3396,9 +3396,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction);
 
-				Date tDate = Calendar.getInstance().getTime();
+				Date tDate = new Date();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 				String tranDate = dateFormat.format(tDate);
 
@@ -3507,7 +3507,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
+				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction);
 
 				Date tDate = new Date();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
@@ -6875,9 +6875,9 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	}
 
 	@Override
-	public ApiResponse<?> PaymentOffTrans(int page, int size) {
+	public ApiResponse<?> PaymentOffTrans(int page, int size, String fillter) {
 		Pageable pagable = PageRequest.of(page,size);
-		Page<WalletTransaction> walletTransactionPage = walletTransactionRepository.findByAccountOfficial(pagable);
+		Page<WalletTransaction> walletTransactionPage = walletTransactionRepository.findByAccountOfficial3(pagable,fillter);
 		List<WalletTransaction> transaction = walletTransactionPage.getContent();
 		Map<String, Object> response = new HashMap<>();
 
@@ -7741,7 +7741,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 								mPayRequest.setReceiverId(mPay.getReceiverId());
 								mPayRequest.setStatus(PaymentRequestStatus.PAID);
 								walletPaymentRequestRepo.save(mPayRequest);
-					 	return new ResponseEntity<>(res.getBody(), HttpStatus.CREATED);
+								return res;
 							}
 						}catch (Exception e){
 							throw new CustomException(e.getMessage(), HttpStatus.EXPECTATION_FAILED);
@@ -7782,7 +7782,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 				  return new ResponseEntity<>(new ErrorResponse(tokenResponse.getMessage()), HttpStatus.BAD_REQUEST);
 			
 			if (tokenResponse.isStatus())
-				log.info("Authorizated Transaction Token: {}", tokenResponse.toString());
+				log.info("Authorized Transaction Token: {}", tokenResponse.toString());
 
 			return new ResponseEntity<>(new SuccessResponse("SUCCESS", tokenResponse), HttpStatus.CREATED);
 

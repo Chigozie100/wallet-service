@@ -898,10 +898,12 @@ public class WalletTransactionController {
 	@ApiOperation(value = "To List Official Transaction activities", notes = "Transfer amount from one wallet to another wallet", tags = {
 			"TRANSACTION-WALLET" })
 	@GetMapping("/official/transaction")
-	public ResponseEntity<?> PaymentOffWaya(@RequestParam( defaultValue = "0") int page, @RequestParam( defaultValue = "10") int size) {
+	public ResponseEntity<?> PaymentOffWaya(@RequestParam( defaultValue = "0") int page,
+											@RequestParam( defaultValue = "10") int size,
+											@RequestParam( defaultValue = "D") String filter) {
 		ApiResponse<?> res;
 		try {
-			res = transAccountService.PaymentOffTrans(page, size);
+			res = transAccountService.PaymentOffTrans(page, size, filter);
 			if (!res.getStatus()) {
 				return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
 			}
