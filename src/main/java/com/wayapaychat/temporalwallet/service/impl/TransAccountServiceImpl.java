@@ -1726,7 +1726,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 	}
 
-	public ResponseEntity<?> CommissionPayment(HttpServletRequest request, EventPaymentDTO transfer) {
+	public ResponseEntity<?> CommissionPayment(HttpServletRequest request, EventPaymentDTO transfer){
 		log.info("Transaction Request Creation: {}", transfer.toString());
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
@@ -1783,8 +1783,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 						tranDate, transfer.getTranNarration()));
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
 						message, userToken.getId()));
-				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getUserId().toString(),
-						message, userToken.getId(),COMMISSION));
+
+
+				// send commission to
+//				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getUserId().toString(),
+//						message, userToken.getId(),COMMISSION));
 			} else {
 				if (intRec == 2) {
 					return new ResponseEntity<>(new ErrorResponse("UNABLE TO PROCESS DUPLICATE TRANSACTION REFERENCE"),
@@ -3015,7 +3018,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction.get());
 
-				Date tDate = Calendar.getInstance().getTime();
+				Date tDate = new Date();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 				String tranDate = dateFormat.format(tDate);
 
@@ -3757,6 +3760,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 
 		}
+			// credit merchant wallet
+			//
 			// To generate transaction receipt
 
 			log.info("END TRANSACTION");
@@ -3772,6 +3777,15 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return ("DJGO|" + e.getMessage());
 		}
 
+	}
+
+	private void creditMerchantForIncomingFund(Long userId){
+		UserDetailPojo user = authService.AuthUser(userId.intValue());
+		if (user !=null && user.is_corporate()) {
+
+			//  fund user Commission wallet
+
+		}
 	}
 
 	public String createChargeTransaction(String debitAcctNo, String creditAcctNo, String tranCrncy, BigDecimal amount,
@@ -6004,11 +6018,35 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String receiverName2 = accountCredit.getAcct_name();
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
 					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
+
+
+
+
+			sendInApp( token,  accountCredit,  tranId,  new Date().toString(), tranCrncy, amount, tokenData, tranNarration,tranCategory);
+
+
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ("DJGO|" + e.getMessage());
 		}
+
+	}
+
+	private void sendInApp(String token, WalletAccount accountCredit, String tranId, String tranDate, String tranCrncy, BigDecimal amount, MyData tokenData, String tranNarration, CategoryType categoryType){
+		//WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber.getAccountNo());
+		WalletUser xUser = walletUserRepository.findByAccount(accountCredit);
+		String xfullName = xUser.getFirstName() + " " + xUser.getLastName();
+
+		String message1 = formatCreditMessage(amount, tranId, tranDate, tranCrncy,
+				tranNarration);
+		CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, xfullName,
+				xUser.getEmailAddress(), message1, tokenData.getId(), amount.toString(), tranId,
+				tranDate, tranNarration));
+		CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName, xUser.getMobileNo(),
+				message1, xUser.getId()));
+		CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, xUser.getUserId().toString(),
+				message1, tokenData.getId(),COMMISSION));
 
 	}
 //BankPaymentOffice
@@ -7515,6 +7553,20 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 		String message = "" + "\n";
 		message = message + "" + "Message :" + "A reversal transaction has occurred"
+				+ "  on your account see details below" + "\n";
+		message = message + "" + "Amount :" + amount + "\n";
+		message = message + "" + "tranId :" + tranId + "\n";
+		message = message + "" + "tranDate :" + tranDate + "\n";
+		message = message + "" + "Currency :" + tranCrncy + "\n";
+		message = message + "" + "Narration :" + narration + "\n";
+		return message;
+	}
+
+	public String formatCreditMessage(BigDecimal amount, String tranId, String tranDate, String tranCrncy,
+									 String narration) {
+
+		String message = "" + "\n";
+		message = message + "" + "Message :" + "A credit transaction has occurred"
 				+ "  on your account see details below" + "\n";
 		message = message + "" + "Amount :" + amount + "\n";
 		message = message + "" + "tranId :" + tranId + "\n";

@@ -1342,7 +1342,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 			}else{
 				account.setAcct_cls_date(LocalDate.now());
-				account.setAcct_cls_flg(true);
+				account.setAcct_cls_flg(false);
 				walletAccountRepository.save(account);
 				return new ResponseEntity<>(new SuccessResponse("Account Unblock successfully.", account), HttpStatus.OK);
 
