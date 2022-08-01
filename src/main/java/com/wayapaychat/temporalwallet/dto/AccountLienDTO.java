@@ -18,7 +18,6 @@ public class AccountLienDTO {
 	private String customerAccountNo;
 	
 //	@JsonIgnore
-	@NotNull
 	private boolean isLien;
 	
 	@NotNull
