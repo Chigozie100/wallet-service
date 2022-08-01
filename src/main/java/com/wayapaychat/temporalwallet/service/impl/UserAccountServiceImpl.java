@@ -957,6 +957,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> getUserAccountList(long userId) {
+		System.out.println("USER ID" + userId);
 		int uId = (int) userId;
 		UserDetailPojo ur = authService.AuthUser(uId);
 		if (ur == null) {
@@ -1324,14 +1325,14 @@ public class UserAccountServiceImpl implements UserAccountService {
 				return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"), HttpStatus.NOT_FOUND);
 			}
 
-			if (account.isAcct_cls_flg() && account.getClr_bal_amt() != 0) {
-				return new ResponseEntity<>(
-						new ErrorResponse("Account balance must be equal to zero before it can be closed"),
-						HttpStatus.NOT_FOUND);
-			} else {
-				if (account.isAcct_cls_flg())
-					return new ResponseEntity<>(new ErrorResponse("Account already blocked"), HttpStatus.NOT_FOUND);
-			}
+//			if (account.isAcct_cls_flg() && account.getClr_bal_amt() != 0) {
+//				return new ResponseEntity<>(
+//						new ErrorResponse("Account balance must be equal to zero before it can be closed"),
+//						HttpStatus.NOT_FOUND);
+//			} else {
+//				if (account.isAcct_cls_flg())
+//					return new ResponseEntity<>(new ErrorResponse("Account already blocked"), HttpStatus.NOT_FOUND);
+//			}
 
 			if(user.isBlock()){
 				account.setAcct_cls_date(LocalDate.now());
