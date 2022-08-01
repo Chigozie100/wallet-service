@@ -94,6 +94,7 @@ public class WalletUserAccountController {
     }
 
 
+
     @ApiOperation(value = " Block / UnBlock", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/account/block")
     public ResponseEntity<?> postAccountBlock(@Valid @RequestBody AccountBlockDTO user) {
@@ -116,7 +117,8 @@ public class WalletUserAccountController {
         return userAccountService.AccountAccessClosureMultiple(user);
     }
 
-
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Transaction account block / unblock", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/account/lien/transaction")
     public ResponseEntity<?> postAccountLien(@Valid @RequestBody AccountLienDTO user) {
