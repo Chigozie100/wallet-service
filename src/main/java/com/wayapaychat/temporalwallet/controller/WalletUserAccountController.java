@@ -100,8 +100,9 @@ public class WalletUserAccountController {
         log.info("Request input: {}",user);
         return userAccountService.AccountAccessBlockAndUnblock(user);
     }
-	
-	@ApiOperation(value = "Delete Account / Block / UnBlock", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+
+
+    @ApiOperation(value = "Delete Account / Block / UnBlock", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/account/closure")
     public ResponseEntity<?> postAccountClosure(@Valid @RequestBody AccountCloseDTO user) {
 		log.info("Request input: {}",user);
@@ -114,10 +115,11 @@ public class WalletUserAccountController {
         log.info("Request input: {}",user);
         return userAccountService.AccountAccessClosureMultiple(user);
     }
-	
-	@ApiOperation(value = "Transaction account block / unblock", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+
+
+    @ApiOperation(value = "Transaction account block / unblock", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/account/lien/transaction")
-    public ResponseEntity<?> postAccountLien(@Valid @RequestBody AccountLienDTO user, @RequestParam("isLien") boolean isLien) {
+    public ResponseEntity<?> postAccountLien(@Valid @RequestBody AccountLienDTO user) {
 		log.info("Request input: {}",user);
 		return userAccountService.AccountAccessLien(user);
     }
