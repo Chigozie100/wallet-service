@@ -2227,6 +2227,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Override
 	public ResponseEntity<?> sendMoneyToSimulatedUser(HttpServletRequest request, List<TransferSimulationDTO> transfer) {
+		// check that only admin can perform this action
+
 		ResponseEntity<?> resp = null;
 		ArrayList<Object> rpp = new ArrayList<>();
 		try{
@@ -2243,6 +2245,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 	public ResponseEntity<?> MoneyTransferSimulation(HttpServletRequest request, TransferSimulationDTO transfer, boolean isSimulated) {
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
+
+		if(!userToken.isCorporate()){
+			return new ResponseEntity<>(new ErrorResponse("ONLY ADMIN CAN PERFORM THIS ACTION"), HttpStatus.BAD_REQUEST);
+		}
 
 		if (userToken == null) {
 			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
@@ -2390,7 +2396,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION SUCCESSFULL", transaction), HttpStatus.CREATED);
 
-//				Date tDate = Calendar.getInstance().getTime();
 				Date tDate = new Date();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 				String tranDate = dateFormat.format(tDate);
