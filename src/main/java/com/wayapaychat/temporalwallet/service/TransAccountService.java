@@ -79,10 +79,12 @@ public interface TransAccountService {
 
 	ApiResponse<?> getStatement(String accountNumber);
 
+	ResponseEntity<?> EventReversePaymentRequest(HttpServletRequest request, EventPaymentRequestReversal eventPay);
+
 	ResponseEntity<?> EventTransferPayment(HttpServletRequest request, EventPaymentDTO eventPay);
 
 	ResponseEntity<?> EventPaymentSettlement(HttpServletRequest request, EventPaymentSettlementDTO eventPay);
-	//
+
 	
 	ResponseEntity<?> EventOfficePayment(HttpServletRequest request, EventOfficePaymentDTO eventPay);
 
