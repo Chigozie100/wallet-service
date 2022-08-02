@@ -273,7 +273,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
 
-				Date tDate = Calendar.getInstance().getTime();
+				Date tDate = new Date();
 				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
 				String tranDate = dateFormat.format(tDate);
 
@@ -5926,7 +5926,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// **********************************************
 			if (!accountDebit.getAcct_ownership().equals("O")) {
 				if (accountDebit.isAcct_cls_flg())
-					return "DJGO|DEBIT ACCOUNT IS CLOSED";
+					return "DJGO|DEBIT ACCOUNT IS CLOSED || BLOCKED";
 				log.info("Debit Account is: {}", accountDebit.getAccountNo());
 				log.info("Debit Account Freeze Code is: {}", accountDebit.getFrez_code());
 				if (accountDebit.getFrez_code() != null) {
@@ -6650,6 +6650,79 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		}
 		statement = new WalletAccountStatement(new BigDecimal(account.getClr_bal_amt()), transaction);
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", statement);
+	}
+
+	private void updatePaymentRequestStatus(String reference){
+		Optional<WalletNonWayaPayment> walletNonWayaPayment = walletNonWayaPaymentRepo.findByToken(reference);
+		if(walletNonWayaPayment.isPresent()){
+			WalletNonWayaPayment walletNonWayaPayment1 = walletNonWayaPayment.get();
+			walletNonWayaPayment1.setStatus(PaymentStatus.RESERVED);
+			walletNonWayaPaymentRepo.save(walletNonWayaPayment1);
+		}
+		Optional<WalletPaymentRequest> walletPaymentRequest = walletPaymentRequestRepo.findByReference(reference);
+		if(walletPaymentRequest.isPresent()){
+			WalletPaymentRequest walletPaymentRequest1 = walletPaymentRequest.get();
+			walletPaymentRequest1.setStatus(PaymentRequestStatus.RESERVED);
+			walletPaymentRequestRepo.save(walletPaymentRequest1);
+		}
+	}
+
+	@Override
+	public ResponseEntity<?> EventReversePaymentRequest(HttpServletRequest request, EventPaymentRequestReversal eventPay) {
+
+//		UserDetailPojo user = authService.AuthUser(Integer.parseInt(eventPay.getSenderId()));
+//		if(user == null){
+//			return new ResponseEntity<>(new ErrorResponse("IMBALANCE TRANSACTION"), HttpStatus.BAD_REQUEST);
+//		}
+
+
+		WalletAccount walletAccount = getAcount(Long.valueOf(eventPay.getSenderId()));
+		Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventPay.getEventId());
+		if (!eventInfo.isPresent()){
+			return new ResponseEntity<>(new ErrorResponse("EVENT DOES NOT EXIST"), HttpStatus.BAD_REQUEST);
+		}
+		WalletEventCharges charge = eventInfo.get();
+		WalletAccount accountDebitTeller = walletAccountRepository
+				.findByUserPlaceholder(charge.getPlaceholder(), charge.getCrncyCode(), walletAccount.getSol_id()).orElse(null);
+
+		OfficeUserTransferDTO officeTransferDTO = new OfficeUserTransferDTO();
+		officeTransferDTO.setAmount(eventPay.getAmount());
+		officeTransferDTO.setCustomerCreditAccount(walletAccount.getAccountNo());
+		officeTransferDTO.setOfficeDebitAccount(accountDebitTeller.getAccountNo());
+		officeTransferDTO.setTranType(TransactionTypeEnum.REVERSAL.getValue());
+		officeTransferDTO.setTranNarration(eventPay.getTranNarration());
+		officeTransferDTO.setTranCrncy(eventPay.getTranCrncy());
+		officeTransferDTO.setPaymentReference(eventPay.getPaymentReference());
+		Provider provider = switchWalletService.getActiveProvider();
+		if (provider == null) {
+			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
+		}
+
+		log.info("WALLET PROVIDER: " + provider.getName());
+		ApiResponse<?> res;
+		switch (provider.getName()) {
+			case ProviderType.MAINMIFO:
+				res = OfficialUserTransfer(request, officeTransferDTO);
+				if (!res.getStatus()) {
+					return new ResponseEntity<>(res, HttpStatus.EXPECTATION_FAILED);
+				}
+				CompletableFuture.runAsync(() -> updatePaymentRequestStatus(eventPay.getPaymentRequestReference()));
+				return new ResponseEntity<>(res, HttpStatus.OK);
+			case ProviderType.TEMPORAL:
+				res = OfficialUserTransfer(request, officeTransferDTO);
+				if (!res.getStatus()) {
+					return new ResponseEntity<>(res, HttpStatus.EXPECTATION_FAILED);
+				}
+				CompletableFuture.runAsync(() -> updatePaymentRequestStatus(eventPay.getPaymentRequestReference()));
+				return new ResponseEntity<>(res, HttpStatus.OK);
+			default:
+				res = OfficialUserTransfer(request, officeTransferDTO);
+				if (!res.getStatus()) {
+					return new ResponseEntity<>(res, HttpStatus.EXPECTATION_FAILED);
+				}
+				CompletableFuture.runAsync(() -> updatePaymentRequestStatus(eventPay.getPaymentRequestReference()));
+				return new ResponseEntity<>(res, HttpStatus.OK);
+		}
 	}
 
 	@Override
