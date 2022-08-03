@@ -14,6 +14,7 @@ public class Constant {
     public static final String ADMIN_TRANSACTION = "ADMIN_TRANSACTION";
     public static final String COMMISSION = "COMMISSION";
     public static final String TRANSFER = "TRANSFER";
+    public static final String WAYABANK_PREFIX = "001037";
     public static final String TRANSACTION_PAYOUT = "Transaction Payout";
     public static final String TRANSACTION_REJECTED = "Transaction Rejected";
 
