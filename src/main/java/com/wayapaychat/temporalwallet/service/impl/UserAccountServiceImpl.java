@@ -16,7 +16,6 @@ import com.wayapaychat.temporalwallet.util.*;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.jpa.repository.Query;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -87,6 +86,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Value("${waya.wallet.wayacommglCode}")
 	private String wayaCommGLCode;
+
+	@Value("${ofi.financialInstitutionCode}")
+	private String financialInstitutionCode;
 
 	public ResponseEntity<?> createUser(UserDTO user) {
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
@@ -179,8 +181,6 @@ public class UserAccountServiceImpl implements UserAccountService {
 			}
 		}
 
-		String nubanAccountNumber = Util.generateWayaVirtualAccount();
-
 		try {
 			String hashed_no = reqUtil
 					.WayaEncrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
@@ -189,7 +189,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			WalletAccount account = new WalletAccount();
 			if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 					|| product.getProduct_type().equals("ODA"))) {
-				account = new WalletAccount("0000", "", acctNo, nubanAccountNumber,acct_name, userx, code.getGlSubHeadCode(), wayaProduct,
+				account = new WalletAccount("0000", "", acctNo, acct_name, userx, code.getGlSubHeadCode(), wayaProduct,
 						acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 						LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
 						product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
@@ -221,7 +221,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 					acct_name = acct_name + " " + "COMMISSION ACCOUNT";
 					if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 							|| product.getProduct_type().equals("ODA"))) {
-						caccount = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, userx, code.getGlSubHeadCode(),
+						caccount = new WalletAccount("0000", "", acctNo, acct_name, userx, code.getGlSubHeadCode(),
 								wayaProductCommission, acct_ownership, hashed_no, product.isInt_paid_flg(),
 								product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 								product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
@@ -240,6 +240,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 	}
 
+	// Call by Aut-service and others
 	public ResponseEntity<?> createUserAccount(WalletUserDTO user) {
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
 		if (existingUser != null) {
@@ -332,7 +333,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 				}
 			}
 		}
-		String nubanAccountNumber = Util.generateWayaVirtualAccount();
+
+
+		String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, Constant.SAVINGS);
 		try {
 			String hashed_no = reqUtil
 					.WayaEncrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
@@ -372,7 +375,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 					acct_name = acct_name + " " + "COMMISSION ACCOUNT";
 					if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 							|| product.getProduct_type().equals("ODA"))) {
-						caccount = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, userx, code.getGlSubHeadCode(),
+						caccount = new WalletAccount("0000", "", acctNo, acct_name, userx, code.getGlSubHeadCode(),
 								wayaProductCommission, acct_ownership, hashed_no, product.isInt_paid_flg(),
 								product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 								product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
@@ -628,13 +631,13 @@ public class UserAccountServiceImpl implements UserAccountService {
 		WalletTeller teller = tellerx.get();
 		String acctNo = teller.getCrncyCode() + teller.getSol_id() + teller.getAdminCashAcct();
 		String acct_ownership = "O";
-		String nubanAccountNumber = Util.generateWayaVirtualAccount();
+
 		try {
 			String hashed_no = reqUtil.WayaEncrypt(
 					user.getUserId() + "|" + acctNo + "|" + user.getProductCode() + "|" + product.getCrncy_code());
 
 			WalletAccount account = new WalletAccount();
-			account = new WalletAccount(teller.getSol_id(), teller.getAdminCashAcct(), acctNo, nubanAccountNumber, user.getAccountName(),
+			account = new WalletAccount(teller.getSol_id(), teller.getAdminCashAcct(), acctNo, user.getAccountName(),
 					null, code.getGlSubHeadCode(), product.getProductCode(), acct_ownership, hashed_no,
 					product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
 					product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
@@ -678,13 +681,13 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 		String acctNo = product.getCrncy_code() + "0000" + user.getPlaceholderCode();
 		String acct_ownership = "O";
-		String nubanAccountNumber = Util.generateWayaVirtualAccount();
+
 		try {
 			String hashed_no = reqUtil
 					.WayaEncrypt(0L + "|" + acctNo + "|" + user.getProductCode() + "|" + product.getCrncy_code());
 
 			WalletAccount account = new WalletAccount();
-			account = new WalletAccount("0000", user.getPlaceholderCode(), acctNo, nubanAccountNumber, user.getAccountName(), null,
+			account = new WalletAccount("0000", user.getPlaceholderCode(), acctNo, user.getAccountName(), null,
 					code.getGlSubHeadCode(), product.getProductCode(), acct_ownership, hashed_no,
 					product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
 					product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
@@ -767,7 +770,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 				acct_ownership = "O";
 				acctNo = product.getCrncy_code() + "0000" + rand;
 			}
-			String nubanAccountNumber = Util.generateWayaVirtualAccount();
+
 			try {
 				String hashed_no = reqUtil
 						.WayaEncrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
@@ -775,7 +778,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 				WalletAccount account = new WalletAccount();
 				if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 						|| product.getProduct_type().equals("ODA"))) {
-					account = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, y, code.getGlSubHeadCode(), wayaProduct,
+					account = new WalletAccount("0000", "", acctNo, acct_name, y, code.getGlSubHeadCode(), wayaProduct,
 							acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 							LocalDate.now(), product.getCrncy_code(), product.getProduct_type(),
 							product.isChq_book_flg(), product.getCash_dr_limit(), product.getXfer_dr_limit(),
@@ -867,7 +870,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 				acct_ownership = "O";
 				acctNo = product.getCrncy_code() + "0000" + rand;
 			}
-			String nubanAccountNumber = Util.generateWayaVirtualAccount();
+
 			try {
 				String hashed_no = reqUtil.WayaEncrypt(
 						userId + "|" + acctNo + "|" + fProduct.getProductCode() + "|" + product.getCrncy_code());
@@ -875,7 +878,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 				WalletAccount account = new WalletAccount();
 				if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 						|| product.getProduct_type().equals("ODA"))) {
-					account = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, y, code.getGlSubHeadCode(),
+					account = new WalletAccount("0000", "", acctNo, acct_name, y, code.getGlSubHeadCode(),
 							fProduct.getProductCode(), acct_ownership, hashed_no, product.isInt_paid_flg(),
 							product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 							product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
@@ -1195,13 +1198,13 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 		acctNo = product.getCrncy_code() + "00" + acctNo;
 		String acct_ownership = "O";
-		String nubanAccountNumber = Util.generateWayaVirtualAccount();
+
 		try {
 			String hashed_no = reqUtil.WayaEncrypt(
 					0L + "|" + acctNo + "|" + accountPojo.getProductCode() + "|" + product.getCrncy_code());
 
 			WalletAccount account = new WalletAccount();
-			account = new WalletAccount("0000", "", acctNo, nubanAccountNumber, accountPojo.getAccountName(), null, code.getGlSubHeadCode(),
+			account = new WalletAccount("0000", "", acctNo, accountPojo.getAccountName(), null, code.getGlSubHeadCode(),
 					product.getProductCode(), acct_ownership, hashed_no, product.isInt_paid_flg(),
 					product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 					product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
