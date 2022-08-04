@@ -34,11 +34,11 @@ public class Util {
             switch (accountType) {
                 case "fixed":
                     accountType = "9999999";
-                    nineDigits = accountType + String.format("%04d", rnd.nextInt(99));
+                    nineDigits = accountType + String.format("%02d", rnd.nextInt(99));
                     break;
                 case "ledger":
-                    accountType = "9999";
-                    nineDigits = accountType + String.format("%08d", rnd.nextInt(999) + "99");
+                    accountType = "999";
+                    nineDigits = accountType + String.format("%04d", rnd.nextInt(9999)) + "99";
                     break;
                 case "loan":
                     accountType = "9";
@@ -97,7 +97,7 @@ public class Util {
             System.out.println("Nuban Account = " + nuban);
 
         } catch (Exception e) {
-            throw new CustomException(e.getMessage(),HttpStatus.EXPECTATION_FAILED);
+            throw new CustomException("Inside create nuban account" + e.getMessage(),HttpStatus.EXPECTATION_FAILED);
         }
         return nuban;
 
