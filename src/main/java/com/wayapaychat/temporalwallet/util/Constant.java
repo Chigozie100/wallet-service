@@ -27,7 +27,9 @@ public class Constant {
 
     public static final String CURRENT_ONE = "current 1";
 
-    public static final String SAVINGS = "savings 6";
+    public static final String SAVINGS = "savings";
+
+    public static final String SAVINGS_SIX = "savings 6";
 
     public static final String SAVINGS_FIVE = "savings 5";
 

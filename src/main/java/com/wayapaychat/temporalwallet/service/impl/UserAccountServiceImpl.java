@@ -335,7 +335,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 
 
-		String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, Constant.SAVINGS);
+		String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, Constant.LEDGER);
 		try {
 			String hashed_no = reqUtil
 					.WayaEncrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
