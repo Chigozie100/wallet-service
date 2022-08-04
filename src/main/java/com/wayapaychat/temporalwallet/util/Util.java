@@ -88,11 +88,18 @@ public class Util {
                 numbers[i] = accountString.charAt(i) - '0';
             }
 
-            int checkDigit = numbers[0] * 3 + numbers[1] * 7 + numbers[2] * 3 + numbers[3] * 3 + numbers[4] * 7
+            int checkDigitSum = numbers[0] * 3 + numbers[1] * 7 + numbers[2] * 3 + numbers[3] * 3 + numbers[4] * 7
                     + numbers[5] * 3 + numbers[6] * 3 + numbers[7] * 7 + numbers[8] * 3 + numbers[9] * 3
                     + numbers[10] * 7 + numbers[11] * 3 + numbers[12] * 3 + numbers[13] * 7 + numbers[14] * 3;
 
-            nuban = nineDigits + String.valueOf(10 - (checkDigit % 10));
+            String  checkDigit;
+            if(checkDigitSum % 10 == 0) {
+                checkDigit = String.valueOf(0);
+            } else {
+                checkDigit = String.valueOf(10 - (checkDigitSum % 10));
+            }
+
+            String Nuban = nineDigits + checkDigit;
 
             System.out.println("Nuban Account = " + nuban);
 
