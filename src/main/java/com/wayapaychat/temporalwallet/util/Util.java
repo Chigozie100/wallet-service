@@ -18,25 +18,19 @@ public class Util {
         String nuban = "";
         try {
 
-            // String currentPrefix = "2" String loanPrefix = "7" String fixedDeposit = "8"
-            // String officePrefix = "9";
-
-            // Defines our Financial Institution Code
-//            String financialInstitutionCode = "901037";
-
-//            String accountType = "savings";
-
+            // It will generate 8 digit random Number from 0 to 99999999 And format as
             String nineDigits;
+            //String prefixType;
 
             // It will generate 8 digit random Number from 0 to 99999999 And format as
             // String
             Random rnd = new Random();
             switch (accountType) {
-                case "fixed":
+                case "ledger":
                     accountType = "9999999";
                     nineDigits = accountType + String.format("%02d", rnd.nextInt(99));
                     break;
-                case "ledger":
+                case "fixed":
                     accountType = "999";
                     nineDigits = accountType + String.format("%04d", rnd.nextInt(9999)) + "99";
                     break;
@@ -72,12 +66,15 @@ public class Util {
                     accountType = "2";
                     nineDigits = accountType + String.format("%08d", rnd.nextInt(99999999));
                     break;
-                default:
+                case "savings 1":
                     accountType = "1";
                     nineDigits = accountType + String.format("%08d", rnd.nextInt(99999999));
                     break;
+                default:
+                    accountType = "0";
+                    nineDigits = accountType + String.format("%08d", rnd.nextInt(99999999));
+                    break;
             }
-
             // Concatenate Financial Institution Code with 9 digits generated
             String accountString = financialInstitutionCode + nineDigits;
 
