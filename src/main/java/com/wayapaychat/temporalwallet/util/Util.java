@@ -42,7 +42,7 @@ public class Util {
                     break;
                 case "loan":
                     accountType = "9";
-                    nineDigits = accountType + String.format("%08d", rnd.nextInt(999) + "9999");
+                    nineDigits = accountType + String.format("%02d", rnd.nextInt(99)) +"999999";
                     break;
                 case "current 2":
                     accountType = "8";
@@ -99,7 +99,7 @@ public class Util {
                 checkDigit = String.valueOf(10 - (checkDigitSum % 10));
             }
 
-            String Nuban = nineDigits + checkDigit;
+            nuban = nineDigits + checkDigit;
 
             System.out.println("Nuban Account = " + nuban);
 
