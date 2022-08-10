@@ -55,4 +55,6 @@ public class WalletUserDTO {
 	@NotNull
 	private Date custExpIssueDate;
 
+	private String accountType;
+
 }

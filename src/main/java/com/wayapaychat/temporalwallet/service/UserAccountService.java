@@ -13,7 +13,9 @@ import com.wayapaychat.temporalwallet.response.ApiResponse;
 public interface UserAccountService {
 	
 	ResponseEntity<?> createUser(UserDTO user);
-	
+
+	ResponseEntity<?> createNubanAccount(WalletUserDTO user);
+
 	ResponseEntity<?> createUserAccount(WalletUserDTO user);
 	
 	ResponseEntity<?> createCashAccount(WalletCashAccountDTO user);

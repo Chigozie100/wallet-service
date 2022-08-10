@@ -7765,6 +7765,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 					throw new CustomException("Reference ID does not exist", HttpStatus.BAD_REQUEST);
 				}
 				if (mPayRequest.getStatus().name().equals("PENDING") && (mPayRequest.isWayauser())) {
+					log.info(" INSIDE IS WAYA IS TRUE: {}", transfer);
 					WalletAccount creditAcct = getAcount(Long.valueOf(mPayRequest.getSenderId()));
 					WalletAccount debitAcct = getAcount(Long.valueOf(mPayRequest.getReceiverId()));
 					TransferTransactionDTO txt = new TransferTransactionDTO(debitAcct.getAccountNo(),
@@ -7788,7 +7789,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 
 				} else if (mPayRequest.getStatus().name().equals("PENDING") && (!mPayRequest.isWayauser())) {
-
+					log.info(" INSIDE IS WAYA IS TRUE: {}", transfer);
 					System.out.println("Inside here == " + transfer.getPaymentRequest());
 					PaymentRequest mPay = transfer.getPaymentRequest();
 					WalletAccount debitAcct = null;
