@@ -7776,9 +7776,9 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 							mPayRequest.getReference(), mPayRequest.getCategory().getValue());
 					try{
 						ResponseEntity<?> res = sendMoney(request, txt);
-
+						log.info(" SEND MONEY RESPONSE : {}", res);
 						if (res.getStatusCodeValue() == 200 || res.getStatusCodeValue() == 201) {
-							//
+
 							log.info("Send Money: {}", transfer);
 							mPayRequest.setStatus(PaymentRequestStatus.PAID);
 							walletPaymentRequestRepo.save(mPayRequest);
@@ -7786,7 +7786,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 //						return new ResponseEntity<>(new SuccessResponse("SUCCESS", res), HttpStatus.CREATED);
 						}
 					}catch (Exception e){
-
+						log.info("Send Money Error: {}", e.getMessage());
 						throw new CustomException(e.getMessage(), HttpStatus.EXPECTATION_FAILED);
 					}
 
