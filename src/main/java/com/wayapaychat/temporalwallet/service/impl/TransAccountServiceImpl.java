@@ -7760,14 +7760,17 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 				WalletPaymentRequest mPayRequest = walletPaymentRequestRepo
 						.findByReference(transfer.getPaymentRequest().getReference()).orElse(null);
-
+				log.info("mPayRequest reSPONSE :: {}", mPayRequest);
 				if (mPayRequest == null) {
 					throw new CustomException("Reference ID does not exist", HttpStatus.BAD_REQUEST);
 				}
 				if (mPayRequest.getStatus().name().equals("PENDING") && (mPayRequest.isWayauser())) {
 					log.info(" INSIDE IS WAYA IS TRUE: {}", transfer);
 					WalletAccount creditAcct = getAcount(Long.valueOf(mPayRequest.getSenderId()));
+					log.info(" INSIDE creditAcct : {}", creditAcct);
 					WalletAccount debitAcct = getAcount(Long.valueOf(mPayRequest.getReceiverId()));
+					log.info(" INSIDE debitAcct : {}", debitAcct);
+
 					TransferTransactionDTO txt = new TransferTransactionDTO(debitAcct.getAccountNo(),
 							creditAcct.getAccountNo(), mPayRequest.getAmount(), "TRANSFER", "NGN", mPayRequest.getReason(),
 							mPayRequest.getReference(), mPayRequest.getCategory().getValue());
