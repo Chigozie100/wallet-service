@@ -23,9 +23,9 @@ public class Constant {
 
     public static final String LOAN = "loan";
 
-    public static final String CURRENT = "current 2";
+    public static final String CURRENT = "current 1";
 
-    public static final String CURRENT_ONE = "current 1";
+    public static final String CURRENT_TWO = "current 2";
 
     public static final String SAVINGS = "savings";
 
@@ -37,7 +37,7 @@ public class Constant {
 
     public static final String SAVINGS_THREE = "savings 3";
 
-    public static final String SAVINGS_TOW = "savings 2";
+    public static final String SAVINGS_TWO = "savings 2";
 
 
     public static final String TRANSACTION_PAYOUT = "Transaction Payout";
