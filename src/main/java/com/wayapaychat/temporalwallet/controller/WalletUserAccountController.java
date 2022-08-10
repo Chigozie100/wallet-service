@@ -272,6 +272,12 @@ public class WalletUserAccountController {
 	public ResponseEntity<?> createCooperateAccount(@RequestBody WalletUserDTO createAccountPojo) {
     	return userAccountService.createUserAccount(createAccountPojo);
 	}
+
+    @ApiOperation(value = "Create Nuban account, this creates a default account / commission account / nuban account", notes = "Create Cooperate account, this creates a default account and a commission account", tags = { "USER-ACCOUNT-WALLET" })
+    @PostMapping("/create/nuban/user")
+    public ResponseEntity<?> createNubanAccount(@RequestBody WalletUserDTO createAccountPojo) {
+        return userAccountService.createUserAccount(createAccountPojo);
+    }
     
     @ApiOperation(value = "List all Commission Accounts", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/commission-wallets/all")
