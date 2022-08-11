@@ -9,7 +9,13 @@ import io.swagger.annotations.ApiImplicitParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.wayapaychat.temporalwallet.service.ConfigService;
 
@@ -141,14 +147,6 @@ public class WalletBankController {
     @PutMapping(path = "/update/event/{eventId}")
     public ResponseEntity<?> updateEventCharge(@Valid @RequestBody UpdateEventChargeDTO eventPojo, @PathVariable("eventId") Long eventId) {
         return configService.updateEvents(eventPojo,eventId);
-    }
-
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-    @ApiOperation(value = "Update a Wallet Event", tags = { "BANK-WALLET" })
-    @DeleteMapping(path = "/update/event/{eventId}/delete")
-    public ResponseEntity<?> deleteEventCharge(@PathVariable("eventId") Long eventId) {
-        return configService.deleteEvent(eventId);
     }
 
     @ApiImplicitParams({

@@ -360,22 +360,6 @@ public class ConfigServiceImpl implements ConfigService {
 	}
 
 	@Override
-	public ResponseEntity<?> deleteEvent(Long eventId) {
-		try {
-			Optional<WalletEventCharges> walletEventCharges = walletEventRepository.findById(eventId);
-			if(!walletEventCharges.isPresent()){
-				return new ResponseEntity<>(new ErrorResponse("Event Not Found"), HttpStatus.BAD_REQUEST);
-			}
-			WalletEventCharges walletEventCharges1 = walletEventCharges.get();
-			walletEventCharges1.setDel_flg(true);
-			walletEventCharges1 = walletEventRepository.save(walletEventCharges1);
-			return new ResponseEntity<>(new SuccessResponse("Event deleted Successfully.", walletEventCharges1), HttpStatus.CREATED);
-		} catch (Exception e) {
-			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
-		}
-	}
-
-	@Override
 	public ResponseEntity<?> createCharge(ChargeDTO event) {
 		
 		if(event.getFixedAmount() != 0 && event.getFixedPercent() != 0) {
@@ -468,7 +452,7 @@ public class ConfigServiceImpl implements ConfigService {
 
 	@Override
 	public ResponseEntity<?> ListEvents() {
-		List<WalletEventCharges> event = walletEventRepository.findByDel_flg(false);
+		List<WalletEventCharges> event = walletEventRepository.findAll();
 		if(event == null) {
 			return new ResponseEntity<>(new ErrorResponse("No Charge exist"), HttpStatus.BAD_REQUEST);
 		}
