@@ -15,7 +15,7 @@ import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.util.*;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Value; 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -242,6 +242,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> createNubanAccount(WalletUserDTO user) {
+
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
 		if (existingUser != null) {
 			return new ResponseEntity<>(new ErrorResponse("Wallet User already exists"), HttpStatus.BAD_REQUEST);
@@ -589,6 +590,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 	}
+	
 
 	public ResponseEntity<?> modifyUserAccount(UserAccountDTO user) {
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
