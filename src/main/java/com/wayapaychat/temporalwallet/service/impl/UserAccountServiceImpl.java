@@ -525,7 +525,6 @@ public class UserAccountServiceImpl implements UserAccountService {
 				accountType = Constant.SAVINGS;
 				break;
 			default:
-				accountType = "0";
 				accountType = Constant.SAVINGS;
 				break;
 		}
