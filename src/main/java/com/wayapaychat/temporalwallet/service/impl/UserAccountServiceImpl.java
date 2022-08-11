@@ -242,7 +242,6 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> createNubanAccount(WalletUserDTO user) {
-
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
 		if (existingUser != null) {
 			return new ResponseEntity<>(new ErrorResponse("Wallet User already exists"), HttpStatus.BAD_REQUEST);
