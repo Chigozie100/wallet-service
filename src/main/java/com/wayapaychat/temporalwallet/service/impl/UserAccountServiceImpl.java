@@ -242,6 +242,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> createNubanAccount(WalletUserDTO user) {
+
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
 		if (existingUser != null) {
 			return new ResponseEntity<>(new ErrorResponse("Wallet User already exists"), HttpStatus.BAD_REQUEST);
@@ -395,6 +396,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 	}
+
+	// Call by Aut-service and others
 	public ResponseEntity<?> createUserAccount(WalletUserDTO user) {
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
 		if (existingUser != null) {
@@ -418,9 +421,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
 		String acctNo = null;
 		Integer rand = reqUtil.getAccountNo();
-		log.info("Account No generated: {}", rand);
-		if (rand == 0) { 
-			log.error("Error: Unable to generate Wallet Account");
+		if (rand == 0) {
 			return new ResponseEntity<>(new ErrorResponse("Unable to generate Wallet Account"), HttpStatus.BAD_REQUEST);
 		}
 		String acct_ownership = null;
@@ -489,17 +490,56 @@ public class UserAccountServiceImpl implements UserAccountService {
 				}
 			}
 		}
-		log.info("Account num with prefix", acctNo);
+		String accountType = user.getAccountType();
+		switch (accountType){
+			case "ledger":
+				accountType = Constant.LEDGER;
+				break;
+			case "fixed":
+				accountType = Constant.FIXED;
+				break;
+			case "loan":
+				accountType = Constant.LOAN;
+				break;
+			case "current 1":
+				accountType = Constant.CURRENT;
+				break;
+			case "current 2":
+				accountType = Constant.CURRENT_TWO;
+				break;
+			case "savings 6":
+				accountType = Constant.SAVINGS_SIX;
+				break;
+			case "savings 5":
+				accountType = Constant.SAVINGS_FIVE;
+				break;
+			case "savings 4":
+				accountType = Constant.SAVINGS_FOUR;
+				break;
+			case "savings 3":
+				accountType = Constant.SAVINGS_THREE;
+				break;
+			case "savings 2":
+				accountType = Constant.SAVINGS_TWO;
+				break;
+			case "savings 1":
+				accountType = Constant.SAVINGS;
+				break;
+			default:
+				accountType = Constant.SAVINGS;
+				break;
+		}
+
+		String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, accountType);
 		try {
 			String hashed_no = reqUtil
 					.WayaEncrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
-			log.info("Account hash", hashed_no);
 			WalletUser userx = walletUserRepository.save(userInfo);
 
 			WalletAccount account = new WalletAccount();
 			if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 					|| product.getProduct_type().equals("ODA"))) {
-				account = new WalletAccount("0000", "", acctNo, acct_name, userx, code.getGlSubHeadCode(), wayaProduct,
+				account = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, userx, code.getGlSubHeadCode(), wayaProduct,
 						acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 						LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
 						product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
@@ -547,10 +587,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
 					HttpStatus.CREATED);
 		} catch (Exception e) {
-			log.error("Exception: " + e.getMessage());
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 	}
+	
 
 	public ResponseEntity<?> modifyUserAccount(UserAccountDTO user) {
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
@@ -1115,6 +1155,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> getUserAccountList(long userId) {
+		System.out.println("USER ID" + userId);
 		int uId = (int) userId;
 		UserDetailPojo ur = authService.AuthUser(uId);
 		if (ur == null) {
@@ -1482,14 +1523,14 @@ public class UserAccountServiceImpl implements UserAccountService {
 				return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"), HttpStatus.NOT_FOUND);
 			}
 
-			if (account.isAcct_cls_flg() && account.getClr_bal_amt() != 0) {
-				return new ResponseEntity<>(
-						new ErrorResponse("Account balance must be equal to zero before it can be closed"),
-						HttpStatus.NOT_FOUND);
-			} else {
-				if (account.isAcct_cls_flg())
-					return new ResponseEntity<>(new ErrorResponse("Account already blocked"), HttpStatus.NOT_FOUND);
-			}
+//			if (account.isAcct_cls_flg() && account.getClr_bal_amt() != 0) {
+//				return new ResponseEntity<>(
+//						new ErrorResponse("Account balance must be equal to zero before it can be closed"),
+//						HttpStatus.NOT_FOUND);
+//			} else {
+//				if (account.isAcct_cls_flg())
+//					return new ResponseEntity<>(new ErrorResponse("Account already blocked"), HttpStatus.NOT_FOUND);
+//			}
 
 			if(user.isBlock()){
 				account.setAcct_cls_date(LocalDate.now());
@@ -1499,7 +1540,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 			}else{
 				account.setAcct_cls_date(LocalDate.now());
-				account.setAcct_cls_flg(true);
+				account.setAcct_cls_flg(false);
 				walletAccountRepository.save(account);
 				return new ResponseEntity<>(new SuccessResponse("Account Unblock successfully.", account), HttpStatus.OK);
 
