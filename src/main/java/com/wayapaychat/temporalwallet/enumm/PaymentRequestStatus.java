@@ -1,5 +1,5 @@
 package com.wayapaychat.temporalwallet.enumm;
 
 public enum PaymentRequestStatus {
-    PAID, PENDING, REJECTED, EXPIRED
+    PAID, PENDING, REJECTED, EXPIRED, RESERVED
 }

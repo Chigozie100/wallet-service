@@ -79,10 +79,12 @@ public interface TransAccountService {
 
 	ApiResponse<?> getStatement(String accountNumber);
 
+	ResponseEntity<?> EventReversePaymentRequest(HttpServletRequest request, EventPaymentRequestReversal eventPay);
+
 	ResponseEntity<?> EventTransferPayment(HttpServletRequest request, EventPaymentDTO eventPay);
 
 	ResponseEntity<?> EventPaymentSettlement(HttpServletRequest request, EventPaymentSettlementDTO eventPay);
-	//
+
 	
 	ResponseEntity<?> EventOfficePayment(HttpServletRequest request, EventOfficePaymentDTO eventPay);
 
@@ -109,7 +111,7 @@ public interface TransAccountService {
 
 	ApiResponse<?> PaymentAccountTrans(Date date, Date todate, String wayaNo);
 
-	ApiResponse<?> PaymentOffTrans(int page, int size);
+	ApiResponse<?> PaymentOffTrans(int page, int size, String filter);
 
 	ApiResponse<?> TranALLReverseReport();
 

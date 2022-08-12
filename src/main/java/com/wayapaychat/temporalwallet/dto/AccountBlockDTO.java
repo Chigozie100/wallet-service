@@ -11,6 +11,5 @@ public class AccountBlockDTO {
     @Size(min=10, max=10, message = "Account must be 10 digit")
     private String customerAccountNo;
 
-    @NotBlank
     private boolean isBlock = true;
 }

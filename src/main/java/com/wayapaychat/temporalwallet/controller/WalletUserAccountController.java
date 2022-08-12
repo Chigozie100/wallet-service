@@ -94,14 +94,16 @@ public class WalletUserAccountController {
     }
 
 
+
     @ApiOperation(value = " Block / UnBlock", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/account/block")
     public ResponseEntity<?> postAccountBlock(@Valid @RequestBody AccountBlockDTO user) {
         log.info("Request input: {}",user);
         return userAccountService.AccountAccessBlockAndUnblock(user);
     }
-	
-	@ApiOperation(value = "Delete Account / Block / UnBlock", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+
+
+    @ApiOperation(value = "Delete Account / Block / UnBlock", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/account/closure")
     public ResponseEntity<?> postAccountClosure(@Valid @RequestBody AccountCloseDTO user) {
 		log.info("Request input: {}",user);
@@ -114,10 +116,12 @@ public class WalletUserAccountController {
         log.info("Request input: {}",user);
         return userAccountService.AccountAccessClosureMultiple(user);
     }
-	
-	@ApiOperation(value = "Transaction account block / unblock", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Transaction account block / unblock", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/account/lien/transaction")
-    public ResponseEntity<?> postAccountLien(@Valid @RequestBody AccountLienDTO user, @RequestParam("isLien") boolean isLien) {
+    public ResponseEntity<?> postAccountLien(@Valid @RequestBody AccountLienDTO user) {
 		log.info("Request input: {}",user);
 		return userAccountService.AccountAccessLien(user);
     }
@@ -268,6 +272,12 @@ public class WalletUserAccountController {
 	public ResponseEntity<?> createCooperateAccount(@RequestBody WalletUserDTO createAccountPojo) {
     	return userAccountService.createUserAccount(createAccountPojo);
 	}
+
+    @ApiOperation(value = "Create Nuban account, this creates a default account / commission account / nuban account", notes = "Create Cooperate account, this creates a default account and a commission account", tags = { "USER-ACCOUNT-WALLET" })
+    @PostMapping("/create/nuban/user")
+    public ResponseEntity<?> createNubanAccount(@RequestBody WalletUserDTO createAccountPojo) {
+        return userAccountService.createUserAccount(createAccountPojo);
+    }
     
     @ApiOperation(value = "List all Commission Accounts", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/commission-wallets/all")

@@ -14,6 +14,32 @@ public class Constant {
     public static final String ADMIN_TRANSACTION = "ADMIN_TRANSACTION";
     public static final String COMMISSION = "COMMISSION";
     public static final String TRANSFER = "TRANSFER";
+    public static final String WAYABANK_PREFIX = "001037";
+
+
+    public static final String FIXED = "fixed";
+
+    public static final String LEDGER = "ledger";
+
+    public static final String LOAN = "loan";
+
+    public static final String CURRENT = "current 1";
+
+    public static final String CURRENT_TWO = "current 2";
+
+    public static final String SAVINGS = "savings";
+
+    public static final String SAVINGS_SIX = "savings 6";
+
+    public static final String SAVINGS_FIVE = "savings 5";
+
+    public static final String SAVINGS_FOUR = "savings 4";
+
+    public static final String SAVINGS_THREE = "savings 3";
+
+    public static final String SAVINGS_TWO = "savings 2";
+
+
     public static final String TRANSACTION_PAYOUT = "Transaction Payout";
     public static final String TRANSACTION_REJECTED = "Transaction Rejected";
 
