@@ -189,7 +189,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			WalletAccount account = new WalletAccount();
 			if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 					|| product.getProduct_type().equals("ODA"))) {
-				account = new WalletAccount("0000", "", acctNo, acct_name, userx, code.getGlSubHeadCode(), wayaProduct,
+				account = new WalletAccount("0000", "", acctNo, "0",acct_name, userx, code.getGlSubHeadCode(), wayaProduct,
 						acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 						LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
 						product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
@@ -221,7 +221,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 					acct_name = acct_name + " " + "COMMISSION ACCOUNT";
 					if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 							|| product.getProduct_type().equals("ODA"))) {
-						caccount = new WalletAccount("0000", "", acctNo, acct_name, userx, code.getGlSubHeadCode(),
+						caccount = new WalletAccount("0000", "", acctNo, "0",acct_name, userx, code.getGlSubHeadCode(),
 								wayaProductCommission, acct_ownership, hashed_no, product.isInt_paid_flg(),
 								product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 								product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
@@ -375,7 +375,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 					acct_name = acct_name + " " + "COMMISSION ACCOUNT";
 					if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 							|| product.getProduct_type().equals("ODA"))) {
-						caccount = new WalletAccount("0000", "", acctNo, acct_name, userx, code.getGlSubHeadCode(),
+						caccount = new WalletAccount("0000", "", acctNo, "0",acct_name, userx, code.getGlSubHeadCode(),
 								wayaProductCommission, acct_ownership, hashed_no, product.isInt_paid_flg(),
 								product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 								product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
@@ -569,7 +569,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 					acct_name = acct_name + " " + "COMMISSION ACCOUNT";
 					if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 							|| product.getProduct_type().equals("ODA"))) {
-						caccount = new WalletAccount("0000", "", acctNo, acct_name, userx, code.getGlSubHeadCode(),
+						caccount = new WalletAccount("0000", "", acctNo, "0",acct_name, userx, code.getGlSubHeadCode(),
 								wayaProductCommission, acct_ownership, hashed_no, product.isInt_paid_flg(),
 								product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 								product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
@@ -832,7 +832,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 					user.getUserId() + "|" + acctNo + "|" + user.getProductCode() + "|" + product.getCrncy_code());
 
 			WalletAccount account = new WalletAccount();
-			account = new WalletAccount(teller.getSol_id(), teller.getAdminCashAcct(), acctNo, user.getAccountName(),
+			account = new WalletAccount(teller.getSol_id(), teller.getAdminCashAcct(), acctNo, "0",user.getAccountName(),
 					null, code.getGlSubHeadCode(), product.getProductCode(), acct_ownership, hashed_no,
 					product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
 					product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
@@ -882,7 +882,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 					.WayaEncrypt(0L + "|" + acctNo + "|" + user.getProductCode() + "|" + product.getCrncy_code());
 
 			WalletAccount account = new WalletAccount();
-			account = new WalletAccount("0000", user.getPlaceholderCode(), acctNo, user.getAccountName(), null,
+			account = new WalletAccount("0000", user.getPlaceholderCode(), acctNo, "0",user.getAccountName(), null,
 					code.getGlSubHeadCode(), product.getProductCode(), acct_ownership, hashed_no,
 					product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
 					product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
@@ -973,7 +973,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 				WalletAccount account = new WalletAccount();
 				if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 						|| product.getProduct_type().equals("ODA"))) {
-					account = new WalletAccount("0000", "", acctNo, acct_name, y, code.getGlSubHeadCode(), wayaProduct,
+					account = new WalletAccount("0000", "", acctNo, "0", acct_name, y, code.getGlSubHeadCode(), wayaProduct,
 							acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 							LocalDate.now(), product.getCrncy_code(), product.getProduct_type(),
 							product.isChq_book_flg(), product.getCash_dr_limit(), product.getXfer_dr_limit(),
@@ -1073,7 +1073,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 				WalletAccount account = new WalletAccount();
 				if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 						|| product.getProduct_type().equals("ODA"))) {
-					account = new WalletAccount("0000", "", acctNo, acct_name, y, code.getGlSubHeadCode(),
+					account = new WalletAccount("0000", "", acctNo, "0",acct_name, y, code.getGlSubHeadCode(),
 							fProduct.getProductCode(), acct_ownership, hashed_no, product.isInt_paid_flg(),
 							product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 							product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
@@ -1399,7 +1399,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 					0L + "|" + acctNo + "|" + accountPojo.getProductCode() + "|" + product.getCrncy_code());
 
 			WalletAccount account = new WalletAccount();
-			account = new WalletAccount("0000", "", acctNo, accountPojo.getAccountName(), null, code.getGlSubHeadCode(),
+			account = new WalletAccount("0000", "", acctNo, "0",accountPojo.getAccountName(), null, code.getGlSubHeadCode(),
 					product.getProductCode(), acct_ownership, hashed_no, product.isInt_paid_flg(),
 					product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 					product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
