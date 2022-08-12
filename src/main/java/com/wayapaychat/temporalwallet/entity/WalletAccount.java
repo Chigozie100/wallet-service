@@ -45,7 +45,7 @@ public class WalletAccount {
 	@Column(unique = true, nullable = false)
 	private String accountNo;
 
-	@Column(unique = true, nullable = false)
+	@Column(unique = true)
 	private String nubanAccountNo;
 
 	@Column(nullable = false)
