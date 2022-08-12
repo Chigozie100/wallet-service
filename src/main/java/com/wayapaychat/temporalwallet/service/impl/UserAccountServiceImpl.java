@@ -15,7 +15,7 @@ import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.util.*;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value; 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -189,7 +189,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			WalletAccount account = new WalletAccount();
 			if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 					|| product.getProduct_type().equals("ODA"))) {
-				account = new WalletAccount("0000", "", acctNo, acct_name, userx, code.getGlSubHeadCode(), wayaProduct,
+				account = new WalletAccount("0000", "", acctNo, "0", acct_name, userx, code.getGlSubHeadCode(), wayaProduct,
 						acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 						LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
 						product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
@@ -221,7 +221,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 					acct_name = acct_name + " " + "COMMISSION ACCOUNT";
 					if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 							|| product.getProduct_type().equals("ODA"))) {
-						caccount = new WalletAccount("0000", "", acctNo, acct_name, userx, code.getGlSubHeadCode(),
+						caccount = new WalletAccount("0000", "", acctNo, "0",acct_name, userx, code.getGlSubHeadCode(),
 								wayaProductCommission, acct_ownership, hashed_no, product.isInt_paid_flg(),
 								product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 								product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
@@ -333,9 +333,47 @@ public class UserAccountServiceImpl implements UserAccountService {
 				}
 			}
 		}
+		String accountType = user.getAccountType();
+		switch (accountType){
+			case "ledger":
+				accountType = Constant.LEDGER;
+				break;
+			case "fixed":
+				accountType = Constant.FIXED;
+				break;
+			case "loan":
+				accountType = Constant.LOAN;
+				break;
+			case "current 1":
+				accountType = Constant.CURRENT;
+				break;
+			case "current 2":
+				accountType = Constant.CURRENT_TWO;
+				break;
+			case "savings 6":
+				accountType = Constant.SAVINGS_SIX;
+				break;
+			case "savings 5":
+				accountType = Constant.SAVINGS_FIVE;
+				break;
+			case "savings 4":
+				accountType = Constant.SAVINGS_FOUR;
+				break;
+			case "savings 3":
+				accountType = Constant.SAVINGS_THREE;
+				break;
+			case "savings 2":
+				accountType = Constant.SAVINGS_TWO;
+				break;
+			case "savings 1":
+				accountType = Constant.SAVINGS;
+				break;
+			default:
+				accountType = Constant.SAVINGS;
+				break;
+		}
 
-
-		String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, Constant.LEDGER);
+		String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, accountType);
 		try {
 			String hashed_no = reqUtil
 					.WayaEncrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
@@ -375,7 +413,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 					acct_name = acct_name + " " + "COMMISSION ACCOUNT";
 					if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 							|| product.getProduct_type().equals("ODA"))) {
-						caccount = new WalletAccount("0000", "", acctNo, acct_name, userx, code.getGlSubHeadCode(),
+						caccount = new WalletAccount("0000", "", acctNo, "0",acct_name, userx, code.getGlSubHeadCode(),
 								wayaProductCommission, acct_ownership, hashed_no, product.isInt_paid_flg(),
 								product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 								product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
@@ -499,7 +537,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			WalletAccount account = new WalletAccount();
 			if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 					|| product.getProduct_type().equals("ODA"))) {
-				account = new WalletAccount("0000", "", acctNo, acct_name, userx, code.getGlSubHeadCode(), wayaProduct,
+				account = new WalletAccount("0000", "", acctNo, "0",acct_name, userx, code.getGlSubHeadCode(), wayaProduct,
 						acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 						LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
 						product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
@@ -530,7 +568,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 					acct_name = acct_name + " " + "COMMISSION ACCOUNT";
 					if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 							|| product.getProduct_type().equals("ODA"))) {
-						caccount = new WalletAccount("0000", "", acctNo, acct_name, userx, code.getGlSubHeadCode(),
+						caccount = new WalletAccount("0000", "", acctNo, "0",acct_name, userx, code.getGlSubHeadCode(),
 								wayaProductCommission, acct_ownership, hashed_no, product.isInt_paid_flg(),
 								product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 								product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
@@ -793,7 +831,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 					user.getUserId() + "|" + acctNo + "|" + user.getProductCode() + "|" + product.getCrncy_code());
 
 			WalletAccount account = new WalletAccount();
-			account = new WalletAccount(teller.getSol_id(), teller.getAdminCashAcct(), acctNo, user.getAccountName(),
+			account = new WalletAccount(teller.getSol_id(), teller.getAdminCashAcct(), acctNo, "0",user.getAccountName(),
 					null, code.getGlSubHeadCode(), product.getProductCode(), acct_ownership, hashed_no,
 					product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
 					product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
@@ -843,7 +881,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 					.WayaEncrypt(0L + "|" + acctNo + "|" + user.getProductCode() + "|" + product.getCrncy_code());
 
 			WalletAccount account = new WalletAccount();
-			account = new WalletAccount("0000", user.getPlaceholderCode(), acctNo, user.getAccountName(), null,
+			account = new WalletAccount("0000", user.getPlaceholderCode(), acctNo, "0", user.getAccountName(), null,
 					code.getGlSubHeadCode(), product.getProductCode(), acct_ownership, hashed_no,
 					product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
 					product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
@@ -934,7 +972,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 				WalletAccount account = new WalletAccount();
 				if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 						|| product.getProduct_type().equals("ODA"))) {
-					account = new WalletAccount("0000", "", acctNo, acct_name, y, code.getGlSubHeadCode(), wayaProduct,
+					account = new WalletAccount("0000", "", acctNo, "0",acct_name, y, code.getGlSubHeadCode(), wayaProduct,
 							acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 							LocalDate.now(), product.getCrncy_code(), product.getProduct_type(),
 							product.isChq_book_flg(), product.getCash_dr_limit(), product.getXfer_dr_limit(),
@@ -1034,7 +1072,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 				WalletAccount account = new WalletAccount();
 				if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 						|| product.getProduct_type().equals("ODA"))) {
-					account = new WalletAccount("0000", "", acctNo, acct_name, y, code.getGlSubHeadCode(),
+					account = new WalletAccount("0000", "", acctNo, "0",acct_name, y, code.getGlSubHeadCode(),
 							fProduct.getProductCode(), acct_ownership, hashed_no, product.isInt_paid_flg(),
 							product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 							product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
