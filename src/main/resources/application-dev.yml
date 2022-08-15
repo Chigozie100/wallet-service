@@ -33,7 +33,7 @@ spring:
     baselineOnMigrate: true
     locations: classpath:db/migration
     schemas: public
-    enabled: true
+    enabled: false
 
 #Scheduled Jobs
 job:
