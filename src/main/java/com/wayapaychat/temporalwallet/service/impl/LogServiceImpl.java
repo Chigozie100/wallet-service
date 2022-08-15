@@ -11,8 +11,13 @@ import org.springframework.stereotype.Service;
 @Service
 public class LogServiceImpl implements LogService {
 
+
+    private final LogServiceProxy logServiceProxy;
+
     @Autowired
-    LogServiceProxy logServiceProxy;
+    public LogServiceImpl(LogServiceProxy logServiceProxy) {
+        this.logServiceProxy = logServiceProxy;
+    }
 
     @Override
     public void saveLog(LogRequest logPojo) {

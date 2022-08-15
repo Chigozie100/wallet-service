@@ -3631,7 +3631,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 					}
 				}
-
+				// 600,000  -1, 0, or 1 as this {@code BigDecimal} is numerically  less than, equal to, or greater than {@code val}.
 				BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
 				if (userLim.compareTo(amount) == -1) {
 					return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
