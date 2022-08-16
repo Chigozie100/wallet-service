@@ -25,6 +25,8 @@ public interface ConfigService {
 	ResponseEntity<?> ListTellersTill();
 	ResponseEntity<?> createdEvents(EventChargeDTO event);
 	ResponseEntity<?> updateEvents(UpdateEventChargeDTO event, Long eventId);
+	ResponseEntity<?> deleteEvent(Long eventId);
+	//
 	ResponseEntity<?> ListEvents();
 	ResponseEntity<?> createCharge(ChargeDTO event);
 	ResponseEntity<?> ListTranCharge();
