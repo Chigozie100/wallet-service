@@ -1,7 +1,10 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
 import java.math.BigDecimal;
+import java.security.SecureRandom;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -394,6 +397,61 @@ public class UserAccountServiceImpl implements UserAccountService {
 		} catch (Exception e) {
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
+	}
+
+////	private WalletUserDTO builderPOST(UserDetailPojo request){
+//		WalletUserDTO user = new WalletUserDTO();
+//		user.setCustDebitLimit(new BigDecimal("50000.00").doubleValue());
+//		// Default Account Expiration Date
+//		LocalDateTime time = LocalDateTime.of(2099, Month.DECEMBER, 30, 0, 0);
+//		user.setCustExpIssueDate(request.getCustExpIssueDate());
+//		user.setUserId(request.id());
+//		user.setCustIssueId(generateRandomNumber(9));
+//		user.setFirstName(request.getFirstName());
+//		user.setLastName(request.getSurname());
+//		user.setEmailId(request.getEmail());
+//		user.setMobileNo(request.getPhoneNo());
+//		user.setCustSex(request.getCustSex().substring(0, 1));
+//		String custTitle = request.getCustSex().equals("MALE") ? "MR" : "MRS";
+//		user.setCustTitleCode(custTitle);
+//		LocalDate dateOfBirth = request.getDateOfBirth() == null ? LocalDate.now() : request.getDateOfBirth();
+//		user.setDob(request.getgetDob());
+//		// Default Branch SOL ID
+//		user.setSolId("0000");
+//		user.setAccountType("saving");
+//		return user;
+//	}
+
+	public static String generateRandomNumber(int length) {
+
+		int randNumOrigin = generateRandomNumber(58, 34);
+		int randNumBound = generateRandomNumber(354, 104);
+
+		SecureRandom random = new SecureRandom();
+		return random.ints(randNumOrigin, randNumBound + 1)
+				.filter(Character::isDigit)
+				.limit(length)
+				.collect(StringBuilder::new, StringBuilder::appendCodePoint,
+						StringBuilder::append)
+				.toString();
+	}
+	public static int generateRandomNumber(int max, int min) {
+		return (int) (Math.random() * (max - min + 1) + min);
+	}
+
+	public WalletUser creatUserAccountUtil(UserDetailPojo userDetailPojo){
+
+		WalletUserDTO user = new WalletUserDTO();
+				//builderPOST(userDetailPojo);
+
+		// Default Wallet
+		String acct_name = user.getFirstName().toUpperCase() + " " + user.getLastName().toUpperCase();
+		WalletUser userInfo = new WalletUser(user.getSolId(), user.getUserId(), user.getFirstName().toUpperCase(),
+				user.getLastName().toUpperCase(), user.getEmailId(), user.getMobileNo(), acct_name,
+				user.getCustTitleCode().toUpperCase(), user.getCustSex().toUpperCase(), user.getDob(),
+				user.getCustIssueId(), user.getCustExpIssueDate(), LocalDate.now(), user.getCustDebitLimit());
+		WalletUser userx = walletUserRepository.save(userInfo);
+		return userx;
 	}
 
 	// Call by Aut-service and others
@@ -907,6 +965,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		WalletUser y = walletUserRepository.findByUserId(accountPojo.getUserId());
 		WalletUser x = walletUserRepository.findByEmailAddress(user.getEmail());
 		if (x == null && y == null) {
+			creatUserAccountUtil(user);
 			return new ResponseEntity<>(new ErrorResponse("Default Wallet Not Created"), HttpStatus.BAD_REQUEST);
 		}
 		if (!y.getEmailAddress().equals(x.getEmailAddress())) {
