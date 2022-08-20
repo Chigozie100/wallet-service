@@ -1097,6 +1097,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 
 		String transactionToken = tempwallet.generateToken();
+		log.info("NONPAY transactionToken :: " + transactionToken);
 		String debitAccountNumber = transfer.getCustomerDebitAccountNo();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("TRANSFER");
 		CategoryType tranCategory = CategoryType.valueOf("TRANSFER");
@@ -1126,6 +1127,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						tranId, transfer.getCustomerDebitAccountNo(), transfer.getAmount(), transfer.getTranNarration(),
 						transfer.getTranCrncy(), transfer.getPaymentReference(), userToken.getId().toString(),
 						userToken.getEmail(), PaymentStatus.PENDING, transfer.getFullName());
+
+				log.info("NONPAY :: " + nonpay);
 				walletNonWayaPaymentRepo.save(nonpay);
 
 
@@ -7789,7 +7792,6 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 						log.info("Send Money Error: {}", e.getMessage());
 						throw new CustomException(e.getMessage(), HttpStatus.EXPECTATION_FAILED);
 					}
-
 
 				} else if (mPayRequest.getStatus().name().equals("PENDING") && (!mPayRequest.isWayauser())) {
 					log.info(" INSIDE IS WAYA IS TRUE: {}", transfer);

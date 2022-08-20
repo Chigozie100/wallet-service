@@ -110,9 +110,16 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		String count = null;
 		try {
 			count = jdbcTemplate.queryForObject(sql, String.class);
+			System.out.println( " count ==== "  + count);
 			Random r = new Random( System.currentTimeMillis() );
-		    int x = ((1 + r.nextInt(2)) * 10000 + r.nextInt(10000));
+		    int x = ((1 + r.nextInt(2)) * 100000000 + r.nextInt(100000000));
 		    count = count + x;
+		    if (count.length()  > 10){
+				StringBuffer sb= new StringBuffer(count);
+				sb.deleteCharAt(sb.length()-1);
+				System.out.println(sb);
+				count = sb.toString();
+			}
 		} catch (EmptyResultDataAccessException ex) {
 			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
 		}catch (Exception ex) {
