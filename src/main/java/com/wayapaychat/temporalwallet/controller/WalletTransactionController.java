@@ -14,6 +14,7 @@ import javax.validation.Valid;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
+import com.wayapaychat.temporalwallet.service.TransactionCountService;
 import com.wayapaychat.temporalwallet.util.PDFExporter;
 import io.swagger.annotations.ApiResponses;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +60,10 @@ public class WalletTransactionController {
 
 	@Autowired
 	TemporalWalletDAO temporalWalletDAO;
+
+	@Autowired
+	TransactionCountService transactionCountService;
+
 
 	// @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value =
 	// "token", paramType = "header", required = true) })
@@ -1147,6 +1152,15 @@ public class WalletTransactionController {
 		return transAccountService.debitAndCreditTransactionAmount();
 	}
 
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Total Credit And Debit Transactions Amount", notes = "Total Credit And Debit Transactions", tags = { "TRANSACTION-WALLET" })
+	@GetMapping("/transaction/get-user-transaction-count")
+	public ResponseEntity<?> userTransactionCount() {
+		return transactionCountService.getAllUserCount();
+	}
+	//
 
 
 
