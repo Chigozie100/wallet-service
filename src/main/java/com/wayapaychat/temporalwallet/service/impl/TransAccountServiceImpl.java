@@ -1027,7 +1027,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 //        return ExcelHelper.createExcelSheet(HEADERS);
 	}
 
-
 	private Map<String, ArrayList<ResponseHelper>> MultipleUpload(HttpServletRequest request, @Valid BulkNonWayaTransferExcelDTO transferExcelDTO){
 		ResponseEntity<?> resp = null;
 		ArrayList<ResponseHelper> respList = new ArrayList<>();
@@ -3698,8 +3697,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			// To send sms and email notification
 
-
-
 			if (eventInfo.isPresent()) {
 				WalletEventCharges charge = eventInfo.get();
 				WalletAccount eventAcct = walletAccountRepository.findByAccountNo(creditAcctNo);
@@ -3737,6 +3734,18 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String receiverName2 = accountCredit.getAcct_name();
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
 					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
+
+			//WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
+			WalletUser xUser = walletUserRepository.findByAccount(accountDebit);
+			String xfullName = xUser.getFirstName() + " " + xUser.getLastName();
+			Long xUserId = xUser.getUserId();
+
+			System.out.println("HERH HERE :: " + xUserId);
+
+			if(xUserId !=null){
+				CompletableFuture.runAsync(() -> transactionCountService.makeCount(String.valueOf(xUserId), paymentRef));
+			}
+
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -3939,6 +3948,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String senderName = accountDebit.getAcct_name();
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
 					new Date(), tranType.getValue(), userId, receiverName, "TRANSFER", token, senderName));
+
+			Long userID = accountDebit.getUser().getUserId();
+			if(userID !=null){
+				CompletableFuture.runAsync(() -> transactionCountService.makeCount(String.valueOf(userID), paymentRef));
+			}
+
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -4347,12 +4362,19 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// WalletTransactionNotification(debitAcctNo, creditAcctNo, String tranMessage,
 			// String debitMobileNo, String creditMobileNo)
 			log.info("END DEBIT-CREDIT TRANSACTION");
+
 			// HttpServletRequest request
 			String token = request.getHeader(SecurityConstants.HEADER_STRING);
 			String receiverAcct = accountCredit.getAccountNo();
 			String receiverName2 = accountCredit.getAcct_name();
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
 					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
+
+			Long userID = accountDebit.getUser().getUserId();
+			if(userID !=null){
+				CompletableFuture.runAsync(() -> transactionCountService.makeCount(String.valueOf(userID), paymentRef));
+			}
+
 			return tranId;
 		} catch (Exception ex) {
 			log.error(ex.getMessage());
@@ -4859,6 +4881,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String receiverName2 = accountCredit.getAcct_name();
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
 					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
+
+			Long userID = accountDebit.getUser().getUserId();
+			if(userID !=null){
+				CompletableFuture.runAsync(() -> transactionCountService.makeCount(String.valueOf(userID), paymentRef));
+			}
+
+
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -5102,6 +5131,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String receiverName2 = accountDebit.getAcct_name();
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
 					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
+
+			Long userID = accountDebit.getUser().getUserId();
+			if(userID !=null){
+				CompletableFuture.runAsync(() -> transactionCountService.makeCount(String.valueOf(userID), paymentRef));
+			}
+
+
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -5783,6 +5819,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String receiverName = accountCredit.getAcct_name();
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
 					new Date(), tranType.getValue(), userId, receiverName, "TRANSFER", token,senderName));
+
+
+			// get the userID of the sender
+			CompletableFuture.runAsync(() -> transactionCountService.makeCount(userId, paymentRef));
+
+
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
