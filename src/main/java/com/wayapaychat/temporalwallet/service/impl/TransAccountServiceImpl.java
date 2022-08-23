@@ -3724,8 +3724,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		}
 			// credit merchant wallet
-			//
-			// To generate transaction receipt
 
 			log.info("END TRANSACTION");
 			// HttpServletRequest request
@@ -3735,12 +3733,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
 					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
 
-			//WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
 			WalletUser xUser = walletUserRepository.findByAccount(accountDebit);
-			String xfullName = xUser.getFirstName() + " " + xUser.getLastName();
 			Long xUserId = xUser.getUserId();
-
-			System.out.println("HERH HERE :: " + xUserId);
 
 			if(xUserId !=null){
 				CompletableFuture.runAsync(() -> transactionCountService.makeCount(String.valueOf(xUserId), paymentRef));
@@ -3949,9 +3943,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
 					new Date(), tranType.getValue(), userId, receiverName, "TRANSFER", token, senderName));
 
-			Long userID = accountDebit.getUser().getUserId();
-			if(userID !=null){
-				CompletableFuture.runAsync(() -> transactionCountService.makeCount(String.valueOf(userID), paymentRef));
+			WalletUser xUser = walletUserRepository.findByAccount(accountDebit);
+			if(xUser !=null){
+				CompletableFuture.runAsync(() -> transactionCountService.makeCount(xUser.getUserId().toString(), paymentRef));
 			}
 
 			return tranId;
@@ -4370,11 +4364,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
 					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
 
-			Long userID = accountDebit.getUser().getUserId();
-			if(userID !=null){
-				CompletableFuture.runAsync(() -> transactionCountService.makeCount(String.valueOf(userID), paymentRef));
+			WalletUser xUser = walletUserRepository.findByAccount(accountDebit);
+			if(xUser !=null){
+				CompletableFuture.runAsync(() -> transactionCountService.makeCount(xUser.getUserId().toString(), paymentRef));
 			}
-
 			return tranId;
 		} catch (Exception ex) {
 			log.error(ex.getMessage());
@@ -4882,9 +4875,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
 					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
 
-			Long userID = accountDebit.getUser().getUserId();
-			if(userID !=null){
-				CompletableFuture.runAsync(() -> transactionCountService.makeCount(String.valueOf(userID), paymentRef));
+			WalletUser xUser = walletUserRepository.findByAccount(accountDebit);
+			if(xUser !=null){
+
+				CompletableFuture.runAsync(() -> transactionCountService.makeCount(xUser.getUserId().toString(), paymentRef));
 			}
 
 
@@ -5132,10 +5126,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
 					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
 
-			Long userID = accountDebit.getUser().getUserId();
-			if(userID !=null){
-				CompletableFuture.runAsync(() -> transactionCountService.makeCount(String.valueOf(userID), paymentRef));
+			WalletUser xUser3 = walletUserRepository.findByAccount(accountDebit);
+			if(xUser3 !=null){
+				CompletableFuture.runAsync(() -> transactionCountService.makeCount(xUser3.getUserId().toString(), paymentRef));
 			}
+
 
 
 			return tranId;
