@@ -3733,12 +3733,16 @@ public class TransAccountServiceImpl implements TransAccountService {
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
 					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
 
-			WalletUser xUser = walletUserRepository.findByAccount(accountDebit);
-			Long xUserId = xUser.getUserId();
 
-			if(xUserId !=null){
-				CompletableFuture.runAsync(() -> transactionCountService.makeCount(String.valueOf(xUserId), paymentRef));
+			if(StringUtils.isNumeric(accountDebit.getAccountNo())){
+				WalletUser xUser = walletUserRepository.findByAccount(accountDebit);
+				Long xUserId = xUser.getUserId();
+
+				if(xUserId !=null){
+					CompletableFuture.runAsync(() -> transactionCountService.makeCount(String.valueOf(xUserId), paymentRef));
+				}
 			}
+
 
 			return tranId;
 		} catch (Exception e) {
