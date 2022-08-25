@@ -24,7 +24,7 @@ public class NonWayaPaymentMultipleOfficialDTO {
     private String fullName;
 
     @NotNull
-    @Min(value = 1000, message ="Amount must be greater or equal to 1000")
+    @Min(value = 100, message ="Amount must be greater or equal to 1000")
     private BigDecimal amount;
 
     @NotBlank(message = "tranCrncy must not Null or Blank")
