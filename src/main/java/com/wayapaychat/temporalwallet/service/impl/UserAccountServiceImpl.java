@@ -1308,6 +1308,14 @@ public class UserAccountServiceImpl implements UserAccountService {
 		return new ResponseEntity<>(new SuccessResponse("Wallet Commissions", account), HttpStatus.OK);
 	}
 
+	public ResponseEntity<?> getAccountDetails(String accountNo) {
+		Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
+		if (!account.isPresent()) {
+			return new ResponseEntity<>(new ErrorResponse("Unable to fetch account"), HttpStatus.BAD_REQUEST);
+		}
+		return new ResponseEntity<>(new SuccessResponse("Wallet", account), HttpStatus.OK);
+	}
+
 	@Override
 	public ResponseEntity<?> getAccountDefault(Long user_id) {
 		WalletUser user = walletUserRepository.findByUserId(user_id);
