@@ -55,6 +55,8 @@ public interface UserAccountService {
 	ResponseEntity<?> getALLCommissionAccount();
 	
 	ResponseEntity<?> getAccountCommission(String accountNo);
+
+	ResponseEntity<?> getAccountDetails(String accountNo);
 	
 	ResponseEntity<?> getAccountDefault(Long user_id);
 	

@@ -1264,7 +1264,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 							transfer.getEmailOrPhoneNo(), noneWaya, userToken.getId()));
 
 					CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
-							transfer.getEmailOrPhoneNo(), message, userToken.getId(),NON_WAYA_PAYMENT_REQUEST));
+							userToken.getId().toString(), message, userToken.getId(),NON_WAYA_PAYMENT_REQUEST));
 				}
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATED", transaction),
 						HttpStatus.CREATED);
