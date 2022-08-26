@@ -120,6 +120,13 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 				System.out.println(sb);
 				count = sb.toString();
 			}
+			while (count.length()  > 10){
+				StringBuffer sb= new StringBuffer(count);
+				sb.deleteCharAt(sb.length()-1);
+				System.out.println("This  is the new length =" + sb);
+				count = sb.toString();
+			}
+			System.out.println("This  is the final length =" + count);
 		} catch (EmptyResultDataAccessException ex) {
 			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
 		}catch (Exception ex) {

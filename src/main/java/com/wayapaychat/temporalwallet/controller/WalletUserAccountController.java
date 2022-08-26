@@ -290,7 +290,13 @@ public class WalletUserAccountController {
     public ResponseEntity<?> getAcctCommission(@PathVariable String accountNo) {
         return userAccountService.getAccountCommission(accountNo);
     }
-	
+
+    @ApiOperation(value = "Get Wallet Account Info By Account Number", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+    @GetMapping(path = "/user-account/{accountNo}")
+    public ResponseEntity<?> getAccountDetails(@PathVariable String accountNo) {
+        return userAccountService.getAccountDetails(accountNo);
+    }
+
 	@ApiOperation(value = "Get Wallet Default Account", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/default/{user_id}")
     public ResponseEntity<?> getAcctDefault(@PathVariable Long user_id) {
