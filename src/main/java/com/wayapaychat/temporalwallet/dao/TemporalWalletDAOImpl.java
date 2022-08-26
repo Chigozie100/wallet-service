@@ -114,12 +114,13 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 			Random r = new Random( System.currentTimeMillis() );
 		    int x = ((1 + r.nextInt(2)) * 100000000 + r.nextInt(100000000));
 		    count = count + x;
-		    if (count.length()  > 10){
+			while (count.length()  > 10){
 				StringBuffer sb= new StringBuffer(count);
 				sb.deleteCharAt(sb.length()-1);
-				System.out.println(sb);
+				System.out.println("This  is the new length =" + sb);
 				count = sb.toString();
 			}
+			System.out.println("This  is the final length =" + count);
 		} catch (EmptyResultDataAccessException ex) {
 			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
 		}catch (Exception ex) {
