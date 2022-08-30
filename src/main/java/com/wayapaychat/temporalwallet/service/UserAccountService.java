@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.wayapaychat.temporalwallet.dto.*;
+import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import org.springframework.http.ResponseEntity;
 
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
@@ -14,7 +15,7 @@ public interface UserAccountService {
 	
 	ResponseEntity<?> createUser(UserDTO user);
 
-	ResponseEntity<?> createNubanAccount(WalletUserDTO user);
+	WalletAccount createNubanAccount(WalletUserDTO user);
 
 	ResponseEntity<?> createUserAccount(WalletUserDTO user);
 	
@@ -41,6 +42,8 @@ public interface UserAccountService {
 	ResponseEntity<?> getAccountInfo(String accountNo);
 	
 	ResponseEntity<?> fetchAccountDetail(String accountNo);
+
+	ResponseEntity<?> fetchVirtualAccountDetail(String accountNo);
 	
 	ResponseEntity<?> getUserAccountList(long userId);
 	

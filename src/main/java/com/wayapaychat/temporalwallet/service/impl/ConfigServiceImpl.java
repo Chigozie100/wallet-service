@@ -24,43 +24,35 @@ import com.wayapaychat.temporalwallet.util.SuccessResponse;
 
 @Service
 public class ConfigServiceImpl implements ConfigService {
-	
-	
-	@Autowired
-	WalletConfigRepository walletConfigRepo;
-	
-	@Autowired
-	WalletBankConfigRepository walletBankConfigRepo;
-	
-	@Autowired
-	WalletProductCodeRepository walletProductCodeRepo;
-	
-	@Autowired
-	WalletProductRepository walletProductRepo;
-	
-	@Autowired
-	ParamDefaultValidation paramValidation;
-	
-	@Autowired
-	WalletInterestRepository walletInterestRepo;
-	
-	@Autowired
-	WalletGLAccountRepository walletGLAccountRepo;
-	
-	@Autowired
-	WalletTellerRepository walletTellerRepository;
-	
-	@Autowired
-	AuthUserServiceDAO authUserService;
-	
-	@Autowired
-	WalletEventRepository walletEventRepository;
-	
-	@Autowired
-	WalletTransactionChargeRepository walletTransactionChargeRepository;
+
+	private final WalletConfigRepository walletConfigRepo;
+	private final WalletBankConfigRepository walletBankConfigRepo;
+	private final WalletProductCodeRepository walletProductCodeRepo;
+	private final WalletProductRepository walletProductRepo;
+	private final ParamDefaultValidation paramValidation;
+	private final WalletInterestRepository walletInterestRepo;
+	private final WalletGLAccountRepository walletGLAccountRepo;
+	private final WalletTellerRepository walletTellerRepository;
+	private final AuthUserServiceDAO authUserService;
+	private final WalletEventRepository walletEventRepository;
+	private final WalletTransactionChargeRepository walletTransactionChargeRepository;
+	private final RecurrentConfigRepository recurrentConfigRepository;
 
 	@Autowired
-	RecurrentConfigRepository recurrentConfigRepository;
+	public ConfigServiceImpl(WalletConfigRepository walletConfigRepo, WalletBankConfigRepository walletBankConfigRepo, WalletProductCodeRepository walletProductCodeRepo, WalletProductRepository walletProductRepo, ParamDefaultValidation paramValidation, WalletInterestRepository walletInterestRepo, WalletGLAccountRepository walletGLAccountRepo, WalletTellerRepository walletTellerRepository, AuthUserServiceDAO authUserService, WalletEventRepository walletEventRepository, WalletTransactionChargeRepository walletTransactionChargeRepository, RecurrentConfigRepository recurrentConfigRepository) {
+		this.walletConfigRepo = walletConfigRepo;
+		this.walletBankConfigRepo = walletBankConfigRepo;
+		this.walletProductCodeRepo = walletProductCodeRepo;
+		this.walletProductRepo = walletProductRepo;
+		this.paramValidation = paramValidation;
+		this.walletInterestRepo = walletInterestRepo;
+		this.walletGLAccountRepo = walletGLAccountRepo;
+		this.walletTellerRepository = walletTellerRepository;
+		this.authUserService = authUserService;
+		this.walletEventRepository = walletEventRepository;
+		this.walletTransactionChargeRepository = walletTransactionChargeRepository;
+		this.recurrentConfigRepository = recurrentConfigRepository;
+	}
 
 	@Override
 	public ResponseEntity<?> createDefaultCode(WalletConfigDTO configPojo) {
@@ -473,6 +465,21 @@ public class ConfigServiceImpl implements ConfigService {
 			return new ResponseEntity<>(new ErrorResponse("No Charge exist"), HttpStatus.BAD_REQUEST);
 		}
 		return new ResponseEntity<>(new SuccessResponse("Success", event), HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> getSingleEvents(Long id) {
+		try{
+			Optional<WalletEventCharges> walletEventCharges = walletEventRepository.findById(id);
+			if(!walletEventCharges.isPresent()){
+				return new ResponseEntity<>(new ErrorResponse("Event Not Found"), HttpStatus.BAD_REQUEST);
+			}
+			return new ResponseEntity<>(walletEventCharges.get(), HttpStatus.OK);
+		}catch (Exception ex){
+			throw new CustomException("error here " + ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+		}
+
+
 	}
 	
 	@Override
