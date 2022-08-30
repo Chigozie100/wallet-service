@@ -1992,6 +1992,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 						message, userToken.getId(),CategoryType.WITHDRAW.name()));
 
 				// notify debit account
+				// nofify web hook
 			} else {
 				if (intRec == 2) {
 					return new ResponseEntity<>(new ErrorResponse("UNABLE TO PROCESS DUPLICATE TRANSACTION REFERENCE"),
@@ -2006,6 +2007,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return resp;
+	}
+
+
+	private void WebhookNotification(){
+		// get the user account and the callback Url
+		// apend the call back url to the proxy endpoint
+		// save response back from aggregator.
 	}
 
 	@Override
@@ -4713,6 +4721,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 			} else if(charge.isChargeCustomer()){
 				accountCredit = accountDebitTeller.get();
 				accountDebit = walletAccountRepository.findByAccountNo(creditAcctNo);
+			}else{
+				accountDebit = accountDebitTeller.get();
+				accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
 			}
 			if (accountDebit == null || accountCredit == null) {
 				return "DJGO|DEBIT ACCOUNT OR BENEFICIARY ACCOUNT DOES NOT EXIST";
@@ -4854,10 +4865,18 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// HttpServletRequest request
 			String token = request.getHeader(SecurityConstants.HEADER_STRING);
 
+			String contentType = "";
+			if(eventId.equals("NONWAYAPT")){
+				contentType = NON_WAYA_PAYMENT_REQUEST;
+			}else{
+				contentType = WAYA_PAYMENT_REQUEST;
+			}
+
 			String message = formatDebitMessage(amount, tranId, tranDate, tranCrncy,tranNarrate);
 			WalletAccount finalAccountDebit = accountDebit;
+			String finalContentType1 = contentType;
 			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, finalAccountDebit.getUser().getFirstName(),
-					"0", message, finalAccountDebit.getUser().getUserId(),NON_WAYA_PAYMENT_REQUEST));
+					"0", message, finalAccountDebit.getUser().getUserId(), finalContentType1));
 
 			double clrbalAmtCr = accountCredit.getClr_bal_amt() + amount.doubleValue();
 			double cumbalCrAmtCr = accountCredit.getCum_cr_amt() + amount.doubleValue();
@@ -4869,8 +4888,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			String message2 = formatNewMessage(amount, tranId, tranDate, tranCrncy, tranNarrate);
 			WalletAccount finalAccountCredit = accountCredit;
+			String finalContentType = contentType;
 			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, finalAccountCredit.getUser().getFirstName(),
-					finalAccountCredit.getUser().getUserId().toString() ,message2, 0L,NON_WAYA_PAYMENT_REQUEST));
+					finalAccountCredit.getUser().getUserId().toString() ,message2, 0L, finalContentType));
 
 			log.info("END TRANSACTION");
 

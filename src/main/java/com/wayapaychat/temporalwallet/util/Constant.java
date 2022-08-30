@@ -45,7 +45,7 @@ public class Constant {
 
     public static final String NON_WAYA_REDEEM = "Payment Request has been redeemed";
     public static final String NON_WAYA_PAYMENT_REQUEST = "None Waya Payment Request";
-
+    public static final String WAYA_PAYMENT_REQUEST = "Waya Payment Request";
     public static final String WAYA_POS_SETTLEMENT = "Waya Pos Settlement";
 
     public static final String WAYA_REDEEM = "Payment Request has been redeemed";
