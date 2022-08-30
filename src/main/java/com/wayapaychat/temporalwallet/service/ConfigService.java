@@ -28,6 +28,7 @@ public interface ConfigService {
 	ResponseEntity<?> deleteEvent(Long eventId);
 	//
 	ResponseEntity<?> ListEvents();
+	ResponseEntity<?> getSingleEvents(Long id);
 	ResponseEntity<?> createCharge(ChargeDTO event);
 	ResponseEntity<?> ListTranCharge();
 	ResponseEntity<?> findTranCharge(Long id);
