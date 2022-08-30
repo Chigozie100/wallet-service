@@ -244,18 +244,21 @@ public class UserAccountServiceImpl implements UserAccountService {
 	}
 
 	@Override
-	public ResponseEntity<?> createNubanAccount(WalletUserDTO user) {
+	public WalletAccount createNubanAccount(WalletUserDTO user) {
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
 		if (existingUser != null) {
-			return new ResponseEntity<>(new ErrorResponse("Wallet User already exists"), HttpStatus.BAD_REQUEST);
+			log.info("Wallet User already exists");
+			return null;
+					//new ResponseEntity<>(new ErrorResponse("Wallet User already exists"), HttpStatus.BAD_REQUEST);
 		}
-		int userId = user.getUserId().intValue();
-		UserDetailPojo wallet = authService.AuthUser(userId);
-
-		if (wallet == null) {
-			return new ResponseEntity<>(new ErrorResponse("Auth User ID does not exists"), HttpStatus.BAD_REQUEST);
-		}
-		log.info("Is it a corporate User: {}", wallet.is_corporate());
+//		int userId = user.getUserId().intValue();
+//		UserDetailPojo wallet = authService.AuthUser(userId);
+//
+//		if (wallet == null) {
+//			log.info("Auth User ID does not exists");
+//			return null;
+//		}
+		//log.info("Is it a corporate User: {}", wallet.is_corporate());
 		// Default Wallet
 		String acct_name = user.getFirstName().toUpperCase() + " " + user.getLastName().toUpperCase();
 		WalletUser userInfo = new WalletUser(user.getSolId(), user.getUserId(), user.getFirstName().toUpperCase(),
@@ -268,7 +271,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 		String acctNo = null;
 		Integer rand = reqUtil.getAccountNo();
 		if (rand == 0) {
-			return new ResponseEntity<>(new ErrorResponse("Unable to generate Wallet Account"), HttpStatus.BAD_REQUEST);
+			log.info("Unable to generate Wallet Account");
+			return null;
 		}
 		String acct_ownership = null;
 		if (!user.getCustSex().equals("S")) {
@@ -338,10 +342,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 
 
-		String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, Constant.LEDGER);
+		String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, user.getAccountType());
 		try {
 			String hashed_no = reqUtil
-					.WayaEncrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
+					.WayaEncrypt(user.getUserId() + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
 			WalletUser userx = walletUserRepository.save(userInfo);
 
 			WalletAccount account = new WalletAccount();
@@ -356,46 +360,46 @@ public class UserAccountServiceImpl implements UserAccountService {
 			WalletAccount sAcct = walletAccountRepository.save(account);
 			WalletAccount caccount = new WalletAccount();
 			// Commission Wallet
-			if (wallet.is_corporate()) {
-				Optional<WalletAccount> acct = walletAccountRepository.findByAccountUser(userx);
-				if (!acct.isPresent()) {
-					code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission, wayaCommGLCode);
-					product = walletProductRepository.findByProductCode(wayaProductCommission, wayaCommGLCode);
-					if (!user.getCustSex().equals("S")) {
-						acctNo = "901" + rand;
-						if (acctNo.length() < 10) {
-							acctNo = StringUtils.rightPad(acctNo, 10, "0");
-						}
-					} else {
-						acctNo = "621" + rand;
-						if (acctNo.length() < 10) {
-							acctNo = StringUtils.rightPad(acctNo, 10, "0");
-						}
-					}
-					log.info(acctNo);
-					hashed_no = reqUtil.WayaEncrypt(
-							userId + "|" + acctNo + "|" + wayaProductCommission + "|" + product.getCrncy_code());
-					acct_name = acct_name + " " + "COMMISSION ACCOUNT";
-					if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
-							|| product.getProduct_type().equals("ODA"))) {
-						caccount = new WalletAccount("0000", "", acctNo, "0",acct_name, userx, code.getGlSubHeadCode(),
-								wayaProductCommission, acct_ownership, hashed_no, product.isInt_paid_flg(),
-								product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
-								product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
-								product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(),
-								false);
-					}
-					walletAccountRepository.save(caccount);
-				}
-
-			}
+//			if (wallet.is_corporate()) {
+//				Optional<WalletAccount> acct = walletAccountRepository.findByAccountUser(userx);
+//				if (!acct.isPresent()) {
+//					code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission, wayaCommGLCode);
+//					product = walletProductRepository.findByProductCode(wayaProductCommission, wayaCommGLCode);
+//					if (!user.getCustSex().equals("S")) {
+//						acctNo = "901" + rand;
+//						if (acctNo.length() < 10) {
+//							acctNo = StringUtils.rightPad(acctNo, 10, "0");
+//						}
+//					} else {
+//						acctNo = "621" + rand;
+//						if (acctNo.length() < 10) {
+//							acctNo = StringUtils.rightPad(acctNo, 10, "0");
+//						}
+//					}
+//					log.info(acctNo);
+//					hashed_no = reqUtil.WayaEncrypt(
+//							userId + "|" + acctNo + "|" + wayaProductCommission + "|" + product.getCrncy_code());
+//					acct_name = acct_name + " " + "COMMISSION ACCOUNT";
+//					if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+//							|| product.getProduct_type().equals("ODA"))) {
+//						caccount = new WalletAccount("0000", "", acctNo, "0",acct_name, userx, code.getGlSubHeadCode(),
+//								wayaProductCommission, acct_ownership, hashed_no, product.isInt_paid_flg(),
+//								product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
+//								product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
+//								product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(),
+//								false);
+//					}
+//					walletAccountRepository.save(caccount);
+//				}
+//
+//			}
 			sAcct.setWalletDefault(true);
 			walletAccountRepository.save(sAcct);
 			log.info("Account Creation: " + sAcct.getAccountNo());
-			return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
-					HttpStatus.CREATED);
+			return account;
 		} catch (Exception e) {
-			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+			throw new CustomException(e.getLocalizedMessage(), HttpStatus.EXPECTATION_FAILED);
+
 		}
 	}
 
@@ -1208,6 +1212,18 @@ public class UserAccountServiceImpl implements UserAccountService {
 		AccountDetailDTO account = new AccountDetailDTO(acct.getId(), acct.getSol_id(), acct.getAccountNo(),
 				acct.getAcct_name(), acct.getProduct_code(), new BigDecimal(acct.getClr_bal_amt()),
 				acct.getAcct_crncy_code(), acct.isWalletDefault());
+		return new ResponseEntity<>(new SuccessResponse("Success", account), HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> fetchVirtualAccountDetail(String accountNo) {
+		WalletAccount acct = walletAccountRepository.findByNubanAccountNo(accountNo);
+		if (acct == null) {
+			return new ResponseEntity<>(new ErrorResponse("Invalid Account"), HttpStatus.NOT_FOUND);
+		}
+		AccountDetailDTO account = new AccountDetailDTO(acct.getId(), acct.getSol_id(), acct.getNubanAccountNo(),
+				acct.getAcct_name(), acct.getProduct_code(), new BigDecimal(acct.getClr_bal_amt()),
+				acct.getAcct_crncy_code());
 		return new ResponseEntity<>(new SuccessResponse("Success", account), HttpStatus.OK);
 	}
 

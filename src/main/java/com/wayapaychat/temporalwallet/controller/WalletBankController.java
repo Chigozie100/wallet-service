@@ -160,6 +160,17 @@ public class WalletBankController {
     }
 
 
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Get Single Wallet Event", tags = { "BANK-WALLET" })
+    @GetMapping(path = "/event/charges/{chargeId}")
+    public ResponseEntity<?> getSingleEventCharge(@PathVariable("chargeId") Long chargeId) {
+        return configService.getSingleEvents(chargeId);
+    }
+
+
+
     @ApiOperation(value = "Create a Transaction Charge", tags = { "BANK-WALLET" })
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
@@ -169,30 +180,30 @@ public class WalletBankController {
     }
 
 
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-    @ApiOperation(value = "List Transaction Charge", tags = { "BANK-WALLET" })
-    @GetMapping(path = "/transaction/charges")
-    public ResponseEntity<?> ListAllCharge() {
-        return configService.ListTranCharge();
-    }
-
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-    @ApiOperation(value = "Get Transaction Charge", tags = { "BANK-WALLET" })
-    @GetMapping(path = "/transaction/charges/{chargeId}")
-    public ResponseEntity<?> GetTranCharge(@PathVariable("chargeId") Long chargeId) {
-        return configService.findTranCharge(chargeId);
-    }
-
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-    @ApiOperation(value = "Update Transaction Charge", tags = { "BANK-WALLET" })
-    @PutMapping(path = "/transaction/charges/{chargeId}")
-    public ResponseEntity<?> creteDefaultCode(@Valid @RequestBody ModifyChargeDTO charge,
-    		@PathVariable("chargeId") Long chargeId) {
-        return configService.updateTranCharge(charge,chargeId);
-    }
+//    @ApiImplicitParams({
+//            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+//    @ApiOperation(value = "List Transaction Charge", tags = { "BANK-WALLET" })
+//    @GetMapping(path = "/transaction/charges")
+//    public ResponseEntity<?> ListAllCharge() {
+//        return configService.ListTranCharge();
+//    }
+//
+//    @ApiImplicitParams({
+//            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+//    @ApiOperation(value = "Get Transaction Charge", tags = { "BANK-WALLET" })
+//    @GetMapping(path = "/transaction/charges/{chargeId}")
+//    public ResponseEntity<?> GetTranCharge(@PathVariable("chargeId") Long chargeId) {
+//        return configService.findTranCharge(chargeId);
+//    }
+//
+//    @ApiImplicitParams({
+//            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+//    @ApiOperation(value = "Update Transaction Charge", tags = { "BANK-WALLET" })
+//    @PutMapping(path = "/transaction/charges/{chargeId}")
+//    public ResponseEntity<?> creteDefaultCode(@Valid @RequestBody ModifyChargeDTO charge,
+//    		@PathVariable("chargeId") Long chargeId) {
+//        return configService.updateTranCharge(charge,chargeId);
+//    }
 
 
 

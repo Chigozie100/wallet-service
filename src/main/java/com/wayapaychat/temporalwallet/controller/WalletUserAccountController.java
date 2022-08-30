@@ -94,7 +94,6 @@ public class WalletUserAccountController {
     }
 
 
-
     @ApiOperation(value = " Block / UnBlock", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/account/block")
     public ResponseEntity<?> postAccountBlock(@Valid @RequestBody AccountBlockDTO user) {
@@ -224,11 +223,18 @@ public class WalletUserAccountController {
     public ResponseEntity<?> getAcctInfo(@PathVariable String accountNo) {
         return userAccountService.getAccountInfo(accountNo);
     }
-	
-	@ApiOperation(value = "Get Wallet Selected Account Detail", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+
+    @ApiOperation(value = "Get Wallet Selected Account Detail", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/account/{accountNo}")
     public ResponseEntity<?> GetAcctDetail(@PathVariable String accountNo) {
         return userAccountService.fetchAccountDetail(accountNo);
+    }
+
+
+    @ApiOperation(value = "Get Virtual Account Detail", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+    @GetMapping(path = "/account/virtual/{accountNo}")
+    public ResponseEntity<?> GetVirtualAcctDetail(@PathVariable String accountNo) {
+        return userAccountService.fetchVirtualAccountDetail(accountNo);
     }
 
     @ApiOperation(value = "Get User list of wallets", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
@@ -291,6 +297,7 @@ public class WalletUserAccountController {
         return userAccountService.getAccountCommission(accountNo);
     }
 
+    @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Get Wallet Account Info By Account Number", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/user-account/{accountNo}")
     public ResponseEntity<?> getAccountDetails(@PathVariable String accountNo) {

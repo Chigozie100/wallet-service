@@ -3,6 +3,7 @@ package com.wayapaychat.temporalwallet.util;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import org.springframework.http.HttpStatus;
 
+import java.security.SecureRandom;
 import java.util.Random;
 
 public class Util {
@@ -105,5 +106,22 @@ public class Util {
         }
         return nuban;
 
+    }
+
+    public static String generateRandomNumber(int length) {
+
+        int randNumOrigin = generateRandomNumber(58, 34);
+        int randNumBound = generateRandomNumber(354, 104);
+
+        SecureRandom random = new SecureRandom();
+        return random.ints(randNumOrigin, randNumBound + 1)
+                .filter(Character::isDigit)
+                .limit(length)
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint,
+                        StringBuilder::append)
+                .toString();
+    }
+    public static int generateRandomNumber(int max, int min) {
+        return (int) (Math.random() * (max - min + 1) + min);
     }
 }

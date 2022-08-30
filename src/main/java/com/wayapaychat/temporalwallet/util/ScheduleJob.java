@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.util;
 
 import com.wayapaychat.temporalwallet.dto.OfficeUserTransferDTO;
 import com.wayapaychat.temporalwallet.entity.*;
+import com.wayapaychat.temporalwallet.enumm.PaymentRequestStatus;
 import com.wayapaychat.temporalwallet.enumm.PaymentStatus;
 import com.wayapaychat.temporalwallet.enumm.TransactionTypeEnum;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
@@ -35,10 +36,11 @@ public class ScheduleJob {
     private final WalletTransactionRepository walletTransactionRepository;
     private final TokenImpl tokenImpl;
     private final WalletUserRepository walletUserRepository;
+    private final WalletPaymentRequestRepository walletPaymentRequestRepository;
 
 
     @Autowired
-    public ScheduleJob(WalletNonWayaPaymentRepository walletNonWayaPaymentRepo, WalletAccountRepository walletAccountRepository, RecurrentConfigRepository recurrentConfigRepository, TransAccountService transAccountService, ReversalSetupRepository reversalSetupRepository, WalletTransactionRepository walletTransactionRepository, TokenImpl tokenImpl, WalletUserRepository walletUserRepository) {
+    public ScheduleJob(WalletNonWayaPaymentRepository walletNonWayaPaymentRepo, WalletAccountRepository walletAccountRepository, RecurrentConfigRepository recurrentConfigRepository, TransAccountService transAccountService, ReversalSetupRepository reversalSetupRepository, WalletTransactionRepository walletTransactionRepository, TokenImpl tokenImpl, WalletUserRepository walletUserRepository, WalletPaymentRequestRepository walletPaymentRequestRepository) {
         this.walletNonWayaPaymentRepo = walletNonWayaPaymentRepo;
         this.walletAccountRepository = walletAccountRepository;
         this.recurrentConfigRepository = recurrentConfigRepository;
@@ -47,6 +49,7 @@ public class ScheduleJob {
         this.walletTransactionRepository = walletTransactionRepository;
         this.tokenImpl = tokenImpl;
         this.walletUserRepository = walletUserRepository;
+        this.walletPaymentRequestRepository = walletPaymentRequestRepository;
     }
 
 
@@ -96,10 +99,7 @@ public class ScheduleJob {
                 payment.setStatus(PaymentStatus.EXPIRED);
                 walletNonWayaPaymentRepo.save(payment);
                 log.info( "-----####### END: record Updated ###### -------" + payment.getTranId());
-
-
                 CompletableFuture.runAsync(() -> reverseNoneWayaPayment(payment.getEmailOrPhone(),token,payment.getTranId()));
-
             }else{
                 log.info("-----####### END: NOT FOUND ###### -------");
             }
@@ -108,6 +108,8 @@ public class ScheduleJob {
         }
 
     }
+
+
 
     private Map<String, Object> noneWayaPaymentReversal(String tranId){
         String debitAccount = "";
@@ -160,7 +162,60 @@ public class ScheduleJob {
         log.info(String.valueOf(response.getData()));
     }
 
+    @Scheduled(cron = "${job.cron.twelam}")
+    public void processPendingPaymentRequest() throws ParseException {
 
+        long checkDays = getReversalDays();
+        log.info("-----####### START ###### -------");
+        List<WalletPaymentRequest> walletPaymentRequestList = walletPaymentRequestRepository.findByAllByStatus(PaymentRequestStatus.PENDING);
+
+        log.info("OUTPUT :: {} " + walletPaymentRequestList);
+        if(!walletPaymentRequestList.isEmpty()){
+            String token = tokenImpl.getToken();
+
+            for (WalletPaymentRequest data: walletPaymentRequestList){
+                // WalletNonWayaPayment payment = walletNonWayaPaymentRepo.findById(data.getId()).orElse(null);
+
+                SimpleDateFormat myFormat = new SimpleDateFormat("MM/dd/yyyy");
+
+                LocalDateTime localDateTime = data.getCreatedAt();
+                Instant instant = localDateTime.atZone(ZoneId.systemDefault()).toInstant();
+                Date date2 = Date.from(instant);
+                String dateString2 = myFormat.format(date2);
+
+                Date createdDate = myFormat.parse(dateString2);
+
+                String dateString = myFormat.format(new Date());
+                Date today = myFormat.parse(dateString);
+
+                long difference = today.getTime() - createdDate.getTime();
+                long daysBetween = (difference / (1000*60*60*24));
+                log.info(checkDays + " ####### check Transaction upto 30 days ###### " + daysBetween);
+
+                if(daysBetween > checkDays || daysBetween == checkDays && data.getStatus().equals(PaymentRequestStatus.PENDING)){
+                    log.info("-----####### inside Transaction upto 30 days ###### -------");
+
+                    updatePaymentRequestStatus(data.getReference());
+                    log.info( "-----####### END: record Updated ###### -------" );
+
+                }else{
+                    log.info("-----####### END: NOT FOUND ###### -------");
+                }
+
+            }
+        }
+    }
+
+
+    private void updatePaymentRequestStatus(String reference){
+
+        Optional<WalletPaymentRequest> walletPaymentRequest = walletPaymentRequestRepository.findByReferenceAndStatus(reference, PaymentRequestStatus.PENDING);
+        if (walletPaymentRequest.isPresent()) {
+            WalletPaymentRequest walletPaymentRequest1 = walletPaymentRequest.get();
+            walletPaymentRequest1.setStatus(PaymentRequestStatus.EXPIRED);
+            walletPaymentRequestRepository.save(walletPaymentRequest1);
+        }
+    }
 
     @Scheduled(cron = "${job.cron.twelam}")
     public void massDebitAndCredit() throws ParseException {
