@@ -1152,14 +1152,19 @@ public class WalletTransactionController {
 		return transAccountService.debitAndCreditTransactionAmount();
 	}
 
-
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
-	@ApiOperation(value = "Total Credit And Debit Transactions Amount", notes = "Total Credit And Debit Transactions", tags = { "TRANSACTION-WALLET" })
+	@ApiOperation(value = "User Transaction Count ", notes = "User Transaction Count", tags = { "TRANSACTION-WALLET" })
 	@GetMapping("/transaction/get-user-transaction-count")
 	public ResponseEntity<?> userTransactionCount() {
 		return transactionCountService.getAllUserCount();
 	}
+
+	@ApiOperation(value = "User Transaction Count by User Id ", notes = "User Transaction Count by User Id", tags = { "TRANSACTION-WALLET" })
+	@GetMapping("/transaction/get-user-transaction-count/{userId}")
+	public ResponseEntity<?> getUserCount(@PathVariable String userId) {
+		return transactionCountService.getUserCount(userId);
+	}
+
+
 
 
 
