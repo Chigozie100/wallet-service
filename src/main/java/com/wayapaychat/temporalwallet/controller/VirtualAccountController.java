@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.controller;
 
+import com.wayapaychat.temporalwallet.pojo.VirtualAccountHookRequest;
 import com.wayapaychat.temporalwallet.pojo.VirtualAccountRequest;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.service.UserAccountService;
@@ -52,6 +53,23 @@ public class VirtualAccountController {
         return CompletableFuture.completedFuture(virtualService.createVirtualAccount(accountRequest));
     }
 
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Register Aggregator WebHook", hidden = false, tags = { "BANK-VIRTUAL-ACCOUNT" })
+    @PostMapping(
+            value = "/registerWebhookUrl",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE
+    )
+    public CompletableFuture<ResponseEntity<?>> registerWebhookUrl(@RequestBody VirtualAccountHookRequest accountRequest){
+
+        return CompletableFuture.completedFuture(virtualService.registerWebhookUrl(accountRequest));
+    }
+
+
+    //ResponseEntity<?> registerWebhookUrl(VirtualAccountHookRequest request)
+
 //    @ApiImplicitParams({
 //            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 //    @ApiOperation(value = "Create a Virtual Account", hidden = false, tags = { "BANK-VIRTUAL-ACCOUNT" })
@@ -79,5 +97,11 @@ public class VirtualAccountController {
         }
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
+
+
+
+
+
+
 
 }
