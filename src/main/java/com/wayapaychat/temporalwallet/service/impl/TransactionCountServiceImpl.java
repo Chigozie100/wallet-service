@@ -30,8 +30,15 @@ public class TransactionCountServiceImpl implements TransactionCountService {
 
 
     @Override
-    public long getCount(String userId) {
-        return transactionCountRepository.countByUserId(userId);
+    public ResponseEntity<?> getUserCount(String userId) {
+        List<TransactionCountDto> allList = new ArrayList<>();
+        List<TransactionCountDto> trdto =  transactionCountRepository.findSurveyCount();
+        for (TransactionCountDto transactionCountDto :trdto){
+            WalletUser user = walletUserRepository.findByUserId(Long.parseLong(transactionCountDto.getUserId()));
+            allList.add(new TransactionCountDto(transactionCountDto.getUserId(), transactionCountDto.getTotalCount(), user));
+        }
+
+        return new ResponseEntity<>(new SuccessResponse(allList),HttpStatus.ACCEPTED);
     }
 
     @Override
@@ -44,7 +51,7 @@ public class TransactionCountServiceImpl implements TransactionCountService {
             allList.add(new TransactionCountDto(transactionCountDto.getUserId(), transactionCountDto.getTotalCount(), user));
         }
 
-        return new ResponseEntity<>(new SuccessResponse(allList),HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(allList,HttpStatus.ACCEPTED);
     }
 
 

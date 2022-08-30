@@ -474,11 +474,10 @@ public class ConfigServiceImpl implements ConfigService {
 			if(!walletEventCharges.isPresent()){
 				return new ResponseEntity<>(new ErrorResponse("Event Not Found"), HttpStatus.BAD_REQUEST);
 			}
-			return new ResponseEntity<>(walletEventCharges.get(), HttpStatus.OK);
+			return new ResponseEntity<>(new SuccessResponse("Success", walletEventCharges.get()), HttpStatus.OK);
 		}catch (Exception ex){
 			throw new CustomException("error here " + ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
 		}
-
 
 	}
 	
