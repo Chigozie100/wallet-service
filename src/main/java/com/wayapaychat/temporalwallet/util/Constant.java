@@ -48,6 +48,8 @@ public class Constant {
     public static final String WAYA_PAYMENT_REQUEST = "Waya Payment Request";
     public static final String WAYA_POS_SETTLEMENT = "Waya Pos Settlement";
 
+    public static final String BILLS_PAYNENT = "BILLS-PAYMENT";
+
     public static final String WAYA_REDEEM = "Payment Request has been redeemed";
     public static final String RETRIEVE_DATA = "Retrieve Data";
     public static final String TOGGLE_SUCCESSFULY = "Toggle Done Successfully";

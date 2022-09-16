@@ -53,7 +53,6 @@ public class VirtualAccountController {
         return CompletableFuture.completedFuture(virtualService.createVirtualAccount(accountRequest));
     }
 
-
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Register Aggregator WebHook", hidden = false, tags = { "BANK-VIRTUAL-ACCOUNT" })
@@ -62,6 +61,7 @@ public class VirtualAccountController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
+    @Async
     public CompletableFuture<ResponseEntity<?>> registerWebhookUrl(@RequestBody VirtualAccountHookRequest accountRequest){
 
         return CompletableFuture.completedFuture(virtualService.registerWebhookUrl(accountRequest));

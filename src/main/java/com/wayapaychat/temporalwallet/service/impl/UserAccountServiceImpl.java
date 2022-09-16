@@ -1242,7 +1242,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 		List<WalletAccount> accounts = walletAccountRepository.findByUser(x);
 		return new ResponseEntity<>(new SuccessResponse("Success.", accounts), HttpStatus.OK);
 	}
-	
+
+
+
+
 	public ResponseEntity<?> ListUserAccount(long userId) {
 		int uId = (int) userId;
 		UserDetailPojo ur = authService.AuthUser(uId);
@@ -1324,12 +1327,17 @@ public class UserAccountServiceImpl implements UserAccountService {
 		return new ResponseEntity<>(new SuccessResponse("Wallet Commissions", account), HttpStatus.OK);
 	}
 
-	public ResponseEntity<?> getAccountDetails(String accountNo) {
-		Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
-		if (!account.isPresent()) {
-			return new ResponseEntity<>(new ErrorResponse("Unable to fetch account"), HttpStatus.BAD_REQUEST);
+	public ResponseEntity<?> getAccountDetails(String accountNo) throws Exception {
+
+		try{
+			Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
+			if (!account.isPresent()) {
+				return new ResponseEntity<>(new ErrorResponse("Unable to fetch account"), HttpStatus.BAD_REQUEST);
+			}
+			return new ResponseEntity<>(new SuccessResponse("Wallet", account), HttpStatus.OK);
+		}catch (Exception ex){
+			throw new Exception(ex.getMessage());
 		}
-		return new ResponseEntity<>(new SuccessResponse("Wallet", account), HttpStatus.OK);
 	}
 
 	@Override
