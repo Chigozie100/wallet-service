@@ -366,31 +366,35 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
-				if (!transaction.isPresent()) {
+				if (!transaction.isEmpty()) {
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
 							HttpStatus.BAD_REQUEST);
 				}
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", transaction), HttpStatus.CREATED);
-				log.info("Transaction Response: {}", resp.toString());
+				log.info("Transaction Response::", resp.toString());
 
-//				Date tDate = Calendar.getInstance().getTime();
-//				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				//String tranDate = dateFormat.format(tDate);
+				Date tDate = Calendar.getInstance().getTime();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+				String tranDate = dateFormat.format(tDate);
+				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+						transfer.getTranNarration());
+				String finalTranId = tranId;
+				if(StringUtils.isNumeric(toAccountNumber)){
+					WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+					WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+					String fullName = xUser.getFirstName() + " " + xUser.getLastName();
+					CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
+							xUser.getEmailAddress(), message, userToken.getId(), transfer.getAmount().toString(), finalTranId,
+							tranDate, transfer.getTranNarration()));
+					CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
+							message, userToken.getId()));
+				}
 
-
-
-//				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
-//				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
-//				String fullName = xUser.getFirstName() + " " + xUser.getLastName();
 
 //				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 //						transfer.getTranNarration());
-//				String finalTranId = tranId;
-//				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
-//						xUser.getEmailAddress(), message, userToken.getId(), transfer.getAmount().toString(), finalTranId,
-//						tranDate, transfer.getTranNarration()));
-//				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
-//						message, userToken.getId()));
+//
+
 //				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getMobileNo(),
 //						message, userToken.getId(), TRANSACTION_HAS_OCCURRED));
 			} else {
@@ -4941,7 +4945,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	public String createEventTransactionForBillsPayment(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
 										 TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request,
-										 CategoryType tranCategory) throws Exception {
+										 CategoryType tranCategory) {
 		String tranDate = getTransactionDate();
 		try {
 			int n = 1;
@@ -5095,9 +5099,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (tranId.equals("")) {
 				return "DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN";
 			}
-			// MyData tokenData = tokenService.getUserInformation();
-			// String email = tokenData != null ? tokenData.getEmail() : "";
-			// String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+
 			String senderName = accountDebit.getAcct_name();
 			String receiverName = accountCredit.getAcct_name();
 
@@ -5122,7 +5124,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 			accountDebit.setCum_dr_amt(cumbalDrAmtDr);
 			accountDebit.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(accountDebit);
-			// HttpServletRequest request
 
 			String token = request.getHeader(SecurityConstants.HEADER_STRING);
 
@@ -5154,23 +5155,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 			accountCredit.setCum_cr_amt(cumbalCrAmtCr);
 			accountCredit.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(accountCredit);
-
-//			String message2 = formatNewMessage(amount, tranId, tranDate, tranCrncy, tranNarrate)
-//			WalletAccount finalAccountCredit = accountCredit;
-//			String finalContentType = contentType;
-//
-//
-//			if(StringUtils.isNumeric(accountCredit.getAccountNo())){
-//				System.out.println("INside credit :: " + accountCredit);
-//				WalletUser xUser = walletUserRepository.findByAccount(accountCredit);
-//				if(xUser !=null){
-//					xUserData = xUser;
-//				}
-//				WalletUser finalUserData2 = xUserData;
-//				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, finalUserData2.getFirstName(),
-//						finalUserData2.getUserId().toString() ,message2, 0L, finalContentType));
-//			}
-
 
 			log.info("END TRANSACTION");
 
