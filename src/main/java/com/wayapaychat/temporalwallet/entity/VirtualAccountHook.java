@@ -22,10 +22,16 @@ public class VirtualAccountHook {
     private Long id;
     private String bank;
     private String bankCode;
+
     @Column(unique = true, nullable = false)
     private String virtualAccountCode;
+
     @Column(unique = true, nullable = false)
     private String callbackUrl;
+
+    @Column(unique = true, nullable = false)
+    private String username;
+    private String password;
 
     @CreationTimestamp
     private LocalDateTime createdAt;

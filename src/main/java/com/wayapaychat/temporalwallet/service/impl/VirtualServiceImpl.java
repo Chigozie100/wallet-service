@@ -1,6 +1,7 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
 import com.wayapaychat.temporalwallet.dto.AccountDetailDTO;
+import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.WalletUserDTO;
 import com.wayapaychat.temporalwallet.entity.VirtualAccountHook;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
@@ -22,6 +23,7 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.*;
 import java.util.Date;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Service
@@ -47,12 +49,14 @@ public class VirtualServiceImpl implements VirtualService {
             virtualAccountHook.setBank(request.getBank());
             virtualAccountHook.setBankCode(request.getBankCode());
             virtualAccountHook.setVirtualAccountCode(Util.generateRandomNumber(4));
+            virtualAccountHook.setUsername(request.getUsername());
+            virtualAccountHook.setPassword(encode(request.getPassword()));
             virtualAccountHook.setCallbackUrl(request.getCallbackUrl());
             virtualAccountRepository.save(virtualAccountHook);
             return new ResponseEntity<>(new SuccessResponse("Account created successfully", virtualAccountHook), HttpStatus.OK);
 
         }catch (Exception ex){
-            throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+            throw new CustomException("Error " +ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
     }
 
@@ -135,8 +139,43 @@ public class VirtualServiceImpl implements VirtualService {
     }
 
     @Override
-    public SuccessResponse fundTransfer(String reference, String amount, String narration, String crAccountName, String bankName, String drAccountName, String crAccount, String bankCode) {
+    public SuccessResponse fundTransfer(BankPaymentDTO paymentDTO) {
+        //String reference, String amount, String narration, String crAccountName, String bankName, String drAccountName, String crAccount, String bankCode
         return null;
+    }
+
+
+    public String encode(String password) {
+        try {
+            return Util.WayaEncrypt(password);
+        }catch (Exception ex){
+            throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+        }
+    }
+
+
+    public String getAuthCredentials(String username, String password) {
+        try {
+            String credentials = Util.WayaEncrypt(username + "." + password);
+            return "Basic "+credentials;
+        }catch (Exception ex){
+            throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+        }
+
+    }
+
+    public boolean validateBasicAuth(String token) throws Exception {
+
+        String username = "";
+        String password = "";
+        final String credentials = Util.WayaDecrypt(token);
+        String[] keyDebit = credentials.split(Pattern.quote(" "));
+        Optional<VirtualAccountHook> virtualAccountHook = virtualAccountRepository.findByUsernameAndPassword(keyDebit[0],keyDebit[1]);
+        if(!virtualAccountHook.isPresent()){
+            return false;
+        }
+
+        return (keyDebit[0].equals(virtualAccountHook.get().getUsername())) && (keyDebit[1].equals(virtualAccountHook.get().getPassword()));
     }
 
 

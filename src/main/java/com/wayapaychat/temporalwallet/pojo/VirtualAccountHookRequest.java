@@ -10,4 +10,6 @@ public class VirtualAccountHookRequest {
     private String bankCode;
     @NotBlank(message = "callbackUrl cannot be null")
     private String callbackUrl;
+    private String username;
+    private String password;
 }

@@ -191,5 +191,7 @@ public interface TransAccountService {
 	ResponseEntity<?>  debitTransactionAmount();
 	ResponseEntity<?>  creditTransactionAmount();
 	ResponseEntity<?>  debitAndCreditTransactionAmount();
-
+	ResponseEntity<?>  debitTransactionAmountOffical();
+	ResponseEntity<?>  creditTransactionAmountOffical();
+	ResponseEntity<?>  debitAndCreditTransactionAmountOfficial();
 }
