@@ -1,6 +1,7 @@
 package com.wayapaychat.temporalwallet.service;
 
 
+import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
 import com.wayapaychat.temporalwallet.entity.VirtualAccountHook;
 import com.wayapaychat.temporalwallet.pojo.AppendToVirtualAccount;
 import com.wayapaychat.temporalwallet.pojo.VirtualAccountHookRequest;
@@ -26,7 +27,7 @@ public interface VirtualService {
 
     SuccessResponse balanceEnquiry(String accountNumber);
 
-    SuccessResponse fundTransfer(String reference, String amount, String narration, String crAccountName, String bankName, String drAccountName, String crAccount, String bankCode);
+    SuccessResponse fundTransfer(BankPaymentDTO paymentDTO);
 
 
 

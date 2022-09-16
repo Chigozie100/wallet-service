@@ -242,14 +242,14 @@ public class WalletUserAccountController {
     public ResponseEntity<?> getAccounts(@PathVariable long user_id) {
         return userAccountService.getUserAccountList(user_id);
     }
-    
+
     @ApiOperation(value = "List User wallets", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/admin/user/accounts/{user_id}")
     public ResponseEntity<?> GetListAccount(@PathVariable long user_id) {
         return userAccountService.ListUserAccount(user_id);
     }
     
-    @ApiOperation(value = "Get All Wallets - (Admin COnsumption Only)", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+    @ApiOperation(value = "Get All Wallets - (Admin Consumption Only)", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/all-wallets")
     public ResponseEntity<?> getAllAccounts() {
         return userAccountService.getAllAccount();
@@ -300,7 +300,7 @@ public class WalletUserAccountController {
     @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Get Wallet Account Info By Account Number", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/user-account/{accountNo}")
-    public ResponseEntity<?> getAccountDetails(@PathVariable String accountNo) {
+    public ResponseEntity<?> getAccountDetails(@PathVariable String accountNo) throws Exception {
         return userAccountService.getAccountDetails(accountNo);
     }
 

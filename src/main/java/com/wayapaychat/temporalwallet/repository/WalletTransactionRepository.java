@@ -75,6 +75,13 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 	BigDecimal findByAllCTransaction();
 
 
+	@Query("SELECT sum(u.tranAmount) FROM WalletTransaction u " + "WHERE UPPER(u.acctNum) LIKE UPPER('NGN%') " + "AND u.partTranType = 'D'" + " AND u.del_flg = false")
+	BigDecimal findByAllDTransactionOfficial();
+
+	@Query("SELECT sum(u.tranAmount) FROM WalletTransaction u " + "WHERE UPPER(u.acctNum) LIKE UPPER('NGN%') " + "AND u.partTranType = 'C'" + " AND u.del_flg = false")
+	BigDecimal findByAllCTransactionOfficial();
+
+
 	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.tranCategory) = UPPER(:categoryType) " + " AND u.del_flg = false" + " AND u.tranDate BETWEEN  (:fromtranDate)" + " AND (:totranDate)")
 	List<WalletTransaction> filterByDateAndTranCategory(CategoryType categoryType, LocalDate fromtranDate, LocalDate totranDate);
 }

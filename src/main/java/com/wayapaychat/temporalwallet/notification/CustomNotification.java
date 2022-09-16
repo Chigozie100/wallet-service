@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.notification;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -145,11 +146,11 @@ public class CustomNotification {
 
 		smsEvent.setEventType("SMS");
 		smsEvent.setInitiator(userId.toString());
-		log.info("REQUEST SMS: " +smsEvent.toString());
+		log.info("REQUEST SMS: " +name +" -"  +smsEvent.toString());
 
 		try {
-			smsNotification(smsEvent, token);
-
+			boolean check = smsNotification(smsEvent, token);
+			log.info("response"+check);
 		} catch (Exception ex) {
 			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
 		}
@@ -162,11 +163,7 @@ public class CustomNotification {
 		data.setMessage(message);
 
 		InAppRecipient appRecipient = new InAppRecipient();
-		if(recipient !=null) {
-			appRecipient.setUserId(recipient);
-		}else {
-			appRecipient.setUserId("0");
-		}
+		appRecipient.setUserId(Objects.requireNonNullElse(recipient, "0"));
 		List<InAppRecipient> addUserId = new ArrayList<>();
 		addUserId.add(appRecipient);
 
@@ -181,7 +178,7 @@ public class CustomNotification {
 			appEvent.setInitiator("0");
 		}
 
-		log.info(appEvent.toString());
+		log.info( name + recipientMessage + " "+ appEvent.toString());
 
 		try {
 			appNotification(appEvent, token);
@@ -193,7 +190,6 @@ public class CustomNotification {
 
 
 	public void pushInApp(String token, String name, String recipient, String message, Long userId, String category) {
-
 		InAppEvent appEvent = new InAppEvent();
 		InAppPayload data = new InAppPayload();
 		data.setMessage(message);
@@ -209,7 +205,7 @@ public class CustomNotification {
 
 		appEvent.setEventType("IN_APP");
 		appEvent.setInitiator(userId.toString());
-		log.info(appEvent.toString());
+		log.info( name + " " + appEvent.toString());
 
 		try {
 			appNotification(appEvent, token);
@@ -223,9 +219,10 @@ public class CustomNotification {
 		try {
 			ResponseEntity<ResponseObj<?>> responseEntity = notificationFeignClient.InAppNotify(appEvent, token);
 			ResponseObj<?> infoResponse = responseEntity.getBody();
+			assert infoResponse != null;
 			log.info("user response in-app sent status :: " + infoResponse.status);
 		} catch (Exception e) {
-			log.error("Unable to send SMS", e.getMessage());
+			log.error("Unable to send SMS"+ e.getMessage());
 			throw new CustomException(e.getMessage(), HttpStatus.EXPECTATION_FAILED);
 		}
 
@@ -235,7 +232,7 @@ public class CustomNotification {
 		try {
 			ResponseEntity<ResponseObj<?>> responseEntity = notificationFeignClient.smsNotifyUser(smsEvent, token);
 			ResponseObj<?> infoResponse = responseEntity.getBody();
-			log.info("user response sms sent status :: " + infoResponse.status);
+			log.info("user response sms sent status :: " + Objects.requireNonNull(infoResponse).status);
 			return infoResponse.status;
 		} catch (Exception e) {
 			log.error("Unable to send SMS: " + e.getLocalizedMessage());

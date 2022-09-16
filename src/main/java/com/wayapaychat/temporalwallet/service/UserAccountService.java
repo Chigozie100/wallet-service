@@ -46,7 +46,7 @@ public interface UserAccountService {
 	ResponseEntity<?> fetchVirtualAccountDetail(String accountNo);
 	
 	ResponseEntity<?> getUserAccountList(long userId);
-	
+
 	ResponseEntity<?> getAllAccount();
 	
 	ResponseEntity<?> getUserCommissionList(long userId);
@@ -59,7 +59,7 @@ public interface UserAccountService {
 	
 	ResponseEntity<?> getAccountCommission(String accountNo);
 
-	ResponseEntity<?> getAccountDetails(String accountNo);
+	ResponseEntity<?> getAccountDetails(String accountNo) throws Exception;
 	
 	ResponseEntity<?> getAccountDefault(Long user_id);
 	
