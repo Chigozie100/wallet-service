@@ -782,7 +782,7 @@ public class WalletTransactionController {
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "QR Code Payment generation", notes = "Transfer amount from user wallet to Non-waya", tags = {
 			"TRANSACTION-WALLET" })
-	@PostMapping("/qr-code/transaction/payment")
+	@PostMapping("/qr-code/transactionpayment")
 	public ResponseEntity<?> WayaQRCodeGen(HttpServletRequest request,
 			@Valid @RequestBody() WayaPaymentQRCode walletDto) {
 		return transAccountService.WayaQRCodePayment(request, walletDto);
@@ -1152,16 +1152,35 @@ public class WalletTransactionController {
 		return transAccountService.debitAndCreditTransactionAmount();
 	}
 
-
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
-	@ApiOperation(value = "Total Credit And Debit Transactions Amount", notes = "Total Credit And Debit Transactions", tags = { "TRANSACTION-WALLET" })
+	@ApiOperation(value = "User Transaction Count ", notes = "User Transaction Count", tags = { "TRANSACTION-WALLET" })
 	@GetMapping("/transaction/get-user-transaction-count")
 	public ResponseEntity<?> userTransactionCount() {
 		return transactionCountService.getAllUserCount();
 	}
 
+	@ApiOperation(value = "User Transaction Count by User Id ", notes = "User Transaction Count by User Id", tags = { "TRANSACTION-WALLET" })
+	@GetMapping("/transaction/get-user-transaction-count/{userId}")
+	public ResponseEntity<?> getUserCount(@PathVariable String userId) {
+		return transactionCountService.getUserCount(userId);
+	}
 
 
+	@ApiOperation(value = "All Offical Transaction Count ", notes = "All Offical Transaction Count ", tags = { "TRANSACTION-WALLET" })
+	@GetMapping("/transaction/get-official-debit-credit-count")
+	public ResponseEntity<?> getUserCount() {
+		return transAccountService.debitAndCreditTransactionAmountOfficial();
+	}
+
+	@ApiOperation(value = "All Official Transaction Count ", notes = "All Official Transaction Count ", tags = { "TRANSACTION-WALLET" })
+	@GetMapping("/transaction/get-official-credit-count")
+	public ResponseEntity<?> getCreditTransactionAmountOfficial() {
+		return transAccountService.creditTransactionAmountOffical();
+	}
+
+	@ApiOperation(value = "All Official Transaction Count ", notes = "All Official Transaction Count ", tags = { "TRANSACTION-WALLET" })
+	@GetMapping("/transaction/get-official-debit-transaction-count")
+	public ResponseEntity<?> getDebitTransactionAmountOfficial() {
+		return transAccountService.debitTransactionAmountOffical();
+	}
 
 }

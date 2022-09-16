@@ -74,10 +74,6 @@ waya:
     service: ACCOUNT-SERVICE
   logging-service:
     base-url: ${CONFIG_BASEURL_LOGAUDIT:https://services.staging.wayabank.ng/logs-service}
-  #   sms:
-  #     atalking: ${AFRICATALKING}
-  #     infobip: ${INFOBIP}
-  #     twilio: ${TWILIO}
   notification:
     service: NOTIFICATION-SERVICE
     notificationurl: ${CONFIG_BASEURL_NOTIFICATION:http://localhost:8099/notification-service}

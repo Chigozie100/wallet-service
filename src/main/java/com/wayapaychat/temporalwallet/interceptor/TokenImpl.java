@@ -84,7 +84,6 @@ public class TokenImpl {
 		} catch (Exception ex) {
 			throw new CustomException(ex.getMessage(), HttpStatus.NOT_FOUND);
 		}
-
 	}
 
 }
