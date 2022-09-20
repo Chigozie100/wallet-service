@@ -366,7 +366,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
-				if (!transaction.isEmpty()) {
+				if (!transaction.isPresent()) {
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
 							HttpStatus.BAD_REQUEST);
 				}
@@ -486,9 +486,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", transaction), HttpStatus.CREATED);
 				log.info("Transaction Response: {}", resp.toString());
 
-				Date tDate = Calendar.getInstance().getTime();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+//				Date tDate = Calendar.getInstance().getTime();
+//				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+//				String tranDate = dateFormat.format(tDate);
 
 
 
@@ -1356,12 +1356,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 		if (userToken == null) {
-			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
+			throw new CustomException("INVALID TOKEN", HttpStatus.BAD_REQUEST);
+//			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
 		}
 
 		WalletUser user = walletUserRepository.findByUserId(transfer.getMerchantId());
-		if (user == null) {
-			return new ResponseEntity<>(new ErrorResponse("INVALID MERCHANT ID"), HttpStatus.BAD_REQUEST);
+		if (user == null) {throw new CustomException("INVALID MERCHANT ID", HttpStatus.BAD_REQUEST);
 		}
 		String fullName = user.getCust_name();
 		String emailAddress = user.getEmailAddress();
@@ -1585,7 +1585,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 					String payRef = "REDEEM" + redeem.getPaymentReference();
 					NonWayaBenefDTO merchant = new NonWayaBenefDTO(redeem.getMerchantId(), redeem.getTranAmount(),
 							redeem.getCrncyCode(), tranNarrate, payRef);
-					TransferNonRedeem(request, merchant);
+					ResponseEntity<?> ress= TransferNonRedeem(request, merchant);
+					log.info(ress.toString());
 					//BigDecimal amount, String tranId, String tranDate
 					String message = formatMessageRedeem(redeem.getTranAmount(), payRef);
 					CompletableFuture.runAsync(() -> customNotification.pushInApp(token, redeem.getFullName(),
@@ -2131,8 +2132,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 
 		// check if user is a marchent
-
-
 
 		String fromAccountNumber = transfer.getDebitAccountNumber();
 		String toAccountNumber = transfer.getBenefAccountNumber();
@@ -3741,15 +3740,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 
 		}
-			// credit merchant wallet
-
+			 // credit merchant wallet
 			log.info("END TRANSACTION");
-			// HttpServletRequest request
+			 // HttpServletRequest request
 
-			String receiverAcct = accountCredit.getAccountNo();
+
 			String receiverName2 = accountCredit.getAcct_name();
-			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
-					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
+			String receiverAcct = accountCredit.getAccountNo();
 
 
 			if(StringUtils.isNumeric(accountDebit.getAccountNo())){
@@ -3759,15 +3756,23 @@ public class TransAccountServiceImpl implements TransAccountService {
 				if(xUserId !=null){
 					CompletableFuture.runAsync(() -> transactionCountService.makeCount(String.valueOf(xUserId), paymentRef));
 				}
+
+				CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
+						new Date(), tranType.getValue(), xUser.getUserId().toString(), receiverName2, tranCategory.getValue(), token,senderName));
+
 			}
-
-
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ("DJGO|" + e.getMessage());
 		}
 
+	}
+
+
+
+	private WalletUser getWalletUser(WalletAccount account){
+		return walletUserRepository.findByAccount(account);
 	}
 
 	private void creditMerchantForIncomingFund(Long userId){
