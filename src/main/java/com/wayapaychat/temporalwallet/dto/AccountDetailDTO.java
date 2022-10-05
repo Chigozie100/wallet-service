@@ -51,6 +51,18 @@ public class AccountDetailDTO {
 		this.currencyCode = currencyCode;
 	}
 
+	public AccountDetailDTO(long id, String branchId, String nubanAccountNo, String accountName,
+							BigDecimal balance, String currencyCode) {
+		super();
+		this.id = id;
+		this.branchId = branchId;
+		this.nubanAccountNo = nubanAccountNo;
+		this.accountName = accountName;
+		this.balance = balance;
+		this.currencyCode = currencyCode;
+	}
+
 	public AccountDetailDTO() {
 	}
+
 }
