@@ -104,4 +104,8 @@ public class CryptoUtils {
 		}
     }
 
+
+//	EncryptionKey = ")KCSWITHC%^$$%@H";
+//	EncrytionIV = "#$%#^%KCSWITC945";
+//	cipherMode = "CBC";
 }

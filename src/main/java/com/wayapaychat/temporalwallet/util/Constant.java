@@ -58,6 +58,12 @@ public class Constant {
     public static final String NO_RECORDS_FOUND = "NO RECORDS FOUND";
     public static final String UPDATED_SUCCESSUFLLY = "Updated Successfully";
     public static final String DAYS_ADDED = "Days Created Successfully";
+
+    public static final String ADD_PRICE = "CUSTOM PRICE CREATED";
+    public static final String UPDATE_PRICE = "CUSTOM PRICE UPDATED";
+
+    public static final String USER_PRICE_SYNC = "USER PRICING SYNC";
+
     //
     //
 
