@@ -76,12 +76,15 @@ public class WalletUser {
 	@Column(nullable = false)
 	private LocalDate rcre_time;
 
+
 	@JsonIgnore
     @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
 	@JoinColumn(name="cif_id")
     private List<WalletAccount> account;
 	
 	private boolean isVirtualAccount = false;
+
+	private boolean isCorporate = false;
 
 	public WalletUser(String sol_id, Long userId, String firstName,
 			String lastName, String emailAddress, String mobileNo, String cust_name, String cust_title_code,
@@ -132,6 +135,33 @@ public class WalletUser {
 		this.cust_debit_limit = cust_debit_limit;
 		this.rcre_user_id = "WAYADMIN";
 		this.rcre_time = LocalDate.now();
+	}
+
+
+	public WalletUser(String sol_id, Long userId, String firstName,
+					  String lastName, String emailAddress, String mobileNo, String cust_name, String cust_title_code,
+					  String cust_sex, Date dob, String cust_issue_id, Date cust_exp_issue_date, LocalDate cust_opn_date,
+					  double cust_debit_limit, boolean isCorporate) {
+		super();
+		this.del_flg = false;
+		this.entity_cre_flg = true;
+		this.sol_id = sol_id;
+		this.userId = userId;
+		this.firstName = firstName;
+		this.lastName = lastName;
+		this.emailAddress = emailAddress;
+		this.mobileNo = mobileNo;
+		this.cust_name = cust_name;
+		this.cust_title_code = cust_title_code;
+		this.cust_sex = cust_sex;
+		this.dob = dob;
+		this.cust_issue_id = cust_issue_id;
+		this.cust_exp_issue_date = cust_exp_issue_date;
+		this.cust_opn_date = cust_opn_date;
+		this.cust_debit_limit = cust_debit_limit;
+		this.rcre_user_id = "WAYADMIN";
+		this.rcre_time = LocalDate.now();
+		this.isCorporate = isCorporate;
 	}
     
 

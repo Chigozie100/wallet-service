@@ -1,5 +1,7 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wayapaychat.temporalwallet.dto.AccountDetailDTO;
 import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.WalletUserDTO;
@@ -13,6 +15,7 @@ import com.wayapaychat.temporalwallet.repository.VirtualAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
 import com.wayapaychat.temporalwallet.service.UserAccountService;
 import com.wayapaychat.temporalwallet.service.VirtualService;
+import com.wayapaychat.temporalwallet.util.ReqIPUtils;
 import com.wayapaychat.temporalwallet.util.SuccessResponse;
 import com.wayapaychat.temporalwallet.util.Util;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,10 +70,7 @@ public class VirtualServiceImpl implements VirtualService {
 
     @Override
     public ResponseEntity<SuccessResponse> createVirtualAccount(VirtualAccountRequest account) {
-        /**
-         * get request from Aggregator
-         * build
-         */
+
         WalletUserDTO walletUserDTO = getUserWalletData(account);
         // send request to create account
         WalletAccount walletAccount = userAccountService.createNubanAccount(walletUserDTO);
@@ -87,7 +87,7 @@ public class VirtualServiceImpl implements VirtualService {
             return null;
         }
         return new AccountDetailDTO(acct.getId(), acct.getSol_id(), acct.getNubanAccountNo(),
-                acct.getAcct_name(), acct.getProduct_code(), new BigDecimal(acct.getClr_bal_amt()),
+                acct.getAcct_name(), acct.getProduct_code(), BigDecimal.valueOf(acct.getClr_bal_amt()),
                 acct.getAcct_crncy_code());
     }
 
@@ -135,8 +135,46 @@ public class VirtualServiceImpl implements VirtualService {
 
     @Override
     public SuccessResponse balanceEnquiry(String accountNumber) {
-        return null;
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonString;
+
+        try{
+            // decrypt
+            WalletAccount walletAccount = walletAccountRepository.findByNubanAccountNo(accountNumber);
+            AccountDetailDTO account = new AccountDetailDTO(walletAccount.getId(), walletAccount.getSol_id(), walletAccount.getNubanAccountNo(),
+                    walletAccount.getAcct_name(), BigDecimal.valueOf(walletAccount.getClr_bal_amt()),
+                    walletAccount.getAcct_crncy_code());
+
+            System.out.println("walletAccount :: " + account);
+
+            jsonString = mapper.writeValueAsString(account);
+
+            System.out.println("jsonString :: " + jsonString);
+
+            String encryptedString = ReqIPUtils.encrypt(jsonString);
+
+            System.out.println("encryptedString :: " + encryptedString);
+
+            System.out.println("walletAccount :: " + decryptString(encryptedString));
+
+            // encrypt and send response
+            return new SuccessResponse("Data retrieved successfully", encryptedString);
+        }catch (Exception ex){
+            throw new CustomException("Error " +ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+        }
     }
+
+    public SuccessResponse decryptString(String obj) {
+        //String reference, String amount, String narration, String crAccountName, String bankName, String drAccountName, String crAccount, String bankCode
+        try{
+
+        String str = ReqIPUtils.decrypt(obj);
+        return new SuccessResponse("Data retrieved successfully", str);
+        }catch (Exception ex){
+            throw new CustomException("Error " +ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+        }
+    }
+
 
     @Override
     public SuccessResponse fundTransfer(BankPaymentDTO paymentDTO) {
@@ -165,18 +203,10 @@ public class VirtualServiceImpl implements VirtualService {
     }
 
     public boolean validateBasicAuth(String token) throws Exception {
-
-        String username = "";
-        String password = "";
         final String credentials = Util.WayaDecrypt(token);
         String[] keyDebit = credentials.split(Pattern.quote(" "));
         Optional<VirtualAccountHook> virtualAccountHook = virtualAccountRepository.findByUsernameAndPassword(keyDebit[0],keyDebit[1]);
-        if(!virtualAccountHook.isPresent()){
-            return false;
-        }
-
-        return (keyDebit[0].equals(virtualAccountHook.get().getUsername())) && (keyDebit[1].equals(virtualAccountHook.get().getPassword()));
+        return virtualAccountHook.filter(accountHook -> (keyDebit[0].equals(accountHook.getUsername())) && (keyDebit[1].equals(accountHook.getPassword()))).isPresent();
     }
-
 
 }
