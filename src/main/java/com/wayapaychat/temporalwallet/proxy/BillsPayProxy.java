@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 
 import java.util.List;
 
-@FeignClient(name = "BILLS-SERVICE-API", url = "${waya.wallet.bills-service.base-url}")
+@FeignClient(name = "BILLS-SERVICE-API", url = "${waya.bills-service.base-url}")
 public interface BillsPayProxy {
 
     @GetMapping("/config/biller/sync-commission-billers")
