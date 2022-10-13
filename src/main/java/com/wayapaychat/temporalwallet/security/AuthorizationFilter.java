@@ -33,6 +33,9 @@ public class AuthorizationFilter extends BasicAuthenticationFilter {
 	@Autowired
 	AuthProxy authProxy;
 
+	@Autowired
+    JwtTokenHelper jwtTokenHelper;
+
     //private static final Logger LOGGER= LoggerFactory.getLogger(AuthorizationFilter.class);
     
     public AuthorizationFilter(AuthenticationManager authManager) {
@@ -61,7 +64,10 @@ public class AuthorizationFilter extends BasicAuthenticationFilter {
             return null;
         }
         GetUserDataService authProxy = (GetUserDataService) SpringApplicationContext.getBean("getUserDataService");
-        TokenCheckResponse tokenResponse = authProxy.getUserData(request);        
+
+        //String username = jwtTokenHelper.getUsernameFromToken(request);
+
+        TokenCheckResponse tokenResponse = authProxy.getUserData(request);
         
         if(!tokenResponse.isStatus()) {
         	log.info("Error::: {}, {} and {}", tokenResponse.getMessage(),2,3);
