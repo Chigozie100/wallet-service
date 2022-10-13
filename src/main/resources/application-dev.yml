@@ -95,6 +95,8 @@ waya:
   receipt:
     service: RECEIPT-SERVICE
     receipturl: ${CONFIG_BASEURL_RECEIPT:https://services.staging.wayabank.ng/transaction-receipt}
+  bills-service:
+    base-url: ${BILLS-BASE:https://services.staging.wayabank.ng/billspayment-service/api/v1}
   service:
     username: admin@wayapaychat.com
     password: kKo0a9@=&?*#
