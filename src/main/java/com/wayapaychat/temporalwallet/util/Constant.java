@@ -64,6 +64,12 @@ public class Constant {
 
     public static final String USER_PRICE_SYNC = "USER PRICING SYNC";
 
+    public static final String APPLY_DISCOUNT = "APPLYING DISCOUNT AMOUNT...";
+
+    public static final String APPLY_CAP = "APPLYING CAP AMOUNT ...";
+
+    public static final String APPLY_GENERAL = "APPLYING GENERAL AMOUNT ...";
+
     //
     //
 

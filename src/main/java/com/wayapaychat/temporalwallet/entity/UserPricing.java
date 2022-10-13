@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.entity;
 
+import com.wayapaychat.temporalwallet.enumm.ProductPriceStatus;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -34,6 +35,9 @@ public class UserPricing {
     private BigDecimal discount;
 
     private String product;
+
+    @Enumerated(EnumType.STRING)
+    private ProductPriceStatus status;
 
     @CreationTimestamp
     @Temporal(TemporalType.TIMESTAMP)

@@ -11,8 +11,6 @@ import java.util.Optional;
 @Repository
 public interface UserPricingRepository extends JpaRepository<UserPricing, Long> {
 
-//    @Override
-//    Optional<UserPricing> findByUserIdAndProduct(Long aLong);
 
     @Query("select u from UserPricing u where u.userId = :#{#userId} and u.product = :#{#product}")
     Optional<UserPricing> findDetails(@Param("userId") long userId, @Param("product") String product);
