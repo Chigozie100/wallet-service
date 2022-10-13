@@ -35,12 +35,11 @@ public class ScheduleJob {
     private final ReversalSetupRepository reversalSetupRepository;
     private final WalletTransactionRepository walletTransactionRepository;
     private final TokenImpl tokenImpl;
-    private final WalletUserRepository walletUserRepository;
     private final WalletPaymentRequestRepository walletPaymentRequestRepository;
 
 
     @Autowired
-    public ScheduleJob(WalletNonWayaPaymentRepository walletNonWayaPaymentRepo, WalletAccountRepository walletAccountRepository, RecurrentConfigRepository recurrentConfigRepository, TransAccountService transAccountService, ReversalSetupRepository reversalSetupRepository, WalletTransactionRepository walletTransactionRepository, TokenImpl tokenImpl, WalletUserRepository walletUserRepository, WalletPaymentRequestRepository walletPaymentRequestRepository) {
+    public ScheduleJob(WalletNonWayaPaymentRepository walletNonWayaPaymentRepo, WalletAccountRepository walletAccountRepository, RecurrentConfigRepository recurrentConfigRepository, TransAccountService transAccountService, ReversalSetupRepository reversalSetupRepository, WalletTransactionRepository walletTransactionRepository, TokenImpl tokenImpl, WalletPaymentRequestRepository walletPaymentRequestRepository) {
         this.walletNonWayaPaymentRepo = walletNonWayaPaymentRepo;
         this.walletAccountRepository = walletAccountRepository;
         this.recurrentConfigRepository = recurrentConfigRepository;
@@ -48,14 +47,13 @@ public class ScheduleJob {
         this.reversalSetupRepository = reversalSetupRepository;
         this.walletTransactionRepository = walletTransactionRepository;
         this.tokenImpl = tokenImpl;
-        this.walletUserRepository = walletUserRepository;
         this.walletPaymentRequestRepository = walletPaymentRequestRepository;
     }
 
 
     private Integer getReversalDays(){
         Optional<ReversalSetup> reversalSetup = reversalSetupRepository.findByActive();
-        if(!reversalSetup.isPresent()){
+        if(reversalSetup.isEmpty()){
             return 0;
         }
         return reversalSetup.get().getDays();
@@ -69,7 +67,7 @@ public class ScheduleJob {
         log.info("-----####### START ###### -------");
         List<WalletNonWayaPayment> walletNonWayaPaymentList = walletNonWayaPaymentRepo.findByAllByStatus(PaymentStatus.PENDING);
 
-        log.info("OUTPUT :: {} " + walletNonWayaPaymentList);
+        log.info("OUTPUT :: " + walletNonWayaPaymentList);
         if(!walletNonWayaPaymentList.isEmpty()){
             String token = tokenImpl.getToken();
 
@@ -78,9 +76,11 @@ public class ScheduleJob {
 
             SimpleDateFormat myFormat = new SimpleDateFormat("MM/dd/yyyy");
 
-            LocalDateTime localDateTime = payment.getCreatedAt();
-            Instant instant = localDateTime.atZone(ZoneId.systemDefault()).toInstant();
-            Date date2 = Date.from(instant);
+            LocalDateTime localDateTime = Objects.requireNonNull(payment).getCreatedAt();
+            Instant instant = instant(localDateTime);
+
+            Date date2 = getDate(instant);
+
             String dateString2 = myFormat.format(date2);
 
 
@@ -110,6 +110,15 @@ public class ScheduleJob {
     }
 
 
+    private Instant instant(LocalDateTime localDateTime){
+        return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
+    }
+
+    private Date getDate(Instant instant){
+      return Date.from(instant);
+    }
+
+
 
     private Map<String, Object> noneWayaPaymentReversal(String tranId){
         String debitAccount = "";
@@ -118,14 +127,14 @@ public class ScheduleJob {
         BigDecimal tranAmount = BigDecimal.ZERO;
         List<WalletTransaction> transactionList = walletTransactionRepository.findByTransaction(tranId);
 
-        for (int i = 0; i < transactionList.size(); i++) {
-            if (transactionList.get(i).getPartTranType().equals("C")){
-                creditAccount = transactionList.get(i).getAcctNum();
-                tranAmount = transactionList.get(i).getTranAmount();
+        for (WalletTransaction walletTransaction : transactionList) {
+            if (walletTransaction.getPartTranType().equals("C")) {
+                creditAccount = walletTransaction.getAcctNum();
+                tranAmount = walletTransaction.getTranAmount();
             }
-            if (transactionList.get(i).getPartTranType().equals("D")){
-                debitAccount = transactionList.get(i).getAcctNum();
-                email = transactionList.get(i).getCreatedBy();
+            if (walletTransaction.getPartTranType().equals("D")) {
+                debitAccount = walletTransaction.getAcctNum();
+                email = walletTransaction.getCreatedBy();
             }
         }
         Map<String, Object> map = new HashMap<>();
@@ -138,6 +147,7 @@ public class ScheduleJob {
 
     private void reverseNoneWayaPayment(String receiverEmailOrPhone, String token,String tranId){
 
+        log.info(receiverEmailOrPhone);
         Map<String, Object> map = noneWayaPaymentReversal(tranId);
         String creditAccount = (String) map.get("creditAccount");
         String debitAccount = (String) map.get("debitAccount");
@@ -169,9 +179,10 @@ public class ScheduleJob {
         log.info("-----####### START ###### -------");
         List<WalletPaymentRequest> walletPaymentRequestList = walletPaymentRequestRepository.findByAllByStatus(PaymentRequestStatus.PENDING);
 
-        log.info("OUTPUT :: {} " + walletPaymentRequestList);
+        log.info("OUTPUT ::" + walletPaymentRequestList);
         if(!walletPaymentRequestList.isEmpty()){
-            String token = tokenImpl.getToken();
+           // String token = tokenImpl.getToken();
+
 
             for (WalletPaymentRequest data: walletPaymentRequestList){
                 // WalletNonWayaPayment payment = walletNonWayaPaymentRepo.findById(data.getId()).orElse(null);
@@ -218,8 +229,7 @@ public class ScheduleJob {
     }
 
     @Scheduled(cron = "${job.cron.twelam}")
-    public void massDebitAndCredit() throws ParseException {
-        ApiResponse<?> response = null;
+    public void massDebitAndCredit() {
         ArrayList<Object> objectArrayList = new ArrayList<>();
         RecurrentConfig recurrentConfig = recurrentConfigRepository.findByActive().orElse(null);
 
@@ -228,11 +238,11 @@ public class ScheduleJob {
             if(recurrentConfig.isRecurring()){
                 if(recurrentConfig.getPayDate().compareTo(new Date()) == 0 && recurrentConfig.getDuration().equals(RecurrentConfig.Duration.MONTH)){
                     /// run and update the next date
-                    processPayment(response, objectArrayList,recurrentConfig);
+                    processPayment(objectArrayList,recurrentConfig);
 
                     recurrentConfig.setPayDate(getNextMonth(recurrentConfig.getPayDate()));
                 }else if (recurrentConfig.getPayDate().compareTo(new Date()) == 0 && recurrentConfig.getDuration().equals(RecurrentConfig.Duration.YEAR)){
-                    processPayment(response, objectArrayList,recurrentConfig);
+                    processPayment(objectArrayList,recurrentConfig);
                     recurrentConfig.setPayDate(getNextYear(recurrentConfig.getPayDate()));
                 }
             }
@@ -241,28 +251,15 @@ public class ScheduleJob {
 
         }
 
-
-        /**
-         *get the date
-         * check the getDuration
-         * update new date based on duration
-         */
-        /*
-        1. Get all simulated users
-        2. Get Offical Account
-        3. Build the request object
-        4. Perform Credit of Debit
-         */
-
     }
 
 
-    private void processPayment(ApiResponse<?> response, ArrayList<Object> objectArrayList, RecurrentConfig recurrentConfig){
+    private void processPayment(ArrayList<Object> objectArrayList, RecurrentConfig recurrentConfig){
         List<WalletAccount> userAccount = walletAccountRepository.findBySimulatedAccount();
         String token = tokenImpl.getToken();
         for(WalletAccount data: userAccount){
-            OfficeUserTransferDTO transfer = getOfficeUserTransferDTO(data, recurrentConfig, "");
-            response = transAccountService.OfficialUserTransferSystem(null,token,null, transfer);
+            OfficeUserTransferDTO transfer = getOfficeUserTransferDTO(data, recurrentConfig);
+            ApiResponse<?> response = transAccountService.OfficialUserTransferSystem(null, token, null, transfer);
             objectArrayList.add(response);
         }
 
@@ -297,7 +294,7 @@ public class ScheduleJob {
 
 
 
-    private OfficeUserTransferDTO getOfficeUserTransferDTO(WalletAccount userAccount, RecurrentConfig recurrentConfig, String transCat){
+    private OfficeUserTransferDTO getOfficeUserTransferDTO(WalletAccount userAccount, RecurrentConfig recurrentConfig){
 
         OfficeUserTransferDTO officeUserTransferDTO = new OfficeUserTransferDTO();
         officeUserTransferDTO.setAmount(recurrentConfig.getAmount());
@@ -305,7 +302,7 @@ public class ScheduleJob {
         officeUserTransferDTO.setOfficeDebitAccount(recurrentConfig.getOfficialAccountNumber());
         officeUserTransferDTO.setPaymentReference(generatePaymentTransactionId());
         officeUserTransferDTO.setTranCrncy("NGN");
-        officeUserTransferDTO.setTranNarration(transCat+ " SIMULATED TRANSACTION");
+        officeUserTransferDTO.setTranNarration("" + " SIMULATED TRANSACTION");
         officeUserTransferDTO.setTranType("LOCAL");
 
         return officeUserTransferDTO;

@@ -40,7 +40,7 @@ public class WalletUserAccountController {
 	@Autowired
     UserAccountService userAccountService;
 	
-	@ApiOperation(value = "Create a User", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+	@ApiOperation(value = "Create a User", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/create-user")
     public ResponseEntity<?> createUser(@Valid @RequestBody UserDTO user) {
 		log.info("Request input: {}",user);
@@ -49,22 +49,24 @@ public class WalletUserAccountController {
     }
 	
 	//Wallet call by other service
-	@ApiOperation(value = "Create User Account", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+	@ApiOperation(value = "Create User Account", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/user/account")
     public ResponseEntity<?> createUserAccount(@Valid @RequestBody WalletUserDTO user) {
 		log.info("Request input: {}",user);
 		return userAccountService.createUserAccount(user);
     }
 	
-	@ApiOperation(value = "Modify User Account", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+	@ApiOperation(value = "Modify User Account", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/user/account/modify")
     public ResponseEntity<?> createUserAccount(@Valid @RequestBody UserAccountDTO user) {
 		log.info("Request input: {}",user);
 		return userAccountService.modifyUserAccount(user);
         //return userAccountService.modifyUserAccount(user);
     }
-	
-	@ApiOperation(value = "Account Toggle", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Account Toggle",  tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/user/account/toggle")
     public ResponseEntity<?> createAccountToggle(@Valid @RequestBody AccountToggleDTO user) {
 		log.info("Request input: {}",user);
@@ -72,21 +74,21 @@ public class WalletUserAccountController {
         //return userAccountService.modifyUserAccount(user);
     }
 	
-	@ApiOperation(value = "Delete,Pause and Block User Account", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+	@ApiOperation(value = "Delete,Pause and Block User Account",  tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/user/account/access")
     public ResponseEntity<?> postAccountRestriction(@Valid @RequestBody AdminAccountRestrictionDTO user) {
 		log.info("Request input: {}",user);
 		return userAccountService.UserAccountAccess(user);
     }
 	
-	@ApiOperation(value = "Delete User Account", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+	@ApiOperation(value = "Delete User Account", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/user/account/delete")
     public ResponseEntity<?> postAccountUser(@Valid @RequestBody UserAccountDelete user) {
 		log.info("Request input: {}",user);
 		return userAccountService.AccountAccessDelete(user);
     }
 	
-	@ApiOperation(value = "Pause Account / Freeze Account", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+	@ApiOperation(value = "Pause Account / Freeze Account", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/account/pause")
     public ResponseEntity<?> postAccountPause(@Valid @RequestBody AccountFreezeDTO user) {
 		log.info("Request input: {}",user);
@@ -94,7 +96,7 @@ public class WalletUserAccountController {
     }
 
 
-    @ApiOperation(value = " Block / UnBlock", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+    @ApiOperation(value = " Block / UnBlock", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/account/block")
     public ResponseEntity<?> postAccountBlock(@Valid @RequestBody AccountBlockDTO user) {
         log.info("Request input: {}",user);
@@ -102,14 +104,14 @@ public class WalletUserAccountController {
     }
 
 
-    @ApiOperation(value = "Delete Account / Block / UnBlock", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+    @ApiOperation(value = "Delete Account / Block / UnBlock", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/account/closure")
     public ResponseEntity<?> postAccountClosure(@Valid @RequestBody AccountCloseDTO user) {
 		log.info("Request input: {}",user);
 		return userAccountService.AccountAccessClosure(user);
     }
 
-    @ApiOperation(value = "Delete Multiple Account", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+    @ApiOperation(value = "Delete Multiple Account", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/account/closure-multiple")
     public ResponseEntity<?> postAccountClosureMultiple(@Valid @RequestBody List<AccountCloseDTO> user) {
         log.info("Request input: {}",user);
@@ -118,14 +120,14 @@ public class WalletUserAccountController {
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-    @ApiOperation(value = "Transaction account block / unblock", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+    @ApiOperation(value = "Transaction account block / unblock", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/account/lien/transaction")
     public ResponseEntity<?> postAccountLien(@Valid @RequestBody AccountLienDTO user) {
 		log.info("Request input: {}",user);
 		return userAccountService.AccountAccessLien(user);
     }
 	
-	 @ApiOperation(value = "Create Admin Cash Wallet - (Admin COnsumption Only)", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+	 @ApiOperation(value = "Create Admin Cash Wallet - (Admin COnsumption Only)", tags = { "USER-ACCOUNT-WALLET" })
 	 @PostMapping(path = "/cash/account")
 	 public ResponseEntity<?> createCashAccounts(@Valid @RequestBody WalletCashAccountDTO user) {
 		 return userAccountService.createCashAccount(user);
@@ -133,7 +135,7 @@ public class WalletUserAccountController {
 	 }
 
 	 @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-	 @ApiOperation(value = "Create Event Wallet Account - (Admin COnsumption Only)", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+	 @ApiOperation(value = "Create Event Wallet Account - (Admin COnsumption Only)",  tags = { "USER-ACCOUNT-WALLET" })
 	 @PostMapping(path = "/event/account")
 	 public ResponseEntity<?> createEventAccounts(@Valid @RequestBody WalletEventAccountDTO user) {
 		 return userAccountService.createEventAccount(user);
@@ -218,44 +220,45 @@ public class WalletUserAccountController {
         return userAccountService.getListWayaAccount();
     }
 	
-	@ApiOperation(value = "Get Wallet Account Info", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+	@ApiOperation(value = "Get Wallet Account Info", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/info/{accountNo}")
     public ResponseEntity<?> getAcctInfo(@PathVariable String accountNo) {
         return userAccountService.getAccountInfo(accountNo);
     }
 
-    @ApiOperation(value = "Get Wallet Selected Account Detail", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+    @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Get Wallet Selected Account Detail", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/account/{accountNo}")
     public ResponseEntity<?> GetAcctDetail(@PathVariable String accountNo) {
         return userAccountService.fetchAccountDetail(accountNo);
     }
 
 
-    @ApiOperation(value = "Get Virtual Account Detail", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+    @ApiOperation(value = "Get Virtual Account Detail", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/account/virtual/{accountNo}")
     public ResponseEntity<?> GetVirtualAcctDetail(@PathVariable String accountNo) {
         return userAccountService.fetchVirtualAccountDetail(accountNo);
     }
 
-    @ApiOperation(value = "Get User list of wallets", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+    @ApiOperation(value = "Get User list of wallets",  tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/accounts/{user_id}")
     public ResponseEntity<?> getAccounts(@PathVariable long user_id) {
         return userAccountService.getUserAccountList(user_id);
     }
 
-    @ApiOperation(value = "List User wallets", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+    @ApiOperation(value = "List User wallets", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/admin/user/accounts/{user_id}")
     public ResponseEntity<?> GetListAccount(@PathVariable long user_id) {
         return userAccountService.ListUserAccount(user_id);
     }
     
-    @ApiOperation(value = "Get All Wallets - (Admin Consumption Only)", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+    @ApiOperation(value = "Get All Wallets - (Admin Consumption Only)", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/all-wallets")
     public ResponseEntity<?> getAllAccounts() {
         return userAccountService.getAllAccount();
     }
     
-    @ApiOperation(value = "Get User Wallet Commission Account", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+    @ApiOperation(value = "Get User Wallet Commission Account", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/commission-accounts/{user_id}")
     public ResponseEntity<?> getCommissionAccounts(@PathVariable long user_id) {
         return userAccountService.getUserCommissionList(user_id);
@@ -266,7 +269,8 @@ public class WalletUserAccountController {
     public ResponseEntity<?> setDefaultWallet(@PathVariable String accountNo) {
         return userAccountService.makeDefaultWallet(accountNo);
     }
-    
+
+    @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Get User Wallet Transaction Limit", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/user/account/{user_id}")
     public ResponseEntity<?> setDefaultWallet(@PathVariable Long user_id) {
@@ -291,20 +295,20 @@ public class WalletUserAccountController {
         return userAccountService.getALLCommissionAccount();
     }
 	
-	@ApiOperation(value = "Get Wallet Account Info", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+	@ApiOperation(value = "Get Wallet Account Info", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/commission/{accountNo}")
     public ResponseEntity<?> getAcctCommission(@PathVariable String accountNo) {
         return userAccountService.getAccountCommission(accountNo);
     }
 
     @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-    @ApiOperation(value = "Get Wallet Account Info By Account Number", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+    @ApiOperation(value = "Get Wallet Account Info By Account Number", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/user-account/{accountNo}")
     public ResponseEntity<?> getAccountDetails(@PathVariable String accountNo) throws Exception {
         return userAccountService.getAccountDetails(accountNo);
     }
 
-	@ApiOperation(value = "Get Wallet Default Account", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+	@ApiOperation(value = "Get Wallet Default Account", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/default/{user_id}")
     public ResponseEntity<?> getAcctDefault(@PathVariable Long user_id) {
         return userAccountService.getAccountDefault(user_id);
@@ -354,7 +358,7 @@ public class WalletUserAccountController {
         return userAccountService.getListWalletAccount();
     }
 	
-	@ApiOperation(value = "Get simulated Account", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+	@ApiOperation(value = "Get simulated Account", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/simulated/{user_id}")
     public ResponseEntity<?> GetAcctSimulated(@PathVariable Long user_id) {
         return userAccountService.getAccountSimulated(user_id);
@@ -366,7 +370,7 @@ public class WalletUserAccountController {
         return userAccountService.getListSimulatedAccount();
     }
 	
-	@ApiOperation(value = "Create a Simulated User", hidden = false, tags = { "USER-ACCOUNT-WALLET" })
+	@ApiOperation(value = "Create a Simulated User", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "simulated/account")
     public ResponseEntity<?> createSIMUser(@Valid @RequestBody AccountPojo2 user) {
 		log.info("Request input: {}",user);

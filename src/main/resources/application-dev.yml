@@ -17,7 +17,22 @@ spring:
         jdbc:
           time_zone: UTC
     open-in-view: false
-
+  cache:
+    type: redis
+    redis:
+      time-to-live: 2400000
+      cache-null-values: false
+      use-key-prefix: true
+      key-prefix: tokens
+  redis:
+    timeout: 10000
+    password: ${REDIS_PASSWORD:wIYretruTPWPmAyLgq6HNQMa0wjRG3q8}
+    ttl: 86400000
+    connect-timeout: 10000
+    cluster:
+      nodes:
+        - waya-redis-staging.wp2y6q.clustercfg.memorydb.eu-west-2.amazonaws.com:6379
+      max-redirects: 4
   devtools:
     livereload:
       enabled: false
@@ -42,14 +57,14 @@ job:
     twelam: 0 0 0 * * ? #1 am every day
 
 
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: https://services.staging.wayabank.ng/eureka
-    service-url:
-      default-zone: https://services.staging.wayabank.ng/eureka
-  instance:
-    preferIpAddress: true
+#eureka:
+#  client:
+#    serviceUrl:
+#      defaultZone: http://localhost/eureka
+#    service-url:
+#      default-zone: http://localhost/eureka
+#  instance:
+#    preferIpAddress: true
 
 waya:
   wallet:
@@ -76,7 +91,7 @@ waya:
     base-url: ${CONFIG_BASEURL_LOGAUDIT:https://services.staging.wayabank.ng/logs-service}
   notification:
     service: NOTIFICATION-SERVICE
-    notificationurl: ${CONFIG_BASEURL_NOTIFICATION:http://localhost:8099/notification-service}
+    notificationurl: ${CONFIG_BASEURL_NOTIFICATION:https://services.staging.wayabank.ng/notification-service}
   receipt:
     service: RECEIPT-SERVICE
     receipturl: ${CONFIG_BASEURL_RECEIPT:https://services.staging.wayabank.ng/transaction-receipt}
@@ -96,3 +111,11 @@ ofi:
   financialInstitutionCode: 901037
 
 
+kafka:
+  bootstrapServers: http://localhost:9092
+  groupId: waya
+
+
+jwt:
+  secret: ${AUTH_JWT_SECRET:2YuUlb+t36yVzrTkYLl8xBlBJSC41CE7uNF3somMDxdYDfcACv9JYIU54z17s4Ah313uKu/4Ll+vDNKpxx6v4Q== ##BvPHGM8C0ia4uOuxxqPD5DTbWC9F9TWvPStp3pb7ARo0oK2mJ3pd3YG4lxA9i8bj6OTbadwezxgeEByY}
+  expiration: ${AUTH_JWT_EXPIRATION:31557600000}

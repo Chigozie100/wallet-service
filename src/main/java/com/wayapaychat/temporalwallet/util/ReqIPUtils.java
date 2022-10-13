@@ -144,7 +144,7 @@ public class ReqIPUtils {
 		return output;
 	}
 
-	public String encrypt(String input) throws NoSuchPaddingException, NoSuchAlgorithmException,
+	public static String encrypt(String input) throws NoSuchPaddingException, NoSuchAlgorithmException,
 			InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
 
 		SecretKey key = generateKey(128);
@@ -157,7 +157,7 @@ public class ReqIPUtils {
 		return Base64.getEncoder().encodeToString(cipherText);
 	}
 
-	public String decrypt(String cipherText) throws NoSuchPaddingException, NoSuchAlgorithmException,
+	public static String decrypt(String cipherText) throws NoSuchPaddingException, NoSuchAlgorithmException,
 			InvalidAlgorithmParameterException, InvalidKeyException, BadPaddingException, IllegalBlockSizeException {
 
 		SecretKey key = generateKey(128);

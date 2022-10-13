@@ -3,8 +3,6 @@ package com.wayapaychat.temporalwallet.service.impl;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Month;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -465,7 +463,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Wallet User already exists"), HttpStatus.BAD_REQUEST);
 		}
 		int userId = user.getUserId().intValue();
-		UserDetailPojo wallet = authService.AuthUser(userId);
+		UserDetailPojo wallet = authService.AuthUser(userId);   // no need to make this cak
 
 		if (wallet == null) {
 			return new ResponseEntity<>(new ErrorResponse("Auth User ID does not exists"), HttpStatus.BAD_REQUEST);
@@ -476,7 +474,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		WalletUser userInfo = new WalletUser(user.getSolId(), user.getUserId(), user.getFirstName().toUpperCase(),
 				user.getLastName().toUpperCase(), user.getEmailId(), user.getMobileNo(), acct_name,
 				user.getCustTitleCode().toUpperCase(), user.getCustSex().toUpperCase(), user.getDob(),
-				user.getCustIssueId(), user.getCustExpIssueDate(), LocalDate.now(), user.getCustDebitLimit());
+				user.getCustIssueId(), user.getCustExpIssueDate(), LocalDate.now(), user.getCustDebitLimit(), user.isCorporate());
 
 		WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
 		WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
@@ -745,6 +743,13 @@ public class UserAccountServiceImpl implements UserAccountService {
 					return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"),
 							HttpStatus.NOT_FOUND);
 				}
+
+				List<WalletAccount> listAcct = walletAccountRepository.findByUser(existingUser);
+				for(WalletAccount data: listAcct){
+					data.setWalletDefault(false);
+					walletAccountRepository.save(data);
+				}
+
 				caccount.setWalletDefault(true);
 				walletAccountRepository.save(caccount);
 				return new ResponseEntity<>(new SuccessResponse("Account set as default successfully.", account),
@@ -1356,8 +1361,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	public ResponseEntity<?> searchAccount(String search) {
 		List<WalletUser> user = walletUserRepository.findAll();
-		List<WalletUser> matchingAcct = new ArrayList<WalletUser>();
-		List<WalletUser> matchingAcct2 = new ArrayList<WalletUser>();
+		List<WalletUser> matchingAcct;
+		List<WalletUser> matchingAcct2 = new ArrayList<>();
 		List<WalletAccount> account = new ArrayList<WalletAccount>();
 		Collection<WalletAccount> accountColl = new ArrayList<WalletAccount>();
 		for (WalletUser col : user) {

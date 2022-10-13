@@ -57,4 +57,6 @@ public class WalletUserDTO {
 
 	private String accountType;
 
+	private boolean isCorporate;
+
 }

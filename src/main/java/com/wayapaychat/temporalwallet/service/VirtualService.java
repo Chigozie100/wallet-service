@@ -9,6 +9,12 @@ import com.wayapaychat.temporalwallet.pojo.VirtualAccountRequest;
 import com.wayapaychat.temporalwallet.util.SuccessResponse;
 import org.springframework.http.ResponseEntity;
 
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 
 public interface VirtualService {
@@ -27,9 +33,9 @@ public interface VirtualService {
 
     SuccessResponse balanceEnquiry(String accountNumber);
 
+    SuccessResponse decryptString(String obj);
+
     SuccessResponse fundTransfer(BankPaymentDTO paymentDTO);
-
-
 
 
 }

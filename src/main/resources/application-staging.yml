@@ -16,7 +16,23 @@ spring:
           jdbc:
             time_zone: UTC
      open-in-view: false
-    
+   cache:
+    type: redis
+    redis:
+      time-to-live: 2400000
+      cache-null-values: false
+      use-key-prefix: true
+      key-prefix: tokens
+   redis:
+    timeout: 10000
+    password: ${REDIS_PASSWORD:wIYretruTPWPmAyLgq6HNQMa0wjRG3q8}
+    ttl: 86400000
+    connect-timeout: 10000
+    cluster:
+      nodes:
+        - waya-redis-staging.wp2y6q.clustercfg.memorydb.eu-west-2.amazonaws.com:6379
+      max-redirects: 4
+
    devtools:
        livereload:
            enabled: false
