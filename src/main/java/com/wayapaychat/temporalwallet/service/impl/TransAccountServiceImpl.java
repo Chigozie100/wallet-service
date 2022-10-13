@@ -19,11 +19,13 @@ import static com.wayapaychat.temporalwallet.util.Constant.*;
 import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 import com.wayapaychat.temporalwallet.dto.*;
+import com.wayapaychat.temporalwallet.entity.*;
+import com.wayapaychat.temporalwallet.enumm.*;
+import com.wayapaychat.temporalwallet.repository.*;
 import com.wayapaychat.temporalwallet.service.TransactionCountService;
 import com.wayapaychat.temporalwallet.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -36,22 +38,6 @@ import org.springframework.web.multipart.MultipartFile;
 import com.wayapaychat.temporalwallet.config.SecurityConstants;
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
-import com.wayapaychat.temporalwallet.entity.Provider;
-import com.wayapaychat.temporalwallet.entity.Transactions;
-import com.wayapaychat.temporalwallet.entity.WalletAccount;
-import com.wayapaychat.temporalwallet.entity.WalletAcountVirtual;
-import com.wayapaychat.temporalwallet.entity.WalletEventCharges;
-import com.wayapaychat.temporalwallet.entity.WalletNonWayaPayment;
-import com.wayapaychat.temporalwallet.entity.WalletPaymentRequest;
-import com.wayapaychat.temporalwallet.entity.WalletQRCodePayment;
-import com.wayapaychat.temporalwallet.entity.WalletTeller;
-import com.wayapaychat.temporalwallet.entity.WalletTransaction;
-import com.wayapaychat.temporalwallet.entity.WalletUser;
-import com.wayapaychat.temporalwallet.enumm.CategoryType;
-import com.wayapaychat.temporalwallet.enumm.PaymentRequestStatus;
-import com.wayapaychat.temporalwallet.enumm.PaymentStatus;
-import com.wayapaychat.temporalwallet.enumm.ProviderType;
-import com.wayapaychat.temporalwallet.enumm.TransactionTypeEnum;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.notification.CustomNotification;
@@ -61,15 +47,6 @@ import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import com.wayapaychat.temporalwallet.pojo.TransactionRequest;
 import com.wayapaychat.temporalwallet.pojo.UserDetailPojo;
 import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
-import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
-import com.wayapaychat.temporalwallet.repository.WalletAcountVirtualRepository;
-import com.wayapaychat.temporalwallet.repository.WalletEventRepository;
-import com.wayapaychat.temporalwallet.repository.WalletNonWayaPaymentRepository;
-import com.wayapaychat.temporalwallet.repository.WalletPaymentRequestRepository;
-import com.wayapaychat.temporalwallet.repository.WalletQRCodePaymentRepository;
-import com.wayapaychat.temporalwallet.repository.WalletTellerRepository;
-import com.wayapaychat.temporalwallet.repository.WalletTransactionRepository;
-import com.wayapaychat.temporalwallet.repository.WalletUserRepository;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.service.SwitchWalletService;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
@@ -82,71 +59,75 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class TransAccountServiceImpl implements TransAccountService {
 
-	@Autowired
-	WalletUserRepository walletUserRepository;
+	private final WalletUserRepository walletUserRepository;
 
-	@Autowired
-	WalletAccountRepository walletAccountRepository;
+	private final WalletAccountRepository walletAccountRepository;
 
-	@Autowired
-	WalletAcountVirtualRepository walletAcountVirtualRepository;
+	private final WalletAcountVirtualRepository walletAcountVirtualRepository;
 
-	@Autowired
-	ReqIPUtils reqIPUtils;
+	private final ReqIPUtils reqIPUtils;
 
-	@Autowired
-	TemporalWalletDAO tempwallet;
+	private final TemporalWalletDAO tempwallet;
 
-	@Autowired
-	WalletTransactionRepository walletTransactionRepository;
+	private final WalletTransactionRepository walletTransactionRepository;
 
-	@Autowired
-	ParamDefaultValidation paramValidation;
+	private final ParamDefaultValidation paramValidation;
 
-	@Autowired
-	WalletTellerRepository walletTellerRepository;
+	private final WalletTellerRepository walletTellerRepository;
 
-	@Autowired
-	WalletEventRepository walletEventRepository;
+	private final WalletEventRepository walletEventRepository;
+ 
+	private final AuthUserServiceDAO authService;
+ 
+	private final SwitchWalletService switchWalletService;
 
-	@Autowired
-	AuthUserServiceDAO authService;
+	private final TokenImpl tokenService;
 
-	@Autowired
-	private SwitchWalletService switchWalletService;
+	private final ExternalServiceProxyImpl userDataService;
 
-	@Autowired
-	private TokenImpl tokenService;
+	private final WalletNonWayaPaymentRepository walletNonWayaPaymentRepo;
 
-	@Autowired
-	ExternalServiceProxyImpl userDataService;
+	private final CustomNotification customNotification;
 
-	@Autowired
-	WalletNonWayaPaymentRepository walletNonWayaPaymentRepo;
+	private final WalletQRCodePaymentRepository walletQRCodePaymentRepo;
 
-	@Autowired
-	CustomNotification customNotification;
 
-	@Autowired
-	WalletQRCodePaymentRepository walletQRCodePaymentRepo;
+	private final WalletPaymentRequestRepository walletPaymentRequestRepo;
+
+	private final ExternalServiceProxyImpl externalServiceProxy;
+
+	private final AuthProxy authProxy;
+
+	private final TransactionCountService transactionCountService;
+
+
+	private final UserPricingRepository userPricingRepository;
+
 
 	@Autowired
-	WalletPaymentRequestRepository walletPaymentRequestRepo;
-
-	@Autowired
-	ExternalServiceProxyImpl externalServiceProxy;
-	
-	@Autowired
-	AuthProxy authProxy;
-
-	@Autowired
-	TransactionCountService transactionCountService;
-
-	@Value("${waya.charges.account}")
-	private String chargesAccount;
-
-
-	private BigDecimal chargesAmount = BigDecimal.valueOf(10.00);
+	public TransAccountServiceImpl(WalletUserRepository walletUserRepository, WalletAccountRepository walletAccountRepository, WalletAcountVirtualRepository walletAcountVirtualRepository, ReqIPUtils reqIPUtils, TemporalWalletDAO tempwallet, WalletTransactionRepository walletTransactionRepository, ParamDefaultValidation paramValidation, WalletTellerRepository walletTellerRepository, WalletEventRepository walletEventRepository, AuthUserServiceDAO authService, SwitchWalletService switchWalletService, TokenImpl tokenService, ExternalServiceProxyImpl userDataService, WalletNonWayaPaymentRepository walletNonWayaPaymentRepo, CustomNotification customNotification, WalletQRCodePaymentRepository walletQRCodePaymentRepo, WalletPaymentRequestRepository walletPaymentRequestRepo, ExternalServiceProxyImpl externalServiceProxy, AuthProxy authProxy, TransactionCountService transactionCountService, UserPricingRepository userPricingRepository) {
+		this.walletUserRepository = walletUserRepository;
+		this.walletAccountRepository = walletAccountRepository;
+		this.walletAcountVirtualRepository = walletAcountVirtualRepository;
+		this.reqIPUtils = reqIPUtils;
+		this.tempwallet = tempwallet;
+		this.walletTransactionRepository = walletTransactionRepository;
+		this.paramValidation = paramValidation;
+		this.walletTellerRepository = walletTellerRepository;
+		this.walletEventRepository = walletEventRepository;
+		this.authService = authService;
+		this.switchWalletService = switchWalletService;
+		this.tokenService = tokenService;
+		this.userDataService = userDataService;
+		this.walletNonWayaPaymentRepo = walletNonWayaPaymentRepo;
+		this.customNotification = customNotification;
+		this.walletQRCodePaymentRepo = walletQRCodePaymentRepo;
+		this.walletPaymentRequestRepo = walletPaymentRequestRepo;
+		this.externalServiceProxy = externalServiceProxy;
+		this.authProxy = authProxy;
+		this.transactionCountService = transactionCountService;
+		this.userPricingRepository = userPricingRepository;
+	}
 
 	@Override
 	public ResponseEntity<?> adminTransferForUser(HttpServletRequest request, String command,
@@ -356,8 +337,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 							transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory);
 
 				}
+				System.out.println("################### AFTER PAYMENT one ###################");
+				System.out.println("AFTER PAYMENT " + tranId);
 
-				//createEventTransactionDebitUserCreditWayaAccount
+
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ResponseEntity<>(new ErrorResponse(tranKey[1]), HttpStatus.BAD_REQUEST);
@@ -373,30 +356,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", transaction), HttpStatus.CREATED);
 				log.info("Transaction Response::", resp.toString());
 
-				Date tDate = Calendar.getInstance().getTime();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
-				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
-						transfer.getTranNarration());
-				String finalTranId = tranId;
-				if(StringUtils.isNumeric(toAccountNumber)){
-					WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
-					WalletUser xUser = walletUserRepository.findByAccount(xAccount);
-					String fullName = xUser.getFirstName() + " " + xUser.getLastName();
-					CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
-							xUser.getEmailAddress(), message, userToken.getId(), transfer.getAmount().toString(), finalTranId,
-							tranDate, transfer.getTranNarration()));
-					CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
-							message, userToken.getId()));
-				}
 
-
-//				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
-//						transfer.getTranNarration());
-//
-
-//				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getMobileNo(),
-//						message, userToken.getId(), TRANSACTION_HAS_OCCURRED));
 			} else {
 				if (intRec == 2) {
 					return new ResponseEntity<>(new ErrorResponse("UNABLE TO PROCESS DUPLICATE TRANSACTION REFERENCE"),
@@ -2115,9 +2075,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 			 mm = makeTransfer(request, command, transfer);
 		}
 
-		transfer.setBenefAccountNumber(chargesAccount);
-		transfer.setAmount(chargesAmount);
-		debitTransactionFee(request,transfer);
 		return mm;
 	}
 
@@ -2183,16 +2140,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return resp;
 	}
 
-	public void debitTransactionFee(HttpServletRequest request, TransferTransactionDTO transfer){
-
-		/**
-		 * 	deduct transaction charges
-		 * 	take 10 from transfer.getDebitAccountNumber();
-		 * 	and creadit Waya official wallet
-		 * transfer.setBenefAccountNumber();
-		 */
-		sendMoney(request,transfer);
-	}
 
 	@Override
 	public ResponseEntity<?> sendMoney(HttpServletRequest request, TransferTransactionDTO transfer) {
@@ -3606,14 +3553,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				// CHECK
 
-//				double total = 0.0;
-//				if(eventInfo.isPresent()){
-//				WalletEventCharges walletEventCharges =	eventInfo.get();
-//				total =	accountDebit.getClr_bal_amt() + walletEventCharges.getTranAmt().doubleValue();
-//
-//				}
-//				System.out.println("TOTAL :::: " + total);
-
 				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
@@ -3729,7 +3668,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 				System.out.println(debitAcctNo + " Charge here " + charge.getTranAmt());
 				accountCredit = accountDebitTeller;
 				accountDebit = walletAccountRepository.findByAccountNo(debitAcctNo);
-				tranAmCharges = charge.getTranAmt();
+				//tranAmCharges = charge.getTranAmt();
+
+				// get user charge by eventId and userID
+				UserPricing userPricingOptional = getUserProduct(accountDebit, eventId); // get user to
+
+				tranAmCharges = getChargesAmount(userPricingOptional, amount);
+
 			}
 
 			if(!eventId.equals("WAYAOFFTOCUS")){
@@ -3744,10 +3689,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 			log.info("END TRANSACTION");
 			 // HttpServletRequest request
 
-
 			String receiverName2 = accountCredit.getAcct_name();
 			String receiverAcct = accountCredit.getAccountNo();
-
 
 			if(StringUtils.isNumeric(accountDebit.getAccountNo())){
 				WalletUser xUser = walletUserRepository.findByAccount(accountDebit);
@@ -3771,18 +3714,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 
 
-	private WalletUser getWalletUser(WalletAccount account){
-		return walletUserRepository.findByAccount(account);
+	private UserPricing getUserProduct(WalletAccount accountDebit, String eventId){
+		WalletUser xUser = walletUserRepository.findByAccount(accountDebit);
+		Long xUserId = xUser.getUserId();
+		// get user charge by eventId and userID
+		return userPricingRepository.findDetails(xUserId,eventId).orElse(null);
 	}
 
-	private void creditMerchantForIncomingFund(Long userId){
-		UserDetailPojo user = authService.AuthUser(userId.intValue());
-		if (user !=null && user.is_corporate()) {
 
-			//  fund user Commission wallet
-
-		}
-	}
 
 	public String createChargeTransaction(String debitAcctNo, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef, String eventCharge,
@@ -4946,7 +4885,21 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	}
 
+	private String doTransactionCount(String paymentRef, String creditAcctNo){
+		String tranCount = tempwallet.transactionCount(paymentRef, creditAcctNo);
+		if (!tranCount.isBlank()) {
+			return "tranCount";
+		}
+		return tranCount;
+	}
 
+	private String validateDefaultCode(String tranCrncy){
+		boolean validate = paramValidation.validateDefaultCode(tranCrncy, "Currency");
+		if (!validate) {
+			return "DJGO|Currency Code Validation Failed";
+		}
+		return "DJGO|Currency Code Validation Successful";
+	}
 
 	public String createEventTransactionForBillsPayment(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
 										 TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request,
@@ -4959,6 +4912,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (!tranCount.isBlank()) {
 				return "tranCount";
 			}
+
 			boolean validate = paramValidation.validateDefaultCode(tranCrncy, "Currency");
 			if (!validate) {
 				return "DJGO|Currency Code Validation Failed";
@@ -4984,6 +4938,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 			WalletAccount accountDebit = null;
 			WalletAccount accountCredit = null;
+			BigDecimal tranAmCharges = null;
 			if (charge.isChargeWaya()) {
 				accountDebit = accountDebitTeller.get();
 				accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
@@ -4993,6 +4948,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}else{
 				accountDebit = accountDebitTeller.get();
 				accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
+
+				UserPricing userPricingOptional = getUserProduct(accountDebit, eventId);
+
+				tranAmCharges = getChargesAmount(userPricingOptional, amount);
 			}
 			if (accountDebit == null || accountCredit == null) {
 				return "DJGO|DEBIT ACCOUNT OR BENEFICIARY ACCOUNT DOES NOT EXIST";
@@ -5172,6 +5131,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if(xUser !=null){
 
 				CompletableFuture.runAsync(() -> transactionCountService.makeCount(xUser.getUserId().toString(), paymentRef));
+			}
+
+			if(!eventId.equals("WAYAOFFTOCUS")){
+				WalletAccount finalAccountCredit = accountCredit;
+				WalletAccount finalAccountDebit = accountDebit;
+				BigDecimal finalTranAmCharges = tranAmCharges;
+				CompletableFuture.runAsync(() -> doDeductTransactionCharges(tokenData, senderName, receiverName, paymentRef, "Wallet Transfer", tranCrncy, tranCategory, TransactionTypeEnum.CHARGES, finalTranAmCharges, finalAccountDebit, finalAccountCredit));
 			}
 
 			return tranId;
@@ -6594,10 +6560,15 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 				accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
 				tranAmCharges = charge.getTranAmt();
 			} else {
-				System.out.println( creditAcctNo + " Charge here " + charge.getTranAmt());
+				log.info( creditAcctNo + " Charge here " + charge.getTranAmt());
 				accountCredit = accountDebitTeller.get();
 				accountDebit = walletAccountRepository.findByAccountNo(creditAcctNo);
-				tranAmCharges = charge.getTranAmt();
+				//tranAmCharges = charge.getTranAmt();
+
+				// get user charge by eventId and userID
+				UserPricing userPricingOptional = getUserProduct(accountDebit, eventId);
+
+				tranAmCharges = getChargesAmount(userPricingOptional, amount);
 			}
 			if (accountDebit == null || accountCredit == null) {
 				return "DJGO|DEBIT ACCOUNT OR BENEFICIARY ACCOUNT DOES NOT EXIST";
@@ -6773,6 +6744,34 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 	}
 
+
+	private BigDecimal computePercentage(BigDecimal amount, BigDecimal percentageValue){
+		BigDecimal per = BigDecimal.valueOf(percentageValue.doubleValue() / 100);
+		return BigDecimal.valueOf(per.doubleValue() * amount.doubleValue());
+	}
+
+	private BigDecimal getChargesAmount(UserPricing userPricingOptional, BigDecimal amount){
+		BigDecimal percentage = null;
+
+		if(userPricingOptional.getStatus().equals(ProductPriceStatus.GENERAL)){
+
+			percentage = computePercentage(amount, userPricingOptional.getGeneralAmount());
+			// apply discount if applicable
+
+		}else if (userPricingOptional.getStatus().equals(ProductPriceStatus.CUSTOM)){
+
+			// apply discount if applicable
+			percentage = computePercentage(amount, userPricingOptional.getCustomAmount());
+
+		}
+
+		if (percentage.compareTo(userPricingOptional.getCapPrice()) == 1){
+
+		}
+		return percentage;
+
+	}
+
 	private  String doDeductTransactionCharges(MyData tokenData, String senderName, String receiverName, String paymentRef, String bk, String tranCrncy, CategoryType tranCategory, TransactionTypeEnum tranType, BigDecimal chargesAmount, WalletAccount accountDebit, WalletAccount accountCredit){
 		try{
 			int n = 1;
@@ -6881,10 +6880,6 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		if (tranId.equals("")) {
 			return "DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN";
 		}
-		// MyData tokenData = tokenService.getUserInformation();
-		// String email = tokenData != null ? tokenData.getEmail() : "";
-		// String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
-
 
 
 		String tranNarrate = "WALLET-" + "transaction charges" + " TO:" + bk;
