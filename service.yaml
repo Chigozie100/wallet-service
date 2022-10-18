@@ -31,6 +31,9 @@ spec:
       containers:
       - name: waya-repository
         image: 863852973330.dkr.ecr.eu-west-2.amazonaws.com/waya-repository:imgtag
+        resources:
+          requests:
+            memory: "200Mi"
         envFrom:
         - configMapRef:
             name: common-services-config
@@ -43,6 +46,8 @@ spec:
           subPath: application.yml
         - name: tz-lagos
           mountPath: /etc/localtime
+      nodeSelector:
+        node.kubernetes.io/description: cfgprofile    
       volumes:
         - name: config-file
           secret:
