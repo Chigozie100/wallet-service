@@ -51,13 +51,13 @@ public interface TransAccountService {
 
 	ResponseEntity<?> PostExternalMoney(HttpServletRequest request, CardRequestPojo transfer, Long userId);
 
-	ApiResponse<?> OfficialMoneyTransfer(HttpServletRequest request, OfficeTransferDTO transfer);
+	ApiResponse<?> OfficialMoneyTransferSw(HttpServletRequest request, OfficeTransferDTO transfer);
 
-	ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer);
+	ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer, boolean isMifos);
 	
-	ApiResponse<?> OfficialUserTransferSystem(Map<String, String > mapp, String token, HttpServletRequest request, OfficeUserTransferDTO transfer);
+	ApiResponse<?> OfficialUserTransferSystemSwitch(Map<String, String > mapp, String token, HttpServletRequest request, OfficeUserTransferDTO transfer);
 
-	ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, List<OfficeUserTransferDTO> transfer);
+	ApiResponse<?> OfficialUserTransferMultiple(HttpServletRequest request, List<OfficeUserTransferDTO> transfer);
 
 	ApiResponse<?> createBulkTransaction(HttpServletRequest request, BulkTransactionCreationDTO bulk);
 

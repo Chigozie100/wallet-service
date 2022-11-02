@@ -123,6 +123,8 @@ public class WalletAccount {
 	private boolean walletDefault;
 	
 	private String lien_reason;
+
+	private String accountType;
 	
 	@JsonIgnore
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -202,7 +204,7 @@ public class WalletAccount {
 						 String product_code,String acct_ownership,String hashed_no, boolean int_paid_flg,boolean int_coll_flg,
 						 String rcre_user_id, LocalDate rcre_time,String acct_crncy_code,String product_type,
 						 boolean chq_alwd_flg, double cash_dr_limit, double xfer_dr_limit, double cash_cr_limit,
-						 double xfer_cr_limit, boolean walletDefault) {
+						 double xfer_cr_limit, boolean walletDefault, String accountType) {
 		super();
 		this.del_flg = false;
 		this.entity_cre_flg = true;
@@ -235,6 +237,7 @@ public class WalletAccount {
 		this.xfer_cr_limit = xfer_cr_limit;
 		this.user = user;
 		this.walletDefault = walletDefault;
+		this.accountType = accountType;
 	}
 
 

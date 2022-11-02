@@ -9,11 +9,17 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import com.wayapaychat.temporalwallet.config.SecurityConstants;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.exception.CustomException;
+import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
+import com.wayapaychat.temporalwallet.pojo.*;
+import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
 import com.wayapaychat.temporalwallet.util.*;
+import feign.FeignException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value; 
@@ -29,8 +35,6 @@ import com.wayapaychat.temporalwallet.entity.WalletProduct;
 import com.wayapaychat.temporalwallet.entity.WalletProductCode;
 import com.wayapaychat.temporalwallet.entity.WalletTeller;
 import com.wayapaychat.temporalwallet.entity.WalletUser;
-import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
-import com.wayapaychat.temporalwallet.pojo.UserDetailPojo;
 import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletEventRepository;
 import com.wayapaychat.temporalwallet.repository.WalletProductCodeRepository;
@@ -38,43 +42,29 @@ import com.wayapaychat.temporalwallet.repository.WalletProductRepository;
 import com.wayapaychat.temporalwallet.repository.WalletTellerRepository;
 import com.wayapaychat.temporalwallet.repository.WalletUserRepository;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
+
 import com.wayapaychat.temporalwallet.service.UserAccountService;
 
 import lombok.extern.slf4j.Slf4j;
+
+import javax.servlet.http.HttpServletRequest;
 
 @Service
 @Slf4j
 public class UserAccountServiceImpl implements UserAccountService {
 
-	@Autowired
-	WalletUserRepository walletUserRepository;
-
-	@Autowired
-	WalletAccountRepository walletAccountRepository;
-
-	@Autowired
-	WalletProductRepository walletProductRepository;
-
-	@Autowired
-	WalletProductCodeRepository walletProductCodeRepository;
-
-	@Autowired
-	AuthUserServiceDAO authService;
-
-	@Autowired
-	ReqIPUtils reqUtil;
-
-	@Autowired
-	ParamDefaultValidation paramValidation;
-
-	@Autowired
-	WalletTellerRepository walletTellerRepository;
-
-	@Autowired
-	TemporalWalletDAO tempwallet;
-	
-	@Autowired
-	WalletEventRepository walletEventRepo;
+	private final WalletUserRepository walletUserRepository;
+	private final WalletAccountRepository walletAccountRepository;
+	private final WalletProductRepository walletProductRepository;
+	private final WalletProductCodeRepository walletProductCodeRepository;
+	private final AuthUserServiceDAO authService;
+	private final ReqIPUtils reqUtil;
+	private final ParamDefaultValidation paramValidation;
+	private final WalletTellerRepository walletTellerRepository;
+	private final TemporalWalletDAO tempwallet;
+	private final WalletEventRepository walletEventRepo;
+	private final MifosWalletProxy mifosWalletProxy;
+	private final TokenImpl tokenService;
 
 	@Value("${waya.wallet.productcode}")
 	private String wayaProduct;
@@ -90,6 +80,22 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Value("${ofi.financialInstitutionCode}")
 	private String financialInstitutionCode;
+
+	@Autowired
+	public UserAccountServiceImpl(WalletUserRepository walletUserRepository, WalletAccountRepository walletAccountRepository, WalletProductRepository walletProductRepository, WalletProductCodeRepository walletProductCodeRepository, AuthUserServiceDAO authService, ReqIPUtils reqUtil, ParamDefaultValidation paramValidation, WalletTellerRepository walletTellerRepository, TemporalWalletDAO tempwallet, WalletEventRepository walletEventRepo, MifosWalletProxy mifosWalletProxy, TokenImpl tokenService) {
+		this.walletUserRepository = walletUserRepository;
+		this.walletAccountRepository = walletAccountRepository;
+		this.walletProductRepository = walletProductRepository;
+		this.walletProductCodeRepository = walletProductCodeRepository;
+		this.authService = authService;
+		this.reqUtil = reqUtil;
+		this.paramValidation = paramValidation;
+		this.walletTellerRepository = walletTellerRepository;
+		this.tempwallet = tempwallet;
+		this.walletEventRepo = walletEventRepo;
+		this.mifosWalletProxy = mifosWalletProxy;
+		this.tokenService = tokenService;
+	}
 
 	public ResponseEntity<?> createUser(UserDTO user) {
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
@@ -182,6 +188,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 			}
 		}
 
+		if(user.getAccountType() == null){
+			user.setAccountType("SAVINGS");
+		}
 		try {
 			String hashed_no = reqUtil
 					.WayaEncrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
@@ -194,7 +203,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 						acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 						LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
 						product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
-						product.getXfer_cr_limit(), false);
+						product.getXfer_cr_limit(), false, user.getAccountType());
 			}
 			walletAccountRepository.save(account);
 			WalletAccount caccount = new WalletAccount();
@@ -227,7 +236,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 								product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 								product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
 								product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(),
-								false);
+								false, user.getAccountType());
 					}
 					walletAccountRepository.save(caccount);
 				}
@@ -247,17 +256,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 		if (existingUser != null) {
 			log.info("Wallet User already exists");
 			return null;
-					//new ResponseEntity<>(new ErrorResponse("Wallet User already exists"), HttpStatus.BAD_REQUEST);
 		}
-//		int userId = user.getUserId().intValue();
-//		UserDetailPojo wallet = authService.AuthUser(userId);
-//
-//		if (wallet == null) {
-//			log.info("Auth User ID does not exists");
-//			return null;
-//		}
-		//log.info("Is it a corporate User: {}", wallet.is_corporate());
-		// Default Wallet
+
 		String acct_name = user.getFirstName().toUpperCase() + " " + user.getLastName().toUpperCase();
 		WalletUser userInfo = new WalletUser(user.getSolId(), user.getUserId(), user.getFirstName().toUpperCase(),
 				user.getLastName().toUpperCase(), user.getEmailId(), user.getMobileNo(), acct_name,
@@ -353,7 +353,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 						acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 						LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
 						product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
-						product.getXfer_cr_limit(),true);
+						product.getXfer_cr_limit(),true, user.getAccountType());
 			}
 			WalletAccount sAcct = walletAccountRepository.save(account);
 			WalletAccount caccount = new WalletAccount();
@@ -401,28 +401,6 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 	}
 
-////	private WalletUserDTO builderPOST(UserDetailPojo request){
-//		WalletUserDTO user = new WalletUserDTO();
-//		user.setCustDebitLimit(new BigDecimal("50000.00").doubleValue());
-//		// Default Account Expiration Date
-//		LocalDateTime time = LocalDateTime.of(2099, Month.DECEMBER, 30, 0, 0);
-//		user.setCustExpIssueDate(request.getCustExpIssueDate());
-//		user.setUserId(request.id());
-//		user.setCustIssueId(generateRandomNumber(9));
-//		user.setFirstName(request.getFirstName());
-//		user.setLastName(request.getSurname());
-//		user.setEmailId(request.getEmail());
-//		user.setMobileNo(request.getPhoneNo());
-//		user.setCustSex(request.getCustSex().substring(0, 1));
-//		String custTitle = request.getCustSex().equals("MALE") ? "MR" : "MRS";
-//		user.setCustTitleCode(custTitle);
-//		LocalDate dateOfBirth = request.getDateOfBirth() == null ? LocalDate.now() : request.getDateOfBirth();
-//		user.setDob(request.getgetDob());
-//		// Default Branch SOL ID
-//		user.setSolId("0000");
-//		user.setAccountType("saving");
-//		return user;
-//	}
 
 	public static String generateRandomNumber(int length) {
 
@@ -457,7 +435,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 	}
 
 	// Call by Aut-service and others
-	public ResponseEntity<?> createUserAccount(WalletUserDTO user) {
+	public ResponseEntity<?> createUserAccount(WalletUserDTO user){
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
 		if (existingUser != null) {
 			return new ResponseEntity<>(new ErrorResponse("Wallet User already exists"), HttpStatus.BAD_REQUEST);
@@ -602,7 +580,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 						acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 						LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
 						product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
-						product.getXfer_cr_limit(),true);
+						product.getXfer_cr_limit(),true, accountType);
 			}
 			WalletAccount sAcct = walletAccountRepository.save(account);
 			WalletAccount caccount = new WalletAccount();
@@ -634,7 +612,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 								product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 								product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
 								product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(),
-								false);
+								false, accountType);
 					}
 					walletAccountRepository.save(caccount);
 				}
@@ -643,13 +621,35 @@ public class UserAccountServiceImpl implements UserAccountService {
 			sAcct.setWalletDefault(true);
 			walletAccountRepository.save(sAcct);
 			log.info("Account Creation: " + sAcct.getAccountNo());
+
+
+			// call to Mifos to create a user
+			CompletableFuture.runAsync(()-> pushToMifos(userInfo, sAcct));
+
 			return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
 					HttpStatus.CREATED);
 		} catch (Exception e) {
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 	}
-	
+
+
+	private void pushToMifos(WalletUser userInfo, WalletAccount sAcct){
+		MifosCreateAccount mifos = new MifosCreateAccount();
+		mifos.setAccountNumber(sAcct.getNubanAccountNo());
+		mifos.setEmail(userInfo.getEmailAddress());
+		mifos.setFirstName(userInfo.getFirstName());
+		mifos.setMobileNumber(userInfo.getMobileNo());
+		mifos.setLastName(userInfo.getLastName());
+
+		try{
+			ApiResponse<?> response = mifosWalletProxy.createAccount(mifos);
+		 log.info("RESPONSE FROM MIFOS::: " + response);
+		}catch (FeignException ex){
+			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+		}
+
+	}
 
 	public ResponseEntity<?> modifyUserAccount(UserAccountDTO user) {
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
@@ -894,6 +894,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 		String acctNo = teller.getCrncyCode() + teller.getSol_id() + teller.getAdminCashAcct();
 		String acct_ownership = "O";
 
+		if(user.getAccountType() == null){
+			user.setAccountType("SAVINGS");
+		}
 		try {
 			String hashed_no = reqUtil.WayaEncrypt(
 					user.getUserId() + "|" + acctNo + "|" + user.getProductCode() + "|" + product.getCrncy_code());
@@ -904,7 +907,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 					product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
 					product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
 					product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
-					product.getXfer_cr_limit(), false);
+					product.getXfer_cr_limit(), false, user.getAccountType());
 			walletAccountRepository.save(account);
 			return new ResponseEntity<>(new SuccessResponse("Office Account created successfully.", account),
 					HttpStatus.CREATED);
@@ -944,6 +947,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 		String acctNo = product.getCrncy_code() + "0000" + user.getPlaceholderCode();
 		String acct_ownership = "O";
 
+		if(user.getAccountType() == null){
+			user.setAccountType("SAVINGS");
+		}
+
 		try {
 			String hashed_no = reqUtil
 					.WayaEncrypt(0L + "|" + acctNo + "|" + user.getProductCode() + "|" + product.getCrncy_code());
@@ -954,7 +961,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 					product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
 					product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
 					product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
-					product.getXfer_cr_limit(), false);
+					product.getXfer_cr_limit(), false, user.getAccountType());
 			walletAccountRepository.save(account);
 			event.setProcessflg(true);
 			walletEventRepo.save(event);
@@ -1034,6 +1041,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 				acctNo = product.getCrncy_code() + "0000" + rand;
 			}
 
+			if(accountPojo.getAccountType() == null){
+				accountPojo.setAccountType("SAVINGS");
+			}
+
 			try {
 				String hashed_no = reqUtil
 						.WayaEncrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
@@ -1045,7 +1056,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 							acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 							LocalDate.now(), product.getCrncy_code(), product.getProduct_type(),
 							product.isChq_book_flg(), product.getCash_dr_limit(), product.getXfer_dr_limit(),
-							product.getCash_cr_limit(), product.getXfer_cr_limit(), false);
+							product.getCash_cr_limit(), product.getXfer_cr_limit(), false, accountPojo.getAccountType());
 				}
 				walletAccountRepository.save(account);
 				return new ResponseEntity<>(new SuccessResponse("Account Created Successfully.", account),
@@ -1134,6 +1145,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 				acctNo = product.getCrncy_code() + "0000" + rand;
 			}
 
+			if (accountPojo.getAccountType() == null){
+				accountPojo.setAccountType("SAVINGS");
+			}
+
 			try {
 				String hashed_no = reqUtil.WayaEncrypt(
 						userId + "|" + acctNo + "|" + fProduct.getProductCode() + "|" + product.getCrncy_code());
@@ -1145,7 +1160,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 							fProduct.getProductCode(), acct_ownership, hashed_no, product.isInt_paid_flg(),
 							product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 							product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
-							product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(), false);
+							product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(), false, accountPojo.getAccountType());
 				}
 				walletAccountRepository.save(account);
 				return new ResponseEntity<>(new SuccessResponse("Account Created Successfully.", account),
@@ -1499,7 +1514,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 					product.getProductCode(), acct_ownership, hashed_no, product.isInt_paid_flg(),
 					product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 					product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
-					product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(), false);
+					product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(), false, accountPojo.getAccountType());
 			walletAccountRepository.save(account);
 			return new ResponseEntity<>(new SuccessResponse("Office Account created successfully.", account),
 					HttpStatus.CREATED);
@@ -1610,7 +1625,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 	}
 	@Override
-	public ResponseEntity<?>  AccountAccessBlockAndUnblock(AccountBlockDTO user) {
+	public ResponseEntity<?>  AccountAccessBlockAndUnblock(AccountBlockDTO user, HttpServletRequest request) {
 		try {
 
 			WalletAccount account = walletAccountRepository.findByAccountNo(user.getCustomerAccountNo());
@@ -1631,20 +1646,52 @@ public class UserAccountServiceImpl implements UserAccountService {
 				account.setAcct_cls_date(LocalDate.now());
 				account.setAcct_cls_flg(true);
 				walletAccountRepository.save(account);
+				CompletableFuture.runAsync(() -> blockAccount(account, request,true));
 				return new ResponseEntity<>(new SuccessResponse("Account blocked successfully.", account), HttpStatus.OK);
 
 			}else{
 				account.setAcct_cls_date(LocalDate.now());
 				account.setAcct_cls_flg(false);
 				walletAccountRepository.save(account);
+				CompletableFuture.runAsync(() -> blockAccount(account, request,false));
 				return new ResponseEntity<>(new SuccessResponse("Account Unblock successfully.", account), HttpStatus.OK);
 
 			}
+
+			// push to mifos
+
+
+
  		} catch (Exception e) {
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage() + " : " + e.getMessage()),
 					HttpStatus.BAD_REQUEST);
 		}
 	}
+
+	private void blockAccount(WalletAccount account, HttpServletRequest request, boolean isBlock){
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		try{
+		MifosBlockAccount mifosBlockAccount = new MifosBlockAccount();
+
+		mifosBlockAccount.setAccountNumber(account.getNubanAccountNo());
+			ApiResponse<?> response;
+
+		if(isBlock){
+			mifosBlockAccount.setNarration("block account");
+			response = mifosWalletProxy.blockAccount(token,mifosBlockAccount);
+			log.info("RESPONSE FROM MIFOS blocking account: " + response);
+		}else{
+			mifosBlockAccount.setNarration("unblock account");
+			response = mifosWalletProxy.blockAccount(token,mifosBlockAccount);
+			log.info("RESPONSE FROM MIFOS unblocking account: " + response);
+		}
+
+		} catch (Exception e) {
+			throw new CustomException(e.getMessage(),HttpStatus.BAD_REQUEST);
+		}
+	}
+
+
 	@Override
 	public ResponseEntity<?> AccountAccessClosure(AccountCloseDTO user) {
 		try {

@@ -17,4 +17,6 @@ public class UserDTO {
 	@NotNull
     private boolean isCorporate;
 
+	private String accountType;
+
 }

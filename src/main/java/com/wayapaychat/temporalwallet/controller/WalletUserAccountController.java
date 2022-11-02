@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import com.wayapaychat.temporalwallet.dto.*;
@@ -98,9 +99,9 @@ public class WalletUserAccountController {
 
     @ApiOperation(value = " Block / UnBlock", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/account/block")
-    public ResponseEntity<?> postAccountBlock(@Valid @RequestBody AccountBlockDTO user) {
+    public ResponseEntity<?> postAccountBlock(@Valid @RequestBody AccountBlockDTO user, HttpServletRequest request) {
         log.info("Request input: {}",user);
-        return userAccountService.AccountAccessBlockAndUnblock(user);
+        return userAccountService.AccountAccessBlockAndUnblock(user, request);
     }
 
 
