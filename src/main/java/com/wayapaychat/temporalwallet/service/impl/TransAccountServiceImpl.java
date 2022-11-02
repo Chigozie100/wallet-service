@@ -3785,10 +3785,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			// call Mifos
 
-			WalletAccount finalAccountCredit1 = accountCredit;
-			WalletAccount finalAccountDebit1 = accountDebit;
-			String finalTranId = tranId;
-			CompletableFuture.runAsync(() -> postToMifos(token, finalAccountCredit1, finalAccountDebit1, amount, tranNarration, finalTranId,  tranType));
+			if(mifos || !mifos){
+				WalletAccount finalAccountCredit1 = accountCredit;
+				WalletAccount finalAccountDebit1 = accountDebit;
+				String finalTranId = tranId;
+				CompletableFuture.runAsync(() -> postToMifos(token, finalAccountCredit1, finalAccountDebit1, amount, tranNarration, finalTranId,  tranType));
+			}
 
 			return tranId;
 		} catch (Exception e) {
@@ -3812,11 +3814,15 @@ public class TransAccountServiceImpl implements TransAccountService {
 		mifosTransfer.setSourceAccountType(accountDebit.getAccountType());
 		mifosTransfer.setSourceCurrency(accountDebit.getAcct_crncy_code());
 		mifosTransfer.setTransactionType(tranType.getValue());
-		mifosWalletProxy.transferMoney(token,mifosTransfer);
+		try{
+			ApiResponse<?> response = mifosWalletProxy.transferMoney(token,mifosTransfer);
+			 log.info("MifosWalletProxy :: " + response);
+		}catch(FeignException ex){
+			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+		}
+
 	}
-
-
-
+ 
 	private UserPricing getUserProduct(WalletAccount accountDebit, String eventId){
 		WalletUser xUser = walletUserRepository.findByAccount(accountDebit);
 		Long xUserId = xUser.getUserId();
