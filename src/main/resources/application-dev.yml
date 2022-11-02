@@ -71,7 +71,7 @@ waya:
     auth: AUTHENTICATION-SERVICE
     authurl: ${CONFIG_BASEURL_AUTH:https://services.staging.wayabank.ng/auth-service/api/v1}
     mifos: MIFOS-WALLET-SERVICE
-    mifosurl: ${CONFIG_BASEURL_MWALLET:https://services.staging.wayabank.ng/wallet-service}
+    mifosurl: ${CONFIG_BASEURL_MWALLET:https://services.staging.wayabank.ng/middletier-service}
     productcode: ${CONFIG_PRODUCT_SAVINGS:SB601}
     commissioncode: ${CONFIG_PRODUCT_COMMISSION:SB901}
     wayaglCode: ${CONFIG_PRODUCT_SAVINGS_CODE:21200}

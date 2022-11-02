@@ -21,8 +21,10 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.enumm.*;
+import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
 import com.wayapaychat.temporalwallet.repository.*;
 import com.wayapaychat.temporalwallet.service.TransactionCountService;
+import com.wayapaychat.temporalwallet.service.TransactionService;
 import com.wayapaychat.temporalwallet.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -102,10 +104,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 
 	private final UserPricingRepository userPricingRepository;
+	private final TransactionService transactionService;
+	private final MifosWalletProxy mifosWalletProxy;
 
 
 	@Autowired
-	public TransAccountServiceImpl(WalletUserRepository walletUserRepository, WalletAccountRepository walletAccountRepository, WalletAcountVirtualRepository walletAcountVirtualRepository, ReqIPUtils reqIPUtils, TemporalWalletDAO tempwallet, WalletTransactionRepository walletTransactionRepository, ParamDefaultValidation paramValidation, WalletTellerRepository walletTellerRepository, WalletEventRepository walletEventRepository, AuthUserServiceDAO authService, SwitchWalletService switchWalletService, TokenImpl tokenService, ExternalServiceProxyImpl userDataService, WalletNonWayaPaymentRepository walletNonWayaPaymentRepo, CustomNotification customNotification, WalletQRCodePaymentRepository walletQRCodePaymentRepo, WalletPaymentRequestRepository walletPaymentRequestRepo, ExternalServiceProxyImpl externalServiceProxy, AuthProxy authProxy, TransactionCountService transactionCountService, UserPricingRepository userPricingRepository) {
+	public TransAccountServiceImpl(WalletUserRepository walletUserRepository, WalletAccountRepository walletAccountRepository, WalletAcountVirtualRepository walletAcountVirtualRepository, ReqIPUtils reqIPUtils, TemporalWalletDAO tempwallet, WalletTransactionRepository walletTransactionRepository, ParamDefaultValidation paramValidation, WalletTellerRepository walletTellerRepository, WalletEventRepository walletEventRepository, AuthUserServiceDAO authService, SwitchWalletService switchWalletService, TokenImpl tokenService, ExternalServiceProxyImpl userDataService, WalletNonWayaPaymentRepository walletNonWayaPaymentRepo, CustomNotification customNotification, WalletQRCodePaymentRepository walletQRCodePaymentRepo, WalletPaymentRequestRepository walletPaymentRequestRepo, ExternalServiceProxyImpl externalServiceProxy, AuthProxy authProxy, TransactionCountService transactionCountService, UserPricingRepository userPricingRepository, TransactionService transactionService, MifosWalletProxy mifosWalletProxy) {
 		this.walletUserRepository = walletUserRepository;
 		this.walletAccountRepository = walletAccountRepository;
 		this.walletAcountVirtualRepository = walletAcountVirtualRepository;
@@ -127,6 +131,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 		this.authProxy = authProxy;
 		this.transactionCountService = transactionCountService;
 		this.userPricingRepository = userPricingRepository;
+		this.transactionService = transactionService;
+		this.mifosWalletProxy = mifosWalletProxy;
+	}
+
+
+	public ResponseEntity<?> initiateTransaction(Object obj, HttpServletRequest request){
+
+		return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
 	}
 
 	@Override
@@ -2068,11 +2080,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 		ResponseEntity<?> mm = null;
 		switch (provider.getName()) {
 		case ProviderType.MAINMIFO:
-			 mm = makeTransfer(request, command, transfer);
+			 mm = makeTransfer(request, command, transfer, true);
 		case ProviderType.TEMPORAL:
-			 mm = makeTransfer(request, command, transfer);
+			 mm = makeTransfer(request, command, transfer, false);
 		default:
-			 mm = makeTransfer(request, command, transfer);
+			 mm = makeTransfer(request, command, transfer, false);
 		}
 
 		return mm;
@@ -2081,7 +2093,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 
 	public ResponseEntity<?> makeTransfer(HttpServletRequest request, String command,
-			TransferTransactionDTO transfer) {
+			TransferTransactionDTO transfer, boolean isMifos) {
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 		if (userToken == null) {
@@ -2105,7 +2117,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createTransaction(token, "WAYATRAN",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-						request, tranCategory);
+						request, tranCategory, isMifos);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ResponseEntity<>(new ErrorResponse(tranKey[1]), 
@@ -2151,11 +2163,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 		log.info("WALLET PROVIDER: " + provider.getName());
 		switch (provider.getName()) {
 		case ProviderType.MAINMIFO:
-			return MoneyTransfer(request, transfer, false);
+			return MoneyTransfer(request, transfer, false, true);
 		case ProviderType.TEMPORAL:
-			return MoneyTransfer(request, transfer, false);
+			return MoneyTransfer(request, transfer, false, false);
 		default:
-			return MoneyTransfer(request, transfer, false);
+			return MoneyTransfer(request, transfer, false, false);
 		}
 	}
 
@@ -2214,7 +2226,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					reference);
 			if (intRec == 1) {
 				String tranId = createTransaction(token, "WAYASIMU", fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory);
+						transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory, false);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ResponseEntity<>(new ErrorResponse(tranKey[1]), HttpStatus.BAD_REQUEST);
@@ -2280,7 +2292,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return resp;
 	}
 
-	public ResponseEntity<?> MoneyTransfer(HttpServletRequest request, TransferTransactionDTO transfer, boolean isSimulated) {
+	public ResponseEntity<?> MoneyTransfer(HttpServletRequest request, TransferTransactionDTO transfer, boolean isSimulated, boolean isMifos) {
 
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
@@ -2315,7 +2327,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					reference);
 			if (intRec == 1) {
 				String tranId = createTransaction(token, "WAYATRAN",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory);
+						transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory, isMifos);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ResponseEntity<>(new ErrorResponse(tranKey[1]), HttpStatus.BAD_REQUEST);
@@ -2551,7 +2563,23 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 	}
 
-	public ApiResponse<?> OfficialMoneyTransfer(HttpServletRequest request, OfficeTransferDTO transfer) {
+	public ApiResponse<?> OfficialMoneyTransferSw(HttpServletRequest request, OfficeTransferDTO transfer) {
+		Provider provider = switchWalletService.getActiveProvider();
+		if (provider == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO PROVIDER SWITCHED", null);
+		}
+		log.info("WALLET PROVIDER: " + provider.getName());
+		switch (provider.getName()) {
+			case ProviderType.MAINMIFO:
+				return OfficialMoneyTransfer(request, transfer, true);
+			case ProviderType.TEMPORAL:
+				return OfficialMoneyTransfer(request, transfer, false);
+			default:
+				return OfficialMoneyTransfer(request, transfer, false);
+		}
+	}
+
+	public ApiResponse<?> OfficialMoneyTransfer(HttpServletRequest request, OfficeTransferDTO transfer, boolean isMifos) {
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 		if (userToken == null) {
@@ -2566,17 +2594,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		CategoryType tranCategory = CategoryType.valueOf("TRANSFER");
 
-//		List<WalletTransaction> transRef = walletTransactionRepository.findByReference(transfer.getPaymentReference(),
-//				LocalDate.now(), transfer.getTranCrncy());
-//		if (!transRef.isEmpty()) {
-//			Optional<WalletTransaction> ret = transRef.stream()
-//					.filter(code -> code.getPaymentReference().equals(transfer.getPaymentReference())).findAny();
-//			if (ret.isPresent()) {
-//				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
-//						"Duplicate Payment Reference on the same Day", null);
-//			}
-//		}
-
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
 			int intRec = tempwallet.PaymenttranInsert("WAYAOFFTOOFF", fromAccountNumber, toAccountNumber, transfer.getAmount(),
@@ -2584,7 +2601,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createTransaction(token, "WAYAOFFTOOFF", fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-						request, tranCategory);
+						request, tranCategory, isMifos);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -2609,7 +2626,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return resp;
 	}
 
-	public ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer) {
+	public ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer,  boolean isMifos) {
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 		if (userToken == null) {
@@ -2630,17 +2647,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		CategoryType tranCategory = CategoryType.valueOf("TRANSFER");
 
-//		List<WalletTransaction> transRef = walletTransactionRepository.findByReference(transfer.getPaymentReference(),
-//				LocalDate.now(), transfer.getTranCrncy());
-//
-//		if (!transRef.isEmpty()) {
-//			Optional<WalletTransaction> ret = transRef.stream()
-//					.filter(code -> code.getPaymentReference().equals(transfer.getPaymentReference())).findAny();
-//			if (ret.isPresent()) {
-//				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
-//						"Duplicate Payment Reference on the same Day", null);
-//			}
-//		}
 
 		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		try {
@@ -2649,7 +2655,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createTransaction(token, "WAYAOFFTOCUS",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), reference,
-						request, tranCategory);
+						request, tranCategory, isMifos);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -2698,7 +2704,26 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ApiResponse<?> OfficialUserTransferSystem(Map<String, String > mapp,String token, HttpServletRequest request, OfficeUserTransferDTO transfer) {
+	public ApiResponse<?> OfficialUserTransferSystemSwitch(Map<String, String > mapp, String token, HttpServletRequest request, OfficeUserTransferDTO transfer) {
+
+		Provider provider = switchWalletService.getActiveProvider();
+		if (provider == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO PROVIDER SWITCHED", null);
+		}
+		log.info("WALLET PROVIDER: " + provider.getName());
+		switch (provider.getName()) {
+			case ProviderType.MAINMIFO:
+				return OfficialUserTransferSystem(mapp, token,request, transfer, true);
+			case ProviderType.TEMPORAL:
+				return OfficialUserTransferSystem(mapp, token,request, transfer, false);
+			default:
+				return OfficialUserTransferSystem(mapp, token,request, transfer, false);
+		}
+
+	}
+
+
+	public ApiResponse<?> OfficialUserTransferSystem(Map<String, String > mapp,String token, HttpServletRequest request, OfficeUserTransferDTO transfer, boolean isMifos) {
 
 		MyData userToken = tokenService.getTokenUser(token);
 		if (userToken == null) {
@@ -2731,7 +2756,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createTransaction(token, "WAYAOFFTOCUS",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-						request, tranCategory);
+						request, tranCategory, isMifos);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -2777,11 +2802,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, List<OfficeUserTransferDTO> transfer) {
+	public ApiResponse<?> OfficialUserTransferMultiple(HttpServletRequest request, List<OfficeUserTransferDTO> transfer) {
 		ApiResponse<?> response = null;
 		ArrayList<Object> resObjects = new ArrayList<>();
 		for(OfficeUserTransferDTO data: transfer){
-			response = OfficialUserTransfer(request, data);
+			response = OfficialUserTransfer(request, data, false);
 
 			resObjects.add(response.getData());
 		}
@@ -2822,7 +2847,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createTransaction(token, "WAYAADMTOCUS", fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-						request, tranCategory);
+						request, tranCategory, false);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -2935,7 +2960,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createTransaction(token, "WAYAADMTOCOMTODEFULT",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-						request, tranCategory);
+						request, tranCategory, false);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -3023,7 +3048,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createTransaction(token, "WAYAADMTOCUMTODEFULT",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-						request, tranCategory);
+						request, tranCategory, false);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -3163,6 +3188,24 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Override
 	public ApiResponse<?> sendMoneyCustomer(HttpServletRequest request, WalletTransactionDTO transfer) {
+		Provider provider = switchWalletService.getActiveProvider();
+		System.out.println("provider :: {} " + provider);
+		if (provider == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NO PROVIDER SWITCHED", null);
+		}
+		log.info("WALLET PROVIDER: " + provider.getName());
+		switch (provider.getName()) {
+			case ProviderType.MAINMIFO:
+				return sendMoneyCustomersw(request, transfer, true);
+			case ProviderType.TEMPORAL:
+				return sendMoneyCustomersw(request, transfer, false);
+			default:
+				return sendMoneyCustomersw(request, transfer, false);
+		}
+	}
+
+
+	public ApiResponse<?> sendMoneyCustomersw(HttpServletRequest request, WalletTransactionDTO transfer, boolean isMifos) {
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 		if (userToken == null) {
@@ -3204,7 +3247,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createTransaction(token, "WAYATRAN",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-						request, tranCategory);
+						request, tranCategory, isMifos);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -3266,6 +3309,23 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Override
 	public ApiResponse<?> AdminSendMoneyCustomer(HttpServletRequest request, AdminWalletTransactionDTO transfer) {
+		Provider provider = switchWalletService.getActiveProvider();
+		System.out.println("provider :: {} " + provider);
+		if (provider == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NO PROVIDER SWITCHE", null);
+		}
+		log.info("WALLET PROVIDER: " + provider.getName());
+		switch (provider.getName()) {
+			case ProviderType.MAINMIFO:
+				return AdminSendMoneyCustomerSwitch(request, transfer, true);
+			case ProviderType.TEMPORAL:
+				return AdminSendMoneyCustomerSwitch(request, transfer, false);
+			default:
+				return AdminSendMoneyCustomerSwitch(request, transfer, false);
+		}
+	}
+
+	public ApiResponse<?> AdminSendMoneyCustomerSwitch(HttpServletRequest request, AdminWalletTransactionDTO transfer, boolean isMifos) {
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 		if (userToken == null) {
@@ -3315,7 +3375,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createTransaction(token, "WAYAADMTOCUS",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-						request, tranCategory);
+						request, tranCategory, isMifos);
 
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
@@ -3376,8 +3436,27 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return resp;
 	}
 
+
 	@Override
 	public ApiResponse<?> ClientSendMoneyCustomer(HttpServletRequest request, ClientWalletTransactionDTO transfer) {
+		Provider provider = switchWalletService.getActiveProvider();
+		System.out.println("provider :: {} " + provider);
+		if (provider == null) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NO PROVIDER SWITCHE", null);
+		}
+		log.info("WALLET PROVIDER: " + provider.getName());
+		switch (provider.getName()) {
+			case ProviderType.MAINMIFO:
+				return ClientSendMoneyCustomerSwitch(request, transfer, true);
+			case ProviderType.TEMPORAL:
+				return ClientSendMoneyCustomerSwitch(request, transfer, false);
+			default:
+				return ClientSendMoneyCustomerSwitch(request, transfer, false);
+		}
+	}
+
+
+	public ApiResponse<?> ClientSendMoneyCustomerSwitch(HttpServletRequest request, ClientWalletTransactionDTO transfer, boolean isMifos) {
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 		if (userToken == null) {
@@ -3427,7 +3506,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createTransaction(token, "WAYATRAN",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-						request, tranCategory);
+						request, tranCategory, isMifos);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -3489,7 +3568,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	public String createTransaction(String token, String eventId, String debitAcctNo, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request,
-			CategoryType tranCategory) throws Exception {
+			CategoryType tranCategory, boolean mifos) throws Exception {
 		BigDecimal tranAmCharges = BigDecimal.valueOf(0.0);
 		Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
 		try {
@@ -3702,14 +3781,38 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
 						new Date(), tranType.getValue(), xUser.getUserId().toString(), receiverName2, tranCategory.getValue(), token,senderName));
-
 			}
+
+			// call Mifos
+
+			WalletAccount finalAccountCredit1 = accountCredit;
+			WalletAccount finalAccountDebit1 = accountDebit;
+			String finalTranId = tranId;
+			CompletableFuture.runAsync(() -> postToMifos(token, finalAccountCredit1, finalAccountDebit1, amount, tranNarration, finalTranId,  tranType));
+
 			return tranId;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return ("DJGO|" + e.getMessage());
 		}
 
+	}
+
+
+	private void postToMifos(String token,WalletAccount accountCredit, WalletAccount accountDebit, BigDecimal amount, String tranNarration, String tranId,
+							 TransactionTypeEnum tranType){
+		MifosTransfer mifosTransfer = new MifosTransfer();
+		mifosTransfer.setAmount(amount);
+		mifosTransfer.setDestinationAccountNumber(accountCredit.getNubanAccountNo());
+		mifosTransfer.setDestinationAccountType(accountCredit.getAccountType());
+		mifosTransfer.setDestinationCurrency(accountCredit.getAcct_crncy_code());
+		mifosTransfer.setNarration(tranNarration);
+		mifosTransfer.setRequestId(tranId);
+		mifosTransfer.setSourceAccountNumber(accountDebit.getNubanAccountNo());
+		mifosTransfer.setSourceAccountType(accountDebit.getAccountType());
+		mifosTransfer.setSourceCurrency(accountDebit.getAcct_crncy_code());
+		mifosTransfer.setTransactionType(tranType.getValue());
+		mifosWalletProxy.transferMoney(token,mifosTransfer);
 	}
 
 
@@ -3965,6 +4068,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (accountDebit == null || accountCredit == null) {
 				return "DJGO|DEBIT ACCOUNT OR BENEFICIARY ACCOUNT DOES NOT EXIST";
 			}
+
 			// Check for account security
 			log.info(accountDebit.getHashed_no());
 			if (!accountDebit.getAcct_ownership().equals("O")) {
@@ -4945,14 +5049,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 			} else if(charge.isChargeCustomer()){
 				accountCredit = accountDebitTeller.get();
 				accountDebit = walletAccountRepository.findByAccountNo(creditAcctNo);
-			}else{
+			}else {
 				accountDebit = accountDebitTeller.get();
 				accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
-
+			}
 				UserPricing userPricingOptional = getUserProduct(accountDebit, eventId);
 
 				tranAmCharges = getChargesAmount(userPricingOptional, amount);
-			}
+
 			if (accountDebit == null || accountCredit == null) {
 				return "DJGO|DEBIT ACCOUNT OR BENEFICIARY ACCOUNT DOES NOT EXIST";
 			}
@@ -6962,11 +7066,6 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	@Override
 	public ResponseEntity<?> EventReversePaymentRequest(HttpServletRequest request, EventPaymentRequestReversal eventPay) {
 
-//		UserDetailPojo user = authService.AuthUser(Integer.parseInt(eventPay.getSenderId()));
-//		if(user == null){
-//			return new ResponseEntity<>(new ErrorResponse("IMBALANCE TRANSACTION"), HttpStatus.BAD_REQUEST);
-//		}
-
 
 		WalletAccount walletAccount = getAcount(Long.valueOf(eventPay.getSenderId()));
 		Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventPay.getEventId());
@@ -6994,21 +7093,21 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		ApiResponse<?> res;
 		switch (provider.getName()) {
 			case ProviderType.MAINMIFO:
-				res = OfficialUserTransfer(request, officeTransferDTO);
+				res = OfficialUserTransfer(request, officeTransferDTO, true);
 				if (!res.getStatus()) {
 					return new ResponseEntity<>(res, HttpStatus.EXPECTATION_FAILED);
 				}
 				CompletableFuture.runAsync(() -> updatePaymentRequestStatus(eventPay.getPaymentRequestReference()));
 				return new ResponseEntity<>(res, HttpStatus.OK);
 			case ProviderType.TEMPORAL:
-				res = OfficialUserTransfer(request, officeTransferDTO);
+				res = OfficialUserTransfer(request, officeTransferDTO, false);
 				if (!res.getStatus()) {
 					return new ResponseEntity<>(res, HttpStatus.EXPECTATION_FAILED);
 				}
 				CompletableFuture.runAsync(() -> updatePaymentRequestStatus(eventPay.getPaymentRequestReference()));
 				return new ResponseEntity<>(res, HttpStatus.OK);
 			default:
-				res = OfficialUserTransfer(request, officeTransferDTO);
+				res = OfficialUserTransfer(request, officeTransferDTO, false);
 				if (!res.getStatus()) {
 					return new ResponseEntity<>(res, HttpStatus.EXPECTATION_FAILED);
 				}
@@ -8132,7 +8231,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 						OfficeUserTransferDTO transferDTO = new OfficeUserTransferDTO(creditAcct.getAccountNo(),
 								debitAcct.getAccountNo(), mPayRequest.getAmount(), "TRANSFER", "NGN", mPayRequest.getReason(),
 								mPayRequest.getReference());
-						ApiResponse<?> res = OfficialUserTransfer( request,transferDTO);
+						ApiResponse<?> res = OfficialUserTransfer( request,transferDTO, false);
 						System.out.println("RES :: " + res);
 						if(res.getStatus()){
 							mPayRequest.setReceiverId(mPay.getReceiverId());

@@ -1,8 +1,6 @@
 package com.wayapaychat.temporalwallet.proxy;
 
 
-import com.wayapaychat.temporalwallet.dto.TokenData;
-import com.wayapaychat.temporalwallet.util.ApiResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
