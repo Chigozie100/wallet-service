@@ -1703,7 +1703,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                 account.setLien_reason(user.getLienReason());
             } else {
                 double acctAmt = account.getLien_amt() - user.getLienAmount().doubleValue();
-                account.setLien_amt(acctAmt);
+                account.setLien_amt(acctAmt >= 0 ? acctAmt : 0);
                 account.setLien_reason(user.getLienReason());
             }
 
