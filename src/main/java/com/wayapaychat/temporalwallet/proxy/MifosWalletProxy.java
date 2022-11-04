@@ -3,6 +3,7 @@ package com.wayapaychat.temporalwallet.proxy;
 import com.wayapaychat.temporalwallet.dto.MifosTransfer;
 import com.wayapaychat.temporalwallet.pojo.MifosBlockAccount;
 import com.wayapaychat.temporalwallet.pojo.MifosCreateAccount;
+import com.wayapaychat.temporalwallet.response.MifosAccountCreationResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
@@ -49,9 +50,10 @@ public interface MifosWalletProxy {
 	ApiResponse getByAccountNumber(@RequestParam("accountNo") String accountNo, @RequestHeader("authorization") String token);
 
 
-	// new update
+	// new update  // [https://services.staging.wayabank.ng/middletier-service/wallet/create/user
+	//http://services.staging.wayabank.ng/middletier-service/wallet/create/user
 	@PostMapping("/wallet/create/user")
-	ApiResponse<?> createAccount(@RequestBody MifosCreateAccount reAccount);
+	MifosAccountCreationResponse createAccount(@RequestBody MifosCreateAccount reAccount);
 
 
 	@DeleteMapping("/wallet/account/block")

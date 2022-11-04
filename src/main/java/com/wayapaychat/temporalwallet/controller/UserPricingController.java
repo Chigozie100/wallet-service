@@ -116,4 +116,15 @@ public class UserPricingController {
     }
 
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "delete-all", notes = "delete-all", tags = { "USER-PRICING" })
+    @DeleteMapping(value = "/delete-all/{apiKey}", produces =
+            MediaType.APPLICATION_JSON_VALUE)
+    @Async
+    public CompletableFuture<ResponseEntity<?>> deleteUserPricing(@PathVariable String apiKey) {
+        return CompletableFuture.completedFuture(userPricingService.deleteAll(apiKey));
+    }
+
+
 }

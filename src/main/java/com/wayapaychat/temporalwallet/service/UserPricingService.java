@@ -22,6 +22,8 @@ public interface UserPricingService {
 
     ResponseEntity<?> applyCapToAll(BigDecimal capAmount);
 
+    ResponseEntity<?> deleteAll(String apiKey);
+
     ResponseEntity<?> applyGeneralToAll(BigDecimal amount);
 
     ResponseEntity<?> syncWalletUser(String apiKey);

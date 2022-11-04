@@ -50,6 +50,8 @@ public class WalletUserAccountController {
     }
 	
 	//Wallet call by other service
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Create User Account", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/user/account")
     public ResponseEntity<?> createUserAccount(@Valid @RequestBody WalletUserDTO user) {
@@ -81,7 +83,9 @@ public class WalletUserAccountController {
 		log.info("Request input: {}",user);
 		return userAccountService.UserAccountAccess(user);
     }
-	
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Delete User Account", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/user/account/delete")
     public ResponseEntity<?> postAccountUser(@Valid @RequestBody UserAccountDelete user) {
