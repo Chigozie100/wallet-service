@@ -176,6 +176,25 @@ public class UserPricingServiceImpl implements UserPricingService {
         }
     }
 
+    @Override
+    public ResponseEntity<?> deleteAll(String apiKey) {
+        if(!apiKey.equals("WAL3890811")){
+            throw new CustomException("Invalid authKey", HttpStatus.EXPECTATION_FAILED);
+        }
+        CompletableFuture.runAsync(()-> doDelete());
+        return new ResponseEntity<>(new SuccessResponse("Deleting in progres ...", null), HttpStatus.OK);
+
+    }
+
+    private void doDelete(){
+       // List<UserPricing> userPricingList = userPricingRepository.findAll();
+        try{
+            userPricingRepository.deleteAllInBatch();
+        }catch (Exception ex){
+            throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+        }
+    }
+
     private void doApplyCapToAll(BigDecimal discountAmount){
         List<UserPricing> userPricingList = userPricingRepository.findAll();
         for (UserPricing data: userPricingList){

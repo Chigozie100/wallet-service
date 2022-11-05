@@ -18,6 +18,7 @@ import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.pojo.*;
 import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
+import com.wayapaychat.temporalwallet.response.MifosAccountCreationResponse;
 import com.wayapaychat.temporalwallet.util.*;
 import feign.FeignException;
 import org.apache.commons.lang.StringUtils;
@@ -191,6 +192,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		if(user.getAccountType() == null){
 			user.setAccountType("SAVINGS");
 		}
+		String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, user.getAccountType());
 		try {
 			String hashed_no = reqUtil
 					.WayaEncrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
@@ -199,7 +201,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			WalletAccount account = new WalletAccount();
 			if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 					|| product.getProduct_type().equals("ODA"))) {
-				account = new WalletAccount("0000", "", acctNo, "0",acct_name, userx, code.getGlSubHeadCode(), wayaProduct,
+				account = new WalletAccount("0000", "", acctNo, nubanAccountNumber,acct_name, userx, code.getGlSubHeadCode(), wayaProduct,
 						acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 						LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
 						product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
@@ -231,7 +233,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 					acct_name = acct_name + " " + "COMMISSION ACCOUNT";
 					if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 							|| product.getProduct_type().equals("ODA"))) {
-						caccount = new WalletAccount("0000", "", acctNo, "0",acct_name, userx, code.getGlSubHeadCode(),
+						caccount = new WalletAccount("0000", "", acctNo, nubanAccountNumber,acct_name, userx, code.getGlSubHeadCode(),
 								wayaProductCommission, acct_ownership, hashed_no, product.isInt_paid_flg(),
 								product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 								product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
@@ -242,6 +244,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 				}
 
 			}
+			// call to Mifos to create a user
+			WalletAccount finalCaccount = caccount;
+			CompletableFuture.runAsync(()-> pushToMifos(userInfo, finalCaccount));
 
 			return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
 					HttpStatus.CREATED);
@@ -635,6 +640,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 
 	private void pushToMifos(WalletUser userInfo, WalletAccount sAcct){
+		log.info("pushToMifos before request::: " + userInfo);
+		log.info("pushToMifos before request::: " + sAcct);
 		MifosCreateAccount mifos = new MifosCreateAccount();
 		mifos.setAccountNumber(sAcct.getNubanAccountNo());
 		mifos.setEmail(userInfo.getEmailAddress());
@@ -643,9 +650,13 @@ public class UserAccountServiceImpl implements UserAccountService {
 		mifos.setLastName(userInfo.getLastName());
 
 		try{
-			ApiResponse<?> response = mifosWalletProxy.createAccount(mifos);
+			System.out.println("mifosWalletProxy :: " + mifosWalletProxy);
+			MifosAccountCreationResponse response = mifosWalletProxy.createAccount(mifos);
+			log.info("pushToMifos after request build ::: " + mifos);
+
 		 log.info("RESPONSE FROM MIFOS::: " + response);
-		}catch (FeignException ex){
+		}catch (Exception ex){
+			log.info("RESPONSE FROM MIFOS::: " + ex);
 			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
 		}
 
