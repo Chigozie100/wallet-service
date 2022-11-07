@@ -15,12 +15,10 @@ import java.util.stream.Collectors;
 import com.wayapaychat.temporalwallet.config.SecurityConstants;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.exception.CustomException;
-import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.pojo.*;
 import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
 import com.wayapaychat.temporalwallet.response.MifosAccountCreationResponse;
 import com.wayapaychat.temporalwallet.util.*;
-import feign.FeignException;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value; 
@@ -65,7 +63,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 	private final TemporalWalletDAO tempwallet;
 	private final WalletEventRepository walletEventRepo;
 	private final MifosWalletProxy mifosWalletProxy;
-	private final TokenImpl tokenService;
+
 
 	@Value("${waya.wallet.productcode}")
 	private String wayaProduct;
@@ -83,7 +81,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 	private String financialInstitutionCode;
 
 	@Autowired
-	public UserAccountServiceImpl(WalletUserRepository walletUserRepository, WalletAccountRepository walletAccountRepository, WalletProductRepository walletProductRepository, WalletProductCodeRepository walletProductCodeRepository, AuthUserServiceDAO authService, ReqIPUtils reqUtil, ParamDefaultValidation paramValidation, WalletTellerRepository walletTellerRepository, TemporalWalletDAO tempwallet, WalletEventRepository walletEventRepo, MifosWalletProxy mifosWalletProxy, TokenImpl tokenService) {
+	public UserAccountServiceImpl(WalletUserRepository walletUserRepository, WalletAccountRepository walletAccountRepository, WalletProductRepository walletProductRepository, WalletProductCodeRepository walletProductCodeRepository, AuthUserServiceDAO authService, ReqIPUtils reqUtil, ParamDefaultValidation paramValidation, WalletTellerRepository walletTellerRepository, TemporalWalletDAO tempwallet, WalletEventRepository walletEventRepo, MifosWalletProxy mifosWalletProxy) {
 		this.walletUserRepository = walletUserRepository;
 		this.walletAccountRepository = walletAccountRepository;
 		this.walletProductRepository = walletProductRepository;
@@ -95,7 +93,6 @@ public class UserAccountServiceImpl implements UserAccountService {
 		this.tempwallet = tempwallet;
 		this.walletEventRepo = walletEventRepo;
 		this.mifosWalletProxy = mifosWalletProxy;
-		this.tokenService = tokenService;
 	}
 
 	public ResponseEntity<?> createUser(UserDTO user) {
@@ -426,6 +423,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	public WalletUser creatUserAccountUtil(UserDetailPojo userDetailPojo){
 
+		log.info("userDetailPojo :: " + userDetailPojo);
 		WalletUserDTO user = new WalletUserDTO();
 				//builderPOST(userDetailPojo);
 
@@ -797,7 +795,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			}
 		}
 
-		WalletUser userDelete = null;
+		WalletUser userDelete;
 		List<String> accountL = new ArrayList<>();
 		// Default Wallet
 		try {
@@ -912,7 +910,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			String hashed_no = reqUtil.WayaEncrypt(
 					user.getUserId() + "|" + acctNo + "|" + user.getProductCode() + "|" + product.getCrncy_code());
 
-			WalletAccount account = new WalletAccount();
+			WalletAccount account;
 			account = new WalletAccount(teller.getSol_id(), teller.getAdminCashAcct(), acctNo, "0",user.getAccountName(),
 					null, code.getGlSubHeadCode(), product.getProductCode(), acct_ownership, hashed_no,
 					product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
@@ -1211,8 +1209,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 	public ResponseEntity<?> getListCommissionAccount(List<Integer> ids) {
 		List<WalletAccount> accounts = new ArrayList<>();
 		for (int id : ids) {
-			Optional<WalletAccount> commissionAccount = null;
-			Long l = Long.valueOf(id);
+			Optional<WalletAccount> commissionAccount = Optional.empty();
+			Long l = (long) id;
 			Optional<WalletUser> userx = walletUserRepository.findById(l);
 			if (!userx.isPresent()) {
 				return new ResponseEntity<>(new ErrorResponse("Invalid User"), HttpStatus.BAD_REQUEST);
@@ -1241,7 +1239,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Invalid Account"), HttpStatus.NOT_FOUND);
 		}
 		AccountDetailDTO account = new AccountDetailDTO(acct.getId(), acct.getSol_id(), acct.getAccountNo(),
-				acct.getAcct_name(), acct.getProduct_code(), new BigDecimal(acct.getClr_bal_amt()),
+				acct.getAcct_name(), acct.getProduct_code(), BigDecimal.valueOf(acct.getClr_bal_amt()),
 				acct.getAcct_crncy_code(), acct.isWalletDefault());
 		return new ResponseEntity<>(new SuccessResponse("Success", account), HttpStatus.OK);
 	}
@@ -1253,7 +1251,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Invalid Account"), HttpStatus.NOT_FOUND);
 		}
 		AccountDetailDTO account = new AccountDetailDTO(acct.getId(), acct.getSol_id(), acct.getNubanAccountNo(),
-				acct.getAcct_name(), acct.getProduct_code(), new BigDecimal(acct.getClr_bal_amt()),
+				acct.getAcct_name(), acct.getProduct_code(), BigDecimal.valueOf(acct.getClr_bal_amt()),
 				acct.getAcct_crncy_code());
 		return new ResponseEntity<>(new SuccessResponse("Success", account), HttpStatus.OK);
 	}
@@ -1689,13 +1687,27 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 		if(isBlock){
 			mifosBlockAccount.setNarration("block account");
-			response = mifosWalletProxy.blockAccount(token,mifosBlockAccount);
-			log.info("RESPONSE FROM MIFOS blocking account: " + response);
+			CompletableFuture.runAsync(()-> processBlocking(token, mifosBlockAccount, true));
+
 		}else{
 			mifosBlockAccount.setNarration("unblock account");
-			response = mifosWalletProxy.blockAccount(token,mifosBlockAccount);
-			log.info("RESPONSE FROM MIFOS unblocking account: " + response);
+			CompletableFuture.runAsync(()-> processBlocking(token, mifosBlockAccount, false));
 		}
+
+		} catch (Exception e) {
+			throw new CustomException(e.getMessage(),HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	private void processBlocking(String token, MifosBlockAccount mifosBlockAccount, boolean isBlocking){
+		try {
+			if(isBlocking){
+				ApiResponse<?> response = mifosWalletProxy.blockAccount(token,mifosBlockAccount);
+				log.info("RESPONSE FROM MIFOS blocking account: " + response);
+			}else {
+				ApiResponse<?> response = mifosWalletProxy.blockAccount(token,mifosBlockAccount);
+				log.info("RESPONSE FROM MIFOS unblocking account: " + response);
+			}
 
 		} catch (Exception e) {
 			throw new CustomException(e.getMessage(),HttpStatus.BAD_REQUEST);

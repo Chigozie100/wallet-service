@@ -1252,6 +1252,7 @@ public class WalletTransactionController {
 		map.put("transType", transfer.getTranType());
 		map.put("transCategory", transfer.getTransactionCategory());
 		map.put("tranCrncy", transfer.getTranCrncy());
+		map.put("amount", transfer.getAmount());
 		return map;
 	}
 
@@ -1263,6 +1264,7 @@ public class WalletTransactionController {
 		map.put("transType", null);
 		map.put("transCategory", transfer.getTransactionCategory());
 		map.put("tranCrncy", transfer.getTranCrncy());
+		map.put("amount", transfer.getAmount());
 		return map;
 	}
 
@@ -1272,6 +1274,7 @@ public class WalletTransactionController {
 		map.put("eventId", transfer.getEventId());
 		map.put("transCategory", transfer.getTransactionCategory());
 		map.put("tranCrncy", transfer.getTranCrncy());
+		map.put("amount", transfer.getAmount());
 		return map;
 	}
 	private Map<String, Object> buildObject(BankPaymentDTO transfer){
@@ -1280,6 +1283,7 @@ public class WalletTransactionController {
 		map.put("eventId", "BANKPMT");
 		map.put("transCategory", transfer.getTransactionCategory());
 		map.put("tranCrncy", transfer.getTranCrncy());
+		map.put("amount", transfer.getAmount());
 		return map;
 	}
 
@@ -1299,6 +1303,7 @@ public class WalletTransactionController {
 		map.put("eventId", eventId);
 		map.put("transCategory", transfer.getTransactionCategory());
 		map.put("tranCrncy", transfer.getTranCrncy());
+		map.put("amount", transfer.getAmount());
 		return map;
 	}
 
@@ -1351,6 +1356,7 @@ public class WalletTransactionController {
 		map.put("transType", tranType);
 		map.put("transCategory", null);
 		map.put("tranCrncy", transfer.getTranCrncy());
+		map.put("amount", transfer.getAmount());
 		return map;
 	}
 
