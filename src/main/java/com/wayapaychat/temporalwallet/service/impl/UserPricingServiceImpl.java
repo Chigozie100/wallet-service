@@ -16,7 +16,6 @@ import com.wayapaychat.temporalwallet.repository.WalletUserRepository;
 import com.wayapaychat.temporalwallet.service.UserPricingService;
 import static com.wayapaychat.temporalwallet.util.Constant.*;
 
-import com.wayapaychat.temporalwallet.util.BillsUtil;
 import com.wayapaychat.temporalwallet.util.SuccessResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +53,7 @@ public class UserPricingServiceImpl implements UserPricingService {
 
 
     @Override
-    public ResponseEntity<?> create(Long userId, BigDecimal amount, String product) {
+    public ResponseEntity<?> create(Long userId, String fullName, BigDecimal amount, String product) {
         System.out.println("#################### INSIDE HERE #############33");
         try{
           Optional<UserPricing> userPricingOptional = userPricingRepository.findDetails(userId,product);
@@ -63,6 +62,7 @@ public class UserPricingServiceImpl implements UserPricingService {
               UserPricing userPricing = new UserPricing();
               userPricing.setGeneralAmount(amount);
               userPricing.setUserId(userId);
+              userPricing.setFullName(fullName);
               userPricing.setCustomAmount(BigDecimal.valueOf(0.00));
               userPricing.setDiscount(BigDecimal.valueOf(0.00));
               userPricing.setCapPrice(BigDecimal.valueOf(0.00));
@@ -94,6 +94,29 @@ public class UserPricingServiceImpl implements UserPricingService {
             userPricing.setUpdatedAt(new Date());
             userPricing.setStatus(ProductPriceStatus.CUSTOM);
             return new ResponseEntity<>(new SuccessResponse(UPDATE_PRICE, userPricingRepository.save(userPricing)), HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("UNABLE TO CREATE: {}", e.getMessage());
+            throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+        }
+    }
+
+    @Override
+    public ResponseEntity<?> updateCustomProduct(BigDecimal capAmount, BigDecimal discountAmount, BigDecimal generalAmount, String product) {
+        CompletableFuture.runAsync(() -> processCustomProduct(capAmount, discountAmount, generalAmount, product));
+        return new ResponseEntity<>(new SuccessResponse(INPROGRESS, null), HttpStatus.OK);
+    }
+
+    private void processCustomProduct(BigDecimal capAmount, BigDecimal discountAmount, BigDecimal generalAmount, String product){
+        try{
+            List<UserPricing> userPricingList = userPricingRepository.findByProduct(product);
+
+            for(UserPricing data: userPricingList){
+                UserPricing userPricing = userPricingRepository.findById(data.getId()).orElse(null);
+                Objects.requireNonNull(userPricing).setGeneralAmount(generalAmount);
+                userPricing.setCapPrice(capAmount);
+                userPricing.setDiscount(discountAmount);
+                userPricingRepository.save(userPricing);
+            }
         } catch (Exception e) {
             log.error("UNABLE TO CREATE: {}", e.getMessage());
             throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
@@ -153,6 +176,25 @@ public class UserPricingServiceImpl implements UserPricingService {
         }
     }
 
+    @Override
+    public ResponseEntity<?> deleteAll(String apiKey) {
+        if(!apiKey.equals("WAL3890811")){
+            throw new CustomException("Invalid authKey", HttpStatus.EXPECTATION_FAILED);
+        }
+        CompletableFuture.runAsync(()-> doDelete());
+        return new ResponseEntity<>(new SuccessResponse("Deleting in progres ...", null), HttpStatus.OK);
+
+    }
+
+    private void doDelete(){
+       // List<UserPricing> userPricingList = userPricingRepository.findAll();
+        try{
+            userPricingRepository.deleteAllInBatch();
+        }catch (Exception ex){
+            throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+        }
+    }
+
     private void doApplyCapToAll(BigDecimal discountAmount){
         List<UserPricing> userPricingList = userPricingRepository.findAll();
         for (UserPricing data: userPricingList){
@@ -185,32 +227,32 @@ public class UserPricingServiceImpl implements UserPricingService {
 
         List<WalletUser> userList = walletUserRepository.findAll();
 
-        BillsUtil billsUtils = new BillsUtil();
-        List<BillsUtil> airtimeList = billsUtils.getAirtimeList();
-        List<BillsUtil> cableTV = billsUtils.getCableTV();
-        List<BillsUtil> dataList = billsUtils.getDataList();
-        List<BillsUtil> utility = billsUtils.getUtility();
+//        BillsUtil billsUtils = new BillsUtil();
+//        List<BillsUtil> airtimeList = billsUtils.getAirtimeList();
+//        List<BillsUtil> cableTV = billsUtils.getCableTV();
+//        List<BillsUtil> dataList = billsUtils.getDataList();
+//        List<BillsUtil> utility = billsUtils.getUtility();
 
         List<WalletEventCharges> walletEventCharges = getWalletEventCharges();
         for (WalletUser list: userList){
             for(WalletEventCharges obj: walletEventCharges){
                 if(list.isCorporate() || !list.isCorporate()){
                     log.info("Corporate uses only");
-                    create(list.getUserId(), obj.getTranAmt(), obj.getEventId());
+                    create(list.getUserId(), list.getFirstName() +" " +list.getLastName(), obj.getTranAmt(), obj.getEventId());
                 }
             }
-            for (BillsUtil airtime: airtimeList){
-                create(list.getUserId(), BigDecimal.valueOf(0.00), airtime.getBiller());
-            }
-            for (BillsUtil cable: cableTV){
-                create(list.getUserId(), BigDecimal.valueOf(0.00), cable.getBiller());
-            }
-            for (BillsUtil datalist: dataList){
-                create(list.getUserId(), BigDecimal.valueOf(0.00), datalist.getBiller());
-            }
-            for (BillsUtil utilityList: utility){
-                create(list.getUserId(), BigDecimal.valueOf(0.00), utilityList.getBiller());
-            }
+//            for (BillsUtil airtime: airtimeList){
+//                create(list.getUserId(), BigDecimal.valueOf(0.00), airtime.getBiller());
+//            }
+//            for (BillsUtil cable: cableTV){
+//                create(list.getUserId(), BigDecimal.valueOf(0.00), cable.getBiller());
+//            }
+//            for (BillsUtil datalist: dataList){
+//                create(list.getUserId(), BigDecimal.valueOf(0.00), datalist.getBiller());
+//            }
+//            for (BillsUtil utilityList: utility){
+//                create(list.getUserId(), BigDecimal.valueOf(0.00), utilityList.getBiller());
+//            }
         }
         }catch (Exception ex){
             throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);

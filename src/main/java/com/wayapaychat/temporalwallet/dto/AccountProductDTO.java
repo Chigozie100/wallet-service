@@ -11,4 +11,6 @@ public class AccountProductDTO {
 	
 	private String productCode;
 
+	private String accountType;
+
 }

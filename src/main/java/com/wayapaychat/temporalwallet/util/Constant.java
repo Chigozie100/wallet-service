@@ -70,8 +70,6 @@ public class Constant {
 
     public static final String APPLY_GENERAL = "APPLYING GENERAL AMOUNT ...";
 
-    //
-    //
 
-
+    public static final String INPROGRESS = "APPLYING PRICE ON PRODUCT ...";
 }
