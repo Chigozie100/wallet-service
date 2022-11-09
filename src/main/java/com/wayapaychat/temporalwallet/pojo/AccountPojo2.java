@@ -9,5 +9,7 @@ public class AccountPojo2 {
     private Long userId;
     private boolean isSimulated;
     private String accountType;
+    private String description;
+
 
 }

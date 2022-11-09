@@ -6,8 +6,12 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
 public class WalletUserDTO {
 	
@@ -58,5 +62,7 @@ public class WalletUserDTO {
 	private String accountType;
 
 	private boolean isCorporate;
+
+	private String description;
 
 }

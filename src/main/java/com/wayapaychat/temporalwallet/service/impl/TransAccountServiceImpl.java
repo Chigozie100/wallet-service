@@ -3572,12 +3572,17 @@ public class TransAccountServiceImpl implements TransAccountService {
 		BigDecimal tranAmCharges = BigDecimal.valueOf(0.0);
 		Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
 		try {
+
 			int n = 1;
 			log.info("START TRANSACTION");
 			String tranCount = tempwallet.transactionCount(paymentRef, creditAcctNo);
 			if (!tranCount.isBlank()) {
 				return "tranCount";
 			}
+
+
+
+			// ########################### REMOVE THIS CODE ########################
 			boolean validate = paramValidation.validateDefaultCode(tranCrncy, "Currency");
 			if (!validate) {
 				return "DJGO|Currency Code Validation Failed";
@@ -3616,6 +3621,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					|| (!keyCredit[3].equals(accountCredit.getAcct_crncy_code()))) {
 				return "DJGO|CREDIT ACCOUNT DATA INTEGRITY ISSUE";
 			}
+
 			// Check for Amount Limit
 			if (!accountDebit.getAcct_ownership().equals("O")) {
 
@@ -3686,6 +3692,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
 				}
 			}
+			// ########################### REMOVE THIS CODE UP ########################
+
 
 			// **********************************************
 			String tranId = "";
