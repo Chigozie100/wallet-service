@@ -16,6 +16,7 @@ import com.wayapaychat.temporalwallet.config.SecurityConstants;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.pojo.*;
+import com.wayapaychat.temporalwallet.proxy.AuthProxy;
 import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
 import com.wayapaychat.temporalwallet.response.MifosAccountCreationResponse;
 import com.wayapaychat.temporalwallet.util.*;
@@ -63,9 +64,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 	private final TemporalWalletDAO tempwallet;
 	private final WalletEventRepository walletEventRepo;
 	private final MifosWalletProxy mifosWalletProxy;
+	private final AuthProxy authProxy;
 
 
-	@Value("${waya.wallet.productcode}")
+		@Value("${waya.wallet.productcode}")
 	private String wayaProduct;
 
 	@Value("${waya.wallet.commissioncode}")
@@ -81,7 +83,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 	private String financialInstitutionCode;
 
 	@Autowired
-	public UserAccountServiceImpl(WalletUserRepository walletUserRepository, WalletAccountRepository walletAccountRepository, WalletProductRepository walletProductRepository, WalletProductCodeRepository walletProductCodeRepository, AuthUserServiceDAO authService, ReqIPUtils reqUtil, ParamDefaultValidation paramValidation, WalletTellerRepository walletTellerRepository, TemporalWalletDAO tempwallet, WalletEventRepository walletEventRepo, MifosWalletProxy mifosWalletProxy) {
+	public UserAccountServiceImpl(WalletUserRepository walletUserRepository, WalletAccountRepository walletAccountRepository, WalletProductRepository walletProductRepository, WalletProductCodeRepository walletProductCodeRepository, AuthUserServiceDAO authService, ReqIPUtils reqUtil, ParamDefaultValidation paramValidation, WalletTellerRepository walletTellerRepository, TemporalWalletDAO tempwallet, WalletEventRepository walletEventRepo, MifosWalletProxy mifosWalletProxy, AuthProxy authProxy) {
 		this.walletUserRepository = walletUserRepository;
 		this.walletAccountRepository = walletAccountRepository;
 		this.walletProductRepository = walletProductRepository;
@@ -93,13 +95,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 		this.tempwallet = tempwallet;
 		this.walletEventRepo = walletEventRepo;
 		this.mifosWalletProxy = mifosWalletProxy;
+		this.authProxy = authProxy;
 	}
 
 	public ResponseEntity<?> createUser(UserDTO user) {
-		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
-		if (existingUser == null) {
-			return new ResponseEntity<>(new ErrorResponse("Wallet User Does not exists"), HttpStatus.BAD_REQUEST);
-		}
 		int userId = (int) user.getUserId();
 		UserDetailPojo wallet = authService.AuthUser(userId);
 		if (wallet == null) {
@@ -111,6 +110,25 @@ public class UserAccountServiceImpl implements UserAccountService {
 		WalletUser userInfo = new WalletUser("0000", user.getUserId(), wallet.getFirstName().toUpperCase(),
 				wallet.getSurname().toUpperCase(), wallet.getEmail(), wallet.getPhoneNo(), acct_name, "", "",
 				new Date(), "", new Date(), LocalDate.now(), 50000);
+
+		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
+		if (existingUser == null) {
+
+			WalletUserDTO userInfow = new WalletUserDTO("0000",user.getUserId(), wallet.getFirstName().toUpperCase(),wallet.getSurname().toUpperCase(),
+					wallet.getEmail(), wallet.getPhoneNo(), new Date(), new BigDecimal("50000.00").doubleValue(),  "MR", "M", generateRandomNumber(9),
+					new Date(), user.getAccountType(), false, user.getDescription());
+
+
+			ResponseEntity<?> res = createUserAccount(userInfow);
+
+			System.out.println("RES" + res);
+			if(res.getStatusCode().is2xxSuccessful()){
+				return new ResponseEntity<>(new SuccessResponse("Wallet created successfully"), HttpStatus.OK);
+			}else{
+				return new ResponseEntity<>(new ErrorResponse("Wallet User Does not exists"), HttpStatus.BAD_REQUEST);
+			}
+
+		}
 
 		WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
 		WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
@@ -257,6 +275,16 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 	}
 
+//
+//	private ApiResponse validatePin2(String pin, String auth_token){
+//		try{
+//			return authProxy.validatePin(pin, auth_token);
+//
+//		}catch (Exception ex){
+//			throw new CustomException("Pin validation failed: "+ ex.getLocalizedMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+//		}
+//
+//	}
 	@Override
 	public WalletAccount createNubanAccount(WalletUserDTO user) {
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
