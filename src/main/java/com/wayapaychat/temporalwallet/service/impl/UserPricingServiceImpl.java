@@ -182,7 +182,7 @@ public class UserPricingServiceImpl implements UserPricingService {
             throw new CustomException("Invalid authKey", HttpStatus.EXPECTATION_FAILED);
         }
         CompletableFuture.runAsync(()-> doDelete());
-        return new ResponseEntity<>(new SuccessResponse("Deleting in progres ...", null), HttpStatus.OK);
+        return new ResponseEntity<>(new SuccessResponse("Deleting in progress ...", null), HttpStatus.OK);
 
     }
 

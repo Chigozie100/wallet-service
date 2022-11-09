@@ -40,7 +40,7 @@ public class WalletUserAccountController {
 	
 	@Autowired
     UserAccountService userAccountService;
-	
+
 	@ApiOperation(value = "Create a User", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/create-user")
     public ResponseEntity<?> createUser(@Valid @RequestBody UserDTO user) {

@@ -34,5 +34,7 @@ public class WalletCashAccountDTO {
 	@Size(min=5, max=10)
 	private String accountType;
 
+	private String description;
+
 
 }
