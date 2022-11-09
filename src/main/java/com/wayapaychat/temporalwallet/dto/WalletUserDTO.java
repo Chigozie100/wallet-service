@@ -59,4 +59,6 @@ public class WalletUserDTO {
 
 	private boolean isCorporate;
 
+	private String description;
+
 }

@@ -112,10 +112,10 @@ public class WalletTransactionController {
 	public ResponseEntity<?> sendMoney(HttpServletRequest request,
 			@Valid @RequestBody TransferTransactionDTO transfer) {
 		// implement fraud or kyc check and other || or reverse transaction
-		Map<String, Object> map =  buildObject(transfer);
-
-		if (!transactionService.processPayment(map))
-			throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+//		Map<String, Object> map =  buildObject(transfer);
+//
+//		if (!transactionService.processPayment(map))
+//			throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
 
 		return transAccountService.sendMoney(request, transfer);
 	}
@@ -211,10 +211,10 @@ public class WalletTransactionController {
 	@PostMapping("/fund/bank/account")
 	public ResponseEntity<?> fundBank(HttpServletRequest request, @Valid @RequestBody BankPaymentDTO transfer) {
 		System.out.println("transfer : {} " + transfer);
-		Map<String, Object> map =  buildObject(transfer);
-
-		if (!transactionService.processPayment(map))
-			throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+//		Map<String, Object> map =  buildObject(transfer);
+//
+//		if (!transactionService.processPayment(map))
+//			throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
 
 		return transAccountService.BankTransferPayment(request, transfer);
 	}
@@ -225,10 +225,10 @@ public class WalletTransactionController {
 	@PostMapping("/Official/fund/bank/account")
 	public ResponseEntity<?> officialFundBank(HttpServletRequest request, @Valid @RequestBody BankPaymentOfficialDTO transfer) {
 		System.out.println("transfer : {} " + transfer);
-		Map<String, Object> map =  buildObject(transfer);
-
-		if (!transactionService.processPayment(map))
-			throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+//		Map<String, Object> map =  buildObject(transfer);
+//
+//		if (!transactionService.processPayment(map))
+//			throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
 
 		return transAccountService.BankTransferPaymentOfficial(request, transfer);
 
@@ -241,10 +241,10 @@ public class WalletTransactionController {
 	public ResponseEntity<?> AdminsendMoney(HttpServletRequest request,
 			@Valid @RequestBody AdminLocalTransferDTO transfer) {
 
-		Map<String, Object> map =  buildObject(transfer);
-
-		if (!transactionService.processPayment(map))
-			throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+//		Map<String, Object> map =  buildObject(transfer);
+//
+//		if (!transactionService.processPayment(map))
+//			throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
 
 		ApiResponse<?> res = transAccountService.AdminsendMoney(request, transfer);
 		if (!res.getStatus()) {
@@ -276,11 +276,11 @@ public class WalletTransactionController {
 	@PostMapping("/admin/commission/transfer")
 	public ResponseEntity<?> AdminCommissionMoney(HttpServletRequest request,
 			@Valid @RequestBody CommissionTransferDTO transfer) {
-
-		Map<String, Object> map =  buildObject(transfer);
-
-		if (!transactionService.processPayment(map))
-			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
+//
+//		Map<String, Object> map =  buildObject(transfer);
+//
+//		if (!transactionService.processPayment(map))
+//			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
 
 
 		ApiResponse<?> res = transAccountService.AdminCommissionMoney(request, transfer);
@@ -299,10 +299,10 @@ public class WalletTransactionController {
 	public ResponseEntity<?> CommissionMoney(HttpServletRequest request,
 			@Valid @RequestBody ClientComTransferDTO transfer) {
 
-		Map<String, Object> map =  buildObject(transfer);
-
-		if (!transactionService.processPayment(map))
-			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
+//		Map<String, Object> map =  buildObject(transfer);
+//
+//		if (!transactionService.processPayment(map))
+//			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
 
 
 		ApiResponse<?> res = transAccountService.ClientCommissionMoney(request, transfer);
@@ -320,10 +320,10 @@ public class WalletTransactionController {
 	public ResponseEntity<?> PushsendMoney(HttpServletRequest request,
 			@Valid @RequestBody WalletTransactionChargeDTO transfer) {
 
-		Map<String, Object> map =  buildObject(transfer);
-
-		if (!transactionService.processPayment(map))
-			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
+//		Map<String, Object> map =  buildObject(transfer);
+//
+//		if (!transactionService.processPayment(map))
+//			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
 
 
 		ApiResponse<?> res = transAccountService.sendMoneyCharge(request, transfer);
@@ -341,10 +341,10 @@ public class WalletTransactionController {
 	public ResponseEntity<?> sendMoneyCustomer(HttpServletRequest request,
 			@Valid @RequestBody WalletTransactionDTO transfer) {
 
-		Map<String, Object> map =  buildObject(transfer);
-
-		if (!transactionService.processPayment(map))
-			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
+//		Map<String, Object> map =  buildObject(transfer);
+//
+//		if (!transactionService.processPayment(map))
+//			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
 
 
 		ApiResponse<?> res = transAccountService.sendMoneyCustomer(request, transfer);
@@ -362,10 +362,10 @@ public class WalletTransactionController {
 	public ResponseEntity<?> AdminSendMoney(HttpServletRequest request,
 			@Valid @RequestBody AdminWalletTransactionDTO transfer) {
 
-		Map<String, Object> map =  buildObject(transfer);
-
-		if (!transactionService.processPayment(map))
-			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
+//		Map<String, Object> map =  buildObject(transfer);
+//
+//		if (!transactionService.processPayment(map))
+//			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
 
 
 		ApiResponse<?> res = transAccountService.AdminSendMoneyCustomer(request, transfer);
@@ -383,10 +383,10 @@ public class WalletTransactionController {
 	public ResponseEntity<?> ClientSendMoney(HttpServletRequest request,
 			@Valid @RequestBody ClientWalletTransactionDTO transfer) {
 
-		Map<String, Object> map =  buildObject(transfer);
-
-		if (!transactionService.processPayment(map))
-			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
+//		Map<String, Object> map =  buildObject(transfer);
+//
+//		if (!transactionService.processPayment(map))
+//			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
 
 		ApiResponse<?> res = transAccountService.ClientSendMoneyCustomer(request, transfer);
 		if (!res.getStatus()) {
@@ -415,10 +415,10 @@ public class WalletTransactionController {
 	public ResponseEntity<?> handleTransactions(HttpServletRequest request,
 			@RequestBody TransferTransactionDTO transactionPojo) {
 
-		Map<String, Object> map =  buildObject(transactionPojo);
-
-		if (!transactionService.processPayment(map))
-			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
+//		Map<String, Object> map =  buildObject(transactionPojo);
+//
+//		if (!transactionService.processPayment(map))
+//			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
 
 		return transAccountService.makeWalletTransaction(request, "", transactionPojo);
 
@@ -535,10 +535,10 @@ public class WalletTransactionController {
 	@PostMapping("/event/charge/payment")
 	public ResponseEntity<?> EventPayment(HttpServletRequest request, @RequestBody() EventPaymentDTO walletDto) {
 
-		Map<String, Object> map =  buildObject(walletDto);
-
-		if (!transactionService.processPayment(map))
-			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
+//		Map<String, Object> map =  buildObject(walletDto);
+//
+//		if (!transactionService.processPayment(map))
+//			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
 
 		return transAccountService.EventTransferPayment(request, walletDto);
 
@@ -562,10 +562,10 @@ public class WalletTransactionController {
 	@PostMapping("/event/office/payment")
 	public ResponseEntity<?> EventOfficePayment(HttpServletRequest request, @RequestBody() EventOfficePaymentDTO walletDto) {
 
-		Map<String, Object> map =  buildObject(walletDto);
-
-		if (!transactionService.processPayment(map))
-			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
+//		Map<String, Object> map =  buildObject(walletDto);
+//
+//		if (!transactionService.processPayment(map))
+//			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
 
 		return transAccountService.EventOfficePayment(request, walletDto);
 
@@ -577,10 +577,10 @@ public class WalletTransactionController {
 			"TRANSACTION-WALLET" })
 	@PostMapping("/event/office/temporal-to-official")
 	public ResponseEntity<?> TemporalToOfficialWalletDTO(HttpServletRequest request, @RequestBody() TemporalToOfficialWalletDTO walletDto) {
-		Map<String, Object> map =  buildObject(walletDto);
-
-		if (!transactionService.processPayment(map))
-			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
+//		Map<String, Object> map =  buildObject(walletDto);
+//
+//		if (!transactionService.processPayment(map))
+//			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
 
 		return transAccountService.TemporalWalletToOfficialWallet(request, walletDto);
 
@@ -601,10 +601,10 @@ public class WalletTransactionController {
 	@PostMapping("/event/trade/payment")
 	public ResponseEntity<?> BuySellPayment(HttpServletRequest request, @RequestBody() WayaTradeDTO walletDto) {
 
-		Map<String, Object> map =  buildObject(walletDto);
-
-		if (!transactionService.processPayment(map))
-			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
+//		Map<String, Object> map =  buildObject(walletDto);
+//
+//		if (!transactionService.processPayment(map))
+//			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
 
 		ApiResponse<?> res = transAccountService.EventBuySellPayment(request, walletDto);
 		if (!res.getStatus()) {
@@ -899,10 +899,10 @@ public class WalletTransactionController {
 	public ResponseEntity<?> CommissiomPaymentAdmin(HttpServletRequest request,
 			@RequestBody() EventPaymentDTO walletDto) {
 
-		Map<String, Object> map =  buildObject(walletDto);
-
-		if (!transactionService.processPayment(map))
-			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
+//		Map<String, Object> map =  buildObject(walletDto);
+//
+//		if (!transactionService.processPayment(map))
+//			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
 
 		return transAccountService.EventCommissionPayment(request, walletDto);
 	}

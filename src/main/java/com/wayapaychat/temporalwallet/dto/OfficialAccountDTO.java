@@ -27,4 +27,7 @@ public class OfficialAccountDTO {
 	@NotNull
 	private String accountType;
 
+	private String description;
+
+
 }

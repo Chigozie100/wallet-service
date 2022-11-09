@@ -34,7 +34,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 			for (WalletEventCharges mEvent : eventchg) {
 				if (!mEvent.isProcessflg()) {
 					WalletEventAccountDTO account = new WalletEventAccountDTO(mEvent.getPlaceholder(),
-							mEvent.getCrncyCode(), "OABAS", mEvent.getTranNarration(), "11104",mEvent.getEventId(), "SAVINGS");
+							mEvent.getCrncyCode(), "OABAS", mEvent.getTranNarration(), "11104",mEvent.getEventId(), "SAVINGS", "SAVINGS ACCOUNT");
 					userAccountService.createEventAccount(account);
 				}
 			}
