@@ -42,7 +42,7 @@ public class BatchOperation {
     @PostMapping("/official/simulated-user/transfer")
     public ResponseEntity<?> OfficialUserMoney(HttpServletRequest request,
                                                @Valid @RequestBody List<OfficeUserTransferDTO> transfer) {
-        ApiResponse<?> res = transAccountService.OfficialUserTransfer(request, transfer);
+        ApiResponse<?> res = transAccountService.OfficialUserTransferMultiple(request, transfer);
         if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }

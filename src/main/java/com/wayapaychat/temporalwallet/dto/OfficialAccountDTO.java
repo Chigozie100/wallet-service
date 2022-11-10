@@ -24,4 +24,10 @@ public class OfficialAccountDTO {
 	@Size(min=5, max=10)
     private String productGL;
 
+	@NotNull
+	private String accountType;
+
+	private String description;
+
+
 }

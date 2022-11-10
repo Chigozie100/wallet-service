@@ -168,7 +168,7 @@ public class ScheduleJob {
         mapp.put("receiverEmail", email);
 
 
-        ApiResponse<?> response = transAccountService.OfficialUserTransferSystem(mapp, token,null, officeUserTransferDTO);
+        ApiResponse<?> response = transAccountService.OfficialUserTransferSystemSwitch(mapp, token,null, officeUserTransferDTO);
         log.info(String.valueOf(response.getData()));
     }
 
@@ -259,7 +259,7 @@ public class ScheduleJob {
         String token = tokenImpl.getToken();
         for(WalletAccount data: userAccount){
             OfficeUserTransferDTO transfer = getOfficeUserTransferDTO(data, recurrentConfig);
-            ApiResponse<?> response = transAccountService.OfficialUserTransferSystem(null, token, null, transfer);
+            ApiResponse<?> response = transAccountService.OfficialUserTransferSystemSwitch(null, token, null, transfer);
             objectArrayList.add(response);
         }
 

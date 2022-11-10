@@ -9,7 +9,11 @@ import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import org.springframework.http.ResponseEntity;
 
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
+import com.wayapaychat.temporalwallet.pojo.MyData;
+import com.wayapaychat.temporalwallet.pojo.UserDetailPojo;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
+
+import javax.servlet.http.HttpServletRequest;
 
 public interface UserAccountService {
 	
@@ -83,7 +87,7 @@ public interface UserAccountService {
 	
 	ResponseEntity<?> AccountAccessPause(AccountFreezeDTO user);
 	
-	ResponseEntity<?> AccountAccessBlockAndUnblock(AccountBlockDTO user);
+	ResponseEntity<?> AccountAccessBlockAndUnblock(AccountBlockDTO user, HttpServletRequest request);
 
 	ResponseEntity<?> AccountAccessClosure(AccountCloseDTO user);
 
@@ -106,5 +110,7 @@ public interface UserAccountService {
 	ResponseEntity<?>  countActiveAccount();
 
 	ResponseEntity<?>  countInActiveAccount();
+
+	ResponseEntity<?>  createDefaultWallet(MyData user);
 
 }

@@ -34,6 +34,8 @@ public class UserPricing {
 
     private BigDecimal discount;
 
+    private String fullName;
+
     private String product;
 
     @Enumerated(EnumType.STRING)

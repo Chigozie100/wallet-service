@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import com.wayapaychat.temporalwallet.dto.*;
@@ -39,7 +40,7 @@ public class WalletUserAccountController {
 	
 	@Autowired
     UserAccountService userAccountService;
-	
+
 	@ApiOperation(value = "Create a User", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/create-user")
     public ResponseEntity<?> createUser(@Valid @RequestBody UserDTO user) {
@@ -49,6 +50,8 @@ public class WalletUserAccountController {
     }
 	
 	//Wallet call by other service
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Create User Account", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/user/account")
     public ResponseEntity<?> createUserAccount(@Valid @RequestBody WalletUserDTO user) {
@@ -80,7 +83,9 @@ public class WalletUserAccountController {
 		log.info("Request input: {}",user);
 		return userAccountService.UserAccountAccess(user);
     }
-	
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Delete User Account", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/user/account/delete")
     public ResponseEntity<?> postAccountUser(@Valid @RequestBody UserAccountDelete user) {
@@ -98,9 +103,9 @@ public class WalletUserAccountController {
 
     @ApiOperation(value = " Block / UnBlock", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/account/block")
-    public ResponseEntity<?> postAccountBlock(@Valid @RequestBody AccountBlockDTO user) {
+    public ResponseEntity<?> postAccountBlock(@Valid @RequestBody AccountBlockDTO user, HttpServletRequest request) {
         log.info("Request input: {}",user);
-        return userAccountService.AccountAccessBlockAndUnblock(user);
+        return userAccountService.AccountAccessBlockAndUnblock(user, request);
     }
 
 

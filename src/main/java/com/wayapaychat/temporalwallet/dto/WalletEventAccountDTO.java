@@ -29,10 +29,15 @@ public class WalletEventAccountDTO {
 	
 	private String eventId;
 
+	@Size(min=5, max=10)
+	private String accountType;
+
+	private String description;
+
 	public WalletEventAccountDTO(@NotNull @Size(min = 5, max = 10) String placeholderCode,
 			@NotNull @Size(min = 3, max = 10) String crncyCode, @NotNull @Size(min = 5, max = 10) String productCode,
 			@NotNull @Size(min = 5, max = 50) String accountName, @NotNull @Size(min = 5, max = 10) String productGL,
-			String eventId) {
+			String eventId, String accountType, String description) {
 		super();
 		this.placeholderCode = placeholderCode;
 		this.crncyCode = crncyCode;
@@ -40,6 +45,8 @@ public class WalletEventAccountDTO {
 		this.accountName = accountName;
 		this.productGL = productGL;
 		this.eventId = eventId;
+		this.accountType = accountType;
+		this.description = description;
 	}
 
 	public WalletEventAccountDTO() {

@@ -40,11 +40,11 @@ public class UserPricingController {
         return userPricingService.syncWalletUser(apiKey);
     }
 
-    @GetMapping("/sync-billers/{apiKey}")
-    @Async
-    public CompletableFuture<ResponseEntity<List<BillerManagementResponse>>> syncBillers(@PathVariable String apiKey) throws CustomException {
-        return CompletableFuture.completedFuture(userPricingService.syncBillers(apiKey));
-    }
+//    @GetMapping("/sync-billers/{apiKey}")
+//    @Async
+//    public CompletableFuture<ResponseEntity<List<BillerManagementResponse>>> syncBillers(@PathVariable String apiKey) throws CustomException {
+//        return CompletableFuture.completedFuture(userPricingService.syncBillers(apiKey));
+//    }
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
@@ -55,6 +55,18 @@ public class UserPricingController {
     public CompletableFuture<ResponseEntity<?>> updateCustomPrice(@RequestParam("userId") Long  userId, @RequestParam("discountAmount") BigDecimal discountAmount, @RequestParam("customAmount") BigDecimal customAmount, @RequestParam("capAmount") BigDecimal capAmount , @RequestParam("product") String product) {
 
         return CompletableFuture.completedFuture(userPricingService.update(userId, discountAmount, customAmount, capAmount, product));
+    }
+
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Update Custom Price", notes = "Update Custom Pricing", tags = { "USER-PRICING" })
+    @PutMapping(value = "/custom-pricing-product", produces =
+            MediaType.APPLICATION_JSON_VALUE)
+    @Async
+    public CompletableFuture<ResponseEntity<?>> updateCustomProductPrice(@RequestParam("capAmount") BigDecimal  capAmount, @RequestParam("discountAmount") BigDecimal discountAmount, @RequestParam("customAmount") BigDecimal customAmount, @RequestParam("product") String product) {
+
+        return CompletableFuture.completedFuture(userPricingService.updateCustomProduct(capAmount, discountAmount,customAmount, product));
     }
 
 
@@ -101,6 +113,17 @@ public class UserPricingController {
     public CompletableFuture<ResponseEntity<?>> applyGeneralToAll(@RequestParam("capAmount") BigDecimal capAmount) {
 
         return CompletableFuture.completedFuture(userPricingService.applyGeneralToAll(capAmount));
+    }
+
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "delete-all", notes = "delete-all", tags = { "USER-PRICING" })
+    @DeleteMapping(value = "/delete-all/{apiKey}", produces =
+            MediaType.APPLICATION_JSON_VALUE)
+    @Async
+    public CompletableFuture<ResponseEntity<?>> deleteUserPricing(@PathVariable String apiKey) {
+        return CompletableFuture.completedFuture(userPricingService.deleteAll(apiKey));
     }
 
 
