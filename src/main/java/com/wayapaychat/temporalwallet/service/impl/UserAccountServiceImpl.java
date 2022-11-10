@@ -1894,7 +1894,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         createAccount.setLastName(user.getSurname());
         createAccount.setEmailId(user.getEmail());
         createAccount.setMobileNo(user.getPhoneNo());
-		
+
         createAccount.setCustSex("N"); //Set to default
         createAccount.setCustTitleCode(""); //Set to default
         createAccount.setDob(new Date()); //Set to default
@@ -1902,7 +1902,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         createAccount.setSolId("0000");
         createAccount.setAccountType("saving");
         createAccount.setCorporate(user.is_corporate());
-
+		log.info("retrying to create wallet for {}",createAccount.getEmailId());
 		return createUserAccount(createAccount );
 	}
 
