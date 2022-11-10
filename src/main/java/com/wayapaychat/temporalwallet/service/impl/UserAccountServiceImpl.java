@@ -3,6 +3,8 @@ package com.wayapaychat.temporalwallet.service.impl;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Month;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -1285,7 +1287,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 		WalletUser x = walletUserRepository.findByEmailAddress(ur.getEmail());
 		if (x == null) {
-			return new ResponseEntity<>(new ErrorResponse("Wallet User does not exist"), HttpStatus.NOT_FOUND);
+			//TODO: create default wallet
+			return createDefaultWallet(ur);
 		}
 		List<WalletAccount> accounts = walletAccountRepository.findByUser(x);
 		return new ResponseEntity<>(new SuccessResponse("Success.", accounts), HttpStatus.OK);
@@ -1873,6 +1876,34 @@ public class UserAccountServiceImpl implements UserAccountService {
 	public ResponseEntity<?>  countInActiveAccount(){
 		long count = walletAccountRepository.countInActiveAccount();
 		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> createDefaultWallet(UserDetailPojo user) {
+		// TODO Auto-generated method stub
+
+		WalletUserDTO createAccount = new WalletUserDTO();
+        // Default Debit Limit SetUp
+        createAccount.setCustDebitLimit(50000.00);
+        // Default Account Expiration Date
+        LocalDateTime time = LocalDateTime.of(2099, Month.DECEMBER, 30, 0, 0);
+        createAccount.setCustExpIssueDate(Date.from(time.atZone(ZoneId.systemDefault()).toInstant()));
+        createAccount.setUserId(user.getId());
+        createAccount.setCustIssueId(generateRandomNumber(9));
+        createAccount.setFirstName(user.getFirstName());
+        createAccount.setLastName(user.getSurname());
+        createAccount.setEmailId(user.getEmail());
+        createAccount.setMobileNo(user.getPhoneNo());
+		
+        createAccount.setCustSex("N"); //Set to default
+        createAccount.setCustTitleCode(""); //Set to default
+        createAccount.setDob(new Date()); //Set to default
+        // Default Branch SOL ID
+        createAccount.setSolId("0000");
+        createAccount.setAccountType("saving");
+        createAccount.setCorporate(user.is_corporate());
+
+		return createUserAccount(createAccount );
 	}
 
 
