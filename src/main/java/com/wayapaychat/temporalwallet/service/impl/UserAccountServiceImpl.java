@@ -1291,7 +1291,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 		WalletUser x = walletUserRepository.findByEmailAddress(ur.getEmail());
 		if (x == null) {
-			return new ResponseEntity<>(new ErrorResponse("No wallet founf"), HttpStatus.NOT_FOUND);
+			return createDefaultWallet(tokenData);
 		}
 		List<WalletAccount> accounts = walletAccountRepository.findByUser(x);
 		return new ResponseEntity<>(new SuccessResponse("Success.", accounts), HttpStatus.OK);
