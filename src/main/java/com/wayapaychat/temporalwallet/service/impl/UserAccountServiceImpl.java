@@ -584,6 +584,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 
 		String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, accountType);
+		log.info("nuban: {}", nubanAccountNumber);
 		try {
 			String hashed_no = reqUtil
 					.WayaEncrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
@@ -647,6 +648,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
 					HttpStatus.CREATED);
 		} catch (Exception e) {
+			e.printStackTrace();
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 	}
@@ -1286,11 +1288,18 @@ public class UserAccountServiceImpl implements UserAccountService {
 		System.out.println("USER ID" + userId);
 		int uId = (int) userId;
 		UserDetailPojo ur = authService.AuthUser(uId);
-		if (ur == null) {
+		if (ur == null && userId != tokenData.getId()) {
+			return new ResponseEntity<>(new ErrorResponse("User Id is Invalid"), HttpStatus.NOT_FOUND);
+		}
+		else if (ur == null) {
 			return createDefaultWallet(tokenData);
 		}
+
 		WalletUser x = walletUserRepository.findByEmailAddress(ur.getEmail());
-		if (x == null) {
+		if (x == null && userId != tokenData.getId()) {
+			return new ResponseEntity<>(new ErrorResponse("User Id is Invalid"), HttpStatus.NOT_FOUND);
+		}
+		else if (x == null) {
 			return createDefaultWallet(tokenData);
 		}
 		List<WalletAccount> accounts = walletAccountRepository.findByUser(x);
