@@ -207,10 +207,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 			}
 		}
 
-		if(user.getAccountType() == null){
-			user.setAccountType("SAVINGS");
+		if (user.getDescription() == null){
+			user.setDescription("SAVINGS ACCOUNT");
 		}
-
 
 		if (user.getDescription().isEmpty()){
 			user.setDescription("SAVINGS ACCOUNT");
