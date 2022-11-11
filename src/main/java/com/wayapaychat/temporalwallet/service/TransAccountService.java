@@ -127,6 +127,8 @@ public interface TransAccountService {
 
 	ResponseEntity<?> BankTransferPaymentOfficial(HttpServletRequest request, BankPaymentOfficialDTO transfer);
 
+	ResponseEntity<?> BankTransferPaymentOfficialMultiple(HttpServletRequest request, List<BankPaymentOfficialDTO> transfer);
+
 	ApiResponse<?> EventNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer);
 
 	ApiResponse<?> EventNonPaymentMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer);

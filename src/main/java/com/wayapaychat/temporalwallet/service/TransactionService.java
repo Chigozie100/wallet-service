@@ -6,6 +6,7 @@ import com.wayapaychat.temporalwallet.pojo.TransactionTransferPojo;
 import com.wayapaychat.temporalwallet.pojo.TransactionTransferPojo2;
 import org.springframework.http.ResponseEntity;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.Map;
 
 public interface TransactionService {
@@ -14,7 +15,7 @@ public interface TransactionService {
     ResponseEntity<?> transferTransaction(TransactionTransferPojo transactionTransferPojo);
     ResponseEntity<?> transferTransactionWithId(TransactionTransferPojo2 transactionTransferPojo2);
 
-    boolean processPayment(Map<String, Object> map);
+    boolean processPayment(HttpServletRequest request, Map<String, Object> map);
 
 
 }

@@ -118,7 +118,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		if (existingUser == null) {
 
 			WalletUserDTO userInfow = new WalletUserDTO("0000",user.getUserId(), wallet.getFirstName().toUpperCase(),wallet.getSurname().toUpperCase(),
-					wallet.getEmail(), wallet.getPhoneNo(), new Date(), new BigDecimal("50000.00").doubleValue(),  "MR", "M", generateRandomNumber(9),
+					wallet.getEmail(), wallet.getPhoneNo(), new Date(), new BigDecimal("50000.00").doubleValue(),  "MR", "M", Util.generateRandomNumber(9),
 					new Date(), user.getAccountType(), false, user.getDescription());
 
 
@@ -211,7 +211,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 			user.setDescription("SAVINGS ACCOUNT");
 		}
 
-		if (user.getDescription().isEmpty()){
+
+		if (user.getDescription() == null){
+
 			user.setDescription("SAVINGS ACCOUNT");
 		}
 		String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, user.getAccountType());
@@ -377,7 +379,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 
 
-		if (user.getDescription().isEmpty()){
+		if (user.getDescription() == null){
 			user.setDescription("SAVINGS ACCOUNT");
 		}
 
@@ -411,22 +413,6 @@ public class UserAccountServiceImpl implements UserAccountService {
 	}
 
 
-	public static String generateRandomNumber(int length) {
-
-		int randNumOrigin = generateRandomNumber(58, 34);
-		int randNumBound = generateRandomNumber(354, 104);
-
-		SecureRandom random = new SecureRandom();
-		return random.ints(randNumOrigin, randNumBound + 1)
-				.filter(Character::isDigit)
-				.limit(length)
-				.collect(StringBuilder::new, StringBuilder::appendCodePoint,
-						StringBuilder::append)
-				.toString();
-	}
-	public static int generateRandomNumber(int max, int min) {
-		return (int) (Math.random() * (max - min + 1) + min);
-	}
 
 	public WalletUser creatUserAccountUtil(UserDetailPojo userDetailPojo){
 
@@ -446,10 +432,12 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	// Call by Aut-service and others
 	public ResponseEntity<?> createUserAccount(WalletUserDTO user){
+		log.info(" ###################### CALL TO CREATE WALLET ##################" + user);
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
 		if (existingUser != null) {
 			return new ResponseEntity<>(new ErrorResponse("Wallet User already exists"), HttpStatus.BAD_REQUEST);
 		}
+
 		int userId = user.getUserId().intValue();
 		UserDetailPojo wallet = authService.AuthUser(userId);   // no need to make this cak
 
@@ -457,6 +445,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Auth User ID does not exists"), HttpStatus.BAD_REQUEST);
 		}
 		log.info("Is it a corporate User: {}", wallet.is_corporate());
+
 		// Default Wallet
 		String acct_name = user.getFirstName().toUpperCase() + " " + user.getLastName().toUpperCase();
 		WalletUser userInfo = new WalletUser(user.getSolId(), user.getUserId(), user.getFirstName().toUpperCase(),
@@ -466,11 +455,13 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 		WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
 		WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
+
 		String acctNo = null;
 		Integer rand = reqUtil.getAccountNo();
 		if (rand == 0) {
 			return new ResponseEntity<>(new ErrorResponse("Unable to generate Wallet Account"), HttpStatus.BAD_REQUEST);
 		}
+
 		String acct_ownership = null;
 		if (!user.getCustSex().equals("S")) {
 			if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
@@ -537,6 +528,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 				}
 			}
 		}
+
 		String accountType = user.getAccountType();
 		switch (accountType){
 			case "ledger":
@@ -579,10 +571,6 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 
 		if (user.getDescription() == null){
-			user.setDescription("SAVINGS ACCOUNT");
-		}
-
-		if (user.getDescription().isEmpty()){
 			user.setDescription("SAVINGS ACCOUNT");
 		}
 
@@ -642,8 +630,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			}
 			sAcct.setWalletDefault(true);
 			walletAccountRepository.save(sAcct);
-			log.info("Account Creation: " + sAcct.getAccountNo());
-
+			log.info(" ############### Account Creation Successful: #################" + sAcct.getAccountNo());
 
 			// call to Mifos to create a user
 			CompletableFuture.runAsync(()-> pushToMifos(userInfo, sAcct));
@@ -651,7 +638,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
 					HttpStatus.CREATED);
 		} catch (Exception e) {
-			e.printStackTrace();
+			System.out.println("Error Account Creation :::: " + e.getMessage());
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 	}
@@ -976,9 +963,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		String acctNo = product.getCrncy_code() + "0000" + user.getPlaceholderCode();
 		String acct_ownership = "O";
 
-		if(user.getAccountType() == null){
-			user.setAccountType("SAVINGS");
-		}
+
 
 		try {
 			String hashed_no = reqUtil
@@ -1800,6 +1785,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> AccountAccessLien(AccountLienDTO user) {
+		System.out.println(" ##### AccountAccessLien #### ");
 		try {
 			if (user.getLienAmount().compareTo(BigDecimal.ZERO) == 0) {
 				return new ResponseEntity<>(new ErrorResponse("Lien Amount should not be 0"), HttpStatus.NOT_FOUND);
@@ -1814,11 +1800,15 @@ public class UserAccountServiceImpl implements UserAccountService {
 				account.setLien_amt(acctAmt);
 				account.setLien_reason(user.getLienReason());
 			}else{
-				account.setLien_amt(0);
+				double acctAmt = account.getLien_amt() - user.getLienAmount().doubleValue();
+				System.out.println("###################### account.getLien_amt() ########### " + account.getLien_amt());
+				System.out.println("###################### user.getLienAmount() ########### " + user.getLienAmount());
+				account.setLien_amt(acctAmt);
 				account.setLien_reason(user.getLienReason());
 			}
 
-			walletAccountRepository.save(account);
+			WalletAccount account1 = walletAccountRepository.save(account);
+			System.out.println("Actual Value " + account1);
 			return new ResponseEntity<>(new SuccessResponse("Account Lien successfully.", account), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage() + " : " + e.getMessage()),
