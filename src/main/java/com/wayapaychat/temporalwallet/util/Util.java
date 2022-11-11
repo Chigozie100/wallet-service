@@ -124,7 +124,7 @@ public class Util {
 
     }
 
-    public static String generateRandomNumber(int length) {
+    public String generateRandomNumber(int length) {
 
         int randNumOrigin = generateRandomNumber(58, 34);
         int randNumBound = generateRandomNumber(354, 104);

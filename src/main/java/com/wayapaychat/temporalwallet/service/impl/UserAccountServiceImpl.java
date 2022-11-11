@@ -1,7 +1,6 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
 import java.math.BigDecimal;
-import java.security.SecureRandom;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -113,9 +112,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
 		if (existingUser == null) {
-
+			Util util = new Util();
+			String code = util.generateRandomNumber(9);
 			WalletUserDTO userInfow = new WalletUserDTO("0000",user.getUserId(), wallet.getFirstName().toUpperCase(),wallet.getSurname().toUpperCase(),
-					wallet.getEmail(), wallet.getPhoneNo(), new Date(), new BigDecimal("50000.00").doubleValue(),  "MR", "M", Util.generateRandomNumber(9),
+					wallet.getEmail(), wallet.getPhoneNo(), new Date(), new BigDecimal("50000.00").doubleValue(),  "MR", "M", code,
 					new Date(), user.getAccountType(), false, user.getDescription());
 
 
