@@ -10,6 +10,7 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.security.spec.KeySpec;
@@ -191,4 +192,12 @@ public class Util {
         }
         return null;
     }
+
+    public static BigDecimal computePercentage(BigDecimal amount, BigDecimal percentageValue){
+        BigDecimal per = BigDecimal.valueOf(percentageValue.doubleValue() / 100);
+        return BigDecimal.valueOf(per.doubleValue() * amount.doubleValue());
+    }
+
+
+
 }
