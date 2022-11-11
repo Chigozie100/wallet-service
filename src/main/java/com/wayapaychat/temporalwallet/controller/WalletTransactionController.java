@@ -19,6 +19,7 @@ import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import com.wayapaychat.temporalwallet.service.TransactionCountService;
 import com.wayapaychat.temporalwallet.service.TransactionService;
+import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.PDFExporter;
 import io.swagger.annotations.ApiResponses;
 import org.modelmapper.ModelMapper;
@@ -112,12 +113,17 @@ public class WalletTransactionController {
 	public ResponseEntity<?> sendMoney(HttpServletRequest request,
 			@Valid @RequestBody TransferTransactionDTO transfer) {
 		// implement fraud or kyc check and other || or reverse transaction
-//		Map<String, Object> map =  buildObject(transfer);
-//
-//		if (!transactionService.processPayment(map))
-//			throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+		Map<String, Object> map =  buildObject(transfer);
 
-		return transAccountService.sendMoney(request, transfer);
+		if (!transactionService.processPayment(request,map))
+			throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+		try{
+			return transAccountService.sendMoney(request, transfer);
+		}catch (CustomException ex){
+			// check and reversed transaction
+			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
+		}
+
 	}
 
 	@ApiImplicitParams({
@@ -180,6 +186,10 @@ public class WalletTransactionController {
 	@PostMapping("/official/user/transfer")
 	public ResponseEntity<?> OfficialUserMoneyEventID(HttpServletRequest request,
 											   @Valid @RequestBody OfficeUserTransferDTO transfer) {
+		Map<String, Object> map =  buildObject(transfer);
+		if (!transactionService.processPayment(request,map))
+			throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+
 		//OfficeUserTransferDTO
 		ApiResponse<?> res = transAccountService.OfficialUserTransfer(request, transfer, false);
 		if (!res.getStatus()) {
@@ -236,15 +246,29 @@ public class WalletTransactionController {
 
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Admin Send Money From Official Account to commercial bank", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
+	@PostMapping("/Official/fund/bank/mutilple-account")
+	public ResponseEntity<?> officialFundBankMultiple(HttpServletRequest request, @Valid @RequestBody List<BankPaymentOfficialDTO> transfer) {
+		System.out.println("transfer : {} " + transfer);
+//		Map<String, Object> map =  buildObject(transfer);
+//
+//		if (!transactionService.processPayment(map))
+//			throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+
+		return transAccountService.BankTransferPaymentOfficialMultiple(request, transfer);
+
+	}
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Admin Send Money to Wallet", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/admin/sendmoney")
 	public ResponseEntity<?> AdminsendMoney(HttpServletRequest request,
 			@Valid @RequestBody AdminLocalTransferDTO transfer) {
 
-//		Map<String, Object> map =  buildObject(transfer);
-//
-//		if (!transactionService.processPayment(map))
-//			throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+		Map<String, Object> map =  buildObject(transfer);
+		if (!transactionService.processPayment(request,map))
+			throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
 
 		ApiResponse<?> res = transAccountService.AdminsendMoney(request, transfer);
 		if (!res.getStatus()) {
@@ -1248,7 +1272,7 @@ public class WalletTransactionController {
 		Map<String, Object> map = new HashMap<>();
 		map.put("benefAccountNumber", transfer.getBenefAccountNumber());
 		map.put("debitAccountNumber", transfer.getDebitAccountNumber());
-		map.put("eventId", null);
+		map.put("eventId", "WAYATRAN");
 		map.put("transType", transfer.getTranType());
 		map.put("transCategory", transfer.getTransactionCategory());
 		map.put("tranCrncy", transfer.getTranCrncy());
@@ -1286,6 +1310,17 @@ public class WalletTransactionController {
 		map.put("amount", transfer.getAmount());
 		return map;
 	}
+
+	private Map<String, Object> buildObject(OfficeUserTransferDTO transfer){
+		Map<String, Object> map = new HashMap<>();
+		map.put("benefAccountNumber", transfer.getCustomerCreditAccount());
+		map.put("debitAccountNumber", transfer.getOfficeDebitAccount());
+		map.put("eventId", "WAYAOFFTOCUS");
+		map.put("tranCrncy", transfer.getTranCrncy());
+		map.put("amount", transfer.getAmount());
+		return map;
+	}
+	//
 
 	private Map<String, Object> buildObject(BankPaymentOfficialDTO transfer){
 
