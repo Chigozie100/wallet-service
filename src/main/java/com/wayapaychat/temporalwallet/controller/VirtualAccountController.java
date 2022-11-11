@@ -28,12 +28,10 @@ import java.util.concurrent.CompletableFuture;
 public class VirtualAccountController {
 
     private final VirtualService virtualService;
-    private final UserAccountService userAccountService;
 
     @Autowired
-    public VirtualAccountController(VirtualService virtualService, UserAccountService userAccountService) {
+    public VirtualAccountController(VirtualService virtualService) {
         this.virtualService = virtualService;
-        this.userAccountService = userAccountService;
     }
 
     @ApiImplicitParams({

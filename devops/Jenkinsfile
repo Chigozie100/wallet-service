@@ -56,32 +56,17 @@ pipeline {
             }
         }
 
-        stage('Deploy to Staging') {
-            when {
-                branch 'staging'
-            }
+        stage('Deploy') {
             steps {
                 script {
-                    sh '''
-                        chmod +x ./deploy.sh
-                        ./deploy.sh
-                        '''
+                    dir('devops') {
+                        sh '''
+                            chmod +x ./deploy.sh
+                            ./deploy.sh
+                            '''
+                    }
                 }
             }
-        }
-
-        stage('Deploy to Production') {
-            when {
-                branch 'production'
-            }
-            steps {
-                script {
-                    sh '''
-                        chmod +x ./deploy.sh
-                        ./deploy.sh
-                        '''
-                }
-            }
-        }   
+        }  
     }
 }

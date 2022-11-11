@@ -1,0 +1,107 @@
+server:
+  port: ${TEMP_SERVER_PORT:80}
+  servlet:
+    context-path: /
+spring:
+   application:
+      name: temporal-service
+      
+   jpa:
+     hibernate:
+       ddl-auto: update
+     properties:
+       hibernate:
+          dialect: org.hibernate.dialect.PostgreSQLDialect
+          show-sql: true
+          jdbc:
+            time_zone: UTC
+     open-in-view: false
+    
+   devtools:
+       livereload:
+           enabled: false
+   jackson:
+      serialization:
+         fail-on-empty-beans: false
+         
+   datasource:
+        url:  jdbc:postgresql://192.168.88.149:5432/temporal-service?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+        username: postgres
+        password: postgres
+        driver-class-name: org.postgresql.Driver
+   flyway:
+      baselineOnMigrate: true
+      locations: classpath:db/migration
+      schemas: public
+      enabled: true
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_SERVER_URL:http://eureka-service/eureka}
+    service-url:
+      default-zone: ${EUREKA_SERVER_URL:http://eureka-service/eureka}
+  instance:
+    preferIpAddress: true
+
+waya:
+   wallet:
+       auth: AUTHENTICATION-SERVICE
+       authurl: https://services.staging.wayabank.ng/auth-service/api/v1 
+       mifos: MIFOS-WALLET-SERVICE
+       mifosurl: https://services.staging.wayabank.ng/wallet-service
+       productcode: SB601
+       commissioncode: SB901
+       wayaglCode: 21200
+       wayacommglCode: 21105
+       
+   card:
+     cardurl: https://services.staging.wayabank.ng/card-service
+     service: CARD-SERVICE
+     contacturl: https://services.staging.wayabank.ng/contact-service
+   contact:
+      service: CONTACT-SERVICE
+   account:
+       accounturl: https://services.staging.wayabank.ng/account-service
+       service: ACCOUNT-SERVICE
+   logging-service:
+       base-url: https://services.staging.wayabank.ng/logs-service
+#   sms:
+#     atalking: ${AFRICATALKING
+#     infobip: ${INFOBIP
+#     twilio: ${TWILIO
+   notification:
+      service: NOTIFICATION-SERVICE
+      notificationurl: https://services.staging.wayabank.ng/notification-service
+   receipt:
+      service: RECEIPT-SERVICE
+      receipturl: https://services.staging.wayabank.ng/transaction-receipt
+   bills-service:
+      base-url: https://services.staging.wayabank.ng/billspayment-service/api/v1  
+   service:
+    username: admin@wayapaychat.com
+    password: kKo0a9@=&?*#
+    keysecret: d2F5YXByb2QxNzI2MjAyMg==
+    keytemporal: MWtLMW01czA3SFpMc2dpRWlhR2psQTV2SjdISTJqNUcxU3d5UmlKbmFXMTA2alJnK1NuVzBBUDMySTVKQ0hlRQ==
+    keymifos: bzVkbElFTWl2MmkwUEcxNFd0eXU4ZzV2SjdISTJqNUcxU3d5UmlKbmFXMnROQWE0V1drWDRMY1EyZ2R4d2hXRQ==
+   
+   official:
+      email: info@wayabank.ng
+      phone: 2347030355396
+   charges:
+      account: NGN000012005001
+#Scheduled Jobs
+job:
+  cron:
+    nonewaya: 0/5 * * * * * #5 sec
+    twelam: 0 0 0 * * ? #1 am every day
+ofi:
+  financialInstitutionCode: 901037
+
+kafka:
+  bootstrapServers: http://kafka-service:9092
+  groupId: waya
+
+jwt:
+  secret: 2YuUlb+t36yVzrTkYLl8xBlBJSC41CE7uNF3somMDxdYDfcACv9JYIU54z17s4Ah313uKu/4Ll+vDNKpxx6v4Q== ##BvPHGM8C0ia4uOuxxqPD5DTbWC9F9TWvPStp3pb7ARo0oK2mJ3pd3YG4lxA9i8bj6OTbadwezxgeEByY}
+  expiration: 31557600000
