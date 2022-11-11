@@ -203,7 +203,9 @@ public class TransactionServiceImpl implements TransactionService {
 
 
      private Long transAccount(HttpServletRequest request, String fromAccountNumber, String toAccountNumber, BigDecimal amount, String transCategory,String tranCrncy, WalletTransStatus status){
-        String tranId = Util.generateRandomNumber(9);
+
+         Util util = new Util();
+         String code = util.generateRandomNumber(9);
          try{
              //WAYABANKTRANS
 
@@ -227,7 +229,7 @@ public class TransactionServiceImpl implements TransactionService {
              temp.setAmount(amount);
              temp.setCustomerAccountNumber(fromAccountNumber);
              temp.setOfficialAccountNumber(accountDebit.getAccountNo());
-             temp.setPaymentReference(tranId);
+             temp.setPaymentReference(code);
              temp.setTranCrncy(tranCrncy);
              temp.setTranNarration("Transaction in transit");
              temp.setTransactionCategory(transCategory);
