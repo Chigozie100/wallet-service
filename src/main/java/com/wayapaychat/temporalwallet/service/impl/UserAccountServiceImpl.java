@@ -14,42 +14,42 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import com.wayapaychat.temporalwallet.config.SecurityConstants;
+import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
+import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.*;
+import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.exception.CustomException;
+
+import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
+import com.wayapaychat.temporalwallet.pojo.MifosBlockAccount;
+import com.wayapaychat.temporalwallet.pojo.MifosCreateAccount;
+import com.wayapaychat.temporalwallet.pojo.UserDetailPojo;
+
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.pojo.*;
 import com.wayapaychat.temporalwallet.proxy.AuthProxy;
 import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
+import com.wayapaychat.temporalwallet.repository.*;
+import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.response.MifosAccountCreationResponse;
+import com.wayapaychat.temporalwallet.service.UserAccountService;
 import com.wayapaychat.temporalwallet.util.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value; 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
-import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
-import com.wayapaychat.temporalwallet.entity.WalletAccount;
-import com.wayapaychat.temporalwallet.entity.WalletEventCharges;
-import com.wayapaychat.temporalwallet.entity.WalletProduct;
-import com.wayapaychat.temporalwallet.entity.WalletProductCode;
-import com.wayapaychat.temporalwallet.entity.WalletTeller;
-import com.wayapaychat.temporalwallet.entity.WalletUser;
-import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
-import com.wayapaychat.temporalwallet.repository.WalletEventRepository;
-import com.wayapaychat.temporalwallet.repository.WalletProductCodeRepository;
-import com.wayapaychat.temporalwallet.repository.WalletProductRepository;
-import com.wayapaychat.temporalwallet.repository.WalletTellerRepository;
-import com.wayapaychat.temporalwallet.repository.WalletUserRepository;
-import com.wayapaychat.temporalwallet.response.ApiResponse;
-
-import com.wayapaychat.temporalwallet.service.UserAccountService;
-
-import lombok.extern.slf4j.Slf4j;
-
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
+import java.security.SecureRandom;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -100,6 +100,23 @@ public class UserAccountServiceImpl implements UserAccountService {
 		this.tokenService = tokenService;
 	}
 
+
+	public String generateRandomNumber(int length) {
+
+		int randNumOrigin = generateRandomNumber(58, 34);
+		int randNumBound = generateRandomNumber(354, 104);
+
+		SecureRandom random = new SecureRandom();
+		return random.ints(randNumOrigin, randNumBound + 1)
+				.filter(Character::isDigit)
+				.limit(length)
+				.collect(StringBuilder::new, StringBuilder::appendCodePoint,
+						StringBuilder::append)
+				.toString();
+	}
+	public int generateRandomNumber(int max, int min) {
+		return (int) (Math.random() * (max - min + 1) + min);
+	}
 	public ResponseEntity<?> createUser(UserDTO user) {
 		int userId = (int) user.getUserId();
 		UserDetailPojo wallet = authService.AuthUser(userId);
@@ -115,8 +132,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
 		if (existingUser == null) {
-			Util util = new Util();
-			String code = util.generateRandomNumber(9);
+
+			String code = generateRandomNumber(9);
 			WalletUserDTO userInfow = new WalletUserDTO("0000",user.getUserId(), wallet.getFirstName().toUpperCase(),wallet.getSurname().toUpperCase(),
 					wallet.getEmail(), wallet.getPhoneNo(), new Date(), new BigDecimal("50000.00").doubleValue(),  "MR", "M", code,
 					new Date(), user.getAccountType(), false, user.getDescription());

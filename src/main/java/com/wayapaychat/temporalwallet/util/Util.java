@@ -137,7 +137,7 @@ public class Util {
                         StringBuilder::append)
                 .toString();
     }
-    public static int generateRandomNumber(int max, int min) {
+    public int generateRandomNumber(int max, int min) {
         return (int) (Math.random() * (max - min + 1) + min);
     }
 
