@@ -41,6 +41,8 @@ public class WalletUserAccountController {
 	@Autowired
     UserAccountService userAccountService;
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Create a User", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/create-user")
     public ResponseEntity<?> createUser(@Valid @RequestBody UserDTO user) {
@@ -148,7 +150,8 @@ public class WalletUserAccountController {
 	 }
 	
 	//Wallet call by other service
-	@ApiOperation(value = "Create a Wallet", tags = { "USER-ACCOUNT-WALLET" })
+    @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Create a Wallet | add additional wallet", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/create-wallet")
     public ResponseEntity<?> createAccount(@Valid @RequestBody AccountPojo2 accountPojo) {
 		return userAccountService.createAccount(accountPojo);

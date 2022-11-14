@@ -1,32 +1,15 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.Month;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-
 import com.wayapaychat.temporalwallet.config.SecurityConstants;
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.exception.CustomException;
-
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
 import com.wayapaychat.temporalwallet.pojo.MifosBlockAccount;
 import com.wayapaychat.temporalwallet.pojo.MifosCreateAccount;
 import com.wayapaychat.temporalwallet.pojo.UserDetailPojo;
-
-import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
-import com.wayapaychat.temporalwallet.pojo.*;
 import com.wayapaychat.temporalwallet.proxy.AuthProxy;
 import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
 import com.wayapaychat.temporalwallet.repository.*;
@@ -66,10 +49,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 	private final TemporalWalletDAO tempwallet;
 	private final WalletEventRepository walletEventRepo;
 	private final MifosWalletProxy mifosWalletProxy;
-	private final TokenImpl tokenService;
+	private final AuthProxy authProxy;
 
 
-	@Value("${waya.wallet.productcode}")
+		@Value("${waya.wallet.productcode}")
 	private String wayaProduct;
 
 	@Value("${waya.wallet.commissioncode}")
@@ -85,7 +68,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 	private String financialInstitutionCode;
 
 	@Autowired
-	public UserAccountServiceImpl(WalletUserRepository walletUserRepository, WalletAccountRepository walletAccountRepository, WalletProductRepository walletProductRepository, WalletProductCodeRepository walletProductCodeRepository, AuthUserServiceDAO authService, ReqIPUtils reqUtil, ParamDefaultValidation paramValidation, WalletTellerRepository walletTellerRepository, TemporalWalletDAO tempwallet, WalletEventRepository walletEventRepo, MifosWalletProxy mifosWalletProxy, TokenImpl tokenService) {
+	public UserAccountServiceImpl(WalletUserRepository walletUserRepository, WalletAccountRepository walletAccountRepository, WalletProductRepository walletProductRepository, WalletProductCodeRepository walletProductCodeRepository, AuthUserServiceDAO authService, ReqIPUtils reqUtil, ParamDefaultValidation paramValidation, WalletTellerRepository walletTellerRepository, TemporalWalletDAO tempwallet, WalletEventRepository walletEventRepo, MifosWalletProxy mifosWalletProxy, AuthProxy authProxy) {
 		this.walletUserRepository = walletUserRepository;
 		this.walletAccountRepository = walletAccountRepository;
 		this.walletProductRepository = walletProductRepository;
@@ -97,7 +80,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		this.tempwallet = tempwallet;
 		this.walletEventRepo = walletEventRepo;
 		this.mifosWalletProxy = mifosWalletProxy;
-		this.tokenService = tokenService;
+		this.authProxy = authProxy;
 	}
 
 
@@ -224,13 +207,12 @@ public class UserAccountServiceImpl implements UserAccountService {
 			}
 		}
 
-		if (user.getDescription() == null){
-			user.setDescription("SAVINGS ACCOUNT");
+		if(user.getAccountType() == null){
+			user.setAccountType("SAVINGS");
 		}
 
 
 		if (user.getDescription() == null){
-
 			user.setDescription("SAVINGS ACCOUNT");
 		}
 		String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, user.getAccountType());
@@ -592,7 +574,6 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 
 		String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, accountType);
-		log.info("nuban: {}", nubanAccountNumber);
 		try {
 			String hashed_no = reqUtil
 					.WayaEncrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
@@ -1287,25 +1268,15 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> getUserAccountList(long userId) {
-
-		MyData tokenData = tokenService.getUserInformation();
-
 		System.out.println("USER ID" + userId);
 		int uId = (int) userId;
 		UserDetailPojo ur = authService.AuthUser(uId);
-		if (ur == null && userId != tokenData.getId()) {
+		if (ur == null) {
 			return new ResponseEntity<>(new ErrorResponse("User Id is Invalid"), HttpStatus.NOT_FOUND);
 		}
-		else if (ur == null) {
-			return createDefaultWallet(tokenData);
-		}
-
 		WalletUser x = walletUserRepository.findByEmailAddress(ur.getEmail());
-		if (x == null && userId != tokenData.getId()) {
-			return new ResponseEntity<>(new ErrorResponse("User Id is Invalid"), HttpStatus.NOT_FOUND);
-		}
-		else if (x == null) {
-			return createDefaultWallet(tokenData);
+		if (x == null) {
+			return new ResponseEntity<>(new ErrorResponse("Wallet User does not exist"), HttpStatus.NOT_FOUND);
 		}
 		List<WalletAccount> accounts = walletAccountRepository.findByUser(x);
 		return new ResponseEntity<>(new SuccessResponse("Success.", accounts), HttpStatus.OK);
@@ -1898,34 +1869,6 @@ public class UserAccountServiceImpl implements UserAccountService {
 	public ResponseEntity<?>  countInActiveAccount(){
 		long count = walletAccountRepository.countInActiveAccount();
 		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
-	}
-
-	@Override
-	public ResponseEntity<?> createDefaultWallet(MyData tokenData) {
-		// TODO Auto-generated method stub
-
-		WalletUserDTO createAccount = new WalletUserDTO();
-        // Default Debit Limit SetUp
-        createAccount.setCustDebitLimit(50000.00);
-        // Default Account Expiration Date
-        LocalDateTime time = LocalDateTime.of(2099, Month.DECEMBER, 30, 0, 0);
-        createAccount.setCustExpIssueDate(Date.from(time.atZone(ZoneId.systemDefault()).toInstant()));
-        createAccount.setUserId(tokenData.getId());
-        createAccount.setCustIssueId(generateRandomNumber(9));
-        createAccount.setFirstName(tokenData.getFirstName());
-        createAccount.setLastName(tokenData.getSurname());
-        createAccount.setEmailId(tokenData.getEmail());
-        createAccount.setMobileNo(tokenData.getPhoneNumber());
-
-        createAccount.setCustSex("N"); //Set to default
-        createAccount.setCustTitleCode(""); //Set to default
-        createAccount.setDob(new Date()); //Set to default
-        // Default Branch SOL ID
-        createAccount.setSolId("0000");
-        createAccount.setAccountType("saving");
-        createAccount.setCorporate(tokenData.isCorporate());
-		log.info("retrying to create wallet for {}",createAccount.getEmailId());
-		return createUserAccount(createAccount );
 	}
 
 
