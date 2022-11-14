@@ -5713,6 +5713,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (!validate2) {
 				return "DJGO|Event Validation Failed";
 			}
+
+			System.out.println( "################# iNISDE createEventOfficeTransactionModified ");
 			// Does account exist
 //			Optional<WalletAccount> accountDebitTeller = walletAccountRepository
 //					.findByUserPlaceholder(charge.getPlaceholder(), charge.getCrncyCode(), "0000");
@@ -5740,7 +5742,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			WalletAccount accountDebit = walletAccountRepository.findByAccountNo(fromAccountNumber);
 			WalletAccount accountCredit = walletAccountRepository.findByAccountNo(toAccountNumber);
-
+			System.out.println( "################# iNISDE createEventOfficeTransactionModified 2");
 			//WalletAccount accountDebit = null;
 //			WalletAccount accountCredit = null;
 //			if (!charge.isChargeCustomer() && charge.isChargeWaya()) {
@@ -5787,6 +5789,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					|| (!keyCredit[3].equals(accountCredit.getAcct_crncy_code()))) {
 				return "DJGO|CREDIT ACCOUNT DATA INTEGRITY ISSUE";
 			}
+			System.out.println( "################# iNISDE createEventOfficeTransactionModified 3");
 			// Check for Amount Limit
 			if (!accountDebit.getAcct_ownership().equals("O")) {
 
@@ -5805,7 +5808,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 			}
-
+			System.out.println( "################# INISDE createEventOfficeTransactionModified 3");
 			// Token Fetch
 			MyData tokenData = tokenService.getUserInformation();
 			String email = tokenData != null ? tokenData.getEmail() : "";
@@ -5851,7 +5854,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 						return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
 				}
 			}
-
+			System.out.println( "################# iNISDE createEventOfficeTransactionModified 4");
 			// **********************************************
 			// Account Transaction Locks
 			// *********************************************
@@ -5904,7 +5907,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			accountCredit.setLast_tran_date(LocalDate.now());
 			walletAccountRepository.saveAndFlush(accountCredit);
 
-
+			System.out.println( "################# iNISDE createEventOfficeTransactionModified 5");
 			CompletableFuture.runAsync(() -> transactionCountService.makeCount(userId, paymentRef));
 
 			log.info("END TRANSACTION");
@@ -5918,6 +5921,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token1,senderName));
 			return tranId;
 		} catch (Exception e) {
+			System.out.println(" e.getMessage() == " + e.getMessage());
 			e.printStackTrace();
 			return ("DJGO|" + e.getMessage());
 		}

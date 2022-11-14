@@ -203,6 +203,11 @@ public class TransactionServiceImpl implements TransactionService {
 
 
      private Long transAccount(HttpServletRequest request, String fromAccountNumber, String toAccountNumber, BigDecimal amount, String transCategory,String tranCrncy, WalletTransStatus status){
+         System.out.println( "##### HERER  transAccount " + request);
+         System.out.println( "##### HERER  transAccount " + fromAccountNumber);
+         System.out.println( "##### HERER  transAccount " + toAccountNumber);
+         System.out.println( "##### HERER  transAccount " + tranCrncy);
+         System.out.println( "##### HERER  transAccount " + status);
 
          Util util = new Util();
          String code = util.generateRandomNumber(9);
@@ -234,37 +239,39 @@ public class TransactionServiceImpl implements TransactionService {
              temp.setTranNarration("Transaction in transit");
              temp.setTransactionCategory(transCategory);
 
-             ResponseEntity<?> responseEntity = transAccountService.TemporalWalletToOfficialWallet(request, temp);
-            // ResponseEntity<?> responseEntity = transAccountService.EventTransferPayment(request, eventPaymentDTO);
+//             System.out.println( "##### before sending request TemporalWalletToOfficialWallet " + temp);
+//             ResponseEntity<?> responseEntity = transAccountService.TemporalWalletToOfficialWallet(request, temp);
+//             System.out.println( "##### after sending request TemporalWalletToOfficialWallet Response " + responseEntity);
+//
+//             ResponseHelper walletTransactions = (ResponseHelper) responseEntity.getBody();
+//             System.out.println("responseEntity :: " + responseEntity.getBody());
+//             System.out.println("walletTransactions :: " + Objects.requireNonNull(walletTransactions).getData());
+//
+//             Optional<List<WalletTransaction>> walletTransactions1 = (Optional<List<WalletTransaction>>) walletTransactions.getData();
+//             System.out.println("walletTransactions1 :: " + walletTransactions1);
+//
+//             String tranI2 = "";
+//             if (walletTransactions1.isPresent()){
+//                 List<WalletTransaction> transactionList = walletTransactions1.get();
+//                 for (WalletTransaction data: transactionList){
+//                     tranI2 = data.getTranId();
+//                 }
+//             }
 
-             ResponseHelper walletTransactions = (ResponseHelper) responseEntity.getBody();
-             System.out.println("responseEntity :: " + responseEntity.getBody());
-             System.out.println("walletTransactions :: " + walletTransactions.getData());
-
-             Optional<List<WalletTransaction>> walletTransactions1 = (Optional<List<WalletTransaction>>) walletTransactions.getData();
-             System.out.println("walletTransactions1 :: " + walletTransactions1);
-
-             String tranI2 = "";
-             if (walletTransactions1.isPresent()){
-                 List<WalletTransaction> transactionList = walletTransactions1.get();
-                 for (WalletTransaction data: transactionList){
-                     tranI2 = data.getTranId();
-                 }
-             }
-
-             System.out.println("here is the new ID  :: " + tranI2);
+             System.out.println("here is the new ID  :: " + code);
 
              WalletTransAccount walletTransAccount = new WalletTransAccount();
              walletTransAccount.setCreatedAt(LocalDateTime.now());
              walletTransAccount.setDebitAccountNumber(fromAccountNumber);
              walletTransAccount.setCreditAccountNumber(toAccountNumber);
              walletTransAccount.setTranAmount(amount);
-             walletTransAccount.setTranId(tranI2);
+             walletTransAccount.setTranId(code);
              walletTransAccount.setTransactionType(transCategory);
              walletTransAccount.setTranCrncy(tranCrncy);
              walletTransAccount.setStatus(status);
              return walletTransAccountRepository.save(walletTransAccount).getId();
          }catch (CustomException ex){
+             System.out.println( " TGHis is the error " + ex.getMessage());
              throw new CustomException("error", HttpStatus.EXPECTATION_FAILED);
          }
      }
@@ -316,6 +323,14 @@ public class TransactionServiceImpl implements TransactionService {
              log.info(toAccountNumber + "|" + fromAccountNumber);
              throw new CustomException("DEBIT AND CREDIT ON THE SAME ACCOUNT",HttpStatus.EXPECTATION_FAILED);
          }
+
+         System.out.println("#### #####    #### ##### " + fromAccountNumber );
+         System.out.println("#### #####    #### ##### " + toAccountNumber );
+         System.out.println("#### #####    #### ##### " + eventId );
+         System.out.println("#### #####    #### ##### " + transType );
+         System.out.println("#### #####    #### ##### " + transCategory );
+         System.out.println("#### #####    #### ##### " + tranCrncy );
+         System.out.println("#### #####    #### ##### " + amount );
 
 
          Long tranId = transAccount(request,fromAccountNumber, toAccountNumber, amount, transCategory, tranCrncy, WalletTransStatus.PENDING);
