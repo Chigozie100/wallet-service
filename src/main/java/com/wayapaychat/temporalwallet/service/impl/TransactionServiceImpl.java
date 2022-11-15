@@ -303,8 +303,8 @@ public class TransactionServiceImpl implements TransactionService {
          String fromAccountNumber = (String) map.get("debitAccountNumber");
          String toAccountNumber = (String) map.get("benefAccountNumber");
          String eventId = (String) map.get("eventId");
-         String transType = (String) map.get("transType");
-         String transCategory = (String) map.get("transCategory");
+         String transType = map.get("transType") == null ? "LOCAL" : (String) map.get("transType");
+         String transCategory = map.get("transCategory") == null ? "TRANSFER" :(String) map.get("transCategory");
          String tranCrncy = (String) map.get("tranCrncy");
          BigDecimal amount = (BigDecimal) map.get("amount");
 
