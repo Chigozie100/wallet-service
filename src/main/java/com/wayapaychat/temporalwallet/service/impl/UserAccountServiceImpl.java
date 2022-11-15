@@ -6,10 +6,7 @@ import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.exception.CustomException;
-import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
-import com.wayapaychat.temporalwallet.pojo.MifosBlockAccount;
-import com.wayapaychat.temporalwallet.pojo.MifosCreateAccount;
-import com.wayapaychat.temporalwallet.pojo.UserDetailPojo;
+import com.wayapaychat.temporalwallet.pojo.*;
 import com.wayapaychat.temporalwallet.proxy.AuthProxy;
 import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
 import com.wayapaychat.temporalwallet.repository.*;
@@ -1869,6 +1866,11 @@ public class UserAccountServiceImpl implements UserAccountService {
 	public ResponseEntity<?>  countInActiveAccount(){
 		long count = walletAccountRepository.countInActiveAccount();
 		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
+	}
+
+	@Override
+	public ResponseEntity<?> createDefaultWallet(MyData user) {
+		return null;
 	}
 
 
