@@ -3,8 +3,6 @@ package com.wayapaychat.temporalwallet;
 //import com.wayapaychat.temporalwallet.config.LoggableDispatcherServlet;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-//import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
-import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
@@ -13,7 +11,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 import org.springframework.web.client.RestTemplate;
 
-import org.springframework.web.servlet.DispatcherServlet;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
@@ -32,6 +29,7 @@ public class TemporalWalletApplication {
     public SpringApplicationContext springApplicationContext() {
         return new SpringApplicationContext();
     }
+
 	@Bean
     RestTemplate restTemplate(){
         return new RestTemplate();
