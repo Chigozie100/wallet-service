@@ -3727,7 +3727,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	private void removeLien(WalletAccount accountDebit, BigDecimal amount){
 
-		System.out.println("AccountDebit ::: " + accountDebit);
+		System.out.println("############### AccountDebit ::: #################3  " + accountDebit);
 		// get user current Lien
 		AccountLienDTO accountLienDTO = new AccountLienDTO();
 		accountLienDTO.setCustomerAccountNo(accountDebit.getAccountNo());
