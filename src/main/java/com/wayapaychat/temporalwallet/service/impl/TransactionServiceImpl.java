@@ -18,6 +18,7 @@
  import com.wayapaychat.temporalwallet.service.UserAccountService;
  import com.wayapaychat.temporalwallet.util.ParamDefaultValidation;
  import com.wayapaychat.temporalwallet.util.ReqIPUtils;
+ import com.wayapaychat.temporalwallet.util.ResponseHelper;
  import com.wayapaychat.temporalwallet.util.Util;
  import lombok.extern.slf4j.Slf4j;
  import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,7 @@
  import javax.servlet.http.HttpServletRequest;
  import java.math.BigDecimal;
  import java.time.LocalDateTime;
+ import java.util.List;
  import java.util.Map;
  import java.util.Objects;
  import java.util.Optional;
@@ -220,7 +222,6 @@ public class TransactionServiceImpl implements TransactionService {
                          .findByUserPlaceholder(charge.getPlaceholder(), charge.getCrncyCode(), eventAcct.getSol_id());
              }
 
-
              if (!accountDebitTeller.isPresent()){
                  throw new CustomException("Error accountDebitTeller not present", HttpStatus.EXPECTATION_FAILED);
              }
@@ -236,24 +237,24 @@ public class TransactionServiceImpl implements TransactionService {
              temp.setTranNarration("Transaction in transit");
              temp.setTransactionCategory(transCategory);
 
-//             System.out.println( "##### before sending request TemporalWalletToOfficialWallet " + temp);
-//             ResponseEntity<?> responseEntity = transAccountService.TemporalWalletToOfficialWallet(request, temp);
-//             System.out.println( "##### after sending request TemporalWalletToOfficialWallet Response " + responseEntity);
-//
-//             ResponseHelper walletTransactions = (ResponseHelper) responseEntity.getBody();
-//             System.out.println("responseEntity :: " + responseEntity.getBody());
-//             System.out.println("walletTransactions :: " + Objects.requireNonNull(walletTransactions).getData());
-//
-//             Optional<List<WalletTransaction>> walletTransactions1 = (Optional<List<WalletTransaction>>) walletTransactions.getData();
-//             System.out.println("walletTransactions1 :: " + walletTransactions1);
-//
-//             String tranI2 = "";
-//             if (walletTransactions1.isPresent()){
-//                 List<WalletTransaction> transactionList = walletTransactions1.get();
-//                 for (WalletTransaction data: transactionList){
-//                     tranI2 = data.getTranId();
-//                 }
-//             }
+             System.out.println( "##### before sending request TemporalWalletToOfficialWallet " + temp);
+             ResponseEntity<?> responseEntity = transAccountService.TemporalWalletToOfficialWallet(request, temp);
+             System.out.println( "##### after sending request TemporalWalletToOfficialWallet Response " + responseEntity);
+
+             ResponseHelper walletTransactions = (ResponseHelper) responseEntity.getBody();
+             System.out.println("responseEntity :: " + responseEntity.getBody());
+             System.out.println("walletTransactions :: " + Objects.requireNonNull(walletTransactions).getData());
+
+             Optional<List<WalletTransaction>> walletTransactions1 = (Optional<List<WalletTransaction>>) walletTransactions.getData();
+             System.out.println("walletTransactions1 :: " + walletTransactions1);
+
+             String tranI2 = "";
+             if (walletTransactions1.isPresent()){
+                 List<WalletTransaction> transactionList = walletTransactions1.get();
+                 for (WalletTransaction data: transactionList){
+                     tranI2 = data.getTranId();
+                 }
+             }
 
              System.out.println("here is the new ID  :: " + code);
 
@@ -262,7 +263,7 @@ public class TransactionServiceImpl implements TransactionService {
              walletTransAccount.setDebitAccountNumber(fromAccountNumber);
              walletTransAccount.setCreditAccountNumber(toAccountNumber);
              walletTransAccount.setTranAmount(amount);
-             walletTransAccount.setTranId(code);
+             walletTransAccount.setTranId(tranI2);
              walletTransAccount.setTransactionType(transCategory);
              walletTransAccount.setTranCrncy(tranCrncy);
              walletTransAccount.setStatus(status);
@@ -281,6 +282,8 @@ public class TransactionServiceImpl implements TransactionService {
                  walletTransAccount1.setStatus(status);
                  walletTransAccountRepository.save(walletTransAccount1);
              }
+
+             /// move money from the trans account and be ready to commit transaction
          }catch (CustomException ex){
              throw new CustomException("error", HttpStatus.EXPECTATION_FAILED);
          }

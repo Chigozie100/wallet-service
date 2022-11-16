@@ -43,7 +43,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 "/api/v1/wallet/user/account","/api/v1/wallet/transaction-count/{account}", "/api/v1/wallet/transaction/get-user-transaction-count/{userId}", "/api/v1/wallet/transaction/get-user-transaction-count", "/api/v1/wallet/create/cooperate/user","/api/users/register/admin", "/api/users/welcome").permitAll()
                 //For Local Test Purpose
                 //.antMatchers("/api/v1/bank/**","/wallet/create-wallet","/api/v1/wallet/**","/wallet/**","/api/v1/switch/**").permitAll()
-                .antMatchers("/v2/api-docs", "/configuration/**", "/swagger*/**","/actuator/**", "/webjars/**").permitAll()
+                .antMatchers("/v2/api-docs", "/configuration/**", "/api/v1/wallet/admin/user/accounts/{user_id}", "/swagger*/**","/actuator/**", "/webjars/**").permitAll()
                 // all other requests need to be authenticated
                 .anyRequest().authenticated().and()
 

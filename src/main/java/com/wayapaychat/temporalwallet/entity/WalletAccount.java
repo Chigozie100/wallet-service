@@ -179,7 +179,7 @@ public class WalletAccount {
 		this.gl_code = gl_code;
 		this.product_code = product_code;
 		this.acct_ownership = acct_ownership;
-		this.acct_opn_date = LocalDate.now();;
+		this.acct_opn_date = LocalDate.now();
 		this.acct_cls_flg = false;
 		this.clr_bal_amt = 0;
 		this.un_clr_bal_amt = 0;
@@ -218,7 +218,7 @@ public class WalletAccount {
 		this.gl_code = gl_code;
 		this.product_code = product_code;
 		this.acct_ownership = acct_ownership;
-		this.acct_opn_date = LocalDate.now();;
+		this.acct_opn_date = LocalDate.now();
 		this.acct_cls_flg = false;
 		this.clr_bal_amt = 0;
 		this.un_clr_bal_amt = 0;
