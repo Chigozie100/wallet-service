@@ -237,24 +237,24 @@ public class TransactionServiceImpl implements TransactionService {
              temp.setTranNarration("Transaction in transit");
              temp.setTransactionCategory(transCategory);
 
-             System.out.println( "##### before sending request TemporalWalletToOfficialWallet " + temp);
-             ResponseEntity<?> responseEntity = transAccountService.TemporalWalletToOfficialWallet(request, temp);
-             System.out.println( "##### after sending request TemporalWalletToOfficialWallet Response " + responseEntity);
-
-             ResponseHelper walletTransactions = (ResponseHelper) responseEntity.getBody();
-             System.out.println("responseEntity :: " + responseEntity.getBody());
-             System.out.println("walletTransactions :: " + Objects.requireNonNull(walletTransactions).getData());
-
-             Optional<List<WalletTransaction>> walletTransactions1 = (Optional<List<WalletTransaction>>) walletTransactions.getData();
-             System.out.println("walletTransactions1 :: " + walletTransactions1);
-
-             String tranI2 = "";
-             if (walletTransactions1.isPresent()){
-                 List<WalletTransaction> transactionList = walletTransactions1.get();
-                 for (WalletTransaction data: transactionList){
-                     tranI2 = data.getTranId();
-                 }
-             }
+//             System.out.println( "##### before sending request TemporalWalletToOfficialWallet " + temp);
+//             ResponseEntity<?> responseEntity = transAccountService.TemporalWalletToOfficialWallet(request, temp);
+//             System.out.println( "##### after sending request TemporalWalletToOfficialWallet Response " + responseEntity);
+//
+//             ResponseHelper walletTransactions = (ResponseHelper) responseEntity.getBody();
+//             System.out.println("responseEntity :: " + responseEntity.getBody());
+//             System.out.println("walletTransactions :: " + Objects.requireNonNull(walletTransactions).getData());
+//
+//             Optional<List<WalletTransaction>> walletTransactions1 = (Optional<List<WalletTransaction>>) walletTransactions.getData();
+//             System.out.println("walletTransactions1 :: " + walletTransactions1);
+//
+//             String tranI2 = "";
+//             if (walletTransactions1.isPresent()){
+//                 List<WalletTransaction> transactionList = walletTransactions1.get();
+//                 for (WalletTransaction data: transactionList){
+//                     tranI2 = data.getTranId();
+//                 }
+//             }
 
              System.out.println("here is the new ID  :: " + code);
 
@@ -263,7 +263,7 @@ public class TransactionServiceImpl implements TransactionService {
              walletTransAccount.setDebitAccountNumber(fromAccountNumber);
              walletTransAccount.setCreditAccountNumber(toAccountNumber);
              walletTransAccount.setTranAmount(amount);
-             walletTransAccount.setTranId(tranI2);
+             walletTransAccount.setTranId(code);
              walletTransAccount.setTransactionType(transCategory);
              walletTransAccount.setTranCrncy(tranCrncy);
              walletTransAccount.setStatus(status);
