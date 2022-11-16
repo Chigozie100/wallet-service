@@ -52,6 +52,7 @@ public interface MifosWalletProxy {
 
 	// new update  // [https://services.staging.wayabank.ng/middletier-service/wallet/create/user
 	//http://services.staging.wayabank.ng/middletier-service/wallet/create/user
+
 	@PostMapping("/wallet/create/user")
 	MifosAccountCreationResponse createAccount(@RequestBody MifosCreateAccount reAccount);
 
