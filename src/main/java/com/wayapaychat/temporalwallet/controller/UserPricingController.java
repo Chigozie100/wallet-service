@@ -78,8 +78,17 @@ public class UserPricingController {
     @Async
     public CompletableFuture<ResponseEntity<?>> getUsersWithProductsList(@RequestParam(defaultValue = "0") int page,
                                                                          @RequestParam(defaultValue = "10") int size) {
-
         return CompletableFuture.completedFuture(userPricingService.getAllUserPricing(page,size));
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Get All Users with Products Pricing By User ID", notes = "Products Pricing List By User ID", tags = { "USER-PRICING" })
+    @GetMapping(value = "/user-products/{userId}/{product}", produces =
+            MediaType.APPLICATION_JSON_VALUE)
+    @Async
+    public CompletableFuture<ResponseEntity<?>> getUsersWithProductsListByUserId(@PathVariable String userId, @PathVariable String product) {
+        return CompletableFuture.completedFuture(userPricingService.getAllUserPricingUserId(userId,product));
     }
 
     @ApiImplicitParams({

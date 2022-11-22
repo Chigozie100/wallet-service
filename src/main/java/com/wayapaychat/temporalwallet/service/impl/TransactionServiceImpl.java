@@ -5,6 +5,7 @@
  import com.wayapaychat.temporalwallet.dto.TemporalToOfficialWalletDTO;
  import com.wayapaychat.temporalwallet.entity.*;
  import com.wayapaychat.temporalwallet.enumm.ProductPriceStatus;
+ import com.wayapaychat.temporalwallet.enumm.ProviderType;
  import com.wayapaychat.temporalwallet.enumm.WalletTransStatus;
  import com.wayapaychat.temporalwallet.exception.CustomException;
  import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
@@ -13,12 +14,12 @@
  import com.wayapaychat.temporalwallet.pojo.TransactionTransferPojo;
  import com.wayapaychat.temporalwallet.pojo.TransactionTransferPojo2;
  import com.wayapaychat.temporalwallet.repository.*;
+ import com.wayapaychat.temporalwallet.service.SwitchWalletService;
  import com.wayapaychat.temporalwallet.service.TransAccountService;
  import com.wayapaychat.temporalwallet.service.TransactionService;
  import com.wayapaychat.temporalwallet.service.UserAccountService;
  import com.wayapaychat.temporalwallet.util.ParamDefaultValidation;
  import com.wayapaychat.temporalwallet.util.ReqIPUtils;
- import com.wayapaychat.temporalwallet.util.ResponseHelper;
  import com.wayapaychat.temporalwallet.util.Util;
  import lombok.extern.slf4j.Slf4j;
  import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +30,6 @@
  import javax.servlet.http.HttpServletRequest;
  import java.math.BigDecimal;
  import java.time.LocalDateTime;
- import java.util.List;
  import java.util.Map;
  import java.util.Objects;
  import java.util.Optional;
@@ -49,9 +49,10 @@ public class TransactionServiceImpl implements TransactionService {
      private final UserPricingRepository userPricingRepository;
      private final WalletTransAccountRepository walletTransAccountRepository;
      private final TransAccountService transAccountService;
+     private final SwitchWalletService switchWalletService;
 
      @Autowired
-     public TransactionServiceImpl(ParamDefaultValidation paramValidation, WalletAccountRepository walletAccountRepository, ReqIPUtils reqIPUtils, TokenImpl tokenService, UserAccountService userAccountService, WalletEventRepository walletEventRepository, WalletUserRepository walletUserRepository, UserPricingRepository userPricingRepository, WalletTransAccountRepository walletTransAccountRepository, TransAccountService transAccountService) {
+     public TransactionServiceImpl(ParamDefaultValidation paramValidation, WalletAccountRepository walletAccountRepository, ReqIPUtils reqIPUtils, TokenImpl tokenService, UserAccountService userAccountService, WalletEventRepository walletEventRepository, WalletUserRepository walletUserRepository, UserPricingRepository userPricingRepository, WalletTransAccountRepository walletTransAccountRepository, TransAccountService transAccountService, SwitchWalletService switchWalletService) {
          this.paramValidation = paramValidation;
          this.walletAccountRepository = walletAccountRepository;
          this.reqIPUtils = reqIPUtils;
@@ -62,6 +63,7 @@ public class TransactionServiceImpl implements TransactionService {
          this.userPricingRepository = userPricingRepository;
          this.walletTransAccountRepository = walletTransAccountRepository;
          this.transAccountService = transAccountService;
+         this.switchWalletService = switchWalletService;
      }
 
 
@@ -101,9 +103,6 @@ public class TransactionServiceImpl implements TransactionService {
              throw new CustomException("DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE",HttpStatus.EXPECTATION_FAILED);
          }
 
-//         if (accountDebit.getLien_amt() == actualAmount.doubleValue()) {
-//             throw new CustomException("DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE",HttpStatus.EXPECTATION_FAILED);
-//         }
 
          AccountLienDTO accountLienDTO = new AccountLienDTO();
          accountLienDTO.setCustomerAccountNo(debitAccountNumber);
@@ -112,12 +111,12 @@ public class TransactionServiceImpl implements TransactionService {
 
          ResponseEntity<?> responseEntity;
          try{
-             System.out.println("################## BEFORE LIEN REQUEST ########### "+ accountLienDTO);
+             log.info("################## BEFORE LIEN REQUEST ########### "+ accountLienDTO);
              responseEntity = userAccountService.AccountAccessLien(accountLienDTO);
          }catch (CustomException ex){
              throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
          }
-            System.out.println("############### RESPONSE FROM LIEN INIT :: ###############"  + responseEntity);
+         log.info("############### RESPONSE FROM LIEN INIT :: ###############"  + responseEntity);
 
      }
 
@@ -199,7 +198,20 @@ public class TransactionServiceImpl implements TransactionService {
          return tranAmCharges;
      }
 
+     public boolean checkProvider() {
+         Provider provider = switchWalletService.getActiveProvider();
+         if (provider == null) {
+             throw new CustomException("NO PROVIDER SWITCHED", HttpStatus.BAD_REQUEST);
+         }
 
+         log.info("WALLET PROVIDER: " + provider.getName());
+         switch (provider.getName()) {
+             case ProviderType.MIFOS:
+                 return true;
+             default:
+                 return false;
+         }
+     }
 
      private Long transAccount(HttpServletRequest request, String fromAccountNumber, String toAccountNumber, BigDecimal amount, String transCategory,String tranCrncy, WalletTransStatus status){
          System.out.println( "##### HERER  transAccount " + request);
@@ -215,7 +227,9 @@ public class TransactionServiceImpl implements TransactionService {
 
              Optional<WalletAccount> accountDebitTeller = Optional.empty();
              Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId("WAYABANKTRANS");
+             System.out.println(" ############# WalletEventCharges ############" + eventInfo);
              WalletAccount eventAcct = walletAccountRepository.findByAccountNo(toAccountNumber);
+             System.out.println(" ############# eventAcct ############" + eventAcct);
              if(eventInfo.isPresent()){
                  WalletEventCharges charge = eventInfo.get();
                  accountDebitTeller = walletAccountRepository
