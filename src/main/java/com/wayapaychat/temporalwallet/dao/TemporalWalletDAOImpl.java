@@ -532,7 +532,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		SimpleDateFormat formatter = new SimpleDateFormat("ddMMyyyy");
 		String strDate = formatter.format(date);
 		switch (provider.getName()) {
-		case ProviderType.MAINMIFO:
+		case ProviderType.MIFOS:
 			String secretDate = SecurityCrypto.decrypt((SecurityCrypto.decodeKey(keymifos)), keysecret);
 			System.out.println("Decryption Value = " + secretDate);
 			String[] keyDecrypt = secretDate.split(Pattern.quote(","));

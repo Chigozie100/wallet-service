@@ -146,6 +146,20 @@ public class UserPricingServiceImpl implements UserPricingService {
     }
 
     @Override
+    public ResponseEntity<?> getAllUserPricingUserId(String userId, String product) {
+        try{
+        Optional<UserPricing> userPricingOptional = userPricingRepository.findDetails(Long.parseLong(userId),product);
+        if(userPricingOptional.isPresent()){
+            return new ResponseEntity<>(new SuccessResponse(SUCCESS_MESSAGE, userPricingOptional.get()), HttpStatus.OK);
+        }
+        } catch (CustomException e) {
+            log.error("UNABLE TO APPLY_DISCOUNT: {}", e.getMessage());
+            throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+        }
+       return null;
+    }
+
+    @Override
     public ResponseEntity<?> applyDiscountToAll(BigDecimal discountAmount) {
 
         try{

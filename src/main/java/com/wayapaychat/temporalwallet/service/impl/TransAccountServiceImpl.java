@@ -125,7 +125,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
 		switch (provider.getName()) {
-		case ProviderType.MAINMIFO:
+		case ProviderType.MIFOS:
 			return adminTransfer(request, command, transfer);
 		case ProviderType.TEMPORAL:
 			return adminTransfer(request, command, transfer);
@@ -280,7 +280,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
 		switch (provider.getName()) {
-		case ProviderType.MAINMIFO:
+		case ProviderType.MIFOS:
 			return EventPayment(request, transfer);
 		case ProviderType.TEMPORAL:
 			return EventPayment(request, transfer);
@@ -369,7 +369,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
 		switch (provider.getName()) {
-			case ProviderType.MAINMIFO:
+			case ProviderType.MIFOS:
 				return EventPaymentSettle(request, eventPay);
 			case ProviderType.TEMPORAL:
 				return EventPaymentSettle(request, eventPay);
@@ -463,7 +463,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
 		switch (provider.getName()) {
-		case ProviderType.MAINMIFO:
+		case ProviderType.MIFOS:
 			return OfficePayment(request, transfer);
 		case ProviderType.TEMPORAL:
 			return OfficePayment(request, transfer);
@@ -479,12 +479,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
 		switch (provider.getName()) {
-			case ProviderType.MAINMIFO:
-				return OfficePaymentTemporalWalletToOfficialWallet(request, transfer);
+			case ProviderType.MIFOS:
+				return OfficePaymentTemporalWalletToOfficialWallet(request, transfer, true);
 			case ProviderType.TEMPORAL:
-				return OfficePaymentTemporalWalletToOfficialWallet(request, transfer);
+				return OfficePaymentTemporalWalletToOfficialWallet(request, transfer, false);
 			default:
-				return OfficePaymentTemporalWalletToOfficialWallet(request, transfer);
+				return OfficePaymentTemporalWalletToOfficialWallet(request, transfer, false);
 		}
 	}
 
@@ -585,7 +585,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return tranDate;
 	}
 //ability to transfer money from the temporal wallet back to waya official account in single or in mass with excel upload
-	public ResponseEntity<?> OfficePaymentTemporalWalletToOfficialWallet(HttpServletRequest request, TemporalToOfficialWalletDTO transfer) {
+	public ResponseEntity<?> OfficePaymentTemporalWalletToOfficialWallet(HttpServletRequest request, TemporalToOfficialWalletDTO transfer, boolean isMifos) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
 
 
@@ -612,14 +612,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("TRANSFER");
 		CategoryType tranCategory = CategoryType.valueOf(transfer.getTransactionCategory());
 
-		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
+		ResponseEntity<?> resp;
 		try {
 			int intRec = tempwallet.PaymenttranInsert("WAYAPAY", fromAccountNumber, toAccountNumber, transfer.getAmount(),
 					reference);
 			if (intRec == 1) {
 
 				String tranId = createEventOfficeTransactionModified("WAYAPAY", fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory);
+						transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory, isMifos);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ResponseEntity<>(new ErrorResponse(tranKey[1]), HttpStatus.BAD_REQUEST);
@@ -825,7 +825,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		log.info("WALLET PROVIDER: " + provider.getName());
 
 		switch (provider.getName()) {
-			case ProviderType.MAINMIFO:
+			case ProviderType.MIFOS:
 				for(NonWayaPaymentDTO data: transfer){
 					resp = NonPayment(request, data);
 					rpp.add(resp.getBody());
@@ -901,7 +901,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		log.info("WALLET PROVIDER: " + provider.getName());
 
 		switch (provider.getName()) {
-			case ProviderType.MAINMIFO:
+			case ProviderType.MIFOS:
 				return NonPaymentFromOfficialAccount(request, transfer);
 			case ProviderType.TEMPORAL:
 				return NonPaymentFromOfficialAccount(request, transfer);
@@ -921,7 +921,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		log.info("WALLET PROVIDER: " + provider.getName());
 
 		switch (provider.getName()) {
-			case ProviderType.MAINMIFO:
+			case ProviderType.MIFOS:
 				for(NonWayaPaymentMultipleOfficialDTO data: transfer){
 
 					resp = NonPaymentFromOfficialAccount(request, data);
@@ -1006,7 +1006,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
 		switch (provider.getName()) {
-		case ProviderType.MAINMIFO:
+		case ProviderType.MIFOS:
 			return NonPayment(request, transfer);
 		case ProviderType.TEMPORAL:
 			return NonPayment(request, transfer);
@@ -1674,7 +1674,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
 		switch (provider.getName()) {
-		case ProviderType.MAINMIFO:
+		case ProviderType.MIFOS:
 			return CommissionPayment(request, transfer);
 		case ProviderType.TEMPORAL:
 			return CommissionPayment(request, transfer);
@@ -1768,7 +1768,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
 		switch (provider.getName()) {
-			case ProviderType.MAINMIFO:
+			case ProviderType.MIFOS:
 				return BankPaymentOffice(request, transfer);
 			case ProviderType.TEMPORAL:
 				return BankPaymentOffice(request, transfer);
@@ -1884,7 +1884,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
 		switch (provider.getName()) {
-		case ProviderType.MAINMIFO:
+		case ProviderType.MIFOS:
 			return BankPayment(request, transfer);
 		case ProviderType.TEMPORAL:
 			return BankPayment(request, transfer);
@@ -2073,7 +2073,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		log.info("WALLET PROVIDER: " + provider.getName());
 		ResponseEntity<?> mm = null;
 		switch (provider.getName()) {
-		case ProviderType.MAINMIFO:
+		case ProviderType.MIFOS:
 			 mm = makeTransfer(request, command, transfer, true);
 		case ProviderType.TEMPORAL:
 			 mm = makeTransfer(request, command, transfer, false);
@@ -2156,7 +2156,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
 		switch (provider.getName()) {
-		case ProviderType.MAINMIFO:
+		case ProviderType.MIFOS:
 			return MoneyTransfer(request, transfer, false, true);
 		case ProviderType.TEMPORAL:
 			return MoneyTransfer(request, transfer, false, false);
@@ -2436,7 +2436,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
 		switch (provider.getName()) {
-		case ProviderType.MAINMIFO:
+		case ProviderType.MIFOS:
 			return PaymentMoney(request, transfer);
 		case ProviderType.TEMPORAL:
 			return PaymentMoney(request, transfer);
@@ -2548,7 +2548,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
 		switch (provider.getName()) {
-		case ProviderType.MAINMIFO:
+		case ProviderType.MIFOS:
 			return userDataService.getCardPayment(request, transfer, userId);
 		case ProviderType.TEMPORAL:
 			return userDataService.getCardPayment(request, transfer, userId);
@@ -2564,7 +2564,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
 		switch (provider.getName()) {
-			case ProviderType.MAINMIFO:
+			case ProviderType.MIFOS:
 				return OfficialMoneyTransfer(request, transfer, true);
 			case ProviderType.TEMPORAL:
 				return OfficialMoneyTransfer(request, transfer, false);
@@ -2706,7 +2706,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
 		switch (provider.getName()) {
-			case ProviderType.MAINMIFO:
+			case ProviderType.MIFOS:
 				return OfficialUserTransferSystem(mapp, token,request, transfer, true);
 			case ProviderType.TEMPORAL:
 				return OfficialUserTransferSystem(mapp, token,request, transfer, false);
@@ -3189,7 +3189,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
 		switch (provider.getName()) {
-			case ProviderType.MAINMIFO:
+			case ProviderType.MIFOS:
 				return sendMoneyCustomersw(request, transfer, true);
 			case ProviderType.TEMPORAL:
 				return sendMoneyCustomersw(request, transfer, false);
@@ -3310,7 +3310,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
 		switch (provider.getName()) {
-			case ProviderType.MAINMIFO:
+			case ProviderType.MIFOS:
 				return AdminSendMoneyCustomerSwitch(request, transfer, true);
 			case ProviderType.TEMPORAL:
 				return AdminSendMoneyCustomerSwitch(request, transfer, false);
@@ -3440,7 +3440,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
 		switch (provider.getName()) {
-			case ProviderType.MAINMIFO:
+			case ProviderType.MIFOS:
 				return ClientSendMoneyCustomerSwitch(request, transfer, true);
 			case ProviderType.TEMPORAL:
 				return ClientSendMoneyCustomerSwitch(request, transfer, false);
@@ -3568,6 +3568,26 @@ public class TransAccountServiceImpl implements TransAccountService {
 		Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
 		try {
 
+			System.out.println("############# BEFORE mifos " + mifos);
+			// call Mifos
+			if(mifos || !mifos){
+				WalletAccount accountDebit = walletAccountRepository.findByAccountNo(debitAcctNo);
+				WalletAccount accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
+				System.out.println("############# BEFORE mifos inside 1" + mifos);
+				WalletAccount finalAccountCredit1 = accountCredit;
+				WalletAccount finalAccountDebit1 = accountDebit;
+
+				String tranId = tempwallet.GenerateTranId();
+				String finalTranId = tranId;
+				System.out.println("############# BEFORE mifos inside 2" + mifos);
+				ApiResponse<?> response = postToMifos(token, finalAccountCredit1, finalAccountDebit1, amount, tranNarration, finalTranId,  tranType);
+
+				System.out.println("############# AFTER mifos inside 2" + response);
+				if(!response.getStatus()){
+					throw new CustomException("Error in posting to MIFOS", HttpStatus.EXPECTATION_FAILED);
+				}
+			}
+
 			int n = 1;
 			log.info("START TRANSACTION");
 			String tranCount = tempwallet.transactionCount(paymentRef, creditAcctNo);
@@ -3597,8 +3617,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 			System.out.println(" debitAcctNo ::: " + accountDebit);
 			System.out.println(" accountCredit ::: " + creditAcctNo);
 
+
+
 			if (!charge.isChargeCustomer() && charge.isChargeWaya()) {
-				if(StringUtils.isNumeric(debitAcctNo)){
+				if(!StringUtils.isNumeric(debitAcctNo)){
 					accountDebit = accountDebitTeller;
 				}
 
@@ -3705,13 +3727,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 						new Date(), tranType.getValue(), xUser.getUserId().toString(), receiverName2, tranCategory.getValue(), token,senderName));
 			}
 
-			// call Mifos
-			if(mifos || !mifos){
-				WalletAccount finalAccountCredit1 = accountCredit;
-				WalletAccount finalAccountDebit1 = accountDebit;
-				String finalTranId = tranId;
-				CompletableFuture.runAsync(() -> postToMifos(token, finalAccountCredit1, finalAccountDebit1, amount, tranNarration, finalTranId,  tranType));
-			}
+
 			// Remove Lien
 		 	removeLien(accountDebit,amount);
 			System.out.println("removeLien the second time");
@@ -3749,26 +3765,54 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 
-	private void postToMifos(String token,WalletAccount accountCredit, WalletAccount accountDebit, BigDecimal amount, String tranNarration, String tranId,
+	private ApiResponse<?> postToMifos(String token,WalletAccount accountCredit, WalletAccount accountDebit, BigDecimal amount, String tranNarration, String tranId,
 							 TransactionTypeEnum tranType){
+		System.out.println("############# BEFORE accountCredit " + accountCredit);
+		System.out.println("############# accountDebit" + accountDebit);
+		System.out.println("############# amount" + amount);
+		System.out.println("############# tranNarration" + tranNarration);
+		System.out.println("############# tranNarration" + tranId);
+		System.out.println("############# tranNarration" + tranType);
+		String accountCredit2 = "";
+		String accountDebit2 = "";
+
+		if(accountCredit.getNubanAccountNo() !=null){
+			System.out.println("this is not  null");
+		}else{
+			System.out.println("this is null");
+		}
+
+		if(accountDebit.getNubanAccountNo() !=null){
+			System.out.println(" 22this is not  null");
+		}else{
+			System.out.println("this is null");
+		}
 		MifosTransfer mifosTransfer = new MifosTransfer();
 		mifosTransfer.setAmount(amount);
-		mifosTransfer.setDestinationAccountNumber(accountCredit.getNubanAccountNo());
-		mifosTransfer.setDestinationAccountType(accountCredit.getAccountType());
+ 		mifosTransfer.setDestinationAccountNumber(accountCredit.getNubanAccountNo() !=null ? accountCredit.getNubanAccountNo(): accountCredit.getAccountNo());
+
+		mifosTransfer.setDestinationAccountType(accountCredit.getAccountType() !=null ? accountCredit.getAccountType() : "SAVINGS");
 		mifosTransfer.setDestinationCurrency(accountCredit.getAcct_crncy_code());
 		mifosTransfer.setNarration(tranNarration);
-		mifosTransfer.setRequestId(tranId);
-		mifosTransfer.setSourceAccountNumber(accountDebit.getNubanAccountNo());
-		mifosTransfer.setSourceAccountType(accountDebit.getAccountType());
+		mifosTransfer.setRequestId(tranId+"345493");
+		mifosTransfer.setSourceAccountNumber(accountDebit.getNubanAccountNo() !=null ? accountDebit.getNubanAccountNo() : accountDebit.getAccountNo());
+
+		mifosTransfer.setSourceAccountType("SAVINGS");
 		mifosTransfer.setSourceCurrency(accountDebit.getAcct_crncy_code());
-		mifosTransfer.setTransactionType(tranType.getValue());
+		mifosTransfer.setTransactionType(TransactionTypeEnum.TRANSFER.getValue());
+		ApiResponse<?> response = null;
+		System.out.println(" here" + mifosTransfer);
 		try{
-			ApiResponse<?> response = mifosWalletProxy.transferMoney(token,mifosTransfer);
-			 log.info("MifosWalletProxy :: " + response);
-		}catch(FeignException ex){
+			log.info("## token  ####### :: " + token);
+			log.info("## BEFOR MIFOS REQUEST ####### :: " + mifosTransfer);
+			response = mifosWalletProxy.transferMoney(token,mifosTransfer);
+			 log.info("### RESPONSE FROM MIFOS MifosWalletProxy  ###### :: " + response);
+		}catch(CustomException ex){
+			System.out.println("ERROR posting to MIFOS :::: " + ex.getMessage());
 			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
 		}
 
+		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", response.getData());
 	}
  
 	private UserPricing getUserProduct(WalletAccount accountDebit, String eventId){
@@ -5692,8 +5736,26 @@ public class TransAccountServiceImpl implements TransAccountService {
 ////ability to transfer money from the temporal wallet back to waya official account in single or in mass with excel upload
 	public String createEventOfficeTransactionModified(String eventId, String fromAccountNumber, String toAccountNumber, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request,
-			CategoryType tranCategory) throws Exception {
+			CategoryType tranCategory, boolean mifos) {
+
+		String token1 = request.getHeader(SecurityConstants.HEADER_STRING);
 		try {
+			WalletAccount accountDebit = walletAccountRepository.findByAccountNo(fromAccountNumber);
+			WalletAccount accountCredit = walletAccountRepository.findByAccountNo(toAccountNumber);
+
+			String tranId2 = tempwallet.GenerateTranId();
+			System.out.println( "###### BEFORE SENDING REQUEST TO MIFOS  mifos =" + mifos);
+			if(mifos || !mifos){
+
+				WalletAccount finalAccountCredit1 = accountCredit; // toAccountNumber
+				WalletAccount finalAccountDebit1 = accountDebit;  //fromAccountNumber
+				//toAccountNumber
+				String finalTranId = tranId2;
+				System.out.println( "###### BEFORE SENDING REQUEST TO MIFOS " + finalAccountDebit1);
+				CompletableFuture.runAsync(() -> postToMifos(token1, finalAccountCredit1, finalAccountDebit1, amount, tranNarration, finalTranId,  tranType));
+				System.out.println( "###### RESPONSE AFTER SENDING REQUEST TO MIFOS " + finalAccountDebit1);
+			}
+
 			int n = 1;
 			log.info("START TRANSACTION");
 			String tranCount = tempwallet.transactionCount(paymentRef, toAccountNumber);
@@ -5740,9 +5802,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 //				return "DJGO|NO EVENT ACCOUNT";
 //			}
 
-			WalletAccount accountDebit = walletAccountRepository.findByAccountNo(fromAccountNumber);
-			WalletAccount accountCredit = walletAccountRepository.findByAccountNo(toAccountNumber);
-			System.out.println( "################# iNISDE createEventOfficeTransactionModified 2");
+
+			System.out.println( "################# iNISDE accountDebit 2 " + accountDebit);
+			System.out.println( "################# iNISDE accountCredit 33 " + accountCredit);
 			//WalletAccount accountDebit = null;
 //			WalletAccount accountCredit = null;
 //			if (!charge.isChargeCustomer() && charge.isChargeWaya()) {
@@ -5912,13 +5974,16 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			log.info("END TRANSACTION");
 			// HttpServletRequest request
-			String token1 = request.getHeader(SecurityConstants.HEADER_STRING);
+
 			String receiverAcct = accountCredit.getAccountNo();
 			String receiverName2 = accountCredit.getAcct_name();
 
 
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
 					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token1,senderName));
+
+
+
 			return tranId;
 		} catch (Exception e) {
 			System.out.println(" e.getMessage() == " + e.getMessage());
@@ -7050,7 +7115,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		log.info("WALLET PROVIDER: " + provider.getName());
 		ApiResponse<?> res;
 		switch (provider.getName()) {
-			case ProviderType.MAINMIFO:
+			case ProviderType.MIFOS:
 				res = OfficialUserTransfer(request, officeTransferDTO, true);
 				if (!res.getStatus()) {
 					return new ResponseEntity<>(res, HttpStatus.EXPECTATION_FAILED);
@@ -7083,7 +7148,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
 		switch (provider.getName()) {
-		case ProviderType.MAINMIFO:
+		case ProviderType.MIFOS:
 			return ReversePayment(request, reverseDto);
 		case ProviderType.TEMPORAL:
 			return ReversePayment(request, reverseDto);
@@ -7224,7 +7289,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
 		switch (provider.getName()) {
-			case ProviderType.MAINMIFO:
+			case ProviderType.MIFOS:
 				return ReversePaymentRevised(request, reverseDto);
 			case ProviderType.TEMPORAL:
 				return ReversePaymentRevised(request, reverseDto);

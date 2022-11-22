@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -10,6 +11,8 @@ import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.pojo.RecurrentConfigPojo;
 import com.wayapaychat.temporalwallet.repository.*;
+import com.wayapaychat.temporalwallet.service.AutoCreateAccountService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +25,7 @@ import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.ParamDefaultValidation;
 import com.wayapaychat.temporalwallet.util.SuccessResponse;
 
+@Slf4j
 @Service
 public class ConfigServiceImpl implements ConfigService {
 
@@ -500,6 +504,41 @@ public class ConfigServiceImpl implements ConfigService {
         } catch (Exception e) {
             return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
+	}
+
+	@Override
+	public ResponseEntity<?> AutoCreateTransAccount(AutoCreateAccount request) {
+		try{
+			WalletConfigDTO walletConfigDTO = new WalletConfigDTO();
+			walletConfigDTO.setCodeDesc(request.getCodeDesc());
+			walletConfigDTO.setCodeName(request.getCodeName());
+			walletConfigDTO.setCodeSymbol(request.getCodeSymbol());
+			walletConfigDTO.setCodeValue(request.getCodeValue());
+
+			ResponseEntity<?> entity = createDefaultCode(walletConfigDTO);
+			ResponseEntity<?> responseEntity = null;
+			log.info(" ######### FINISH  CREATING createDefaultCode::: " + entity);
+			if(entity.getStatusCode().is2xxSuccessful()){
+				EventChargeDTO eventChargeDTO = new EventChargeDTO();
+				eventChargeDTO.setChargeCustomer(request.isChargeCustomer());
+				eventChargeDTO.setChargeWaya(request.isChargeWaya());
+				eventChargeDTO.setCrncyCode(request.getCrncyCode());
+				eventChargeDTO.setEventId(request.getEventId());
+				eventChargeDTO.setPlaceholder(request.getCodeValue());
+				eventChargeDTO.setTaxable(false);
+				eventChargeDTO.setTaxAmt(BigDecimal.valueOf(0.00));
+				eventChargeDTO.setTranAmt(BigDecimal.valueOf(0.00));
+				eventChargeDTO.setTranNarration(request.getTranNarration());
+
+				responseEntity = createdEvents(eventChargeDTO);
+				log.info(" ######### FINISH CREATING  createdEvents::: " + responseEntity);
+			}
+
+			return responseEntity;
+		} catch (Exception e) {
+			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+		}
+
 	}
 
 

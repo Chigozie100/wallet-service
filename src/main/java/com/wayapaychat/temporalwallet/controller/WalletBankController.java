@@ -4,6 +4,7 @@ import javax.validation.Valid;
 
 
 import com.wayapaychat.temporalwallet.dto.*;
+import com.wayapaychat.temporalwallet.service.UserAccountService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,8 @@ public class WalletBankController {
 	@Autowired
     ConfigService configService;
 
+    @Autowired
+    UserAccountService userAccountService;
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
@@ -188,13 +191,31 @@ public class WalletBankController {
 //        return configService.ListTranCharge();
 //    }
 //
-//    @ApiImplicitParams({
-//            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-//    @ApiOperation(value = "Get Transaction Charge", tags = { "BANK-WALLET" })
-//    @GetMapping(path = "/transaction/charges/{chargeId}")
-//    public ResponseEntity<?> GetTranCharge(@PathVariable("chargeId") Long chargeId) {
-//        return configService.findTranCharge(chargeId);
-//    }
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "AUTO CREATE ACCOUNT", tags = { "BANK-WALLET" })
+    @PostMapping(path = "/auto-create/account")
+    public ResponseEntity<?> AutoCreateTransAccount(@RequestBody AutoCreateAccount request) {
+        ResponseEntity<?> responseEntity = configService.AutoCreateTransAccount(request);
+        if (responseEntity.getStatusCode().is2xxSuccessful()){
+
+            WalletEventAccountDTO walletEventAccountDTO = new WalletEventAccountDTO();
+            walletEventAccountDTO.setAccountType("TRANS");
+            walletEventAccountDTO.setAccountName(request.getTranNarration());
+            walletEventAccountDTO.setCrncyCode(request.getCrncyCode());
+            walletEventAccountDTO.setDescription(request.getTranNarration());
+            walletEventAccountDTO.setEventId(request.getEventId());
+            walletEventAccountDTO.setPlaceholderCode(request.getCodeValue());
+            walletEventAccountDTO.setProductCode("OABAS");
+            walletEventAccountDTO.setProductGL("11104");
+
+            System.out.println(" Request Body::: " + walletEventAccountDTO);
+
+            ResponseEntity<?> responseEntity1 = userAccountService.createEventAccount(walletEventAccountDTO);
+            log.info(" ######### FINISH CREATING createEventAccount::: " + responseEntity1);
+        }
+        return responseEntity;
+    }
 //
 //    @ApiImplicitParams({
 //            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
