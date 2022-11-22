@@ -3570,23 +3570,23 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			System.out.println("############# BEFORE mifos " + mifos);
 			// call Mifos
-			if(mifos || !mifos){
-				WalletAccount accountDebit = walletAccountRepository.findByAccountNo(debitAcctNo);
-				WalletAccount accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
-				System.out.println("############# BEFORE mifos inside 1" + mifos);
-				WalletAccount finalAccountCredit1 = accountCredit;
-				WalletAccount finalAccountDebit1 = accountDebit;
-
-				String tranId = tempwallet.GenerateTranId();
-				String finalTranId = tranId;
-				System.out.println("############# BEFORE mifos inside 2" + mifos);
-				ApiResponse<?> response = postToMifos(token, finalAccountCredit1, finalAccountDebit1, amount, tranNarration, finalTranId,  tranType);
-
-				System.out.println("############# AFTER mifos inside 2" + response);
-				if(!response.getStatus()){
-					throw new CustomException("Error in posting to MIFOS", HttpStatus.EXPECTATION_FAILED);
-				}
-			}
+//			if(mifos){
+//				WalletAccount accountDebit = walletAccountRepository.findByAccountNo(debitAcctNo);
+//				WalletAccount accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
+//				System.out.println("############# BEFORE mifos inside 1" + mifos);
+//				WalletAccount finalAccountCredit1 = accountCredit;
+//				WalletAccount finalAccountDebit1 = accountDebit;
+//
+//				String tranId = tempwallet.GenerateTranId();
+//				String finalTranId = tranId;
+//				System.out.println("############# BEFORE mifos inside 2" + mifos);
+//				ApiResponse<?> response = postToMifos(token, finalAccountCredit1, finalAccountDebit1, amount, tranNarration, finalTranId,  tranType);
+//
+//				System.out.println("############# AFTER mifos inside 2" + response);
+//				if(!response.getStatus()){
+//					throw new CustomException("Error in posting to MIFOS", HttpStatus.EXPECTATION_FAILED);
+//				}
+//			}
 
 			int n = 1;
 			log.info("START TRANSACTION");
