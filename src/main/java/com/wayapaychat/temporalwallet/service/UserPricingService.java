@@ -17,6 +17,7 @@ public interface UserPricingService {
 
     ResponseEntity<?> getAllUserPricing(int page, int size);
 
+    ResponseEntity<?> getAllUserPricingUserId(String userId, String product);
 
     ResponseEntity<?> applyDiscountToAll(BigDecimal discountAmount);
 

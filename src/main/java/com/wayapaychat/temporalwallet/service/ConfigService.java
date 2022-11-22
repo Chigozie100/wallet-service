@@ -32,6 +32,9 @@ public interface ConfigService {
 	ResponseEntity<?> createCharge(ChargeDTO event);
 	ResponseEntity<?> ListTranCharge();
 	ResponseEntity<?> findTranCharge(Long id);
+
+	ResponseEntity<?> AutoCreateTransAccount(AutoCreateAccount request);
+	//
 	ResponseEntity<?> updateTranCharge(ModifyChargeDTO event, Long chargeId);
 
 	ResponseEntity<?> createRecurrentPayment(RecurrentConfigPojo request);
