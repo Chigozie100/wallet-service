@@ -1,17 +1,15 @@
 package com.wayapaychat.temporalwallet.entity;
 
+import com.wayapaychat.temporalwallet.enumm.PriceCategory;
 import com.wayapaychat.temporalwallet.enumm.ProductPriceStatus;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.util.Date;
-
+@Data
 @Entity
 @Getter
 @Setter
@@ -37,6 +35,11 @@ public class UserPricing {
     private String fullName;
 
     private String product;
+
+    private String code;
+
+    @Enumerated(EnumType.STRING)
+    private PriceCategory priceType = PriceCategory.FIXED;
 
     @Enumerated(EnumType.STRING)
     private ProductPriceStatus status;

@@ -14,7 +14,7 @@ public interface TransactionService {
     ResponseEntity<?> transferTransaction(TransactionTransferPojo transactionTransferPojo);
     ResponseEntity<?> transferTransactionWithId(TransactionTransferPojo2 transactionTransferPojo2);
 
-    boolean processPayment(HttpServletRequest request, Map<String, Object> map);
+    Map<String, Object> processPayment(HttpServletRequest request, Map<String, Object> map);
 
 
 }

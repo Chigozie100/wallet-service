@@ -1,12 +1,11 @@
 
  package com.wayapaychat.temporalwallet.service.impl;
 
+ import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
  import com.wayapaychat.temporalwallet.dto.AccountLienDTO;
  import com.wayapaychat.temporalwallet.dto.TemporalToOfficialWalletDTO;
  import com.wayapaychat.temporalwallet.entity.*;
- import com.wayapaychat.temporalwallet.enumm.ProductPriceStatus;
- import com.wayapaychat.temporalwallet.enumm.ProviderType;
- import com.wayapaychat.temporalwallet.enumm.WalletTransStatus;
+ import com.wayapaychat.temporalwallet.enumm.*;
  import com.wayapaychat.temporalwallet.exception.CustomException;
  import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
  import com.wayapaychat.temporalwallet.pojo.MyData;
@@ -14,10 +13,7 @@
  import com.wayapaychat.temporalwallet.pojo.TransactionTransferPojo;
  import com.wayapaychat.temporalwallet.pojo.TransactionTransferPojo2;
  import com.wayapaychat.temporalwallet.repository.*;
- import com.wayapaychat.temporalwallet.service.SwitchWalletService;
- import com.wayapaychat.temporalwallet.service.TransAccountService;
- import com.wayapaychat.temporalwallet.service.TransactionService;
- import com.wayapaychat.temporalwallet.service.UserAccountService;
+ import com.wayapaychat.temporalwallet.service.*;
  import com.wayapaychat.temporalwallet.util.ParamDefaultValidation;
  import com.wayapaychat.temporalwallet.util.ReqIPUtils;
  import com.wayapaychat.temporalwallet.util.Util;
@@ -30,11 +26,12 @@
  import javax.servlet.http.HttpServletRequest;
  import java.math.BigDecimal;
  import java.time.LocalDateTime;
+ import java.util.HashMap;
  import java.util.Map;
  import java.util.Objects;
  import java.util.Optional;
  import java.util.regex.Pattern;
-
+import com.wayapaychat.temporalwallet.service.ConfigService;
  @Service
  @Slf4j
 public class TransactionServiceImpl implements TransactionService {
@@ -50,9 +47,12 @@ public class TransactionServiceImpl implements TransactionService {
      private final WalletTransAccountRepository walletTransAccountRepository;
      private final TransAccountService transAccountService;
      private final SwitchWalletService switchWalletService;
+     private final ConfigService configService;
+     private final TemporalWalletDAO tempwallet;
+
 
      @Autowired
-     public TransactionServiceImpl(ParamDefaultValidation paramValidation, WalletAccountRepository walletAccountRepository, ReqIPUtils reqIPUtils, TokenImpl tokenService, UserAccountService userAccountService, WalletEventRepository walletEventRepository, WalletUserRepository walletUserRepository, UserPricingRepository userPricingRepository, WalletTransAccountRepository walletTransAccountRepository, TransAccountService transAccountService, SwitchWalletService switchWalletService) {
+     public TransactionServiceImpl(ParamDefaultValidation paramValidation, WalletAccountRepository walletAccountRepository, ReqIPUtils reqIPUtils, TokenImpl tokenService, UserAccountService userAccountService, WalletEventRepository walletEventRepository, WalletUserRepository walletUserRepository, UserPricingRepository userPricingRepository, WalletTransAccountRepository walletTransAccountRepository, TransAccountService transAccountService, SwitchWalletService switchWalletService, ConfigService configService, TemporalWalletDAO tempwallet) {
          this.paramValidation = paramValidation;
          this.walletAccountRepository = walletAccountRepository;
          this.reqIPUtils = reqIPUtils;
@@ -64,6 +64,8 @@ public class TransactionServiceImpl implements TransactionService {
          this.walletTransAccountRepository = walletTransAccountRepository;
          this.transAccountService = transAccountService;
          this.switchWalletService = switchWalletService;
+         this.configService = configService;
+         this.tempwallet = tempwallet;
      }
 
 
@@ -198,7 +200,7 @@ public class TransactionServiceImpl implements TransactionService {
          return tranAmCharges;
      }
 
-     public boolean checkProvider() {
+     public boolean checkCoreBank() {
          Provider provider = switchWalletService.getActiveProvider();
          if (provider == null) {
              throw new CustomException("NO PROVIDER SWITCHED", HttpStatus.BAD_REQUEST);
@@ -211,6 +213,12 @@ public class TransactionServiceImpl implements TransactionService {
              default:
                  return false;
          }
+     }
+
+     private ChannelProvider checkActiveChannel(){
+         ChannelProvider channelProvider = configService.findActiveChannel();
+         System.out.println("channelProvider ::" + channelProvider);
+         return channelProvider;
      }
 
      private Long transAccount(HttpServletRequest request, String fromAccountNumber, String toAccountNumber, BigDecimal amount, String transCategory,String tranCrncy, WalletTransStatus status){
@@ -304,7 +312,20 @@ public class TransactionServiceImpl implements TransactionService {
      }
 
      @Override
-     public boolean processPayment(HttpServletRequest request, Map<String, Object> map) {
+     public Map<String, Object> processPayment(HttpServletRequest request, Map<String, Object> map) {
+
+         Map<String, Object> response = new HashMap<>();
+         boolean provider = checkCoreBank();  // check for provider
+         log.info("provider: " + provider);
+
+         ChannelProvider channelProvider = checkActiveChannel();  // check active channel provider
+         log.info("channelProvider: " + channelProvider);
+
+         // check KYC
+
+         //User James Waya MFB (Mifos) Customer Account is debited with 10,000
+         //WAYA MFB (Mifos) NIP Intransit disbursement account is credited with 10,000
+
 
          // put the requested amount into a tranAccount
 
@@ -330,13 +351,16 @@ public class TransactionServiceImpl implements TransactionService {
          if (!validate)
              throw new CustomException("DJGO|Currency Code Validation Failed", HttpStatus.EXPECTATION_FAILED);
 
-         if(fromAccountNumber.equals(toAccountNumber))
-             throw new CustomException("DEBIT ACCOUNT CAN'T BE THE SAME WITH CREDIT ACCOUNT", HttpStatus.EXPECTATION_FAILED);
+         if(fromAccountNumber !=null && toAccountNumber !=null){
 
-         if (fromAccountNumber.trim().equals(toAccountNumber.trim())){
-             log.info(toAccountNumber + "|" + fromAccountNumber);
-             throw new CustomException("DEBIT AND CREDIT ON THE SAME ACCOUNT",HttpStatus.EXPECTATION_FAILED);
-         }
+             if(fromAccountNumber.equals(toAccountNumber))
+                 throw new CustomException("DEBIT ACCOUNT CAN'T BE THE SAME WITH CREDIT ACCOUNT", HttpStatus.EXPECTATION_FAILED);
+
+             if (fromAccountNumber.trim().equals(toAccountNumber.trim())){
+                 log.info(toAccountNumber + "|" + fromAccountNumber);
+                 throw new CustomException("DEBIT AND CREDIT ON THE SAME ACCOUNT",HttpStatus.EXPECTATION_FAILED);
+             }
+
 
          System.out.println("#### #####    #### ##### " + fromAccountNumber );
          System.out.println("#### #####    #### ##### " + toAccountNumber );
@@ -362,8 +386,10 @@ public class TransactionServiceImpl implements TransactionService {
 
 
          // To fetch BankAcccount and Does it exist
+
          WalletAccount accountDebit = walletAccountRepository.findByAccountNo(fromAccountNumber);
          WalletAccount accountCredit = walletAccountRepository.findByAccountNo(toAccountNumber);
+
          if (accountDebit == null || accountCredit == null) {
              throw new CustomException("DJGO|DEBIT ACCOUNT OR BENEFICIARY ACCOUNT DOES NOT EXIST",HttpStatus.EXPECTATION_FAILED);
          }
@@ -375,7 +401,10 @@ public class TransactionServiceImpl implements TransactionService {
 
          // Check for account security
          log.info(accountDebit.getHashed_no());
-
+         if (!accountDebit.getAcct_ownership().equals("O")) {
+             String compareDebit = tempwallet.GetSecurityTest(accountDebit.getAccountNo());
+             log.info(compareDebit);
+         }
          try{
              String secureDebit = reqIPUtils.WayaDecrypt(accountDebit.getHashed_no());
              log.info(secureDebit);
@@ -409,9 +438,14 @@ public class TransactionServiceImpl implements TransactionService {
              log.error(ex.getMessage());
          }
 
+         // Check for account security
          log.info(accountCredit.getHashed_no());
-
+         if (!accountCredit.getAcct_ownership().equals("O")) {
+             String compareDebit = tempwallet.GetSecurityTest(accountCredit.getAccountNo());
+             log.info(compareDebit);
+         }
          try{
+
              String secureCredit = reqIPUtils.WayaDecrypt(accountCredit.getHashed_no());
              log.info(secureCredit);
              String[] keyCredit = secureCredit.split(Pattern.quote("|"));
@@ -467,12 +501,161 @@ public class TransactionServiceImpl implements TransactionService {
 
 
          updateTransAccount(tranId,WalletTransStatus.SUCCESSFUL);
+
+         }
          System.out.println(" ############### ACCOUNT VALIDATION DON SUCCESSFULLY :: ###############");
 
          // save transaction
          // check KYC
          // check
          // check fraud rules
-         return true;
+
+         if(channelProvider.getName().equals("NIP")){
+             response.put("eventId", "MIFOSNIPINTRAS");
+         }else if(channelProvider.getName().equals("WEMA")){
+             response.put("eventId", "WEMA_INT_DISBURS_ACCT"); ;
+         }else if(channelProvider.getName().equals("ZENITH")){
+             response.put("eventId", "ZE_INT_DISBURS_ACCOUNT");
+         }else{
+             response.put("eventId", "BANKPMT");
+         }
+
+         response.put("isMifos", provider);
+         response.put("channel", channelProvider.getName());
+
+         return response;
+     }
+
+
+     public String securityCheck(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
+                                TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request,
+                                CategoryType tranCategory, boolean isMifos) throws Exception {
+
+         log.info("START TRANSACTION");
+         String tranCount = tempwallet.transactionCount(paymentRef, creditAcctNo);
+         if (!tranCount.isBlank()) {
+             return "tranCount";
+         }
+         boolean validate = paramValidation.validateDefaultCode(tranCrncy, "Currency");
+         if (!validate) {
+             return "DJGO|Currency Code Validation Failed";
+         }
+         Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
+         if (!eventInfo.isPresent()) {
+             return "DJGO|Event Code Does Not Exist";
+         }
+         WalletEventCharges charge = eventInfo.get();
+         boolean validate2 = paramValidation.validateDefaultCode(charge.getPlaceholder(), "Batch Account");
+         if (!validate2) {
+             return "DJGO|Event Validation Failed";
+         }
+         WalletAccount eventAcct = walletAccountRepository.findByAccountNo(creditAcctNo);
+         if (eventAcct == null) {
+             return "DJGO|CUSTOMER ACCOUNT DOES NOT EXIST";
+         }
+         // Does account exist
+         Optional<WalletAccount> accountDebitTeller = walletAccountRepository
+                 .findByUserPlaceholder(charge.getPlaceholder(), charge.getCrncyCode(), eventAcct.getSol_id());
+         if (!accountDebitTeller.isPresent()) {
+             return "DJGO|NO EVENT ACCOUNT";
+         }
+
+         WalletAccount accountDebit = null;
+         WalletAccount accountCredit = null;
+
+         // Check for account security
+         log.info(accountDebit.getHashed_no());
+         if (!accountDebit.getAcct_ownership().equals("O")) {
+             String compareDebit = tempwallet.GetSecurityTest(accountDebit.getAccountNo());
+             log.info(compareDebit);
+         }
+         String secureDebit = reqIPUtils.WayaDecrypt(accountDebit.getHashed_no());
+         log.info(secureDebit);
+         String[] keyDebit = secureDebit.split(Pattern.quote("|"));
+         if ((!keyDebit[1].equals(accountDebit.getAccountNo()))
+                 || (!keyDebit[2].equals(accountDebit.getProduct_code()))
+                 || (!keyDebit[3].equals(accountDebit.getAcct_crncy_code()))) {
+             return "DJGO|DEBIT ACCOUNT DATA INTEGRITY ISSUE";
+         }
+
+         log.info(accountCredit.getHashed_no());
+         if (!accountDebit.getAcct_ownership().equals("O")) {
+             String compareCredit = tempwallet.GetSecurityTest(creditAcctNo);
+             log.info(compareCredit);
+         }
+         String secureCredit = reqIPUtils.WayaDecrypt(accountCredit.getHashed_no());
+         log.info(secureCredit);
+         String[] keyCredit = secureCredit.split(Pattern.quote("|"));
+         if ((!keyCredit[1].equals(accountCredit.getAccountNo()))
+                 || (!keyCredit[2].equals(accountCredit.getProduct_code()))
+                 || (!keyCredit[3].equals(accountCredit.getAcct_crncy_code()))) {
+             return "DJGO|CREDIT ACCOUNT DATA INTEGRITY ISSUE";
+         }
+         // Check for Amount Limit
+         if (!accountDebit.getAcct_ownership().equals("O")) {
+
+             Long userId = Long.parseLong(keyDebit[0]);
+             WalletUser user = walletUserRepository.findByUserId(userId);
+             BigDecimal AmtVal = new BigDecimal(user.getCust_debit_limit());
+             if (AmtVal.compareTo(amount) == -1) {
+                 return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
+             }
+
+             if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
+                 return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+             }
+
+             if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
+                 return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+             }
+         }
+
+         // Token Fetch
+         MyData tokenData = tokenService.getUserInformation();
+         String email = tokenData != null ? tokenData.getEmail() : "";
+         String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+         // **********************************************
+
+         // AUth Security check
+         // **********************************************
+         if (!accountDebit.getAcct_ownership().equals("O")) {
+             if (accountDebit.isAcct_cls_flg())
+                 return "DJGO|DEBIT ACCOUNT IS CLOSED";
+             log.info("Debit Account is: {}", accountDebit.getAccountNo());
+             log.info("Debit Account Freeze Code is: {}", accountDebit.getFrez_code());
+             if (accountDebit.getFrez_code() != null) {
+                 if (accountDebit.getFrez_code().equals("D"))
+                     return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+             }
+
+             if (accountDebit.getLien_amt() != 0) {
+                 double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
+                 if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
+                     return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+                 }
+                 if (new BigDecimal(oustbal).compareTo(amount) == -1) {
+                     return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+                 }
+             }
+
+             BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
+             if (userLim.compareTo(amount) == -1) {
+                 return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
+             }
+         }
+
+         if (!accountCredit.getAcct_ownership().equals("O")) {
+             if (accountCredit.isAcct_cls_flg())
+                 return "DJGO|CREDIT ACCOUNT IS CLOSED";
+
+             log.info("Credit Account is: {}", accountCredit.getAccountNo());
+             log.info("Credit Account Freeze Code is: {}", accountCredit.getFrez_code());
+             if (accountCredit.getFrez_code() != null) {
+                 if (accountCredit.getFrez_code().equals("C"))
+                     return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+             }
+         }
+
+         return "";
      }
  }

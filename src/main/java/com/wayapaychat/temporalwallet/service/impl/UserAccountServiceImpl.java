@@ -959,13 +959,14 @@ public class UserAccountServiceImpl implements UserAccountService {
 		String acct_ownership = "O";
 
 
-
+		// call to generate nuban account
+		String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, user.getAccountType());
 		try {
 			String hashed_no = reqUtil
 					.WayaEncrypt(0L + "|" + acctNo + "|" + user.getProductCode() + "|" + product.getCrncy_code());
 
 			WalletAccount account = new WalletAccount();
-			account = new WalletAccount("0000", user.getPlaceholderCode(), acctNo, "0",user.getAccountName(), null,
+			account = new WalletAccount("0000", user.getPlaceholderCode(), acctNo, nubanAccountNumber,user.getAccountName(), null,
 					code.getGlSubHeadCode(), product.getProductCode(), acct_ownership, hashed_no,
 					product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
 					product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),

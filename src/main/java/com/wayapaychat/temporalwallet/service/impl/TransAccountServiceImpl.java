@@ -111,11 +111,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 
-	public ResponseEntity<?> initiateTransaction(Object obj, HttpServletRequest request){
-
-		return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
-	}
-
 	@Override
 	public ResponseEntity<?> adminTransferForUser(HttpServletRequest request, String command,
 			AdminUserTransferDTO transfer) {
@@ -150,7 +145,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			reference = transfer.getPaymentReference();
 		}
 
-		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
+		ResponseEntity<?> resp;
 		try {
 			int intRec = tempwallet.PaymenttranInsert("ADMINTIL", "", toAccountNumber, transfer.getAmount(), reference);
 			if (intRec == 1) {
@@ -163,15 +158,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
 							HttpStatus.BAD_REQUEST);
 				}
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", transaction), HttpStatus.CREATED);
 
-				Date tDate = new Date();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate = getTransactionDate();
 
 				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
@@ -196,7 +189,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 			}
 		} catch (Exception ex) {
-			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			log.error("Error occurred - GET WALLET TRANSACTION " + ex.getMessage());
 			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return resp;
@@ -211,12 +204,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 
 		Optional<WalletUser> wallet = walletUserRepository.findByEmailOrPhoneNumber(transfer.getEmailOrPhoneNumber());
-		if (!wallet.isPresent()) {
+		if (wallet.isEmpty()) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE NO DOES NOT EXIST", null);
 		}
 		WalletUser user = wallet.get();
 		Optional<WalletAccount> defaultAcct = walletAccountRepository.findByDefaultAccount(user);
-		if (!defaultAcct.isPresent()) {
+		if (defaultAcct.isEmpty()) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NO ACCOUNT NUMBER EXIST", null);
 		}
 		String toAccountNumber = defaultAcct.get().getAccountNo();
@@ -236,14 +229,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
 
-				Date tDate = new Date();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+
+				String tranDate = getTransactionDate();
 
 				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
@@ -273,23 +265,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ResponseEntity<?> EventTransferPayment(HttpServletRequest request, EventPaymentDTO transfer) {
-		Provider provider = switchWalletService.getActiveProvider();
-		if (provider == null) {
-			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
-		}
-		log.info("WALLET PROVIDER: " + provider.getName());
-		switch (provider.getName()) {
-		case ProviderType.MIFOS:
-			return EventPayment(request, transfer);
-		case ProviderType.TEMPORAL:
-			return EventPayment(request, transfer);
-		default:
-			return EventPayment(request, transfer);
-		}
-	}
-
-	public ResponseEntity<?> EventPayment(HttpServletRequest request, EventPaymentDTO transfer) {
+	public ResponseEntity<?> EventTransferPayment(HttpServletRequest request, EventPaymentDTO transfer, boolean isMifos) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
 
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
@@ -298,7 +274,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
 		}
 
-		String reference = "";
+		String reference;
 		reference = tempwallet.TransactionGenerate();
 		if (reference.equals("")) {
 			reference = transfer.getPaymentReference();
@@ -307,11 +283,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("CARD");
 		CategoryType tranCategory = CategoryType.valueOf(transfer.getTransactionCategory());
 
-		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
+		ResponseEntity<?> resp;
 		try {
 			int intRec = tempwallet.PaymenttranInsert(transfer.getEventId(), "", toAccountNumber, transfer.getAmount(),
 					reference);
-			String tranId = "";
+			String tranId;
 			if (intRec == 1) {
 				if(transfer.getEventId().equals("SMSCHG")){
 					tranId = createEventTransactionDebitUserCreditWayaAccount(transfer.getEventId(), toAccountNumber, transfer.getTranCrncy(),
@@ -321,7 +297,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 							transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory);
 				}else{
 					tranId = createEventTransaction(transfer.getEventId(), toAccountNumber, transfer.getTranCrncy(),
-							transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory);
+							transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory, isMifos);
 
 				}
 				log.info("################### AFTER PAYMENT one ###################");
@@ -336,12 +312,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
 							HttpStatus.BAD_REQUEST);
 				}
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", transaction), HttpStatus.CREATED);
-				log.info("Transaction Response::", resp.toString());
+				log.info("Transaction Response {} ", resp.toString());
 
 
 			} else {
@@ -354,7 +330,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 			}
 		} catch (Exception ex) {
-			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			log.error("Error occurred - GET WALLET TRANSACTION :"+ ex.getMessage());
 			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return resp;
@@ -387,12 +363,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
 		}
 
-		String reference = "";
+		String reference;
 		reference = tempwallet.TransactionGenerate();
 		if (reference.equals("")) {
 			reference = transfer.getPaymentReference();
 		}
-		//String toAccountNumber = transfer.getCustomerAccountNumber();
 
 		String merchantDefultAccount = transfer.getMerchantAccountNumber();
 		String merchantCommissionAccount = transfer.getWayaCommAccountNumber();
@@ -405,19 +380,17 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("CARD");
 		CategoryType tranCategory = CategoryType.valueOf(transfer.getTransactionCategory());
 
-		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
+		ResponseEntity<?> resp; //= new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
 		try {
 			int intRec = tempwallet.PaymenttranInsert(transfer.getEventId(), "", merchantDefultAccount, merchantFee,
 					reference);
-//			int intRec2 = tempwallet.PaymenttranInsert(transfer.getEventId(), "", merchantCommissionAccount, wayaCommissionFee,
-//					reference);
-			String tranId = "";
+
+			String tranId;
 			if (intRec == 1) {
 
 				tranId = createEventTransactionSettlement(transfer.getEventId(), merchantDefultAccount, merchantCommissionAccount, transfer.getTranCrncy(),
 							totlaAmount, merchantFee, wayaCommissionFee, tranType, transfer.getTranNarration(), reference, request, tranCategory);
 
-				//createEventTransactionDebitUserCreditWayaAccount
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ResponseEntity<>(new ErrorResponse(tranKey[1]), HttpStatus.BAD_REQUEST);
@@ -426,18 +399,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
 							HttpStatus.BAD_REQUEST);
 				}
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", transaction), HttpStatus.CREATED);
 				log.info("Transaction Response: {}", resp.toString());
-
-//				Date tDate = Calendar.getInstance().getTime();
-//				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-//				String tranDate = dateFormat.format(tDate);
-
-
 
 			} else {
 				if (intRec == 2) {
@@ -449,7 +416,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 			}
 		} catch (Exception ex) {
-			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			log.error("Error occurred - GET WALLET TRANSACTION :"+ ex.getMessage());
 			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return resp;
@@ -491,7 +458,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	@Override
 	public ResponseEntity<?> TemporalWalletToOfficialWalletMutiple(HttpServletRequest request, List<TemporalToOfficialWalletDTO> transfer) {
 		ArrayList<Object> list = new ArrayList<>();
-		ResponseEntity<?> resp = null;
+		ResponseEntity<?> resp;
 		for(TemporalToOfficialWalletDTO data: transfer){
 			resp = TemporalWalletToOfficialWallet(request, data);
 			list.add(resp);
@@ -508,7 +475,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
 		}
 
-		String reference = "";
+		String reference;
 		reference = tempwallet.TransactionGenerate();
 		if (reference.equals("")) {
 			reference = transfer.getPaymentReference();
@@ -521,7 +488,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("TRANSFER");
 		CategoryType tranCategory = CategoryType.valueOf(transfer.getTransactionCategory());
 
-		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
+		ResponseEntity<?> resp; // = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
 		try {
 			int intRec = tempwallet.PaymenttranInsert("", fromAccountNumber, toAccountNumber, transfer.getAmount(),
 					reference);
@@ -537,16 +504,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
 							HttpStatus.BAD_REQUEST);
 				}
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", transaction), HttpStatus.CREATED);
 				log.info("Transaction Response: {}", resp.toString());
 
-				Date tDate = Calendar.getInstance().getTime();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate =getTransactionDate();
 
 				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
@@ -571,7 +536,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 			}
 		} catch (Exception ex) {
-			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			log.error("Error occurred - GET WALLET TRANSACTION :"+ ex.getMessage());
 			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return resp;
@@ -580,9 +545,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	private String getTransactionDate(){
 		Date tDate = Calendar.getInstance().getTime();
-		DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-		String tranDate = dateFormat.format(tDate);
-		return tranDate;
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+		return dateFormat.format(tDate);
 	}
 //ability to transfer money from the temporal wallet back to waya official account in single or in mass with excel upload
 	public ResponseEntity<?> OfficePaymentTemporalWalletToOfficialWallet(HttpServletRequest request, TemporalToOfficialWalletDTO transfer, boolean isMifos) {
@@ -599,7 +563,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
 		}
 
-		String reference = "";
+		String reference;
 		reference = tempwallet.TransactionGenerate();
 		if (reference.equals("")) {
 			reference = transfer.getPaymentReference();
@@ -628,15 +592,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
 							HttpStatus.BAD_REQUEST);
 				}
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", transaction), HttpStatus.CREATED);
 				log.info("Transaction Response: {}", resp.toString());
 
-//				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
-//				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
 				String fullName = userToken.getFirstName() + " " + userToken.getSurname();
 
 				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
@@ -658,7 +620,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 			}
 		} catch (Exception ex) {
-			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			log.error("Error occurred - GET WALLET TRANSACTION :", ex);
 			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return resp;
@@ -667,7 +629,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	public ApiResponse<?> EventNonPaymentMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer){
 		ArrayList<Object> list = new ArrayList<>();
-		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
+		ApiResponse<?> resp; // = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		for(NonWayaPaymentDTO data: transfer){
 			resp = EventNonPayment(request, data);
 			list.add(resp.getData());
@@ -698,7 +660,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createEventTransaction("NONWAYAPT", toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-						request, tranCategory);
+						request, tranCategory, false);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -707,16 +669,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
 				log.info("Transaction Response: {}", resp.toString());
 
-				Date tDate = new Date();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate = getTransactionDate();
 
 				String message = formatMoneWayaMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration(), token);
@@ -769,15 +729,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 				log.info("Transaction ID Response: {}", tranId);
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
 				log.info("Transaction Response: {}", resp.toString());
 
-				Date tDate = Calendar.getInstance().getTime();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate = getTransactionDate();
 
 				String message = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration());
@@ -849,7 +807,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Override
 	public ResponseEntity<?> TransferNonPaymentMultipleUpload(HttpServletRequest request, MultipartFile file) {
-		NonWayaTransferExcelDTO bulkLimt = null;
+
 		Map<String, ArrayList<ResponseHelper>> responseEntity = null;
 		if (ExcelHelper.hasExcelFormat(file)) {
 			try {
@@ -863,7 +821,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return new ResponseEntity<>(responseEntity, HttpStatus.OK);
 	}
 	private Map<String, ArrayList<ResponseHelper>> MultipleUpload2(HttpServletRequest request, @Valid NonWayaTransferExcelDTO transferExcelDTO){
-		ResponseEntity<?> resp = null;
+
 		ArrayList<ResponseHelper> respList = new ArrayList<>();
 		Map<String, ArrayList<ResponseHelper>> map = new HashMap<>();
 
@@ -912,7 +870,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Override
 	public ResponseEntity<?> TransferNonPaymentMultipleWayaOfficial(HttpServletRequest request, List<NonWayaPaymentMultipleOfficialDTO> transfer) {
-		ResponseEntity<?> resp = null;
+		ResponseEntity<?> resp;
 		ArrayList<Object> rpp = new ArrayList<>();
 		Provider provider = switchWalletService.getActiveProvider();
 		if (provider == null) {
@@ -945,8 +903,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Override
 	public ResponseEntity<?> TransferNonPaymentWayaOfficialExcel(HttpServletRequest request, MultipartFile file) {
-
-		BulkNonWayaTransferExcelDTO bulkLimt = null;
+ 
 		Map<String, ArrayList<ResponseHelper>> responseEntity = null;
 		if (ExcelHelper.hasExcelFormat(file)) {
 			try {
@@ -967,8 +924,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 //	}
 	public ByteArrayInputStream createExcelSheet(String isOnBhalfNoneWaya) {
 
-		String HEADERS = isOnBhalfNoneWaya;
-		switch (HEADERS){
+		switch (isOnBhalfNoneWaya){
 			case "PRIVATE_USER_HEADERS" :
 				return ExcelHelper.createExcelSheet(ExcelHelper.PRIVATE_USER_HEADERS);
 			case "PRIVATE_TRANSFER_HEADERS" :
@@ -982,7 +938,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	private Map<String, ArrayList<ResponseHelper>> MultipleUpload(HttpServletRequest request, @Valid BulkNonWayaTransferExcelDTO transferExcelDTO){
-		ResponseEntity<?> resp = null;
+		ResponseEntity<?> resp;
 		ArrayList<ResponseHelper> respList = new ArrayList<>();
 		Map<String, ArrayList<ResponseHelper>> map = new HashMap<>();
 
@@ -1030,7 +986,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	private String getCurrentDate(){
 		Date tDate = new Date();
-		DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
+		DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 		return dateFormat.format(tDate);
 	}
 
@@ -1043,7 +999,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
 		}
 
-		String reference = "";
+		String reference;
 		reference = tempwallet.TransactionGenerate();
 		if (reference.equals("")) {
 			reference = transfer.getPaymentReference();
@@ -1055,7 +1011,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("TRANSFER");
 		CategoryType tranCategory = CategoryType.valueOf("TRANSFER");
 
-		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVAILED ACCOUNT NO"), HttpStatus.BAD_REQUEST);
+		ResponseEntity<?> resp; // = new ResponseEntity<>(new ErrorResponse("INVAILED ACCOUNT NO"), HttpStatus.BAD_REQUEST);
 		try {
 			int intRec = tempwallet.PaymenttranInsert("", debitAccountNumber, "NONWAYAPT", transfer.getAmount(),
 					reference);
@@ -1071,7 +1027,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				log.info("Transaction ID Response: {}", tranId);
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
 							HttpStatus.BAD_REQUEST);
@@ -1132,7 +1088,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 			}
 		} catch (Exception ex) {
-			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			log.error("GET WALLET TRANSACTION {}", ex.getMessage(), ex);
 			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return resp;
@@ -1147,7 +1103,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
 		}
 
-		String reference = "";
+		String reference;
 		reference = tempwallet.TransactionGenerate();
 		if (reference.equals("")) {
 			reference = transfer.getPaymentReference();
@@ -1158,7 +1114,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("TRANSFER");
 		CategoryType tranCategory = CategoryType.valueOf("TRANSFER");
 
-		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVAILED ACCOUNT NO"), HttpStatus.BAD_REQUEST);
+		ResponseEntity<?> resp; // = new ResponseEntity<>(new ErrorResponse("INVAILED ACCOUNT NO"), HttpStatus.BAD_REQUEST);
 		try {
 			int intRec = tempwallet.PaymenttranInsert("", debitAccountNumber, "NONWAYAPT", transfer.getAmount(),
 					reference);
@@ -1174,7 +1130,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				log.info("Transaction ID Response: {}", tranId);
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
 							HttpStatus.BAD_REQUEST);
@@ -1185,9 +1141,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 						userToken.getEmail(), PaymentStatus.PENDING, transfer.getFullName());
 				walletNonWayaPaymentRepo.save(nonpay);
 
-				Date tDate = new Date();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate = getTransactionDate();
 
 				String message = formatMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration(), transactionToken);
@@ -1234,7 +1188,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 			}
 		} catch (Exception ex) {
-			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			log.error("Error occurred - GET WALLET TRANSACTION :"+ ex.getMessage());
 			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return resp;
@@ -1264,7 +1218,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					HttpStatus.CREATED);
 
 		} catch (Exception ex) {
-			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			log.error("Error occurred - GET WALLET TRANSACTION :"+ ex.getMessage());
 			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 	}
@@ -1293,7 +1247,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					HttpStatus.CREATED);
 
 		} catch (Exception ex) {
-			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			log.error("GET WALLET TRANSACTION {} " + ex.getMessage());
 			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 	}
@@ -1345,16 +1299,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 				log.info("Transaction ID Response: {}", tranId);
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					// return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION
 					// FAILED TO CREATE", null);
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
 							HttpStatus.BAD_REQUEST);
 				}
 
-				Date tDate = new Date();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate = getTransactionDate();
 
 				String message = formatMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
 						transfer.getTranNarration(), transactionToken);
@@ -1428,16 +1380,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 				log.info("Transaction ID Response: {}", tranId);
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					// return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION
 					// FAILED TO CREATE", null);
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
 							HttpStatus.BAD_REQUEST);
 				}
 
-				Date tDate = new Date();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate = getTransactionDate();
 
 				String message = formatMessage(amount, tranId, tranDate, tranCrncy, tranNarration, transactionToken);
 				CompletableFuture.runAsync(() -> customNotification.pushNonWayaEMAIL(token, fullName, emailAddress,
@@ -1478,7 +1428,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			WalletNonWayaPayment data1 = walletNonWayaPaymentRepo
 					.findByToken(transfer.getToken()).orElse(null);
-			if (data1.getStatus().equals(PaymentStatus.REJECT)) {
+			if (Objects.requireNonNull(data1).getStatus().equals(PaymentStatus.REJECT)) {
 				return new ResponseEntity<>(new ErrorResponse("TOKEN IS NO LONGER VALID"), HttpStatus.BAD_REQUEST);
 			}else if(data1.getStatus().equals(PaymentStatus.PAYOUT)){
 				return new ResponseEntity<>(new ErrorResponse("TRANSACTION HAS BEEN PAYED OUT"), HttpStatus.BAD_REQUEST);
@@ -1498,7 +1448,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN.PLEASE CHECK IT"), HttpStatus.BAD_REQUEST);
 			}
 
-			String messageStatus = null;
+			String messageStatus;
 			if (redeem.getStatus().name().equals("PENDING")) {
 				if (transfer.getTranStatus().equals("RESERVED")) {
 					messageStatus = "TRANSACTION RESERVED: Kindly note that confirm PIN has been sent";
@@ -1549,8 +1499,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 						String tranNarrate = "REJECT " + redeem.getTranNarrate();
 						String payRef = "REJECT" + redeem.getPaymentReference();
 						walletNonWayaPaymentRepo.save(redeem);
-						TransferNonReject(request, redeem.getDebitAccountNo(), redeem.getTranAmount(),
+						ResponseEntity<?> res = TransferNonReject(request, redeem.getDebitAccountNo(), redeem.getTranAmount(),
 								redeem.getCrncyCode(), tranNarrate, payRef);
+						log.info("res =" + res);
 						String message = formatMessengerRejection(redeem.getTranAmount(), payRef);
 						CompletableFuture.runAsync(() -> customNotification.pushInApp(token, redeem.getFullName(),
 								redeem.getEmailOrPhone(), message, userToken.getId(),TRANSACTION_REJECTED));
@@ -1619,7 +1570,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if (intRec == 1) {
 				String tranId = createEventTransaction(transfer.getEventId(), toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-						request, tranCategory);
+						request, tranCategory, false);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
@@ -1628,16 +1579,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
 				log.info("Transaction Response: {}", resp.toString());
 
-				Date tDate = new Date();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate = getTransactionDate();
 
 				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
@@ -1694,7 +1643,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		if (!acctComm.getProduct_code().equals("SB901")) {
 			return new ResponseEntity<>(new ErrorResponse("NOT COMMISSION WALLET"), HttpStatus.BAD_REQUEST);
 		}
-		String reference = "";
+		String reference;
 		reference = tempwallet.TransactionGenerate();
 		if (reference.equals("")) {
 			reference = transfer.getPaymentReference();
@@ -1702,7 +1651,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		String toAccountNumber = transfer.getCustomerAccountNumber();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("CARD");
 		CategoryType tranCategory = CategoryType.valueOf("COMMISSION");
-		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
+		ResponseEntity<?> resp;  //= new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
 		try {
 			int intRec = tempwallet.PaymenttranInsert(transfer.getEventId(), "", toAccountNumber, transfer.getAmount(),
 					reference);
@@ -1717,7 +1666,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
 							HttpStatus.BAD_REQUEST);
 				}
@@ -1725,9 +1674,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", transaction), HttpStatus.CREATED);
 				log.info("Transaction Response: {}", resp.toString());
 
-				Date tDate = new Date();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+
+				String tranDate = getTransactionDate();
 
 				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
@@ -1753,7 +1701,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 			}
 		} catch (Exception ex) {
-			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			log.error("Error occurred - GET WALLET TRANSACTION :"+ ex.getMessage());
 			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return resp;
@@ -1782,7 +1730,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	@Override
 	public ResponseEntity<?> BankTransferPaymentOfficialMultiple(HttpServletRequest request, List<BankPaymentOfficialDTO> transfer) {
 
-		ResponseEntity<?> response = null;
+		ResponseEntity<?> response;
 		ArrayList<Object> resObjects = new ArrayList<>();
 		for(BankPaymentOfficialDTO data: transfer){
 			response = BankTransferPaymentOfficial(request, data);
@@ -1796,14 +1744,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public ResponseEntity<?> BankPaymentOffice(HttpServletRequest request, BankPaymentOfficialDTO transfer) {
-		log.info("BankPayment :: {} " + transfer);
+
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 		if (userToken == null) {
 			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
 		}
 
-		String reference = "";
+		String reference;
 		reference = tempwallet.TransactionGenerate();
 		if (reference.equals("")) {
 			reference = transfer.getPaymentReference();
@@ -1812,12 +1760,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 		String toAccountNumber = transfer.getCustomerAccountNumber();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("WITHDRAW");
 		CategoryType tranCategory = CategoryType.valueOf(transfer.getTransactionCategory());
-		log.info("after CategoryType and  TransactionTypeEnum :: {} " + tranType);
 
-		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
+
+		ResponseEntity<?> resp; // = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
 		try {
 			int intRec = tempwallet.PaymenttranInsert("", "", toAccountNumber, transfer.getAmount(), reference);
-			log.info("after PaymenttranInsert :: {} " + intRec);
+			log.info("after PaymenttranInser " + intRec);
 			if (intRec == 1) {
 				String tranId = BankTransactionPayOffice("WEMABK", toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), reference, transfer.getBankName(),
@@ -1830,23 +1778,18 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
-				log.info("WalletTransaction :: " + transaction.get() );
-
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
 							HttpStatus.BAD_REQUEST);
 				}
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", transaction.get()), HttpStatus.CREATED);
 
-				Date tDate = Calendar.getInstance().getTime();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate = getTransactionDate();
 
-				log.info("toAccountNumber :: {} " + toAccountNumber);
+				log.info("toAccountNumber " + toAccountNumber);
 
 				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
-				log.info("WalletAccount :: {} " + xAccount);
-
+				log.info("WalletAccount " + xAccount);
 
 				String email = userToken.getEmail();
 				String phone = userToken.getPhoneNumber();
@@ -1870,54 +1813,57 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 			}
 		} catch (Exception ex) {
-			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			log.error("GET WALLET TRANSACTION " + ex.getMessage());
 			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return resp;
 	}
 
-	public ResponseEntity<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer) {
-		Provider provider = switchWalletService.getActiveProvider();
-		System.out.println("provider :: {} " + provider);
-		if (provider == null) {
-			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
-		}
-		log.info("WALLET PROVIDER: " + provider.getName());
-		switch (provider.getName()) {
-		case ProviderType.MIFOS:
-			return BankPayment(request, transfer);
-		case ProviderType.TEMPORAL:
-			return BankPayment(request, transfer);
-		default:
-			return BankPayment(request, transfer);
-		}
-	}
+//	public ResponseEntity<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer, boolean isMifos) {
+//		Provider provider = switchWalletService.getActiveProvider();
+//		System.out.println("provider :: {} " + provider);
+//		if (provider == null) {
+//			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
+//		}
+//		log.info("WALLET PROVIDER: " + provider.getName());
+//		switch (provider.getName()) {
+//		case ProviderType.MIFOS:
+//			return BankPayment(request, transfer);
+//		case ProviderType.TEMPORAL:
+//			return BankPayment(request, transfer);
+//		default:
+//			return BankPayment(request, transfer);
+//		}
+//	}
 
-	public ResponseEntity<?> BankPayment(HttpServletRequest request, BankPaymentDTO transfer) {
-		log.info("BankPayment :: {} " + transfer);
+	public ResponseEntity<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer, boolean isMifos) {
+		log.info("BankPayment  " + transfer);
+
+		// make a mifos decision
+
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 		if (userToken == null) {
 			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
 		}
 
-		String reference = "";
+		String reference;
 		reference = tempwallet.TransactionGenerate();
 		if (reference.equals("")) {
 			reference = transfer.getPaymentReference();
 		}
-		log.info("after TransactionGenerate  :: {} " + reference);
+
 		String toAccountNumber = transfer.getCustomerAccountNumber();
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("WITHDRAW");
 		CategoryType tranCategory = CategoryType.valueOf(transfer.getTransactionCategory());
-		log.info("after CategoryType and  TransactionTypeEnum :: {} " + tranType);
 
-		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
+
+		ResponseEntity<?> resp; // = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
 		try {
-			int intRec = tempwallet.PaymenttranInsert("BANKPMT", "", toAccountNumber, transfer.getAmount(), reference);
-			log.info("after PaymenttranInsert :: {} " + intRec);
+			int intRec = tempwallet.PaymenttranInsert(transfer.getEventId(), "", toAccountNumber, transfer.getAmount(), reference);
+			log.info("after PaymenttranInsert => {}" + 1,intRec);
 			if (intRec == 1) {
-				String tranId = BankTransactionPay("BANKPMT", toAccountNumber, transfer.getTranCrncy(),
+				String tranId = BankTransactionPay(transfer.getEventId(), toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), reference, transfer.getBankName(),
 						request, tranCategory, transfer.getSenderName(), transfer.getReceiverName());
 				String[] tranKey = tranId.split(Pattern.quote("|"));
@@ -1925,34 +1871,26 @@ public class TransAccountServiceImpl implements TransAccountService {
 					return new ResponseEntity<>(new ErrorResponse(tranKey[1]), HttpStatus.BAD_REQUEST);
 				}
 
-
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
-				log.info("WalletTransaction :: " + transaction.get() );
-
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
 							HttpStatus.BAD_REQUEST);
 				}
+
+				log.info("WalletTransaction :: " + transaction.get() );
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", transaction.get()), HttpStatus.CREATED);
 
 				String tranDate = getCurrentDate();
 
-				log.info("toAccountNumber :: {} " + toAccountNumber);
-
 				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
-				log.info("WalletAccount :: {} " + xAccount);
-
 				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
-				log.info("WalletUser :: {} " + xUser);
 				String fullName = xUser.getFirstName() + " " + xUser.getLastName();
-
 				String email = xUser.getEmailAddress();
 				String phone = xUser.getMobileNo();
 
 				String description = "Withdrawal " + " - to " + fullName;
-				String sender = userToken.getSurname()+ " " + userToken.getFirstName();
 
 				String message = formatNewMessage(transfer.getAmount(), tranId, new Date().toString()
 						, transfer.getTranCrncy(),
@@ -1977,17 +1915,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 			}
 		} catch (Exception ex) {
-			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			log.error("GET WALLET TRANSACTION :"+ ex.getMessage(), 1);
 			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return resp;
-	}
-
-
-	private void WebhookNotification(){
-		// get the user account and the callback Url
-		// apend the call back url to the proxy endpoint
-		// save response back from aggregator.
 	}
 
 	@Override
@@ -2011,7 +1942,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	public ApiResponse<List<WalletTransaction>> findClientTransaction(String tranId) {
 		Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
-		if (!transaction.isPresent()) {
+		if (transaction.isEmpty()) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "UNABLE TO GENERATE STATEMENT", null);
 		}
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", transaction.get());
@@ -2028,7 +1959,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	@Override
 	public ApiResponse<Page<WalletTransaction>> getTransactionByWalletId(int page, int size, Long walletId) {
 		Optional<WalletAccount> account = walletAccountRepository.findById(walletId);
-		if (!account.isPresent()) {
+		if (account.isEmpty()) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
 		}
 		WalletAccount acct = account.get();
@@ -2071,23 +2002,22 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
 		}
 		log.info("WALLET PROVIDER: " + provider.getName());
-		ResponseEntity<?> mm = null;
 		switch (provider.getName()) {
 		case ProviderType.MIFOS:
-			 mm = makeTransfer(request, command, transfer, true);
+			 return makeTransfer(request, command, transfer, true);
 		case ProviderType.TEMPORAL:
-			 mm = makeTransfer(request, command, transfer, false);
+			return makeTransfer(request, command, transfer, false);
 		default:
-			 mm = makeTransfer(request, command, transfer, false);
+			return  makeTransfer(request, command, transfer, false);
 		}
 
-		return mm;
 	}
 
 
 
 	public ResponseEntity<?> makeTransfer(HttpServletRequest request, String command,
 			TransferTransactionDTO transfer, boolean isMifos) {
+		log.info("command" + command);
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 		MyData userToken = tokenService.getTokenUser(token);
 		if (userToken == null) {
@@ -2120,17 +2050,15 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"), 
 							HttpStatus.BAD_REQUEST);
 				}
 
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", 
 						transaction), HttpStatus.CREATED);
-
-				Date tDate = new Date();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				//String tranDate = dateFormat.format(tDate);
+ 
+				String tranDate = getTransactionDate();
 
 			} else {
 				if (intRec == 2) {
@@ -2140,7 +2068,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 			}
 		} catch (Exception ex) {
-			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			log.error("GET WALLET TRANSACTION :"+ ex.getMessage(), 1);
 			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return resp;
@@ -2176,6 +2104,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				resp = MoneyTransferSimulation(request,data,true);
 				rpp.add(resp.getBody());
 			}
+			log.info(rpp.toString());
 			return resp;
 		}catch (Exception ex){
 			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
@@ -2200,7 +2129,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ResponseEntity<>(new ErrorResponse("DEBIT ACCOUNT CAN'T BE THE SAME WITH CREDIT ACCOUNT"), HttpStatus.BAD_REQUEST);
 		}
 
-		String reference = "";
+		String reference;
 		reference = tempwallet.TransactionGenerate();
 		if (reference.equals("")) {
 			reference = transfer.getPaymentReference();
@@ -2214,7 +2143,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		CategoryType tranCategory = CategoryType.valueOf(transfer.getTransactionCategory());
 
-		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
+		ResponseEntity<?> resp; // = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
 		try {
 			int intRec = tempwallet.PaymenttranInsert("WAYASIMU", fromAccountNumber, toAccountNumber, transfer.getAmount(),
 					reference);
@@ -2228,16 +2157,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
 							HttpStatus.BAD_REQUEST);
 				}
 
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", transaction), HttpStatus.CREATED);
 
-				Date tDate = new Date();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate = getTransactionDate();
 
 				if(!isSimulated){
 
@@ -2280,7 +2207,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 			}
 		} catch (Exception ex) {
-			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			log.error("GET WALLET TRANSACTION :"+ ex.getMessage(), 1);
 			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return resp;
@@ -2301,7 +2228,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ResponseEntity<>(new ErrorResponse("DEBIT ACCOUNT CAN'T BE THE SAME WITH CREDIT ACCOUNT"), HttpStatus.BAD_REQUEST);
 		}
 
-		String reference = "";
+		String reference;
 		reference = tempwallet.TransactionGenerate();
 		if (reference.equals("")) {
 			reference = transfer.getPaymentReference();
@@ -2315,7 +2242,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		CategoryType tranCategory = CategoryType.valueOf(transfer.getTransactionCategory());
 
-		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
+		ResponseEntity<?> resp; // = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
 		try {
 			int intRec = tempwallet.PaymenttranInsert("WAYATRAN", fromAccountNumber, toAccountNumber, transfer.getAmount(),
 					reference);
@@ -2329,16 +2256,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
 							HttpStatus.BAD_REQUEST);
 				}
 
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION SUCCESSFULLY", transaction), HttpStatus.CREATED);
 
-				Date tDate = new Date();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate = getTransactionDate();
 
 				if(!isSimulated){
 
@@ -2391,7 +2316,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 			}
 		} catch (Exception ex) {
-			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			log.error("GET WALLET TRANSACTION :"+ ex.getMessage(), 1);
 			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.EXPECTATION_FAILED);
 		}
 		return resp;
@@ -2470,7 +2395,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ResponseEntity<>(new ErrorResponse("INVAILED VIRTUAL ACCOUNT"), HttpStatus.BAD_REQUEST);
 		}
 		Optional<WalletAccount> account = walletAccountRepository.findByDefaultAccount(user);
-		if (!account.isPresent()) {
+		if (account.isEmpty()) {
 			return new ResponseEntity<>(new ErrorResponse("NO DEFAULT WALLET FOR VIRTUAL ACCOUNT"),
 					HttpStatus.BAD_REQUEST);
 		}
@@ -2479,14 +2404,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("BANK");
 		CategoryType tranCategory = CategoryType.valueOf("TRANSFER");
 
-		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
+		ResponseEntity<?> resp; //= new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
 		try {
 			int intRec = tempwallet.PaymenttranInsert(transfer.getEventId(), "", toAccountNumber, transfer.getAmount(),
 					transfer.getPaymentReference());
 			if (intRec == 1) {
 				String tranId = createEventTransaction(transfer.getEventId(), toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-						request, tranCategory);
+						request, tranCategory, false);
 				String[] tranKey = tranId.split(Pattern.quote("|"));
 				if (tranKey[0].equals("DJGO")) {
 					return new ResponseEntity<>(new ErrorResponse(tranKey[1]), HttpStatus.BAD_REQUEST);
@@ -2495,16 +2420,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
 							HttpStatus.BAD_REQUEST);
 				}
 				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION SUCCESSFULl", transaction), HttpStatus.CREATED);
 				log.info("Transaction Response: {}", resp.toString());
 
-				Date tDate = new Date();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate = getTransactionDate();
 
 				WalletAccount xAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
@@ -2534,7 +2457,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 			}
 		} catch (Exception ex) {
-			log.error("Error occurred - GET WALLET TRANSACTION :", ex.getMessage());
+			log.error("GET WALLET TRANSACTION :"+ ex.getMessage(), 1);
 			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 		return resp;
@@ -2603,7 +2526,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction);
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 			} else {
@@ -2627,7 +2550,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
 		}
 
-		String reference = "";
+		String reference;
 		reference = tempwallet.TransactionGenerate();
 		if (reference.equals("")) {
 			reference = transfer.getPaymentReference();
@@ -2657,15 +2580,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction);
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
 
-				Date tDate = new Date();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate = getTransactionDate();
 
 				if(StringUtils.isNumeric(toAccountNumber)){
 					WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
@@ -2758,15 +2679,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction);
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
 
-				Date tDate = new Date();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate = getTransactionDate();
 
 				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
 
@@ -2797,7 +2716,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Override
 	public ApiResponse<?> OfficialUserTransferMultiple(HttpServletRequest request, List<OfficeUserTransferDTO> transfer) {
-		ApiResponse<?> response = null;
+		ApiResponse<?> response;
 		ArrayList<Object> resObjects = new ArrayList<>();
 		for(OfficeUserTransferDTO data: transfer){
 			response = OfficialUserTransfer(request, data, false);
@@ -2848,14 +2767,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction.get());
 
-				Date tDate = new Date();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate = getTransactionDate();
 
 				WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
 				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
@@ -2961,14 +2878,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()
+				) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction.get());
 
-				Date tDate = new Date();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate = getTransactionDate();
 
 				WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
 				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
@@ -3049,14 +2965,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction.get());
 
-				Date tDate = Calendar.getInstance().getTime();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate = getTransactionDate();
 
 				WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
 				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
@@ -3129,14 +3043,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction.get());
 
-				Date tDate = Calendar.getInstance().getTime();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate = getTransactionDate();
 
 				WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
 				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
@@ -3218,12 +3130,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 
 		Optional<WalletUser> wallet = walletUserRepository.findByEmailOrPhoneNumber(transfer.getEmailOrPhoneNumber());
-		if (!wallet.isPresent()) {
+		if (wallet.isEmpty()) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE NO DOES NOT EXIST", null);
 		}
 		WalletUser user = wallet.get();
 		Optional<WalletAccount> defaultAcct = walletAccountRepository.findByDefaultAccount(user);
-		if (!defaultAcct.isPresent()) {
+		if (defaultAcct.isEmpty()) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NO ACCOUNT NUMBER EXIST", null);
 		}
 		String fromAccountNumber = transfer.getDebitAccountNumber();
@@ -3249,15 +3161,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction);
 
-				Date tDate = new Date();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate = getTransactionDate();
 
 				WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
 				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
@@ -3343,7 +3253,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		if (!wallet.isPresent()) {
 			Long userId = Long.valueOf(transfer.getEmailOrPhoneNumberOrUserId());
 			wallet = walletUserRepository.findUserId(userId);
-			if (!wallet.isPresent()) {
+			if (wallet.isEmpty()) {
 				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE OR ID DOES NOT EXIST",
 						null);
 			}
@@ -3351,7 +3261,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		WalletUser user = wallet.get();
 		Optional<WalletAccount> defaultAcct = walletAccountRepository.findByDefaultAccount(user);
-		if (!defaultAcct.isPresent()) {
+		if (defaultAcct.isEmpty()) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NO ACCOUNT NUMBER EXIST", null);
 		}
 		String fromAccountNumber = transfer.getDebitAccountNumber();
@@ -3378,15 +3288,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction);
 
-				Date tDate = new Date();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate = getTransactionDate();
 
 				WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
 				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
@@ -3471,10 +3379,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		Optional<WalletUser> wallet = walletUserRepository
 				.findByEmailOrPhoneNumber(transfer.getEmailOrPhoneNumberOrUserId());
-		if (!wallet.isPresent()) {
+		if (!wallet.isEmpty()) {
 			Long userId = Long.valueOf(transfer.getEmailOrPhoneNumberOrUserId());
 			wallet = walletUserRepository.findUserId(userId);
-			if (!wallet.isPresent()) {
+			if (wallet.isEmpty()) {
 				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE OR ID DOES NOT EXIST",
 						null);
 			}
@@ -3482,7 +3390,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		WalletUser user = wallet.get();
 		Optional<WalletAccount> defaultAcct = walletAccountRepository.findByDefaultAccount(user);
-		if (!defaultAcct.isPresent()) {
+		if (defaultAcct.isEmpty()) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NO ACCOUNT NUMBER EXIST", null);
 		}
 		String fromAccountNumber = transfer.getDebitAccountNumber();
@@ -3508,15 +3416,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
 
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 
 				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction);
 
-				Date tDate = new Date();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy-mm-dd hh:mm:ss");
-				String tranDate = dateFormat.format(tDate);
+				String tranDate = getTransactionDate();
 
 				WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
 				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
@@ -3595,7 +3501,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				return "tranCount";
 			}
 
-			if (!eventInfo.isPresent()) {
+			if (eventInfo.isEmpty()) {
 				return "DJGO|Event ID Validation Failed";
 			}
 
@@ -3651,9 +3557,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
 			// ########################### REMOVE THIS CODE UP ########################
 
-
-			// **********************************************
-			String tranId = "";
+			String tranId;
 			if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 				tranId = tempwallet.SystemGenerateTranId();
 			} else {
@@ -3664,11 +3568,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 
 			// Remove Lien
-			removeLien(accountDebit,amount);
+			removeLien(Objects.requireNonNull(accountDebit),amount);
 
 
-			String senderName = accountDebit.getAcct_name();
-			String receiverName = accountCredit.getAcct_name();
+			String senderName = Objects.requireNonNull(accountDebit.getAcct_name());
+			String receiverName = Objects.requireNonNull(accountCredit.getAcct_name());
 
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
@@ -3703,10 +3607,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// To send sms and email notification
 
 			if(!eventId.equals("WAYAOFFTOCUS")){
-				WalletAccount finalAccountCredit = accountCredit;
 				WalletAccount finalAccountDebit = accountDebit;
-				BigDecimal finalTranAmCharges = tranAmCharges;
-				CompletableFuture.runAsync(() -> doDeductTransactionCharges(tokenData, senderName, receiverName, paymentRef, "Wallet Transfer", tranCrncy, tranCategory, TransactionTypeEnum.CHARGES, finalTranAmCharges, finalAccountDebit, finalAccountCredit));
+				CompletableFuture.runAsync(() -> doDeductTransactionCharges(tokenData, senderName, receiverName, paymentRef, "Wallet Transfer", tranCrncy, tranCategory, TransactionTypeEnum.CHARGES, tranAmCharges, finalAccountDebit, accountCredit));
 			}
 
 			 // credit merchant wallet
@@ -3765,7 +3667,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 
-	private ApiResponse<?> postToMifos(String token,WalletAccount accountCredit, WalletAccount accountDebit, BigDecimal amount, String tranNarration, String tranId,
+	private void postToMifos(String token,WalletAccount accountCredit, WalletAccount accountDebit, BigDecimal amount, String tranNarration, String tranId,
 							 TransactionTypeEnum tranType){
 		System.out.println("############# BEFORE accountCredit " + accountCredit);
 		System.out.println("############# accountDebit" + accountDebit);
@@ -3773,8 +3675,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		System.out.println("############# tranNarration" + tranNarration);
 		System.out.println("############# tranNarration" + tranId);
 		System.out.println("############# tranNarration" + tranType);
-		String accountCredit2 = "";
-		String accountDebit2 = "";
+
 
 		if(accountCredit.getNubanAccountNo() !=null){
 			System.out.println("this is not  null");
@@ -3800,7 +3701,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		mifosTransfer.setSourceAccountType("SAVINGS");
 		mifosTransfer.setSourceCurrency(accountDebit.getAcct_crncy_code());
 		mifosTransfer.setTransactionType(TransactionTypeEnum.TRANSFER.getValue());
-		ApiResponse<?> response = null;
+		ApiResponse<?> response;
 		System.out.println(" here" + mifosTransfer);
 		try{
 			log.info("## token  ####### :: " + token);
@@ -3811,22 +3712,23 @@ public class TransAccountServiceImpl implements TransAccountService {
 			System.out.println("ERROR posting to MIFOS :::: " + ex.getMessage());
 			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
 		}
-
-		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", response.getData());
+		System.out.println("RESPONSE" +  response.getData()); 
+		
 	}
  
 	private UserPricing getUserProduct(WalletAccount accountDebit, String eventId){
 		WalletUser xUser = walletUserRepository.findByAccount(accountDebit);
 		Long xUserId = xUser.getUserId();
+
 		// get user charge by eventId and userID
-		return userPricingRepository.findDetails(xUserId,eventId).orElse(null);
+		return userPricingRepository.findDetailsByCode(xUserId,eventId).orElse(null);
 	}
 
 
 
 	public String createChargeTransaction(String debitAcctNo, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef, String eventCharge,
-			HttpServletRequest request) throws Exception {
+			HttpServletRequest request) throws Exception{
 		try {
 
 			int n = 1;
@@ -3840,7 +3742,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				return "DJGO|Currency Code Validation Failed";
 			}
 			Optional<WalletEventCharges> wevent = walletEventRepository.findByEventId(eventCharge);
-			if (!wevent.isPresent()) {
+			if (wevent.isEmpty()) {
 				return "DJGO|Event Charge Does Not Exist";
 			}
 			WalletEventCharges event = wevent.get();
@@ -3852,7 +3754,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 			Optional<WalletAccount> accountDebitTeller = walletAccountRepository
 					.findByUserPlaceholder(event.getPlaceholder(), event.getCrncyCode(), accountDebit.getSol_id());
-			if (!accountDebitTeller.isPresent()) {
+			if (accountDebitTeller.isEmpty()) {
 				return "DJGO|NO CHARGE TILL ACCOUNT EXIST";
 			}
 			WalletAccount chargeTill = accountDebitTeller.get();
@@ -3885,16 +3787,16 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				Long userId = Long.parseLong(keyDebit[0]);
 				WalletUser user = walletUserRepository.findByUserId(userId);
-				BigDecimal AmtVal = new BigDecimal(user.getCust_debit_limit());
+				BigDecimal AmtVal = BigDecimal.valueOf(user.getCust_debit_limit());
 				if (AmtVal.compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
 				}
 
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
+				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
+				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 			}
@@ -3944,7 +3846,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				}
 			}
 
-			String tranId = "";
+			String tranId;
 			if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 				tranId = tempwallet.SystemGenerateTranId();
 			} else {
@@ -4016,7 +3918,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 
 			return tranId;
-		} catch (Exception e) {
+		} catch (CustomException e) {
 			e.printStackTrace();
 			return ("DJGO|" + e.getMessage());
 		}
@@ -4025,7 +3927,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	public String createAdminTransaction(String adminUserId, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef, String command,
-			HttpServletRequest request) throws Exception {
+			HttpServletRequest request) {
 		try {
 			int n = 1;
 			log.info("START TRANSACTION");
@@ -4040,7 +3942,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 			Optional<WalletTeller> wteller = walletTellerRepository.findByUserSol(Long.valueOf(adminUserId), tranCrncy,
 					"0000");
-			if (!wteller.isPresent()) {
+			if (wteller.isEmpty()) {
 				return "DJGO|NO TELLER TILL CREATED";
 			}
 			WalletTeller teller = wteller.get();
@@ -4051,11 +3953,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// Does account exist
 			Optional<WalletAccount> accountDebitTeller = walletAccountRepository
 					.findByUserPlaceholder(teller.getAdminCashAcct(), teller.getCrncyCode(), teller.getSol_id());
-			if (!accountDebitTeller.isPresent()) {
+			if (accountDebitTeller.isEmpty()) {
 				return "DJGO|NO TELLER TILL ACCOUNT EXIST";
 			}
-			WalletAccount accountDebit = null;
-			WalletAccount accountCredit = null;
+			WalletAccount accountDebit;
+			WalletAccount accountCredit;
 			if (command.toUpperCase().equals("CREDIT")) {
 				accountDebit = accountDebitTeller.get();
 				accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
@@ -4100,16 +4002,16 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				Long userId = Long.parseLong(keyDebit[0]);
 				WalletUser user = walletUserRepository.findByUserId(userId);
-				BigDecimal AmtVal = new BigDecimal(user.getCust_debit_limit());
+				BigDecimal AmtVal = BigDecimal.valueOf(user.getCust_debit_limit());
 				if (AmtVal.compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
 				}
 
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
+				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
+				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 			}
@@ -4142,7 +4044,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					}
 				}
 
-				BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
+				BigDecimal userLim = new BigDecimal(Objects.requireNonNull(tokenData).getTransactionLimit());
 				if (userLim.compareTo(amount) == -1) {
 					return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
 				}
@@ -4161,7 +4063,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 
 			// **********************************************
-			String tranId = "";
+			String tranId;
 			if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 				tranId = tempwallet.SystemGenerateTranId();
 			} else {
@@ -4309,16 +4211,16 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				Long userId = Long.parseLong(keyDebit[0]);
 				WalletUser user = walletUserRepository.findByUserId(userId);
-				BigDecimal AmtVal = new BigDecimal(user.getCust_debit_limit());
+				BigDecimal AmtVal = BigDecimal.valueOf(user.getCust_debit_limit());
 				if (AmtVal.compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
 				}
 
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
+				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
+				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 			}
@@ -4351,7 +4253,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					}
 				}
 
-				BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
+				BigDecimal userLim = new BigDecimal(Objects.requireNonNull(tokenData).getTransactionLimit());
 				if (userLim.compareTo(amount) == -1) {
 					return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
 				}
@@ -4370,7 +4272,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 
 			// To generate transaction id
-			String tranId = "";
+			String tranId;
 			if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("BANK")
 					|| tranType.getValue().equalsIgnoreCase("REVERSAL")
 					|| tranType.getValue().equalsIgnoreCase("UTILITY_PAYMENT")) {
@@ -4446,7 +4348,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	public String createEventTransactionSettlement(String eventId, String merchantAcctNo, String wayaCommAcctNo, String tranCrncy,
 												   BigDecimal amount, BigDecimal merchantAmount,BigDecimal wayaCommAmount,
 										 TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request,
-										 CategoryType tranCategory) throws Exception {
+										 CategoryType tranCategory) {
 
 		String tranDate = getTransactionDate();
 		try {
@@ -4461,7 +4363,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				return "DJGO|Currency Code Validation Failed";
 			}
 			Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
-			if (!eventInfo.isPresent()) {
+			if (eventInfo.isEmpty()) {
 				return "DJGO|Event Code Does Not Exist";
 			}
 			WalletEventCharges charge = eventInfo.get();
@@ -4485,7 +4387,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// Does account exist
 			Optional<WalletAccount> accountDebitTeller = walletAccountRepository
 					.findByUserPlaceholder(charge.getPlaceholder(), charge.getCrncyCode(), eventAcct.getSol_id());
-			if (!accountDebitTeller.isPresent()) {
+			if (accountDebitTeller.isEmpty()) {
 				return "DJGO|NO EVENT ACCOUNT";
 			}
 
@@ -4550,16 +4452,16 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				Long userId = Long.parseLong(keyDebit[0]);
 				WalletUser user = walletUserRepository.findByUserId(userId);
-				BigDecimal AmtVal = new BigDecimal(user.getCust_debit_limit());
+				BigDecimal AmtVal = BigDecimal.valueOf(user.getCust_debit_limit());
 				if (AmtVal.compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
 				}
 
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
+				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
+				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 			}
@@ -4592,7 +4494,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					}
 				}
 
-				BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
+				BigDecimal userLim = new BigDecimal(Objects.requireNonNull(tokenData).getTransactionLimit());
 				if (userLim.compareTo(amount) == -1) {
 					return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
 				}
@@ -4627,7 +4529,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// *********************************************
 
 			// **********************************************
-			String tranId = "";
+			String tranId;
 			if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 				tranId = tempwallet.SystemGenerateTranId();
 			} else {
@@ -4735,10 +4637,58 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	}
 
+//	private Map<String, WalletAccount> checkAccountForDebitOrCredit(WalletEventCharges charge, WalletAccount accountDebit, WalletAccount accountCredit, Optional<WalletAccount> accountDebitTeller, String creditAcctNo){
+//	Map<String, WalletAccount> map = new HashMap<>();
+//
+//		if (charge.isChargeWaya()) {
+//			accountDebit = accountDebitTeller.get();
+//			accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
+//		} else if(charge.isChargeCustomer()){
+//			accountCredit = accountDebitTeller.get();
+//			accountDebit = walletAccountRepository.findByAccountNo(creditAcctNo);
+//		}else{
+//			accountDebit = accountDebitTeller.get();
+//			accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
+//		}
+//		map.put("accountDebit", accountDebit);
+//		map.put("accountCredit", accountCredit);
+//		return map;
+//	}
+
+
+	private WalletAccount getAccountByEventId(String eventId, String creditAcctNo){
+		System.out.println("eventId " + eventId);
+		Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
+		if (eventInfo.isEmpty()) {
+			throw new CustomException("DJGO|Event Code Does Not Exist", HttpStatus.NOT_FOUND);
+		}
+		WalletEventCharges charge = eventInfo.get();
+		boolean validate2 = paramValidation.validateDefaultCode(charge.getPlaceholder(), "Batch Account");
+		if (!validate2) {
+			throw new CustomException("DJGO|Event Validation Failed", HttpStatus.NOT_FOUND);
+		}
+		WalletAccount eventAcct = walletAccountRepository.findByAccountNo(creditAcctNo);
+		if (eventAcct == null) {
+			throw new CustomException("DJGO|CUSTOMER ACCOUNT DOES NOT EXIST", HttpStatus.NOT_FOUND);
+		}
+		// Does account exist
+		Optional<WalletAccount> accountDebitTeller = walletAccountRepository
+				.findByUserPlaceholder(charge.getPlaceholder(), charge.getCrncyCode(), eventAcct.getSol_id());
+		if (accountDebitTeller.isEmpty()) {
+			throw new CustomException("DJGO|NO EVENT ACCOUNT", HttpStatus.NOT_FOUND);
+		}
+		return accountDebitTeller.get();
+	}
+
 	public String createEventTransaction(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request,
-			CategoryType tranCategory) throws Exception {
+			CategoryType tranCategory, boolean isMifos) {
+
 		String tranDate = getTransactionDate();
+
+		if(isMifos){
+			System.out.println("Send request to Mifos; if successful, post to wallet");
+		}
 		try {
 			int n = 1;
 			log.info("START TRANSACTION");
@@ -4751,7 +4701,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				return "DJGO|Currency Code Validation Failed";
 			}
 			Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
-			if (!eventInfo.isPresent()) {
+			if (eventInfo.isEmpty()) {
 				return "DJGO|Event Code Does Not Exist";
 			}
 			WalletEventCharges charge = eventInfo.get();
@@ -4766,17 +4716,42 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// Does account exist
 			Optional<WalletAccount> accountDebitTeller = walletAccountRepository
 					.findByUserPlaceholder(charge.getPlaceholder(), charge.getCrncyCode(), eventAcct.getSol_id());
-			if (!accountDebitTeller.isPresent()) {
+			if (accountDebitTeller.isEmpty()) {
 				return "DJGO|NO EVENT ACCOUNT";
 			}
+
+
+			String outBoundFeeEvent = "";
+
 			WalletAccount accountDebit = null;
 			WalletAccount accountCredit = null;
+			BigDecimal tranAmCharges = null;
+			//Map<String, WalletAccount> map = checkAccountForDebitOrCredit(charge, accountDebit, accountCredit, accountDebitTeller, creditAcctNo);
+			System.out.println("accountCredit accountCredit accountCredit :: " + accountCredit);
+			System.out.println("accountDebit accountDebit accountDebit :: " + accountDebit);
 			if (charge.isChargeWaya()) {
 				accountDebit = accountDebitTeller.get();
 				accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
 			} else if(charge.isChargeCustomer()){
 				accountCredit = accountDebitTeller.get();
 				accountDebit = walletAccountRepository.findByAccountNo(creditAcctNo);
+				UserPricing userPricingOptional;
+				// get user charge by eventId and userID
+				if(eventId.equals("WEMA_INT_DISBURS_ACCT") || eventId.equals("ZE_INT_DISBURS_ACCOUNT") || eventId.equals("MIFOSNIPINTRAS")){
+					eventId = "BANKPMT";
+					userPricingOptional = getUserProduct(accountDebit, eventId);
+					outBoundFeeEvent = "OB_TRANS_FEE_INCOME_ACCT";
+				}else{
+					userPricingOptional = getUserProduct(accountDebit, eventId);
+				}
+
+				System.out.println("userPricingOptional " + userPricingOptional);
+
+				tranAmCharges = getChargesAmount(userPricingOptional, amount);
+
+				System.out.println("charge amount " + tranAmCharges);
+
+
 			}else{
 				accountDebit = accountDebitTeller.get();
 				accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
@@ -4785,51 +4760,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				return "DJGO|DEBIT ACCOUNT OR BENEFICIARY ACCOUNT DOES NOT EXIST";
 			}
 			// Check for account security
-			log.info(accountDebit.getHashed_no());
-			if (!accountDebit.getAcct_ownership().equals("O")) {
-				String compareDebit = tempwallet.GetSecurityTest(accountDebit.getAccountNo());
-				log.info(compareDebit);
-			}
-			String secureDebit = reqIPUtils.WayaDecrypt(accountDebit.getHashed_no());
-			log.info(secureDebit);
-			String[] keyDebit = secureDebit.split(Pattern.quote("|"));
-			if ((!keyDebit[1].equals(accountDebit.getAccountNo()))
-					|| (!keyDebit[2].equals(accountDebit.getProduct_code()))
-					|| (!keyDebit[3].equals(accountDebit.getAcct_crncy_code()))) {
-				return "DJGO|DEBIT ACCOUNT DATA INTEGRITY ISSUE";
-			}
 
-			log.info(accountCredit.getHashed_no());
-			if (!accountDebit.getAcct_ownership().equals("O")) {
-				String compareCredit = tempwallet.GetSecurityTest(creditAcctNo);
-				log.info(compareCredit);
-			}
-			String secureCredit = reqIPUtils.WayaDecrypt(accountCredit.getHashed_no());
-			log.info(secureCredit);
-			String[] keyCredit = secureCredit.split(Pattern.quote("|"));
-			if ((!keyCredit[1].equals(accountCredit.getAccountNo()))
-					|| (!keyCredit[2].equals(accountCredit.getProduct_code()))
-					|| (!keyCredit[3].equals(accountCredit.getAcct_crncy_code()))) {
-				return "DJGO|CREDIT ACCOUNT DATA INTEGRITY ISSUE";
-			}
-			// Check for Amount Limit
-			if (!accountDebit.getAcct_ownership().equals("O")) {
-
-				Long userId = Long.parseLong(keyDebit[0]);
-				WalletUser user = walletUserRepository.findByUserId(userId);
-				BigDecimal AmtVal = new BigDecimal(user.getCust_debit_limit());
-				if (AmtVal.compareTo(amount) == -1) {
-					return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
-				}
-
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
-					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
-				}
-
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
-					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
-				}
-			}
 
 			// Token Fetch
 			MyData tokenData = tokenService.getUserInformation();
@@ -4839,50 +4770,16 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			// AUth Security check
 			// **********************************************
-			if (!accountDebit.getAcct_ownership().equals("O")) {
-				if (accountDebit.isAcct_cls_flg())
-					return "DJGO|DEBIT ACCOUNT IS CLOSED";
-				log.info("Debit Account is: {}", accountDebit.getAccountNo());
-				log.info("Debit Account Freeze Code is: {}", accountDebit.getFrez_code());
-				if (accountDebit.getFrez_code() != null) {
-					if (accountDebit.getFrez_code().equals("D"))
-						return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
-				}
 
-				if (accountDebit.getLien_amt() != 0) {
-					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
-					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
-						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
-					}
-					if (new BigDecimal(oustbal).compareTo(amount) == -1) {
-						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
-					}
-				}
-
-				BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
-				if (userLim.compareTo(amount) == -1) {
-					return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
-				}
-			}
-
-			if (!accountCredit.getAcct_ownership().equals("O")) {
-				if (accountCredit.isAcct_cls_flg())
-					return "DJGO|CREDIT ACCOUNT IS CLOSED";
-
-				log.info("Credit Account is: {}", accountCredit.getAccountNo());
-				log.info("Credit Account Freeze Code is: {}", accountCredit.getFrez_code());
-				if (accountCredit.getFrez_code() != null) {
-					if (accountCredit.getFrez_code().equals("C"))
-						return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
-				}
-			}
+			String check = securityCheck(eventId,creditAcctNo,tranCrncy,amount,tokenData, accountDebit,accountCredit);
+			log.info("security check ::" + check);
 
 			// **********************************************
 			// Account Transaction Locks
 			// *********************************************
 
 			// **********************************************
-			String tranId = "";
+			String tranId;
 			if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 				tranId = tempwallet.SystemGenerateTranId();
 			} else {
@@ -4894,6 +4791,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// MyData tokenData = tokenService.getUserInformation();
 			// String email = tokenData != null ? tokenData.getEmail() : "";
 			// String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+
+			// REMOVE LEIN
 			String senderName = accountDebit.getAcct_name();
 			String receiverName = accountCredit.getAcct_name();
 
@@ -4922,7 +4821,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			String token = request.getHeader(SecurityConstants.HEADER_STRING);
 
-			String contentType = "";
+			String contentType;
 			if(eventId.equals("NONWAYAPT")){
 				contentType = NON_WAYA_PAYMENT_REQUEST;
 			}else {
@@ -4967,6 +4866,27 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 
 			log.info("END TRANSACTION");
+			log.info("ABOUT TO DO DEDUCT TRANSACTION FEE");
+
+			WalletAccount finalAccountCredit = accountCredit; //getAccountByEventId(outBoundFeeEvent, accountCredit.getAccountNo());
+
+			WalletAccount finalAccountDebit = accountDebit;
+			BigDecimal finalTranAmCharges = tranAmCharges;
+			doDeductTransactionCharges(tokenData ,senderName, receiverName, paymentRef, "DEDUCT TRANSACTION FEE", tranCrncy, tranCategory, tranType, finalTranAmCharges, finalAccountDebit, finalAccountCredit);
+
+			System.out.println("eventId eventId:: " + eventId);
+			System.out.println("outBoundFeeEvent 3333:: " + outBoundFeeEvent);
+			log.info("ABOUT TO DEBIT FROM NIP INTRASIT DISBURS ACCOUT TO CREDIT  OUTBOUND TRANSFER FEE INCOME ACCOUNT CREDITED WITH 10");
+			WalletAccount finalAccountCredit2 = getAccountByEventId(outBoundFeeEvent, accountCredit.getAccountNo());
+
+			WalletAccount finalAccountDebit2 = walletAccountRepository.findByAccountNo(finalAccountCredit.getAccountNo()); // Debit  NIP Intransit disbursement account debited with 10
+			BigDecimal finalTranAmCharges2 = tranAmCharges;
+			doDeductTransactionCharges(tokenData ,senderName, receiverName, paymentRef, "OUTBOUND TRANSFER FEE", tranCrncy, tranCategory, tranType, finalTranAmCharges2, finalAccountDebit2, finalAccountCredit2);
+
+			// NIP VAT DEDUCTIONS CUSTOMES ACCOUNT TO ==> WAYA MFB (Mifos) NIP Intransit disbursement account credited with N10 VAT Fee
+			doDeductTransactionCharges(tokenData ,senderName, receiverName, paymentRef, "NIP VAT FEES", tranCrncy, tranCategory, tranType, finalTranAmCharges2, finalAccountDebit, finalAccountCredit);
+
+
 
 			String receiverAcct = accountCredit.getAccountNo();
 			String receiverName2 = accountCredit.getAcct_name();
@@ -4987,21 +4907,128 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	}
 
-	private String doTransactionCount(String paymentRef, String creditAcctNo){
-		String tranCount = tempwallet.transactionCount(paymentRef, creditAcctNo);
-		if (!tranCount.isBlank()) {
-			return "tranCount";
-		}
-		return tranCount;
-	}
 
-	private String validateDefaultCode(String tranCrncy){
+	public String securityCheck(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount, MyData tokenData, WalletAccount accountDebit, WalletAccount accountCredit) throws Exception {
+
+		log.info("START TRANSACTION");
+
 		boolean validate = paramValidation.validateDefaultCode(tranCrncy, "Currency");
 		if (!validate) {
 			return "DJGO|Currency Code Validation Failed";
 		}
-		return "DJGO|Currency Code Validation Successful";
+		Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
+		if (eventInfo.isEmpty()) {
+			return "DJGO|Event Code Does Not Exist";
+		}
+		WalletEventCharges charge = eventInfo.get();
+		boolean validate2 = paramValidation.validateDefaultCode(charge.getPlaceholder(), "Batch Account");
+		if (!validate2) {
+			return "DJGO|Event Validation Failed";
+		}
+		WalletAccount eventAcct = walletAccountRepository.findByAccountNo(creditAcctNo);
+		if (eventAcct == null) {
+			return "DJGO|CUSTOMER ACCOUNT DOES NOT EXIST";
+		}
+		// Does account exist
+		Optional<WalletAccount> accountDebitTeller = walletAccountRepository
+				.findByUserPlaceholder(charge.getPlaceholder(), charge.getCrncyCode(), eventAcct.getSol_id());
+		if (accountDebitTeller.isEmpty()) {
+			return "DJGO|NO EVENT ACCOUNT";
+		}
+
+		// Check for account security
+		log.info(accountDebit.getHashed_no());
+		if (!accountDebit.getAcct_ownership().equals("O")) {
+			String compareDebit = tempwallet.GetSecurityTest(accountDebit.getAccountNo());
+			log.info(compareDebit);
+		}
+		String secureDebit = reqIPUtils.WayaDecrypt(accountDebit.getHashed_no());
+		log.info(secureDebit);
+		String[] keyDebit = secureDebit.split(Pattern.quote("|"));
+		if ((!keyDebit[1].equals(accountDebit.getAccountNo()))
+				|| (!keyDebit[2].equals(accountDebit.getProduct_code()))
+				|| (!keyDebit[3].equals(accountDebit.getAcct_crncy_code()))) {
+			return "DJGO|DEBIT ACCOUNT DATA INTEGRITY ISSUE";
+		}
+
+		log.info(accountCredit.getHashed_no());
+		if (!accountDebit.getAcct_ownership().equals("O")) {
+			String compareCredit = tempwallet.GetSecurityTest(creditAcctNo);
+			log.info(compareCredit);
+		}
+		String secureCredit = reqIPUtils.WayaDecrypt(accountCredit.getHashed_no());
+		log.info(secureCredit);
+		String[] keyCredit = secureCredit.split(Pattern.quote("|"));
+		if ((!keyCredit[1].equals(accountCredit.getAccountNo()))
+				|| (!keyCredit[2].equals(accountCredit.getProduct_code()))
+				|| (!keyCredit[3].equals(accountCredit.getAcct_crncy_code()))) {
+			return "DJGO|CREDIT ACCOUNT DATA INTEGRITY ISSUE";
+		}
+		// Check for Amount Limit
+		if (!accountDebit.getAcct_ownership().equals("O")) {
+
+			Long userId = Long.parseLong(keyDebit[0]);
+			WalletUser user = walletUserRepository.findByUserId(userId);
+			BigDecimal AmtVal = BigDecimal.valueOf(user.getCust_debit_limit());
+			if (AmtVal.compareTo(amount) == -1) {
+				return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
+			}
+
+			if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
+				return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+			}
+
+			if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
+				return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+			}
+		}
+
+		// **********************************************
+
+		// AUth Security check
+		// **********************************************
+		if (!accountDebit.getAcct_ownership().equals("O")) {
+			if (accountDebit.isAcct_cls_flg())
+				return "DJGO|DEBIT ACCOUNT IS CLOSED";
+			log.info("Debit Account is: {}", accountDebit.getAccountNo());
+			log.info("Debit Account Freeze Code is: {}", accountDebit.getFrez_code());
+			if (accountDebit.getFrez_code() != null) {
+				if (accountDebit.getFrez_code().equals("D"))
+					return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
+			}
+
+			if (accountDebit.getLien_amt() != 0) {
+				double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
+				if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
+					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+				}
+				if (new BigDecimal(oustbal).compareTo(amount) == -1) {
+					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
+				}
+			}
+
+			BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
+			if (userLim.compareTo(amount) == -1) {
+				return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
+			}
+		}
+
+		if (!accountCredit.getAcct_ownership().equals("O")) {
+			if (accountCredit.isAcct_cls_flg())
+				return "DJGO|CREDIT ACCOUNT IS CLOSED";
+
+			log.info("Credit Account is: {}", accountCredit.getAccountNo());
+			log.info("Credit Account Freeze Code is: {}", accountCredit.getFrez_code());
+			if (accountCredit.getFrez_code() != null) {
+				if (accountCredit.getFrez_code().equals("C"))
+					return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
+			}
+		}
+
+		return "";
 	}
+
+
 
 	public String createEventTransactionForBillsPayment(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
 										 TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request,
@@ -5020,7 +5047,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				return "DJGO|Currency Code Validation Failed";
 			}
 			Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
-			if (!eventInfo.isPresent()) {
+			if (eventInfo.isEmpty()) {
 				return "DJGO|Event Code Does Not Exist";
 			}
 			WalletEventCharges charge = eventInfo.get();
@@ -5035,12 +5062,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// Does account exist
 			Optional<WalletAccount> accountDebitTeller = walletAccountRepository
 					.findByUserPlaceholder(charge.getPlaceholder(), charge.getCrncyCode(), eventAcct.getSol_id());
-			if (!accountDebitTeller.isPresent()) {
+			if (accountDebitTeller.isEmpty()) {
 				return "DJGO|NO EVENT ACCOUNT";
 			}
-			WalletAccount accountDebit = null;
-			WalletAccount accountCredit = null;
-			BigDecimal tranAmCharges = null;
+			WalletAccount accountDebit;
+			WalletAccount accountCredit;
+			BigDecimal tranAmCharges;
 			if (charge.isChargeWaya()) {
 				accountDebit = accountDebitTeller.get();
 				accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
@@ -5091,7 +5118,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				Long userId = Long.parseLong(keyDebit[0]);
 				WalletUser user = walletUserRepository.findByUserId(userId);
-				BigDecimal AmtVal = new BigDecimal(user.getCust_debit_limit());
+				BigDecimal AmtVal = BigDecimal.valueOf(user.getCust_debit_limit());
 				if (AmtVal.compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
 				}
@@ -5133,7 +5160,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					}
 				}
 
-				BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
+				BigDecimal userLim = new BigDecimal(Objects.requireNonNull(tokenData).getTransactionLimit());
 				if (userLim.compareTo(amount) == -1) {
 					return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
 				}
@@ -5156,7 +5183,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// *********************************************
 
 			// **********************************************
-			String tranId = "";
+			String tranId;
 			if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 				tranId = tempwallet.SystemGenerateTranId();
 			} else {
@@ -5193,7 +5220,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			String token = request.getHeader(SecurityConstants.HEADER_STRING);
 
-			String contentType = "";
+			String contentType;
 			if (eventId.equals("AITCOL")){
 				contentType = BILLS_PAYNENT;
 			}else{
@@ -5238,8 +5265,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			if(!eventId.equals("WAYAOFFTOCUS")){
 				WalletAccount finalAccountCredit = accountCredit;
 				WalletAccount finalAccountDebit = accountDebit;
-				BigDecimal finalTranAmCharges = tranAmCharges;
-				CompletableFuture.runAsync(() -> doDeductTransactionCharges(tokenData, senderName, receiverName, paymentRef, "Wallet Transfer", tranCrncy, tranCategory, TransactionTypeEnum.CHARGES, finalTranAmCharges, finalAccountDebit, finalAccountCredit));
+				CompletableFuture.runAsync(() -> doDeductTransactionCharges(tokenData, senderName, receiverName, paymentRef, "Wallet Transfer", tranCrncy, tranCategory, TransactionTypeEnum.CHARGES, tranAmCharges, finalAccountDebit, finalAccountCredit));
 			}
 
 			return tranId;
@@ -5255,7 +5281,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	public String createEventTransactionDebitUserCreditWayaAccount(String eventId, String debitAcctNo, String tranCrncy, BigDecimal amount,
 										 TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request,
-										 CategoryType tranCategory, MyData userToken) throws Exception {
+										 CategoryType tranCategory, MyData userToken) {
 		String tranDate = getTransactionDate();
 		try {
 			int n = 1;
@@ -5269,7 +5295,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				return "DJGO|Currency Code Validation Failed";
 			}
 			Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
-			if (!eventInfo.isPresent()) {
+			if (eventInfo.isEmpty()) {
 				return "DJGO|Event Code Does Not Exist";
 			}
 			WalletEventCharges charge = eventInfo.get();
@@ -5284,11 +5310,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// Does account exist
 			Optional<WalletAccount> accountDebitTeller = walletAccountRepository
 					.findByUserPlaceholder(charge.getPlaceholder(), charge.getCrncyCode(), eventAcct.getSol_id());
-			if (!accountDebitTeller.isPresent()) {
+			if (accountDebitTeller.isEmpty()) {
 				return "DJGO|NO EVENT ACCOUNT";
 			}
-			WalletAccount accountDebit = null;
-			WalletAccount accountCredit = null;
+			WalletAccount accountDebit;
+			WalletAccount accountCredit;
 
 			accountCredit = accountDebitTeller.get();
 			accountDebit = walletAccountRepository.findByAccountNo(debitAcctNo);
@@ -5329,16 +5355,16 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				Long userId = Long.parseLong(keyDebit[0]);
 				WalletUser user = walletUserRepository.findByUserId(userId);
-				BigDecimal AmtVal = new BigDecimal(user.getCust_debit_limit());
+				BigDecimal AmtVal = BigDecimal.valueOf(user.getCust_debit_limit());
 				if (AmtVal.compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
 				}
 
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
+				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
+				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 			}
@@ -5371,7 +5397,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					}
 				}
 
-				BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
+				BigDecimal userLim = new BigDecimal(Objects.requireNonNull(tokenData).getTransactionLimit());
 				if (userLim.compareTo(amount) == -1) {
 					return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
 				}
@@ -5394,7 +5420,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// *********************************************
 
 			// **********************************************
-			String tranId = "";
+			String tranId;
 			if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 				tranId = tempwallet.SystemGenerateTranId();
 			} else {
@@ -5504,9 +5530,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 
+
+
 	public String createEventOfficeTransaction(String debitEventId, String creditEventId, String tranCrncy, BigDecimal amount,
 											   TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request,
-											   CategoryType tranCategory) throws Exception {
+											   CategoryType tranCategory) {
 		try {
 			int n = 1;
 			log.info("START TRANSACTION");
@@ -5519,7 +5547,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				return "DJGO|Currency Code Validation Failed";
 			}
 			Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(debitEventId);
-			if (!eventInfo.isPresent()) {
+			if (eventInfo.isEmpty()) {
 				return "DJGO|Event Code Does Not Exist";
 			}
 			WalletEventCharges charge = eventInfo.get();
@@ -5530,16 +5558,17 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// Does account exist
 			Optional<WalletAccount> accountDebitTeller = walletAccountRepository
 					.findByUserPlaceholder(charge.getPlaceholder(), charge.getCrncyCode(), "0000");
-			if (!accountDebitTeller.isPresent()) {
+			if (accountDebitTeller.isEmpty()) {
 				return "DJGO|NO EVENT ACCOUNT";
 			}
 
 			//For credit Event only
-			Optional<WalletEventCharges> eventCredit = walletEventRepository.findByEventId(creditEventId);
-			if (!eventInfo.isPresent()) {
+			WalletEventCharges eventCredit = walletEventRepository.findByEventId(creditEventId).orElseThrow();
+			if (eventInfo.isEmpty()) {
 				return "DJGO|Event Code Does Not Exist";
 			}
-			WalletEventCharges chargeCredit = eventCredit.get();
+
+			WalletEventCharges chargeCredit = eventCredit;
 			boolean validate3 = paramValidation.validateDefaultCode(charge.getPlaceholder(), "Batch Account");
 			if (!validate3) {
 				return "DJGO|Event Validation Failed";
@@ -5548,9 +5577,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// Does account exist
 			Optional<WalletAccount> accountCreditTeller = walletAccountRepository
 					.findByUserPlaceholder(chargeCredit.getPlaceholder(), chargeCredit.getCrncyCode(), "0000");
-			if (!accountCreditTeller.isPresent()) {
+			if (accountCreditTeller.isEmpty()) {
 				return "DJGO|NO EVENT ACCOUNT";
 			}
+
 
 			WalletAccount accountDebit = null;
 			WalletAccount accountCredit = null;
@@ -5602,16 +5632,16 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				Long userId = Long.parseLong(keyDebit[0]);
 				WalletUser user = walletUserRepository.findByUserId(userId);
-				BigDecimal AmtVal = new BigDecimal(user.getCust_debit_limit());
+				BigDecimal AmtVal = BigDecimal.valueOf(user.getCust_debit_limit());
 				if (AmtVal.compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
 				}
 
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
+				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
+				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 			}
@@ -5644,7 +5674,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					}
 				}
 
-				BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
+				BigDecimal userLim = new BigDecimal(Objects.requireNonNull(tokenData).getTransactionLimit());
 				if (userLim.compareTo(amount) == -1) {
 					return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
 				}
@@ -5667,7 +5697,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// *********************************************
 
 			// **********************************************
-			String tranId = "";
+			String tranId;
 			if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 				tranId = tempwallet.SystemGenerateTranId();
 			} else {
@@ -5747,13 +5777,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 			System.out.println( "###### BEFORE SENDING REQUEST TO MIFOS  mifos =" + mifos);
 			if(mifos || !mifos){
 
-				WalletAccount finalAccountCredit1 = accountCredit; // toAccountNumber
-				WalletAccount finalAccountDebit1 = accountDebit;  //fromAccountNumber
 				//toAccountNumber
-				String finalTranId = tranId2;
-				System.out.println( "###### BEFORE SENDING REQUEST TO MIFOS " + finalAccountDebit1);
-				CompletableFuture.runAsync(() -> postToMifos(token1, finalAccountCredit1, finalAccountDebit1, amount, tranNarration, finalTranId,  tranType));
-				System.out.println( "###### RESPONSE AFTER SENDING REQUEST TO MIFOS " + finalAccountDebit1);
+				System.out.println( "###### BEFORE SENDING REQUEST TO MIFOS " + accountDebit);
+				CompletableFuture.runAsync(() -> postToMifos(token1, accountCredit, accountDebit, amount, tranNarration, tranId2,  tranType));
+				System.out.println( "###### RESPONSE AFTER SENDING REQUEST TO MIFOS " + accountDebit);
 			}
 
 			int n = 1;
@@ -5767,7 +5794,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				return "DJGO|Currency Code Validation Failed";
 			}
 			Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
-			if (!eventInfo.isPresent()) {
+			if (eventInfo.isEmpty()) {
 				return "DJGO|Event Code Does Not Exist";
 			}
 			WalletEventCharges charge = eventInfo.get();
@@ -5778,48 +5805,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			System.out.println( "################# iNISDE createEventOfficeTransactionModified ");
 			// Does account exist
-//			Optional<WalletAccount> accountDebitTeller = walletAccountRepository
-//					.findByUserPlaceholder(charge.getPlaceholder(), charge.getCrncyCode(), "0000");
-//			if (!accountDebitTeller.isPresent()) {
-//				return "DJGO|NO EVENT ACCOUNT";
-//			}
-
-			//For credit Event only
-//			Optional<WalletEventCharges> eventCredit = walletEventRepository.findByEventId(creditEventId);
-//			if (!eventInfo.isPresent()) {
-//				return "DJGO|Event Code Does Not Exist";
-//			}
-//			WalletEventCharges chargeCredit = eventCredit.get();
-//			boolean validate3 = paramValidation.validateDefaultCode(charge.getPlaceholder(), "Batch Account");
-//			if (!validate3) {
-//				return "DJGO|Event Validation Failed";
-//			}
-//
-//			// Does account exist
-//			Optional<WalletAccount> accountCreditTeller = walletAccountRepository
-//					.findByUserPlaceholder(chargeCredit.getPlaceholder(), chargeCredit.getCrncyCode(), "0000");
-//			if (!accountCreditTeller.isPresent()) {
-//				return "DJGO|NO EVENT ACCOUNT";
-//			}
 
 
 			System.out.println( "################# iNISDE accountDebit 2 " + accountDebit);
 			System.out.println( "################# iNISDE accountCredit 33 " + accountCredit);
-			//WalletAccount accountDebit = null;
-//			WalletAccount accountCredit = null;
-//			if (!charge.isChargeCustomer() && charge.isChargeWaya()) {
-//				accountDebit = accountDebitTeller.get();
-//			}
-//			else {
-//				accountCredit = accountDebitTeller.get();;
-//			}
-			
-//			if (!chargeCredit.isChargeCustomer() && chargeCredit.isChargeWaya()) {
-//				accountCredit = accountCreditTeller.get();
-//			} else {
-//				accountDebit = accountCreditTeller.get();
-//			}
-//
+
 			if (accountDebit == null || accountCredit == null) {
 				return "DJGO|DEBIT ACCOUNT OR BENEFICIARY ACCOUNT DOES NOT EXIST";
 			}
@@ -5857,16 +5847,16 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				Long userId = Long.parseLong(keyDebit[0]);
 				WalletUser user = walletUserRepository.findByUserId(userId);
-				BigDecimal AmtVal = new BigDecimal(user.getCust_debit_limit());
+				BigDecimal AmtVal = BigDecimal.valueOf(user.getCust_debit_limit());
 				if (AmtVal.compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
 				}
 
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
+				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
+				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 			}
@@ -5922,7 +5912,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// *********************************************
 
 			// **********************************************
-			String tranId = "";
+			String tranId;
 			if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 				tranId = tempwallet.SystemGenerateTranId();
 			} else {
@@ -5994,8 +5984,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public String createEventRedeem(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
-			TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request, String senderName)
-			throws Exception {
+			TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request, String senderName) {
 		String tranDate = getTransactionDate();
 		try {
 			int n = 1;
@@ -6009,7 +5998,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				return "DJGO|Currency Code Validation Failed";
 			}
 			Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
-			if (!eventInfo.isPresent()) {
+			if (eventInfo.isEmpty()) {
 				return "DJGO|Event Code Does Not Exist";
 			}
 			WalletEventCharges charge = eventInfo.get();
@@ -6024,11 +6013,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// Does account exist
 			Optional<WalletAccount> accountDebitTeller = walletAccountRepository
 					.findByUserPlaceholder(charge.getPlaceholder(), charge.getCrncyCode(), eventAcct.getSol_id());
-			if (!accountDebitTeller.isPresent()) {
+			if (accountDebitTeller.isEmpty()
+			) {
 				return "DJGO|NO EVENT ACCOUNT";
 			}
-			WalletAccount accountDebit = null;
-			WalletAccount accountCredit = null;
+			WalletAccount accountDebit;
+			WalletAccount accountCredit;
 			if (!charge.isChargeCustomer() && charge.isChargeWaya()) {
 				accountCredit = accountDebitTeller.get();
 				accountDebit = walletAccountRepository.findByAccountNo(creditAcctNo);
@@ -6072,16 +6062,16 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				Long userId = Long.parseLong(keyDebit[0]);
 				WalletUser user = walletUserRepository.findByUserId(userId);
-				BigDecimal AmtVal = new BigDecimal(user.getCust_debit_limit());
+				BigDecimal AmtVal = BigDecimal.valueOf(user.getCust_debit_limit());
 				if (AmtVal.compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
 				}
 
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
+				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
+				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 			}
@@ -6114,7 +6104,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					}
 				}
 
-				BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
+				BigDecimal userLim = new BigDecimal(Objects.requireNonNull(tokenData).getTransactionLimit());
 				if (userLim.compareTo(amount) == -1) {
 					return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
 				}
@@ -6137,7 +6127,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// *********************************************
 
 			// **********************************************
-			String tranId = "";
+			String tranId;
 			if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 				tranId = tempwallet.SystemGenerateTranId();
 			} else {
@@ -6217,7 +6207,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	public String createEventCommission(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request,
-			CategoryType tranCategory) throws Exception {
+			CategoryType tranCategory) {
 		try {
 			int n = 1;
 			log.info("START TRANSACTION");
@@ -6230,7 +6220,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				return "DJGO|Currency Code Validation Failed";
 			}
 			Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
-			if (!eventInfo.isPresent()) {
+			if (eventInfo.isEmpty()) {
 				return "DJGO|Event Code Does Not Exist";
 			}
 			WalletEventCharges charge = eventInfo.get();
@@ -6245,11 +6235,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// Does account exist
 			Optional<WalletAccount> accountDebitTeller = walletAccountRepository
 					.findByUserPlaceholder(charge.getPlaceholder(), charge.getCrncyCode(), eventAcct.getSol_id());
-			if (!accountDebitTeller.isPresent()) {
+			if (accountDebitTeller.isEmpty()) {
 				return "DJGO|NO EVENT ACCOUNT";
 			}
-			WalletAccount accountDebit = null;
-			WalletAccount accountCredit = null;
+			WalletAccount accountDebit;
+			WalletAccount accountCredit;
 			if (!charge.isChargeCustomer() && charge.isChargeWaya()) {   // && charge.isChargeWaya()
 				accountDebit = accountDebitTeller.get();
 				accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
@@ -6293,16 +6283,16 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 				Long userId = Long.parseLong(keyDebit[0]);
 				WalletUser user = walletUserRepository.findByUserId(userId);
-				BigDecimal AmtVal = new BigDecimal(user.getCust_debit_limit());
+				BigDecimal AmtVal = BigDecimal.valueOf(user.getCust_debit_limit());
 				if (AmtVal.compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
 				}
 
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
+				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
+				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 			}
@@ -6357,7 +6347,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// *********************************************
 
 			// **********************************************
-			String tranId = "";
+			String tranId;
 			if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 				tranId = tempwallet.SystemGenerateTranId();
 			} else {
@@ -6425,6 +6415,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	private void sendInApp(String token, WalletAccount accountCredit, String tranId, String tranDate, String tranCrncy, BigDecimal amount, MyData tokenData, String tranNarration, CategoryType categoryType){
 		//WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber.getAccountNo());
+
+		log.info("categoryType : " + categoryType);
 		WalletUser xUser = walletUserRepository.findByAccount(accountCredit);
 		String xfullName = xUser.getFirstName() + " " + xUser.getLastName();
 
@@ -6442,7 +6434,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 //BankPaymentOffice
 public String BankTransactionPayOffice(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
 								 TransactionTypeEnum tranType, String tranNarration, String paymentRef, String bk,
-								 HttpServletRequest request, CategoryType tranCategory, String senderName, String receiverName) throws Exception {
+								 HttpServletRequest request, CategoryType tranCategory, String senderName, String receiverName) {
 	try {
 		int n = 1;
 		log.info("START TRANSACTION");
@@ -6456,7 +6448,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 			return "DJGO|Currency Code Validation Failed";
 		}
 		Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
-		if (!eventInfo.isPresent()) {
+		if (eventInfo.isEmpty()) {
 			return "DJGO|Event Code Does Not Exist";
 		}
 		WalletEventCharges charge = eventInfo.get();
@@ -6471,7 +6463,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		// Does account exist
 		Optional<WalletAccount> accountDebitTeller = walletAccountRepository
 				.findByUserPlaceholder(charge.getPlaceholder(), charge.getCrncyCode(), eventAcct.getSol_id());
-		if (!accountDebitTeller.isPresent()) {
+		if (accountDebitTeller.isEmpty()) {
 			return "DJGO|NO EVENT ACCOUNT";
 		}
 		WalletAccount accountDebit = null;
@@ -6517,16 +6509,16 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 			Long userId = Long.parseLong(keyDebit[0]);
 			WalletUser user = walletUserRepository.findByUserId(userId);
-			BigDecimal AmtVal = new BigDecimal(user.getCust_debit_limit());
+			BigDecimal AmtVal = BigDecimal.valueOf(user.getCust_debit_limit());
 			if (AmtVal.compareTo(amount) == -1) {
 				return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
 			}
 
-			if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
+			if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
 				return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 			}
 
-			if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
+			if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
 				return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 			}
 		}
@@ -6557,7 +6549,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 				}
 			}
 
-			BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
+			BigDecimal userLim = new BigDecimal(Objects.requireNonNull(tokenData).getTransactionLimit());
 			if (userLim.compareTo(amount) == -1) {
 				return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
 			}
@@ -6580,7 +6572,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		// *********************************************
 
 		// **********************************************
-		String tranId = "";
+		String tranId;
 		if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 			tranId = tempwallet.SystemGenerateTranId();
 		} else {
@@ -6647,7 +6639,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 	public String BankTransactionPay(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
 			TransactionTypeEnum tranType, String tranNarration, String paymentRef, String bk,
-			HttpServletRequest request, CategoryType tranCategory, String senderName, String receiverName) throws Exception {
+			HttpServletRequest request, CategoryType tranCategory, String senderName, String receiverName) {
 		try {
 			int n = 1;
 			log.info("START TRANSACTION");
@@ -6661,7 +6653,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 				return "DJGO|Currency Code Validation Failed";
 			}
 			Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
-			if (!eventInfo.isPresent()) {
+			if (eventInfo.isEmpty()) {
 				return "DJGO|Event Code Does Not Exist";
 			}
 			WalletEventCharges charge = eventInfo.get();
@@ -6676,12 +6668,12 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 			// Does account exist
 			Optional<WalletAccount> accountDebitTeller = walletAccountRepository
 					.findByUserPlaceholder(charge.getPlaceholder(), charge.getCrncyCode(), eventAcct.getSol_id());
-			if (!accountDebitTeller.isPresent()) {
+			if (accountDebitTeller.isEmpty()) {
 				return "DJGO|NO EVENT ACCOUNT";
 			}
-			WalletAccount accountDebit = null;
-			WalletAccount accountCredit = null;
-			BigDecimal tranAmCharges = BigDecimal.ZERO;
+			WalletAccount accountDebit;
+			WalletAccount accountCredit;
+			BigDecimal tranAmCharges;
 			if (!charge.isChargeCustomer() && charge.isChargeWaya()) {
 				accountDebit = accountDebitTeller.get();
 				accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
@@ -6693,61 +6685,26 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 				//tranAmCharges = charge.getTranAmt();
 
 				// get user charge by eventId and userID
+				if(eventId.equals("WEMA_INT_DISBURS_ACCT") || eventId.equals("ZE_INT_DISBURS_ACCOUNT") || eventId.equals("MIFOSNIPINTRAS")){
+					eventId = "BANKPMT";
+				}
+
 				UserPricing userPricingOptional = getUserProduct(accountDebit, eventId);
+				System.out.println("userPricingOptional " + userPricingOptional);
 
 				tranAmCharges = getChargesAmount(userPricingOptional, amount);
+
+				System.out.println("charge amount " + tranAmCharges);
 			}
 			if (accountDebit == null || accountCredit == null) {
 				return "DJGO|DEBIT ACCOUNT OR BENEFICIARY ACCOUNT DOES NOT EXIST";
 			}
+
+
 			// Check for account security
-			log.info(accountDebit.getHashed_no());
-			if (!accountDebit.getAcct_ownership().equals("O")) {
-				String compareDebit = tempwallet.GetSecurityTest(accountDebit.getAccountNo());
-				log.info(compareDebit);
-			}
-			String secureDebit = reqIPUtils.WayaDecrypt(accountDebit.getHashed_no());
-			log.info(secureDebit);
-			String[] keyDebit = secureDebit.split(Pattern.quote("|"));
-			if ((!keyDebit[1].equals(accountDebit.getAccountNo()))
-					|| (!keyDebit[2].equals(accountDebit.getProduct_code()))
-					|| (!keyDebit[3].equals(accountDebit.getAcct_crncy_code()))) {
-				return "DJGO|DEBIT ACCOUNT DATA INTEGRITY ISSUE";
-			}
 
-			log.info(accountCredit.getHashed_no());
-			if (!accountDebit.getAcct_ownership().equals("O")) {
-				String compareCredit = tempwallet.GetSecurityTest(creditAcctNo);
-				log.info(compareCredit);
-			}
-			String secureCredit = reqIPUtils.WayaDecrypt(accountCredit.getHashed_no());
-			log.info(secureCredit);
-			String[] keyCredit = secureCredit.split(Pattern.quote("|"));
-			if ((!keyCredit[1].equals(accountCredit.getAccountNo()))
-					|| (!keyCredit[2].equals(accountCredit.getProduct_code()))
-					|| (!keyCredit[3].equals(accountCredit.getAcct_crncy_code()))) {
-				return "DJGO|CREDIT ACCOUNT DATA INTEGRITY ISSUE";
-			}
 			// Check for Amount Limit
-			if (!accountDebit.getAcct_ownership().equals("O")) {
 
-				Long userId = Long.parseLong(keyDebit[0]);
-				WalletUser user = walletUserRepository.findByUserId(userId);
-				BigDecimal AmtVal = new BigDecimal(user.getCust_debit_limit());
-				if (AmtVal.compareTo(amount) == -1) {
-					return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
-				}
-
-				Double totalAmount = accountDebit.getClr_bal_amt() + charge.getTranAmt().doubleValue();
-
-				if (new BigDecimal(totalAmount).compareTo(amount) == -1) {
-					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
-				}
-
-				if (new BigDecimal(totalAmount).compareTo(BigDecimal.ONE) != 1) {
-					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
-				}
-			}
 			// Token Fetch
 			MyData tokenData = tokenService.getUserInformation();
 			String email = tokenData != null ? tokenData.getEmail() : "";
@@ -6756,50 +6713,16 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 			// AUth Security check
 			// **********************************************
-			if (!accountDebit.getAcct_ownership().equals("O")) {
-				if (accountDebit.isAcct_cls_flg())
-					return "DJGO|DEBIT ACCOUNT IS CLOSED";
-				log.info("Debit Account is: {}", accountDebit.getAccountNo());
-				log.info("Debit Account Freeze Code is: {}", accountDebit.getFrez_code());
-				if (accountDebit.getFrez_code() != null) {
-					if (accountDebit.getFrez_code().equals("D"))
-						return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
-				}
-				if (accountDebit.getLien_amt() != 0) {
-					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
-					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
-						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
-					}
-					if (new BigDecimal(oustbal).compareTo(amount) == -1) {
-						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
-					}
-				}
+			String validateDebitAccount = validateDebitAccount(accountCredit, creditAcctNo, tranAmCharges, accountDebit, tokenData, amount);
+			log.info("Security check for Debit Account :: " + validateDebitAccount);
 
-				System.out.println("INSIDE MAIN METHOD :: " + tokenData);
-				BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
-				if (userLim.compareTo(amount) == -1) {
-					return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
-				}
-			}
-
-			if (!accountCredit.getAcct_ownership().equals("O")) {
-				if (accountCredit.isAcct_cls_flg())
-					return "DJGO|CREDIT ACCOUNT IS CLOSED";
-
-				log.info("Credit Account is: {}", accountCredit.getAccountNo());
-				log.info("Credit Account Freeze Code is: {}", accountCredit.getFrez_code());
-				if (accountCredit.getFrez_code() != null) {
-					if (accountCredit.getFrez_code().equals("C"))
-						return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
-				}
-			}
 
 			// **********************************************
 			// Account Transaction Locks
 			// *********************************************
 
 			// **********************************************
-			String tranId = "";
+			String tranId;
 			if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 				tranId = tempwallet.SystemGenerateTranId();
 			} else {
@@ -6808,11 +6731,9 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 			if (tranId.equals("")) {
 				return "DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN";
 			}
-			// MyData tokenData = tokenService.getUserInformation();
-			// String email = tokenData != null ? tokenData.getEmail() : "";
-			// String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
 
-
+			// Remove Lien
+			removeLien(accountDebit,amount);
 
 			String tranNarrate = "WALLET-" + tranNarration + " TO:" + bk;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
@@ -6825,10 +6746,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 					n, tranCategory,senderName,receiverName);
 
 			//  ################ TERSEER ########################
-//			tranCredit.setReceiverName(receiverName);
-//			tranCredit.setSenderName(senderName);
-//			tranDebit.setSenderName(senderName);
-//			tranDebit.setReceiverName(receiverName);
+
 
 			walletTransactionRepository.saveAndFlush(tranDebit);
 			walletTransactionRepository.saveAndFlush(tranCredit);
@@ -6851,6 +6769,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 			walletAccountRepository.saveAndFlush(accountCredit);
 			log.info("END TRANSACTION");
 
+			removeLien(accountDebit,amount);
 			// deduct charges
 
 			WalletAccount finalAccountCredit = accountCredit;
@@ -6871,38 +6790,8 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 	}
 
+	private String validateDebitAccount(WalletAccount accountCredit, String creditAcctNo, BigDecimal tranAmCharges, WalletAccount accountDebit,MyData tokenData, BigDecimal amount) throws Exception {
 
-	private BigDecimal computePercentage(BigDecimal amount, BigDecimal percentageValue){
-		BigDecimal per = BigDecimal.valueOf(percentageValue.doubleValue() / 100);
-		return BigDecimal.valueOf(per.doubleValue() * amount.doubleValue());
-	}
-
-	private BigDecimal getChargesAmount(UserPricing userPricingOptional, BigDecimal amount){
-		BigDecimal percentage = null;
-
-		if(userPricingOptional.getStatus().equals(ProductPriceStatus.GENERAL)){
-
-			percentage = computePercentage(amount, userPricingOptional.getGeneralAmount());
-			// apply discount if applicable
-
-		}else if (userPricingOptional.getStatus().equals(ProductPriceStatus.CUSTOM)){
-
-			// apply discount if applicable
-			percentage = computePercentage(amount, userPricingOptional.getCustomAmount());
-
-		}
-
-		if (percentage.compareTo(userPricingOptional.getCapPrice()) == 1){
-
-		}
-		return percentage;
-
-	}
-
-	private  String doDeductTransactionCharges(MyData tokenData, String senderName, String receiverName, String paymentRef, String bk, String tranCrncy, CategoryType tranCategory, TransactionTypeEnum tranType, BigDecimal chargesAmount, WalletAccount accountDebit, WalletAccount accountCredit){
-		try{
-			int n = 1;
-		// Check for account security
 		log.info(accountDebit.getHashed_no());
 		if (!accountDebit.getAcct_ownership().equals("O")) {
 			String compareDebit = tempwallet.GetSecurityTest(accountDebit.getAccountNo());
@@ -6919,7 +6808,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 		log.info(accountCredit.getHashed_no());
 		if (!accountDebit.getAcct_ownership().equals("O")) {
-			String compareCredit = tempwallet.GetSecurityTest(accountCredit.getAccountNo());
+			String compareCredit = tempwallet.GetSecurityTest(creditAcctNo);
 			log.info(compareCredit);
 		}
 		String secureCredit = reqIPUtils.WayaDecrypt(accountCredit.getHashed_no());
@@ -6930,32 +6819,27 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 				|| (!keyCredit[3].equals(accountCredit.getAcct_crncy_code()))) {
 			return "DJGO|CREDIT ACCOUNT DATA INTEGRITY ISSUE";
 		}
-		// Check for Amount Limit
+
 		if (!accountDebit.getAcct_ownership().equals("O")) {
 
 			Long userId = Long.parseLong(keyDebit[0]);
 			WalletUser user = walletUserRepository.findByUserId(userId);
-			BigDecimal AmtVal = new BigDecimal(user.getCust_debit_limit());
-			if (AmtVal.compareTo(chargesAmount) == -1) {
+			BigDecimal AmtVal = BigDecimal.valueOf(user.getCust_debit_limit());
+			if (AmtVal.compareTo(amount) == -1) {
 				return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
 			}
 
-			if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(chargesAmount) == -1) {
+			double totalAmount = accountDebit.getClr_bal_amt() + tranAmCharges.doubleValue();
+
+			if (new BigDecimal(totalAmount).compareTo(amount) == -1) {
 				return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 			}
 
-			if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
+			if (new BigDecimal(totalAmount).compareTo(BigDecimal.ONE) != 1) {
 				return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 			}
 		}
-		// Token Fetch
 
-		String email = tokenData != null ? tokenData.getEmail() : "";
-		String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
-		// **********************************************
-
-		// AUth Security check
-		// **********************************************
 		if (!accountDebit.getAcct_ownership().equals("O")) {
 			if (accountDebit.isAcct_cls_flg())
 				return "DJGO|DEBIT ACCOUNT IS CLOSED";
@@ -6970,16 +6854,18 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 				if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
-				if (new BigDecimal(oustbal).compareTo(chargesAmount) == -1) {
+				if (new BigDecimal(oustbal).compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 			}
-			System.out.println("INSIDE MAIN METHOD 2222:: " + tokenData);
+
+			System.out.println("INSIDE MAIN METHOD :: " + tokenData);
 			BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
-			if (userLim.compareTo(chargesAmount) == -1) {
+			if (userLim.compareTo(amount) == -1) {
 				return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
 			}
 		}
+
 
 		if (!accountCredit.getAcct_ownership().equals("O")) {
 			if (accountCredit.isAcct_cls_flg())
@@ -6992,41 +6878,82 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 					return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
 			}
 		}
+		return "";
+	}
+
+
+	private BigDecimal computePercentage(BigDecimal amount, BigDecimal percentageValue){
+		BigDecimal per = BigDecimal.valueOf(percentageValue.doubleValue() / 100);
+		return BigDecimal.valueOf(per.doubleValue() * amount.doubleValue());
+	}
+
+	private BigDecimal getChargesAmount(UserPricing userPricingOptional, BigDecimal amount){
+		BigDecimal percentage = null;
+		System.out.println("Inside getChargesAmount userPricingOptional" + userPricingOptional);
+		System.out.println("Inside getChargesAmount amount" + amount);
+		if(userPricingOptional.getStatus().equals(ProductPriceStatus.GENERAL)){
+			if(userPricingOptional.getPriceType().equals(PriceCategory.FIXED)){
+				percentage = userPricingOptional.getGeneralAmount();
+			}else{
+				percentage = computePercentage(amount, userPricingOptional.getGeneralAmount());
+				// apply discount if applicable
+			}
+
+		}else if (userPricingOptional.getStatus().equals(ProductPriceStatus.CUSTOM)){
+			if(userPricingOptional.getPriceType().equals(PriceCategory.FIXED)){
+				percentage = userPricingOptional.getGeneralAmount();
+			}else {
+				// apply discount if applicable
+				percentage = computePercentage(amount, userPricingOptional.getCustomAmount());
+			}
+		}
+
+		return percentage;
+
+	}
+
+	private void doDeductTransactionCharges(MyData tokenData, String senderName, String receiverName, String paymentRef, String bk, String tranCrncy, CategoryType tranCategory, TransactionTypeEnum tranType, BigDecimal chargesAmount, WalletAccount accountDebit, WalletAccount accountCredit){
+		try{
+			// POST TO MIFOS
+				log.info("bk =" + bk);
+
+		String email = tokenData != null ? tokenData.getEmail() : "";
+		String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+		// **********************************************
+
+		// AUth Security check
+		// **********************************************
 
 		// **********************************************
 		// Account Transaction Locks
 		// *********************************************
 
 		// **********************************************
-		String tranId = "";
+		String tranId;
 		if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 			tranId = tempwallet.SystemGenerateTranId();
 		} else {
 			tranId = tempwallet.GenerateTranId();
 		}
 		if (tranId.equals("")) {
-			return "DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN";
+			throw new CustomException("DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN", HttpStatus.NOT_FOUND);
 		}
 
-
-		String tranNarrate = "WALLET-" + "transaction charges" + " TO:" + bk;
+		int n = 1;
+		String tranNarrate = "WALLET-" + "transaction charges" + bk;
 		WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), chargesAmount, tranType,
 				tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,
 				n, tranCategory,senderName,receiverName);
-			System.out.println("tranDebit ==: : " + tranDebit);
+			System.out.println("tranDebit  transaction charges ==: : " + tranDebit);
 
 		n = n + 1;
 		WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), chargesAmount, tranType,
 				tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email,
 				n, tranCategory,senderName,receiverName);
 
-			System.out.println("tranCredit ==: : " + tranCredit);
+			System.out.println("tranCredit transaction charges ==: : " + tranCredit);
 
 		//  ################ TERSEER ########################
-//			tranCredit.setReceiverName(receiverName);
-//			tranCredit.setSenderName(senderName);
-//			tranDebit.setSenderName(senderName);
-//			tranDebit.setReceiverName(receiverName);
 
 		walletTransactionRepository.saveAndFlush(tranDebit);
 		walletTransactionRepository.saveAndFlush(tranCredit);
@@ -7047,18 +6974,19 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		accountCredit.setCum_cr_amt(cumbalCrAmtCr);
 		accountCredit.setLast_tran_date(LocalDate.now());
 		walletAccountRepository.saveAndFlush(accountCredit);
-		return tranId;
+
+
+
 
 		} catch (Exception e) {
 			e.printStackTrace();
-			return ("DJGO|" + e.getMessage());
 		}
 
 	}
 
 	@Override
 	public ApiResponse<?> getStatement(String accountNumber) {
-		WalletAccountStatement statement = null;
+		WalletAccountStatement statement;
 		WalletAccount account = walletAccountRepository.findByAccountNo(accountNumber);
 		if (account == null) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
@@ -7067,7 +6995,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		if (transaction == null) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "UNABLE TO GENERATE STATEMENT", null);
 		}
-		statement = new WalletAccountStatement(new BigDecimal(account.getClr_bal_amt()), transaction);
+		statement = new WalletAccountStatement(BigDecimal.valueOf(account.getClr_bal_amt()), transaction);
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", statement);
 	}
 
@@ -7092,7 +7020,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 		WalletAccount walletAccount = getAcount(Long.valueOf(eventPay.getSenderId()));
 		Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventPay.getEventId());
-		if (!eventInfo.isPresent()){
+		if (eventInfo.isEmpty()){
 			return new ResponseEntity<>(new ErrorResponse("EVENT DOES NOT EXIST"), HttpStatus.BAD_REQUEST);
 		}
 		WalletEventCharges charge = eventInfo.get();
@@ -7102,7 +7030,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		OfficeUserTransferDTO officeTransferDTO = new OfficeUserTransferDTO();
 		officeTransferDTO.setAmount(eventPay.getAmount());
 		officeTransferDTO.setCustomerCreditAccount(walletAccount.getAccountNo());
-		officeTransferDTO.setOfficeDebitAccount(accountDebitTeller.getAccountNo());
+		officeTransferDTO.setOfficeDebitAccount(Objects.requireNonNull(accountDebitTeller).getAccountNo());
 		officeTransferDTO.setTranType(TransactionTypeEnum.REVERSAL.getValue());
 		officeTransferDTO.setTranNarration(eventPay.getTranNarration());
 		officeTransferDTO.setTranCrncy(eventPay.getTranCrncy());
@@ -7167,7 +7095,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		Date d2 = sdformat.parse(tranDate);
 		LocalDate reverseDate = reverseDto.getTranDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 		BigDecimal debitAmount = new BigDecimal("0"), creditAmount = new BigDecimal("0");
-		ArrayList<String> account = new ArrayList<String>();
+		ArrayList<String> account = new ArrayList<>();
 
 		if (d1.compareTo(d2) == 0) {
 			List<WalletTransaction> transRe = walletTransactionRepository.findByRevTrans(reverseDto.getTranId(),
@@ -7192,7 +7120,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 			if (res != 0) {
 				return new ResponseEntity<>(new ErrorResponse("IMBALANCE TRANSACTION"), HttpStatus.BAD_REQUEST);
 			}
-			String tranId = "";
+			String tranId;
 			if (reverseDto.getTranId().substring(0, 1).equalsIgnoreCase("S")) {
 				tranId = tempwallet.SystemGenerateTranId();
 			} else {
@@ -7268,13 +7196,16 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 			String message2 = formatNewMessage(trans.getTranAmount(), trans.getTranId(), trans.getTranDate().toString(), trans.getTranCrncyCode(), trans.getTranNarrate());
 
-			CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
-					xUser.getEmailAddress(), message2, tokenData.getId(), trans.getTranAmount().toString(), trans.getTranId(),
-					trans.getTranDate().toString(), trans.getTranNarrate()));
-			CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
-					message2, tokenData.getId()));
-			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getUserId().toString(),
-					message2, tokenData.getId(), TRANSACTION_HAS_OCCURRED));
+			if(tokenData !=null){
+				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, fullName,
+						xUser.getEmailAddress(), message2, tokenData.getId(), trans.getTranAmount().toString(), trans.getTranId(),
+						trans.getTranDate().toString(), trans.getTranNarrate()));
+				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
+						message2, tokenData.getId()));
+				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getUserId().toString(),
+						message2, tokenData.getId(), TRANSACTION_HAS_OCCURRED));
+			}
+
 		}
 
 		log.info("END TRANSACTION");
@@ -7282,7 +7213,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	}
 
 	public ResponseEntity<?> TranReversePaymentRevised(HttpServletRequest request, ReverseTransactionDTO reverseDto)
-			throws ParseException {
+			{
 		Provider provider = switchWalletService.getActiveProvider();
 		if (provider == null) {
 			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
@@ -7299,12 +7230,11 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	}
 
 	public ResponseEntity<?> ReversePaymentRevised(HttpServletRequest request, ReverseTransactionDTO reverseDto)
-			throws ParseException {
-		DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+			{
 
 		LocalDate reverseDate = reverseDto.getTranDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 		BigDecimal debitAmount = new BigDecimal("0"), creditAmount = new BigDecimal("0");
-		ArrayList<String> account = new ArrayList<String>();
+		ArrayList<String> account = new ArrayList<>();
 
 			List<WalletTransaction> transRe = walletTransactionRepository.findByRevTrans(reverseDto.getTranId(),
 					reverseDate, reverseDto.getTranCrncy());
@@ -7328,7 +7258,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 			if (res != 0) {
 				return new ResponseEntity<>(new ErrorResponse("IMBALANCE TRANSACTION"), HttpStatus.BAD_REQUEST);
 			}
-			String tranId = "";
+			String tranId;
 			if (reverseDto.getTranId().substring(0, 1).equalsIgnoreCase("S")) {
 				tranId = tempwallet.SystemGenerateTranId();
 			} else {
@@ -7459,7 +7389,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
 			}
 			Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
-			if (!transaction.isPresent()) {
+			if (transaction.isEmpty()) {
 				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 			}
 			return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATED SUCCESSFULLY",
@@ -7474,7 +7404,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	@Override
 	public ApiResponse<?> createBulkExcelTrans(HttpServletRequest request, MultipartFile file) {
 		String message;
-		BulkTransactionExcelDTO bulkLimt = null;
+		BulkTransactionExcelDTO bulkLimt;
 		if (ExcelHelper.hasExcelFormat(file)) {
 			try {
 				bulkLimt = ExcelHelper.excelToBulkTransactionPojo(file.getInputStream(), file.getOriginalFilename());
@@ -7485,7 +7415,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 				}
 				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
 						.findByTranIdIgnoreCase(tranId);
-				if (!transaction.isPresent()) {
+				if (transaction.isEmpty()) {
 					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
 				}
 				return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATED SUCCESSFULLY",
@@ -7500,7 +7430,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	}
 
 	public String createBulkTransaction(String debitAcctNo, String tranCrncy, Set<UserTransactionDTO> usersList,
-			TransactionTypeEnum tranType, String tranNarration, String paymentRef) throws Exception {
+			TransactionTypeEnum tranType, String tranNarration, String paymentRef){
 		try {
 			int n = 1;
 			boolean validate = paramValidation.validateDefaultCode(tranCrncy, "Currency");
@@ -7509,7 +7439,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 			}
 			// Does account exist
 			WalletAccount accountDebit = walletAccountRepository.findByAccountNo(debitAcctNo);
-			List<WalletAccount> creditList = new ArrayList<WalletAccount>();
+			List<WalletAccount> creditList = new ArrayList<>();
 			BigDecimal amount = new BigDecimal("0");
 			for (UserTransactionDTO mUser : usersList) {
 				WalletAccount accountCredit = walletAccountRepository.findByAccountNo(mUser.getCustomerAccountNo());
@@ -7563,16 +7493,16 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 				Long userId = Long.parseLong(keyDebit[0]);
 				WalletUser user = walletUserRepository.findByUserId(userId);
-				BigDecimal AmtVal = new BigDecimal(user.getCust_debit_limit());
+				BigDecimal AmtVal = BigDecimal.valueOf(user.getCust_debit_limit());
 				if (AmtVal.compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
 				}
 
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
+				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 
-				if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
+				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
 					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 				}
 			}
@@ -7604,14 +7534,14 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 					}
 				}
 
-				BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
+				BigDecimal userLim = new BigDecimal(Objects.requireNonNull(tokenData).getTransactionLimit());
 				if (userLim.compareTo(amount) == -1) {
 					return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
 				}
 			}
 
 			// **********************************************
-			String tranId = "";
+			String tranId;
 			if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 				tranId = tempwallet.SystemGenerateTranId();
 			} else {
@@ -7620,16 +7550,14 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 			if (tranId.equals("")) {
 				return "DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN";
 			}
-			// MyData tokenData = tokenService.getUserInformation();
-			// String email = tokenData != null ? tokenData.getEmail() : "";
-			// String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+
 
 			String tranNarrate = "WALLET-" + tranNarration;
 			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,
 					n);
 
-			List<WalletTransaction> tranMultCredit = new ArrayList<WalletTransaction>();
+			List<WalletTransaction> tranMultCredit = new ArrayList<>();
 			for (UserTransactionDTO mUser : usersList) {
 				n = n + 1;
 				WalletAccount acctcdt = walletAccountRepository.findByAccountNo(mUser.getCustomerAccountNo());
@@ -7669,11 +7597,11 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 	}
 
-	public String createExcelTransaction(Set<ExcelTransactionCreationDTO> transList) throws Exception {
-		List<WalletTransaction> tranMultCR = new ArrayList<WalletTransaction>();
-		List<WalletTransaction> tranMultDR = new ArrayList<WalletTransaction>();
-		List<WalletAccount> acctMultDebit = new ArrayList<WalletAccount>();
-		List<WalletAccount> acctMultCredit = new ArrayList<WalletAccount>();
+	public String createExcelTransaction(Set<ExcelTransactionCreationDTO> transList) {
+		List<WalletTransaction> tranMultCR = new ArrayList<>();
+		List<WalletTransaction> tranMultDR = new ArrayList<>();
+		List<WalletAccount> acctMultDebit = new ArrayList<>();
+		List<WalletAccount> acctMultCredit = new ArrayList<>();
 
 		try {
 
@@ -7728,16 +7656,16 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 					Long userId = Long.parseLong(keyDebit[0]);
 					WalletUser user = walletUserRepository.findByUserId(userId);
-					BigDecimal AmtVal = new BigDecimal(user.getCust_debit_limit());
+					BigDecimal AmtVal = BigDecimal.valueOf(user.getCust_debit_limit());
 					if (AmtVal.compareTo(amount) == -1) {
 						return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
 					}
 
-					if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
+					if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
 						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 					}
 
-					if (new BigDecimal(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
+					if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
 						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
 					}
 				}
@@ -7769,7 +7697,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 						}
 					}
 
-					BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
+					BigDecimal userLim = new BigDecimal(Objects.requireNonNull(tokenData).getTransactionLimit());
 					if (userLim.compareTo(amount) == -1) {
 						return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
 					}
@@ -7789,9 +7717,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 				// **********************************************
 
-				// MyData tokenData = tokenService.getUserInformation();
-				// String email = tokenData != null ? tokenData.getEmail() : "";
-				// String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
+
 
 				String tranNarrate = "WALLET-" + mUser.getTranNarration();
 				WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount,
@@ -7804,8 +7730,6 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 						mUser.getAmount(), tranType, tranNarrate, LocalDate.now(), mUser.getTranCrncy(), "C",
 						accountCredit.getGl_code(), mUser.getPaymentReference(), userId, email, n);
 
-				// walletTransactionRepository.saveAndFlush(tranDebit);
-				// walletTransactionRepository.saveAll(tranMultCredit);
 				log.info("Debit Transaction: {}", tranDebit.toString());
 				log.info("Credit Transaction: {}", tranCredit.toString());
 				tranMultCR.add(tranCredit);
@@ -7817,7 +7741,6 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 				accountDebit.setClr_bal_amt(clrbalAmtDr);
 				accountDebit.setCum_dr_amt(cumbalDrAmtDr);
 				accountDebit.setLast_tran_date(LocalDate.now());
-				// walletAccountRepository.saveAndFlush(accountDebit);
 				acctMultDebit.add(accountDebit);
 
 				double clrbalAmtCr = accountCredit.getClr_bal_amt() + amount.doubleValue();
@@ -7826,7 +7749,6 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 				accountCredit.setClr_bal_amt(clrbalAmtCr);
 				accountCredit.setCum_cr_amt(cumbalCrAmtCr);
 				accountCredit.setLast_tran_date(LocalDate.now());
-				// walletAccountRepository.saveAndFlush(accountCredit);
 				acctMultCredit.add(accountCredit);
 				n++;
 			}
@@ -7856,9 +7778,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	}
 
 	public List<TransWallet> statementReport2(Date fromdate, Date todate, String acctNo) {
-		List<TransWallet> transaction2 = tempwallet.GetTransactionType2(acctNo,fromdate,todate);
-
-		return transaction2;
+		return tempwallet.GetTransactionType2(acctNo,fromdate,todate);
 	}
 
 	@Override
@@ -7882,7 +7802,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		Date d2 = sdformat.parse(tranDate);
 		LocalDate reverseDate = reverseDto.getTranDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 		BigDecimal debitAmount = new BigDecimal("0"), creditAmount = new BigDecimal("0");
-		ArrayList<String> account = new ArrayList<String>();
+		ArrayList<String> account = new ArrayList<>();
 
 		if (d1.compareTo(d2) == 0) {
 			List<WalletTransaction> transRe = walletTransactionRepository.findByRevTrans(reverseDto.getTranId(),
@@ -7907,7 +7827,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 			if (res != 0) {
 				return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "IMBALANCE TRANSACTION", null);
 			}
-			String tranId = "";
+			String tranId;
 			if (reverseDto.getTranId().substring(0, 1).equalsIgnoreCase("S")) {
 				tranId = tempwallet.SystemGenerateTranId();
 			} else {
@@ -7949,24 +7869,23 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	}
 
 	public WalletAccount fromEventIdBankAccount(String eventId) {
-		System.out.println("fromEventIdBankAccount :: " + eventId );
+
 		WalletEventCharges event = walletEventRepository.findByEventId(eventId)
 				.orElseThrow(() -> new NoSuchElementException("EVENT ID NOT AVAILABLE FOR EventId FIRST:" + eventId));
-		System.out.println("fromEventIdBankAccount event:: " + event );
+
 		boolean validate2 = paramValidation.validateDefaultCode(event.getPlaceholder(), "Batch Account");
 		if (!validate2) {
 			throw new CustomException("Event Placeholder Validation Failed", HttpStatus.BAD_REQUEST);
 		}
 
-		WalletAccount account = walletAccountRepository
+		return walletAccountRepository
 				.findByUserPlaceholder(event.getPlaceholder(), event.getCrncyCode(), "0000")
 				.orElseThrow(() -> new NoSuchElementException("EVENT ID NOT AVAILABLE FOR EventId :" + eventId));
-		return account;
 	}
 
 	public String formatMessage(BigDecimal amount, String tranId, String tranDate, String tranCrncy, String narration,
 			String tokenId) {
-
+		log.info("amt" + amount + "|" + tranId + "|" + tranCrncy + "|" + narration + "|" + tranDate );
 		String message = "" + "\n";
 		message = message + "" + "A transaction has occurred with token id: " + tokenId
 				+ "  on your account see details below." + "\n";
@@ -8004,6 +7923,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	public String formatNewMessage(BigDecimal amount, String tranId, String tranDate, String tranCrncy,
 								   String narration, String sender, String reciever, double availableBalance, String description, String bank) {
 
+		log.info("sender" + sender);
 		String message = "" + "\n";
 		message = message + "" + "Message :" + "A bank withdrawl has occurred"
 				+ " see details below" + "\n";
@@ -8022,6 +7942,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	public String formatSMSRecipient(BigDecimal amount, String tranId, String tranDate, String tranCrncy,
 								   String narration, String sender, double availableBalance, String description) {
 
+		log.info("sender" + sender);
 		String message = "" + "\n";
 		message = message + "" + "Message :" + "A credit transaction has occurred"
 				+ "  on your account see details below" + "\n";
@@ -8035,19 +7956,6 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		return message;
 	}
 
-	public String formatNewMessageReversal(BigDecimal amount, String tranId, String tranDate, String tranCrncy,
-								   String narration) {
-
-		String message = "" + "\n";
-		message = message + "" + "Message :" + "A reversal transaction has occurred"
-				+ "  on your account see details below" + "\n";
-		message = message + "" + "Amount :" + amount + "\n";
-		message = message + "" + "tranId :" + tranId + "\n";
-		message = message + "" + "tranDate :" + tranDate + "\n";
-		message = message + "" + "Currency :" + tranCrncy + "\n";
-		message = message + "" + "Narration :" + narration + "\n";
-		return message;
-	}
 
 	public String formatCreditMessage(BigDecimal amount, String tranId, String tranDate, String tranCrncy,
 									 String narration) {
@@ -8175,23 +8083,6 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	}
 
 
-	public WalletPaymentRequest getWalletPaymentRequest(PaymentRequest request) {
-		WalletPaymentRequest wayauser = new WalletPaymentRequest();
-		wayauser.setReceiverEmail(request.getReceiverEmail());
-		wayauser.setReceiverPhoneNumber(request.getReceiverName());
-		wayauser.setReceiverId( request.getReceiverId());
-		wayauser.setSenderId(request.getSenderId());
-		wayauser.setAmount(request.getAmount());
-		wayauser.setDeleted(request.isDeleted());
-		wayauser.setStatus(request.getStatus());
-		wayauser.setRejected(request.isRejected());
-		wayauser.setWayauser(request.isWayauser());
-		wayauser.setReason(request.getReason());
-		wayauser.setReference(request.getReference());
-		wayauser.setCreatedAt(request.getCreatedAt());
-		wayauser.setCategory(request.getTransactionCategory());
-		return wayauser;
-	}
 
 	@Override
 	public ResponseEntity<?> WayaPaymentRequestUsertoUser(HttpServletRequest request, WayaPaymentRequest transfer) {
@@ -8203,7 +8094,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 				if (mPayRequest != null) {
 					throw new CustomException("Reference ID already exist", HttpStatus.BAD_REQUEST);
 				}
-	//			WalletPaymentRequest spay = getWalletPaymentRequest(transfer.getPaymentRequest());
+
 				WalletPaymentRequest spay = new WalletPaymentRequest(transfer.getPaymentRequest());
 				WalletPaymentRequest mPay = walletPaymentRequestRepo.save(spay);
 				return new ResponseEntity<>(new SuccessResponse("SUCCESS", mPay), HttpStatus.CREATED);
@@ -8245,8 +8136,8 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 					log.info(" INSIDE IS WAYA IS TRUE: {}", transfer);
 					System.out.println("Inside here == " + transfer.getPaymentRequest());
 					PaymentRequest mPay = transfer.getPaymentRequest();
-					WalletAccount debitAcct = null;
-					WalletAccount creditAcct = null;
+					WalletAccount debitAcct;
+					WalletAccount creditAcct;
 					// if this request comes from an official transfer.getPaymentRequest().isWayaOfficial() ||
 					if (!StringUtils.isNumeric(mPayRequest.getSenderId())) {
 						creditAcct = getOfficialAccount(mPayRequest.getSenderId());
@@ -8255,7 +8146,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 								debitAcct.getAccountNo(), mPayRequest.getAmount(), "TRANSFER", "NGN", mPayRequest.getReason(),
 								mPayRequest.getReference());
 						ApiResponse<?> res = OfficialUserTransfer( request,transferDTO, false);
-						System.out.println("RES :: " + res);
+
 						if(res.getStatus()){
 							mPayRequest.setReceiverId(mPay.getReceiverId());
 							mPayRequest.setStatus(PaymentRequestStatus.PAID);
@@ -8269,8 +8160,6 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 					}else{
 						creditAcct = getAcount(Long.valueOf(mPayRequest.getSenderId()));
 						debitAcct = getAcount(Long.valueOf(mPay.getReceiverId()));
-
-
 						TransferTransactionDTO txt = new TransferTransactionDTO(debitAcct.getAccountNo(),
 								creditAcct.getAccountNo(), mPayRequest.getAmount(), "TRANSFER", "NGN", mPayRequest.getReason(),
 								mPayRequest.getReference(), mPay.getTransactionCategory().getValue());
