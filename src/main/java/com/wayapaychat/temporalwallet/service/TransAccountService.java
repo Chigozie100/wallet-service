@@ -81,7 +81,7 @@ public interface TransAccountService {
 
 	ResponseEntity<?> EventReversePaymentRequest(HttpServletRequest request, EventPaymentRequestReversal eventPay);
 
-	ResponseEntity<?> EventTransferPayment(HttpServletRequest request, EventPaymentDTO eventPay);
+	ResponseEntity<?> EventTransferPayment(HttpServletRequest request, EventPaymentDTO eventPay, boolean isMifos);
 
 	ResponseEntity<?> EventPaymentSettlement(HttpServletRequest request, EventPaymentSettlementDTO eventPay);
 
@@ -123,7 +123,7 @@ public interface TransAccountService {
 
 	ApiResponse<?> PaymentTransFilter(String acctNo);
 
-	ResponseEntity<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer);
+	ResponseEntity<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer, boolean isMifos);
 
 	ResponseEntity<?> BankTransferPaymentOfficial(HttpServletRequest request, BankPaymentOfficialDTO transfer);
 

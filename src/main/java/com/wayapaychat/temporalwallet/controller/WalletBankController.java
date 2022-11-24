@@ -200,7 +200,7 @@ public class WalletBankController {
         if (responseEntity.getStatusCode().is2xxSuccessful()){
 
             WalletEventAccountDTO walletEventAccountDTO = new WalletEventAccountDTO();
-            walletEventAccountDTO.setAccountType("TRANS");
+            walletEventAccountDTO.setAccountType("SAVINGS");
             walletEventAccountDTO.setAccountName(request.getTranNarration());
             walletEventAccountDTO.setCrncyCode(request.getCrncyCode());
             walletEventAccountDTO.setDescription(request.getTranNarration());

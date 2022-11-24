@@ -14,8 +14,7 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.security.spec.KeySpec;
-import java.util.Base64;
-import java.util.Random;
+import java.util.*;
 
 public class Util {
 
@@ -198,6 +197,23 @@ public class Util {
         return BigDecimal.valueOf(per.doubleValue() * amount.doubleValue());
     }
 
+    public static ArrayList<Map<String, String>> products(){
+
+        ArrayList<Map<String, String>> list = new ArrayList<>();
+
+        Map<String, String> map = new HashMap<>();
+        map.put("Virtual Account Issuance","VIRTUALACCOUNTISS");
+        map.put("Funding via card","PAYSTACK");
+        map.put("Funding via bank account","PAYSTK");
+        map.put("Funding via Bank Transfer","PAYSTK");
+        map.put("Internal Bank Transfer","WAYATRAN");
+        map.put("External Bank Transfer","BANKPMT");
+        map.put("Sms Alert","SMSCHG");
+        map.put("Bills Payment","AITCOL");
+
+        list.add(map);
+        return list;
+    }
 
 
 }
