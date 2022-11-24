@@ -21,7 +21,6 @@ import com.wayapaychat.temporalwallet.dto.AccountLookUp;
 import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
 import com.wayapaychat.temporalwallet.dto.AccountTransChargeDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionHistoryDTO;
-import com.wayapaychat.temporalwallet.config.SecurityCrypto;
 import com.wayapaychat.temporalwallet.entity.Provider;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.enumm.ProviderType;
@@ -33,6 +32,7 @@ import com.wayapaychat.temporalwallet.mapper.CommissionHistoryMapper;
 import com.wayapaychat.temporalwallet.mapper.TransWalletMapper;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import com.wayapaychat.temporalwallet.service.SwitchWalletService;
+import com.wayapaychat.temporalwallet.util.SecurityCrypto;
 
 import lombok.extern.slf4j.Slf4j;
 

@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,6 +41,7 @@ public class BatchOperation {
     @ApiOperation(value = "To transfer money from one waya official account to simulated user wallet", notes = "Post Money", tags = {
             "BATCH-OPERATIONS" })
     @PostMapping("/official/simulated-user/transfer")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> OfficialUserMoney(HttpServletRequest request,
                                                @Valid @RequestBody List<OfficeUserTransferDTO> transfer) {
         ApiResponse<?> res = transAccountService.OfficialUserTransferMultiple(request, transfer);

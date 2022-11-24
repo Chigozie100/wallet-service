@@ -1,4 +1,4 @@
-package com.wayapaychat.temporalwallet.config;
+package com.wayapaychat.temporalwallet.util;
 
 import java.security.Key;
 import java.util.Base64;
