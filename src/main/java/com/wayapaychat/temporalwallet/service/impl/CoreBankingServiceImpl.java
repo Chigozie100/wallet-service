@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.MifosTransfer;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
-import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
 import com.wayapaychat.temporalwallet.pojo.MyData;
 import com.wayapaychat.temporalwallet.pojo.TransactionPojo;
@@ -172,6 +171,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         //Reverse debit if credit failed
         if (!response.getStatusCode().is2xxSuccessful()) {
+            processExternalCBATransactionDoubleEntry(paymentReference, toAccount, fromAccount, "Reversal "+narration, category, amount, provider);
             creditAccount(new CBAEntryTransaction(userToken, tranId, paymentReference, category, fromAccount, "Reversal "+narration, amount,  2, tranType, ""));
         }
 
@@ -195,7 +195,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         //Reverse debit if credit failed
         if (!response.getStatusCode().is2xxSuccessful()) {
             processCBATransactionDoubleEntry(userToken, paymentReference, transitAccount, fromAccount, "Reversal "+narration, _category, amount, provider);
-            processExternalCBATransactionDoubleEntry(paymentReference, toAccount, fromAccount, "Reversal "+narration, _category, amount, provider);
         }
 
         return response;
