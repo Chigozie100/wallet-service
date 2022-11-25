@@ -347,11 +347,12 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         boolean isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_APP"::equalsIgnoreCase);
         boolean isOwner = false;
         if(account != null){
-            isOwner = account.getUId() == userToken.getId();
-            log.error("user account lookup {}", account.toString());
+            isOwner = account.getUId() == userToken.getId()? true : false;
+            log.info("user account lookup {}", account.toString());
         }
 
         if(!isOwner && !isWriteAdmin){
+            log.error("owner check {} {}", isOwner, isWriteAdmin);
             return new ResponseEntity<>(new ErrorResponse("INVALID SOURCE ACCOUNT"), HttpStatus.BAD_REQUEST);
         }
 
