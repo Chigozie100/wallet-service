@@ -4717,7 +4717,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 
 
-			String outBoundFeeEvent = "";
+			String outBoundFeeEvent = "OB_TRANS_FEE_INCOME_ACCT";
 
 			WalletAccount accountDebit = null;
 			WalletAccount accountCredit = null;
