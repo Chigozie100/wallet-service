@@ -4727,14 +4727,16 @@ public class TransAccountServiceImpl implements TransAccountService {
 			WalletAccount accountCredit = null;
 			BigDecimal tranAmCharges = null;
 			//Map<String, WalletAccount> map = checkAccountForDebitOrCredit(charge, accountDebit, accountCredit, accountDebitTeller, creditAcctNo);
-			System.out.println("accountCredit accountCredit accountCredit :: " + accountCredit);
-			System.out.println("accountDebit accountDebit accountDebit :: " + accountDebit);
 			if (charge.isChargeWaya()) {
 				accountDebit = accountDebitTeller.get();
 				accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
+				System.out.println("accountCredit accountCredit accountCredit :: " + accountCredit);
+				System.out.println("accountDebit accountDebit accountDebit :: " + accountDebit);
 			} else if(charge.isChargeCustomer()){
 				accountCredit = accountDebitTeller.get();
 				accountDebit = walletAccountRepository.findByAccountNo(creditAcctNo);
+				System.out.println("accountCredit accountCredit accountCredit :: " + accountCredit);
+				System.out.println("accountDebit accountDebit accountDebit :: " + accountDebit);
 				UserPricing userPricingOptional;
 				// get user charge by eventId and userID
 				if(eventId.equals("WEMA_INT_DISBURS_ACCT") || eventId.equals("ZE_INT_DISBURS_ACCOUNT") || eventId.equals("MIFOSNIPINTRAS")){
