@@ -185,7 +185,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     @Override
     public ResponseEntity<?> processCBATransactionDoubleEntryWithTransit(MyData userToken, String paymentReference, String transitAccount, String fromAccount,
             String toAccount, String narration, String category, BigDecimal amount, Provider provider) {
-        log.info("Processing CBA double entry transaction from:{} to:{} using transit:{} user {}", fromAccount, toAccount, transitAccount, userToken.toString());
+        log.info("Processing CBA double entry transaction from:{} to:{} using transit:{}", fromAccount, toAccount, transitAccount);
         CategoryType _category = CategoryType.valueOf(category);
 
         ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("ERROR PROCESSING"), HttpStatus.BAD_REQUEST);
@@ -205,9 +205,9 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public ResponseEntity<?> transfer(HttpServletRequest request, TransferTransactionDTO transferTransactionRequestData) {
+    public ResponseEntity<?> transfer(TransferTransactionDTO transferTransactionRequestData) {
 
-        ResponseEntity<?> response = securityCheck(request, transferTransactionRequestData.getDebitAccountNumber(), transferTransactionRequestData.getAmount());
+        ResponseEntity<?> response = securityCheck(transferTransactionRequestData.getDebitAccountNumber(), transferTransactionRequestData.getAmount());
 		if(!response.getStatusCode().is2xxSuccessful()){
 			return response;
 		}
@@ -328,9 +328,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public ResponseEntity<?> securityCheck(HttpServletRequest request, String accountNumber, BigDecimal amount) {
-        String token = request.getHeader(SecurityConstants.HEADER_STRING);
-        //MyData userToken = tokenService.getTokenUser(token);
+    public ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount) {
         MyData userToken = (MyData)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (userToken == null) {
             return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);

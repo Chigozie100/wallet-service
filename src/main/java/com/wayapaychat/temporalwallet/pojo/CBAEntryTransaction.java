@@ -38,6 +38,7 @@ public class CBAEntryTransaction {
         this.tranNarration = tranNarration;
         this.amount = amount;
 
+        this.userToken = userToken;
         this.senderName = "WAYA USER";
 	    this.receiverName = "WAYA USER";
     }
@@ -54,6 +55,7 @@ public class CBAEntryTransaction {
         this.transactionCategory = transactionCategory;
         this.receiverName = receiverName;
 
+        this.userToken = userToken;
         this.senderName = "WAYA USER";
 	    this.receiverName = "WAYA USER";
     }
@@ -70,6 +72,7 @@ public class CBAEntryTransaction {
         this.transactionCategory = transactionCategory;
         this.senderName = senderName;
 
+        this.userToken = userToken;
         this.senderName = "WAYA USER";
 	    this.receiverName = "WAYA USER";
     }

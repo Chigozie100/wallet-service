@@ -10,8 +10,7 @@ import com.wayapaychat.temporalwallet.pojo.MyData;
 import com.wayapaychat.temporalwallet.pojo.TransactionPojo;
 
 import java.math.BigDecimal;
-
-import javax.servlet.http.HttpServletRequest;
+ 
 
 import org.springframework.http.ResponseEntity;
 
@@ -23,7 +22,7 @@ public interface CoreBankingService {
 
     ResponseEntity<?> debitAccount(CBAEntryTransaction transactionPojo);
 
-    ResponseEntity<?> transfer(HttpServletRequest request, TransferTransactionDTO transferTransactionDTO);
+    ResponseEntity<?> transfer(TransferTransactionDTO transferTransactionDTO);
 
     ResponseEntity<?> processCBATransactionDoubleEntryWithTransit(MyData userToken, String paymentReference, String transitAccount, String fromAccount, String toAccount, String narration, String category, BigDecimal amount, Provider provider);
 
@@ -33,7 +32,7 @@ public interface CoreBankingService {
 
     ResponseEntity<?> applyCharge(String transitAccount, String debitAccountNumber, String tranNarration, String transactionCategory, BigDecimal doubleValue, Provider provider);
 
-    ResponseEntity<?> securityCheck(HttpServletRequest request, String accountNumber, BigDecimal amount);
+    ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount);
 
     Long logTransaction(String fromAccountNumber, String toAccountNumber, BigDecimal amount, String transCategory,String tranCrncy, WalletTransStatus status);
     

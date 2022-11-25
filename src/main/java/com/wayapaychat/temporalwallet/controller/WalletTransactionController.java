@@ -142,7 +142,7 @@ public class WalletTransactionController {
 			@Valid @RequestBody TransferTransactionDTO transfer) {
 		
 		try{
-			return coreBankingService.transfer(request, transfer);
+			return coreBankingService.transfer(transfer);
 		}catch (CustomException ex){
 			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}
