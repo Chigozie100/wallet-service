@@ -350,7 +350,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
          * 5.
          */
 
-        return new ResponseEntity<>(new SuccessResponse("Validation Successful", userToken), HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(userToken, HttpStatus.ACCEPTED);
 
     }
 
