@@ -380,7 +380,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         switch (provider.getName()) {
             case ProviderType.MIFOS:
             // TODO: mifos corebanking response = mifos transfer
-                mifosWalletProxy.transferMoney("token",mifosTransfer);
+                mifosWalletProxy.transferMoney(mifosTransfer);
             default:
                 response = new ResponseEntity<>(new SuccessResponse("Provider corebanking transaction Successful"),  HttpStatus.ACCEPTED);
         }
