@@ -2013,8 +2013,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	}
 
-
-
 	public ResponseEntity<?> makeTransfer(HttpServletRequest request, String command,
 			TransferTransactionDTO transfer, boolean isMifos) {
 		log.info("command" + command);
@@ -2034,7 +2032,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		CategoryType tranCategory = CategoryType.valueOf(transfer.getTransactionCategory());
 
-		ResponseEntity<?> resp = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
+		ResponseEntity<?> resp;  //= new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
 		try {
 			int intRec = tempwallet.PaymenttranInsert("WAYATRAN", fromAccountNumber, toAccountNumber, transfer.getAmount(),
 					transfer.getPaymentReference());
@@ -2091,6 +2089,117 @@ public class TransAccountServiceImpl implements TransAccountService {
 		default:
 			return MoneyTransfer(request, transfer, false, false);
 		}
+	}
+
+
+
+	public ResponseEntity<?> MoneyTransfer(HttpServletRequest request, TransferTransactionDTO transfer, boolean isSimulated, boolean isMifos) {
+
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		MyData userToken = tokenService.getTokenUser(token);
+
+		if (userToken == null) {
+			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
+		}
+
+		String fromAccountNumber = transfer.getDebitAccountNumber();
+		String toAccountNumber = transfer.getBenefAccountNumber();
+		if(fromAccountNumber.equals(toAccountNumber)) {
+			return new ResponseEntity<>(new ErrorResponse("DEBIT ACCOUNT CAN'T BE THE SAME WITH CREDIT ACCOUNT"), HttpStatus.BAD_REQUEST);
+		}
+
+		String reference;
+		reference = tempwallet.TransactionGenerate();
+		if (reference.equals("")) {
+			reference = transfer.getPaymentReference();
+		}
+
+		if (fromAccountNumber.trim().equals(toAccountNumber.trim())) {
+			log.info(toAccountNumber + "|" + fromAccountNumber);
+			return new ResponseEntity<>(new ErrorResponse("DEBIT AND CREDIT ON THE SAME ACCOUNT"),
+					HttpStatus.BAD_REQUEST);
+		}
+		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
+		CategoryType tranCategory = CategoryType.valueOf(transfer.getTransactionCategory());
+
+		ResponseEntity<?> resp; // = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
+		try {
+			int intRec = tempwallet.PaymenttranInsert("WAYATRAN", fromAccountNumber, toAccountNumber, transfer.getAmount(),
+					reference);
+			if (intRec == 1) {
+				String tranId = createTransaction(token, "WAYATRAN",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
+						transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory, isMifos);
+				String[] tranKey = tranId.split(Pattern.quote("|"));
+				if (tranKey[0].equals("DJGO")) {
+					return new ResponseEntity<>(new ErrorResponse(tranKey[1]), HttpStatus.BAD_REQUEST);
+				}
+				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+						.findByTranIdIgnoreCase(tranId);
+
+				if (transaction.isEmpty()) {
+					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
+							HttpStatus.BAD_REQUEST);
+				}
+
+				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION SUCCESSFULLY", transaction), HttpStatus.CREATED);
+
+				String tranDate = getTransactionDate();
+
+				if(!isSimulated){
+
+					WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
+					WalletUser xUser = walletUserRepository.findByAccount(xAccount);
+					String xfullName = xUser.getFirstName() + " " + xUser.getLastName();
+					Long xUserId = xUser.getUserId();
+
+					WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
+					WalletUser yUser = walletUserRepository.findByAccount(yAccount);
+					String yfullName = yUser.getFirstName() + " " + yUser.getLastName();
+					Long userId = yUser.getUserId();
+
+					String description = "From" + xfullName + " - to" + yfullName;
+
+
+					String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+							transfer.getTranNarration(), xUserId.toString(), xAccount.getClr_bal_amt(), description);
+
+
+					CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, xfullName,
+							xUser.getEmailAddress(), message1, xUserId, transfer.getAmount().toString(), tranId,
+							tranDate, transfer.getTranNarration()));
+					CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName, xUser.getMobileNo(),
+							message1, xUserId));
+					CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, null,
+							"", message1, xUserId, transfer.getTransactionCategory()));
+
+
+					String message2 = formatSMSRecipient(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+							transfer.getTranNarration(), xUserId.toString(), yAccount.getClr_bal_amt(), description);
+
+					CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, yfullName,
+							yUser.getEmailAddress(), message2, userId, transfer.getAmount().toString(), tranId,
+							tranDate, transfer.getTranNarration()));
+					CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName, yUser.getMobileNo(),
+							message2, userId));
+					CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, userId.toString(),
+							"", message2, null, transfer.getTransactionCategory()));
+
+				}
+
+			} else {
+				if (intRec == 2) {
+					return new ResponseEntity<>(new ErrorResponse("UNABLE TO PROCESS DUPLICATE TRANSACTION REFERENCE"),
+							HttpStatus.BAD_REQUEST);
+				} else {
+					return new ResponseEntity<>(new ErrorResponse("UNKNOWN DATABASE ERROR. PLEASE CONTACT ADMIN"),
+							HttpStatus.BAD_REQUEST);
+				}
+			}
+		} catch (Exception ex) {
+			log.error("GET WALLET TRANSACTION :"+ ex.getMessage(), 1);
+			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.EXPECTATION_FAILED);
+		}
+		return resp;
 	}
 
 	@Override
@@ -2213,114 +2322,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return resp;
 	}
 
-	public ResponseEntity<?> MoneyTransfer(HttpServletRequest request, TransferTransactionDTO transfer, boolean isSimulated, boolean isMifos) {
-
-		String token = request.getHeader(SecurityConstants.HEADER_STRING);
-		MyData userToken = tokenService.getTokenUser(token);
-
-		if (userToken == null) {
-			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
-		}
-
-		String fromAccountNumber = transfer.getDebitAccountNumber();
-		String toAccountNumber = transfer.getBenefAccountNumber();
-		if(fromAccountNumber.equals(toAccountNumber)) {
-			return new ResponseEntity<>(new ErrorResponse("DEBIT ACCOUNT CAN'T BE THE SAME WITH CREDIT ACCOUNT"), HttpStatus.BAD_REQUEST);
-		}
-
-		String reference;
-		reference = tempwallet.TransactionGenerate();
-		if (reference.equals("")) {
-			reference = transfer.getPaymentReference();
-		}
-
-		if (fromAccountNumber.trim().equals(toAccountNumber.trim())) {
-			log.info(toAccountNumber + "|" + fromAccountNumber);
-			return new ResponseEntity<>(new ErrorResponse("DEBIT AND CREDIT ON THE SAME ACCOUNT"),
-					HttpStatus.BAD_REQUEST);
-		}
-		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
-		CategoryType tranCategory = CategoryType.valueOf(transfer.getTransactionCategory());
-
-		ResponseEntity<?> resp; // = new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT NO"), HttpStatus.BAD_REQUEST);
-		try {
-			int intRec = tempwallet.PaymenttranInsert("WAYATRAN", fromAccountNumber, toAccountNumber, transfer.getAmount(),
-					reference);
-			if (intRec == 1) {
-				String tranId = createTransaction(token, "WAYATRAN",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory, isMifos);
-				String[] tranKey = tranId.split(Pattern.quote("|"));
-				if (tranKey[0].equals("DJGO")) {
-					return new ResponseEntity<>(new ErrorResponse(tranKey[1]), HttpStatus.BAD_REQUEST);
-				}
-				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
-						.findByTranIdIgnoreCase(tranId);
-
-				if (transaction.isEmpty()) {
-					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
-							HttpStatus.BAD_REQUEST);
-				}
-
-				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION SUCCESSFULLY", transaction), HttpStatus.CREATED);
-
-				String tranDate = getTransactionDate();
-
-				if(!isSimulated){
-
-						WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
-						WalletUser xUser = walletUserRepository.findByAccount(xAccount);
-						String xfullName = xUser.getFirstName() + " " + xUser.getLastName();
-						Long xUserId = xUser.getUserId();
-
-						WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
-						WalletUser yUser = walletUserRepository.findByAccount(yAccount);
-						String yfullName = yUser.getFirstName() + " " + yUser.getLastName();
-						Long userId = yUser.getUserId();
-
-						String description = "From" + xfullName + " - to" + yfullName;
-
-
-						String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
-								transfer.getTranNarration(), xUserId.toString(), xAccount.getClr_bal_amt(), description);
-
-
-						CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, xfullName,
-								xUser.getEmailAddress(), message1, xUserId, transfer.getAmount().toString(), tranId,
-								tranDate, transfer.getTranNarration()));
-						CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName, xUser.getMobileNo(),
-								message1, xUserId));
-						CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, null,
-								"", message1, xUserId, transfer.getTransactionCategory()));
-
-
-						String message2 = formatSMSRecipient(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
-								transfer.getTranNarration(), xUserId.toString(), yAccount.getClr_bal_amt(), description);
-
-						CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, yfullName,
-								yUser.getEmailAddress(), message2, userId, transfer.getAmount().toString(), tranId,
-								tranDate, transfer.getTranNarration()));
-						CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName, yUser.getMobileNo(),
-								message2, userId));
-						CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, userId.toString(),
-								"", message2, null, transfer.getTransactionCategory()));
-
-				}
-
-			} else {
-				if (intRec == 2) {
-					return new ResponseEntity<>(new ErrorResponse("UNABLE TO PROCESS DUPLICATE TRANSACTION REFERENCE"),
-							HttpStatus.BAD_REQUEST);
-				} else {
-					return new ResponseEntity<>(new ErrorResponse("UNKNOWN DATABASE ERROR. PLEASE CONTACT ADMIN"),
-							HttpStatus.BAD_REQUEST);
-				}
-			}
-		} catch (Exception ex) {
-			log.error("GET WALLET TRANSACTION :"+ ex.getMessage(), 1);
-			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.EXPECTATION_FAILED);
-		}
-		return resp;
-	}
 
 //
 //	private void processNotification(WalletAccount xAccount, WalletAccount yAccount, WalletUser xUser, WalletUser yUser, String token, String xfullName, String yfullName, String tranId,
@@ -3520,7 +3521,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 			System.out.println(" accountCredit ::: " + creditAcctNo);
 
 
-
 			if (!charge.isChargeCustomer() && charge.isChargeWaya()) {
 				if(!StringUtils.isNumeric(debitAcctNo)){
 					accountDebit = accountDebitTeller;
@@ -3625,6 +3625,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 						new Date(), tranType.getValue(), xUser.getUserId().toString(), receiverName2, tranCategory.getValue(), token,senderName));
 			}
 
+			if(mifos || !mifos){
+				//toAccountNumber
+				System.out.println( "###### BEFORE SENDING REQUEST TO MIFOS " + accountDebit);
+				WalletAccount finalAccountDebit1 = accountDebit;
+				CompletableFuture.runAsync(() -> postToMifos(token, accountCredit, finalAccountDebit1, amount, tranNarration, tranId,  tranType));
+				System.out.println( "###### RESPONSE AFTER SENDING REQUEST TO MIFOS " + accountDebit);
+			}
 
 			// Remove Lien
 		 	removeLien(accountDebit,amount);
@@ -4738,10 +4745,24 @@ public class TransAccountServiceImpl implements TransAccountService {
 				if(eventId.equals("WEMA_INT_DISBURS_ACCT") || eventId.equals("ZE_INT_DISBURS_ACCOUNT") || eventId.equals("MIFOSNIPINTRAS")){
 					eventId = "BANKPMT";
 					userPricingOptional = getUserProduct(accountDebit, eventId);
-					outBoundFeeEvent = "OB_TRANS_FEE_INCOME_ACCT";
+
 				}else{
 					userPricingOptional = getUserProduct(accountDebit, eventId);
 				}
+
+				if(eventId.equals("MIFOSNIPINTRAS")){
+					outBoundFeeEvent = "OUTTRANSFEE";
+				}
+				if(eventId.equals("ZE_INT_DISBURS_ACCOUNT")){
+
+				}
+				if(eventId.equals("WEMA_INT_DISBURS_ACCT")){
+					eventId = "OB_TRANS_FEE_INCOME_ACCT";
+				}
+
+				//
+
+				//
 
 				System.out.println("userPricingOptional " + userPricingOptional);
 

@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
+import com.wayapaychat.temporalwallet.pojo.MifosCreateAccount;
 import org.springframework.http.ResponseEntity;
 
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
@@ -70,6 +71,8 @@ public interface UserAccountService {
 	ResponseEntity<?> searchAccount(String search);
 	
 	ResponseEntity<?> modifyUserAccount(UserAccountDTO user);
+
+	ResponseEntity<?> createAccountOnMIFOS(MifosCreateAccount user);
 	
 	ResponseEntity<?> ToggleAccount(AccountToggleDTO user);
 	
