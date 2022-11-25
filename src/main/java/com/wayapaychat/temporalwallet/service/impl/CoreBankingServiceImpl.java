@@ -15,8 +15,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Base64Utils;
 
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
+import com.wayapaychat.temporalwallet.dto.AccountLookUp;
 import com.wayapaychat.temporalwallet.dto.MifosTransfer;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
@@ -342,13 +344,18 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
         addLien(ownerAccount.get(),  amount);
 
-        /**
-         * TODO
-         * 1. check has right to debit account
-         * 3. check debit account exist
-         * 4. check credit account exist
-         * 5.
-         */
+        AccountLookUp account = tempwallet.GetAccountLookUp(accountNumber);
+
+        boolean isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_APP"::equalsIgnoreCase);
+        boolean isOwner = false;
+        if(account != null){
+            isOwner = account.getVId() == userToken.getId();
+            log.error("user account lookup {}", account.toString());
+        }
+
+        if(!isOwner && !isWriteAdmin){
+            return new ResponseEntity<>(new ErrorResponse("INVALID SOURCE ACCOUNT"), HttpStatus.BAD_REQUEST);
+        }
 
         return new ResponseEntity<>(userToken, HttpStatus.ACCEPTED);
 
