@@ -347,7 +347,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         boolean isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_APP"::equalsIgnoreCase);
         boolean isOwner = false;
         if(account != null){
-            isOwner = (account.getUId() == userToken.getId())? true : false;
+            isOwner = Long.compare(account.getUId(), userToken.getId()) == 0;
             log.info("user account lookup {}  {}", account.toString(), userToken.toString());
         }
 
