@@ -662,6 +662,21 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	}
 
+	public ResponseEntity<?> createAccountOnMIFOS(MifosCreateAccount user) {
+		try{
+			System.out.println("mifosWalletProxy :: " + mifosWalletProxy);
+			MifosAccountCreationResponse response = mifosWalletProxy.createAccount(user);
+			log.info("pushToMifos after request build ::: " + user);
+
+			log.info("RESPONSE FROM MIFOS::: " + response);
+		}catch (Exception ex){
+			log.info("RESPONSE FROM MIFOS::: " + ex);
+			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+		}
+		return new ResponseEntity<>(new SuccessResponse("Successfully createAccountOnMIFOS"),
+				HttpStatus.OK);
+	}
+
 	public ResponseEntity<?> modifyUserAccount(UserAccountDTO user) {
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
 		if (existingUser == null) {

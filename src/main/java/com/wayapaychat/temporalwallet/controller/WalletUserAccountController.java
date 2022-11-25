@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import com.wayapaychat.temporalwallet.dto.*;
+import com.wayapaychat.temporalwallet.pojo.MifosCreateAccount;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -67,6 +68,15 @@ public class WalletUserAccountController {
 		log.info("Request input: {}",user);
 		return userAccountService.modifyUserAccount(user);
         //return userAccountService.modifyUserAccount(user);
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "createAccountOnMIFOS", tags = { "USER-ACCOUNT-WALLET" })
+    @PostMapping(path = "/user/mifos-account")
+    public ResponseEntity<?> createAccountOnMIFOS(@Valid @RequestBody MifosCreateAccount user) {
+        log.info("Request input: {}",user);
+        return userAccountService.createAccountOnMIFOS(user);
     }
 
     @ApiImplicitParams({
