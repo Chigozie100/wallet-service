@@ -476,7 +476,7 @@ public class PostPaymentServiceImpl implements IPostPaymentService {
         try{
             log.info("## token  ####### :: " + token);
             log.info("## BEFOR MIFOS REQUEST ####### :: " + mifosTransfer);
-            response = mifosWalletProxy.transferMoney(token,mifosTransfer);
+            response = mifosWalletProxy.transferMoney(mifosTransfer);
             log.info("### RESPONSE FROM MIFOS MifosWalletProxy  ###### :: " + response);
         }catch(CustomException ex){
             System.out.println("ERROR posting to MIFOS :::: " + ex.getMessage());
