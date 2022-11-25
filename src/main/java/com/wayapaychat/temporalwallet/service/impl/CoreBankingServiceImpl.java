@@ -86,10 +86,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         log.info("Processing debit transaction {}", transactionPojo.toString());
         try{
             WalletAccount accountDebit = walletAccountRepository.findByAccountNo(transactionPojo.getAccountNo());
-
+            
             WalletTransaction tranDebit = new WalletTransaction(transactionPojo.getTranId(), accountDebit.getAccountNo(), transactionPojo.getAmount(), 
                         transactionPojo.getTranType(), transactionPojo.getTranNarration(), LocalDate.now(), accountDebit.getAcct_crncy_code(), "D",
-                        accountDebit.getGl_code(), transactionPojo.getPaymentReference(), String.valueOf(accountDebit.getUser().getId()), accountDebit.getUser().getEmailAddress(),
+                        accountDebit.getGl_code(), transactionPojo.getPaymentReference(), String.valueOf(transactionPojo.getUserToken().getId()), transactionPojo.getUserToken().getEmail(),
                         transactionPojo.getTranPart(), transactionPojo.getTransactionCategory(), accountDebit.getAcct_name(), transactionPojo.getReceiverName());
             walletTransactionRepository.saveAndFlush(tranDebit);
 
@@ -122,7 +122,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
             WalletTransaction tranCredit = new WalletTransaction(transactionPojo.getTranId(), accountCredit.getAccountNo(), transactionPojo.getAmount(), 
                             transactionPojo.getTranType(), transactionPojo.getTranNarration(), LocalDate.now(), accountCredit.getAcct_crncy_code(), "C",
-                            accountCredit.getGl_code(), transactionPojo.getPaymentReference(), String.valueOf(accountCredit.getUser().getId()), accountCredit.getUser().getEmailAddress(),
+                            accountCredit.getGl_code(), transactionPojo.getPaymentReference(), String.valueOf(transactionPojo.getUserToken().getId()), transactionPojo.getUserToken().getEmail(),
                             transactionPojo.getTranPart(), transactionPojo.getTransactionCategory(), transactionPojo.getSenderName(), accountCredit.getAcct_name());
             walletTransactionRepository.saveAndFlush(tranCredit);
 
@@ -145,7 +145,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public ResponseEntity<?>  processCBATransactionDoubleEntry(String paymentReference,  String fromAccount, String toAccount, String narration, CategoryType category, BigDecimal amount, Provider provider){
+    public ResponseEntity<?>  processCBATransactionDoubleEntry(MyData userToken, String paymentReference,  String fromAccount, String toAccount, String narration, CategoryType category, BigDecimal amount, Provider provider){
         ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("ERROR PROCESSING"), HttpStatus.BAD_REQUEST);
         String tranId = tempwallet.TransactionGenerate();
         TransactionTypeEnum tranType = TransactionTypeEnum.BANK;
@@ -155,7 +155,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         try {
-            response = debitAccount(new CBAEntryTransaction(tranId, paymentReference, category, fromAccount, narration, amount, 1, tranType, ""));
+            response = debitAccount(new CBAEntryTransaction(userToken, tranId, paymentReference, category, fromAccount, narration, amount, 1, tranType, ""));
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>(new ErrorResponse("ERROR PROCESSING"), HttpStatus.BAD_REQUEST);
@@ -166,7 +166,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         try {
-            response = creditAccount(new CBAEntryTransaction(tranId, paymentReference, category, toAccount, narration, amount, 2, tranType, ""));
+            response = creditAccount(new CBAEntryTransaction(userToken, tranId, paymentReference, category, toAccount, narration, amount, 2, tranType, ""));
         } catch (Exception e) {
             e.printStackTrace();
             response = new ResponseEntity<>(new ErrorResponse("ERROR PROCESSING"), HttpStatus.BAD_REQUEST);
@@ -175,39 +175,43 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         //Reverse debit if credit failed
         if (!response.getStatusCode().is2xxSuccessful()) {
             processExternalCBATransactionDoubleEntry(paymentReference, toAccount, fromAccount, "Reversal "+narration, category, amount, provider);
-            creditAccount(new CBAEntryTransaction(tranId, paymentReference, category, fromAccount, "Reversal "+narration, amount,  2, tranType, ""));
+            creditAccount(new CBAEntryTransaction(userToken, tranId, paymentReference, category, fromAccount, "Reversal "+narration, amount,  2, tranType, ""));
         }
 
         return response;
     }
 
     @Override
-    public ResponseEntity<?> processCBATransactionDoubleEntryWithTransit(String paymentReference, String transitAccount, String fromAccount,
+    public ResponseEntity<?> processCBATransactionDoubleEntryWithTransit(MyData userToken, String paymentReference, String transitAccount, String fromAccount,
             String toAccount, String narration, String category, BigDecimal amount, Provider provider) {
         log.info("Processing CBA double entry transaction from:{} to:{} using transit:{}", fromAccount, toAccount, transitAccount);
         CategoryType _category = CategoryType.valueOf(category);
 
         ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("ERROR PROCESSING"), HttpStatus.BAD_REQUEST);
-        response = processCBATransactionDoubleEntry (paymentReference, fromAccount, transitAccount, narration, _category, amount, provider);
+        response = processCBATransactionDoubleEntry(userToken, paymentReference, fromAccount, transitAccount, narration, _category, amount, provider);
         if (!response.getStatusCode().is2xxSuccessful()) {
             return response;
         }
 
-        response = processCBATransactionDoubleEntry(paymentReference, transitAccount, toAccount, narration, _category, amount, provider);
+        response = processCBATransactionDoubleEntry(userToken, paymentReference, transitAccount, toAccount, narration, _category, amount, provider);
 
         //Reverse debit if credit failed
         if (!response.getStatusCode().is2xxSuccessful()) {
-            processCBATransactionDoubleEntry(paymentReference, transitAccount, fromAccount, "Reversal "+narration, _category, amount, provider);
+            processCBATransactionDoubleEntry(userToken, paymentReference, transitAccount, fromAccount, "Reversal "+narration, _category, amount, provider);
         }
 
         return response;
     }
 
     @Override
-    public ResponseEntity<?> transfer(TransferTransactionDTO transferTransactionRequestData) {
+    public ResponseEntity<?> transfer(HttpServletRequest request, TransferTransactionDTO transferTransactionRequestData) {
+
+        ResponseEntity<?> response = securityCheck(request, transferTransactionRequestData.getDebitAccountNumber(), transferTransactionRequestData.getAmount());
+		if(!response.getStatusCode().is2xxSuccessful()){
+			return response;
+		}
         
         log.info("Processing transfer transaction {}", transferTransactionRequestData.toString());
-        ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("ERROR PROCESSING"), HttpStatus.BAD_REQUEST);
         if (transferTransactionRequestData.getDebitAccountNumber().equals(transferTransactionRequestData.getBenefAccountNumber())) {
             return new ResponseEntity<>(new ErrorResponse("DEBIT ACCOUNT CAN'T BE THE SAME WITH CREDIT ACCOUNT"),  HttpStatus.BAD_REQUEST);
         }
@@ -221,10 +225,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         Long tranId = logTransaction(transferTransactionRequestData.getDebitAccountNumber(), transferTransactionRequestData.getBenefAccountNumber(),
                                 transferTransactionRequestData.getAmount(), transferTransactionRequestData.getTransactionCategory(), transferTransactionRequestData.getTranCrncy(), WalletTransStatus.PENDING);
-        if (tranId == null) { return response; }
+        if (tranId == null) { return new ResponseEntity<>(new ErrorResponse("ERROR PROCESSING TRANSACTION"), HttpStatus.BAD_REQUEST);  }
 
         String transitAccount = getTransitAccount("INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
-        response = processCBATransactionDoubleEntryWithTransit(transferTransactionRequestData.getPaymentReference(), transitAccount, transferTransactionRequestData.getDebitAccountNumber(),  transferTransactionRequestData.getBenefAccountNumber(), 
+        response = processCBATransactionDoubleEntryWithTransit((MyData)response.getBody(), transferTransactionRequestData.getPaymentReference(), transitAccount, transferTransactionRequestData.getDebitAccountNumber(),  transferTransactionRequestData.getBenefAccountNumber(), 
                                     transferTransactionRequestData.getTranNarration(), transferTransactionRequestData.getTransactionCategory(), transferTransactionRequestData.getAmount(), provider);
         
         if (!response.getStatusCode().is2xxSuccessful()) {
@@ -346,7 +350,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
          * 5.
          */
 
-        return new ResponseEntity<>(new SuccessResponse("Validation Successful"), HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(new SuccessResponse("Validation Successful", userToken), HttpStatus.ACCEPTED);
 
     }
 

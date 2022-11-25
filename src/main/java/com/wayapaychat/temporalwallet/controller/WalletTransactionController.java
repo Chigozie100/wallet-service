@@ -140,16 +140,10 @@ public class WalletTransactionController {
 	@PostMapping("/sendmoney/account")
 	public ResponseEntity<?> sendMoneyCBA(HttpServletRequest request,
 			@Valid @RequestBody TransferTransactionDTO transfer) {
-
-		ResponseEntity<?> response = coreBankingService.securityCheck(request, transfer.getDebitAccountNumber(), transfer.getAmount());
-		if(!response.getStatusCode().is2xxSuccessful()){
-			return response;
-		}
 		
 		try{
-			return response = coreBankingService.transfer(transfer);
+			return coreBankingService.transfer(request, transfer);
 		}catch (CustomException ex){
-			// check and reversed transaction
 			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}
 

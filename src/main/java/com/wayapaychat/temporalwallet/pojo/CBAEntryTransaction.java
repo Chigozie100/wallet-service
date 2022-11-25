@@ -28,17 +28,21 @@ public class CBAEntryTransaction {
 	private CategoryType transactionCategory;
 	private String senderName;
 	private String receiverName;
+    private MyData userToken;
 
 
-    public CBAEntryTransaction(String paymentReference, CategoryType transactionCategory, String accountNo, String tranNarration, BigDecimal amount) {
+    public CBAEntryTransaction(MyData userToken, String paymentReference, CategoryType transactionCategory, String accountNo, String tranNarration, BigDecimal amount) {
         this.paymentReference = paymentReference;
         this.transactionCategory = transactionCategory;
         this.accountNo = accountNo;
         this.tranNarration = tranNarration;
         this.amount = amount;
+
+        this.senderName = "WAYA USER";
+	    this.receiverName = "WAYA USER";
     }
 
-    public CBAEntryTransaction(String tranId, String paymentReference, CategoryType transactionCategory, String accountNo, String tranNarration,BigDecimal amount,
+    public CBAEntryTransaction(MyData userToken, String tranId, String paymentReference, CategoryType transactionCategory, String accountNo, String tranNarration,BigDecimal amount,
                 Integer tranPart, TransactionTypeEnum tranType, String receiverName) {
         this.accountNo = accountNo; 
         this.amount = amount;
@@ -49,9 +53,12 @@ public class CBAEntryTransaction {
         this.paymentReference = paymentReference;
         this.transactionCategory = transactionCategory;
         this.receiverName = receiverName;
+
+        this.senderName = "WAYA USER";
+	    this.receiverName = "WAYA USER";
     }
 
-    public CBAEntryTransaction(String tranId, String paymentReference, CategoryType transactionCategory, String accountNo, String tranNarration,BigDecimal amount,
+    public CBAEntryTransaction(MyData userToken, String tranId, String paymentReference, CategoryType transactionCategory, String accountNo, String tranNarration,BigDecimal amount,
                 Integer tranPart, String senderName, TransactionTypeEnum tranType) {
         this.accountNo = accountNo; 
         this.amount = amount;
@@ -62,6 +69,9 @@ public class CBAEntryTransaction {
         this.paymentReference = paymentReference;
         this.transactionCategory = transactionCategory;
         this.senderName = senderName;
+
+        this.senderName = "WAYA USER";
+	    this.receiverName = "WAYA USER";
     }
 
 }

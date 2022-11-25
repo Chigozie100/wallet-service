@@ -6,6 +6,7 @@ import com.wayapaychat.temporalwallet.entity.Provider;
 import com.wayapaychat.temporalwallet.enumm.CategoryType;
 import com.wayapaychat.temporalwallet.enumm.WalletTransStatus;
 import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
+import com.wayapaychat.temporalwallet.pojo.MyData;
 import com.wayapaychat.temporalwallet.pojo.TransactionPojo;
 
 import java.math.BigDecimal;
@@ -22,11 +23,11 @@ public interface CoreBankingService {
 
     ResponseEntity<?> debitAccount(CBAEntryTransaction transactionPojo);
 
-    ResponseEntity<?> transfer(TransferTransactionDTO transferTransactionDTO);
+    ResponseEntity<?> transfer(HttpServletRequest request, TransferTransactionDTO transferTransactionDTO);
 
-    ResponseEntity<?> processCBATransactionDoubleEntryWithTransit(String paymentReference, String transitAccount, String fromAccount, String toAccount, String narration, String category, BigDecimal amount, Provider provider);
+    ResponseEntity<?> processCBATransactionDoubleEntryWithTransit(MyData userToken, String paymentReference, String transitAccount, String fromAccount, String toAccount, String narration, String category, BigDecimal amount, Provider provider);
 
-    ResponseEntity<?> processCBATransactionDoubleEntry(String paymentReference, String fromAccount, String toAccount, String narration, CategoryType category, BigDecimal amount, Provider provider);
+    ResponseEntity<?> processCBATransactionDoubleEntry(MyData userToken, String paymentReference, String fromAccount, String toAccount, String narration, CategoryType category, BigDecimal amount, Provider provider);
 
     ResponseEntity<?> processExternalCBATransactionDoubleEntry(String paymentReference, String fromAccount, String toAccount, String narration, CategoryType category, BigDecimal amount, Provider provider);
 
