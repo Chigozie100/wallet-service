@@ -3715,7 +3715,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	private UserPricing getUserProduct(WalletAccount accountDebit, String eventId){
 		WalletUser xUser = walletUserRepository.findByAccount(accountDebit);
 		Long xUserId = xUser.getUserId();
-		System.out.println("user pricing prod is" + xUserId);
+		System.out.println("user pricing prod is" + xUserId + eventId);
 		// get user charge by eventId and userID
 		return userPricingRepository.findDetailsByCode(xUserId,eventId).orElse(null);
 	}
