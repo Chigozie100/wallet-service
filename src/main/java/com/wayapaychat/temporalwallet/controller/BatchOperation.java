@@ -41,7 +41,7 @@ public class BatchOperation {
     @ApiOperation(value = "To transfer money from one waya official account to simulated user wallet", notes = "Post Money", tags = {
             "BATCH-OPERATIONS" })
     @PostMapping("/official/simulated-user/transfer")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER')")
     public ResponseEntity<?> OfficialUserMoney(HttpServletRequest request,
                                                @Valid @RequestBody List<OfficeUserTransferDTO> transfer) {
         ApiResponse<?> res = transAccountService.OfficialUserTransferMultiple(request, transfer);

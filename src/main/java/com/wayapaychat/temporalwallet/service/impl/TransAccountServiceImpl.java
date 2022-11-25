@@ -2550,25 +2550,21 @@ public class TransAccountServiceImpl implements TransAccountService {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
 		}
 
-		String reference;
-		reference = tempwallet.TransactionGenerate();
-		if (reference.equals("")) {
-			reference = transfer.getPaymentReference();
-		}
+		String reference = transfer.getPaymentReference();
 
 		String fromAccountNumber = transfer.getOfficeDebitAccount();
 		String toAccountNumber = transfer.getCustomerCreditAccount();
 		if(fromAccountNumber.equals(toAccountNumber)) {
 			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "DEBIT ACCOUNT CAN'T BE THE SAME WITH CREDIT ACCOUNT", null);
 		}
+
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		CategoryType tranCategory = CategoryType.valueOf("TRANSFER");
 
 
-		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
+		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID ACCOUNT NO", null);
 		try {
-			int intRec = tempwallet.PaymenttranInsert("WAYAOFFTOCUS", fromAccountNumber, toAccountNumber, transfer.getAmount(),
-					reference);
+			int intRec = tempwallet.PaymenttranInsert("WAYAOFFTOCUS", fromAccountNumber, toAccountNumber, transfer.getAmount(), reference);
 			if (intRec == 1) {
 				String tranId = createTransaction(token, "WAYAOFFTOCUS",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
 						transfer.getAmount(), tranType, transfer.getTranNarration(), reference,
