@@ -175,7 +175,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         //Reverse debit if credit failed
         if (!response.getStatusCode().is2xxSuccessful()) {
-            processExternalCBATransactionDoubleEntry(paymentReference, toAccount, fromAccount, "Reversal "+narration, category, amount, provider);
             creditAccount(new CBAEntryTransaction(userToken, tranId, paymentReference, category, fromAccount, "Reversal "+narration, amount,  2, tranType, ""));
         }
 
@@ -199,6 +198,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         //Reverse debit if credit failed
         if (!response.getStatusCode().is2xxSuccessful()) {
             processCBATransactionDoubleEntry(userToken, paymentReference, transitAccount, fromAccount, "Reversal "+narration, _category, amount, provider);
+            processExternalCBATransactionDoubleEntry(paymentReference, toAccount, fromAccount, "Reversal "+narration, _category, amount, provider);
         }
 
         return response;
