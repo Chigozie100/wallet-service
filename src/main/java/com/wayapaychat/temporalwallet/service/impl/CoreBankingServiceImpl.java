@@ -19,6 +19,7 @@ import org.springframework.util.Base64Utils;
 
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.AccountLookUp;
+import com.wayapaychat.temporalwallet.dto.AccountSumary;
 import com.wayapaychat.temporalwallet.dto.MifosTransfer;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
@@ -344,12 +345,12 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
         addLien(ownerAccount.get(),  amount);
 
-        AccountLookUp account = tempwallet.GetAccountLookUp(accountNumber);
+        AccountSumary account = tempwallet.getAccountSumaryLookUp(accountNumber);
 
         boolean isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_APP"::equalsIgnoreCase);
         boolean isOwner = false;
         if(account != null){
-            isOwner = account.getVId() == userToken.getId();
+            isOwner = account.getUId() == userToken.getId();
             log.error("user account lookup {}", account.toString());
         }
 
