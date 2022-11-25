@@ -13,6 +13,7 @@ import javax.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.wayapaychat.temporalwallet.config.SecurityConstants;
@@ -184,7 +185,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     @Override
     public ResponseEntity<?> processCBATransactionDoubleEntryWithTransit(MyData userToken, String paymentReference, String transitAccount, String fromAccount,
             String toAccount, String narration, String category, BigDecimal amount, Provider provider) {
-        log.info("Processing CBA double entry transaction from:{} to:{} using transit:{}", fromAccount, toAccount, transitAccount);
+        log.info("Processing CBA double entry transaction from:{} to:{} using transit:{} user {}", fromAccount, toAccount, transitAccount, userToken.toString());
         CategoryType _category = CategoryType.valueOf(category);
 
         ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("ERROR PROCESSING"), HttpStatus.BAD_REQUEST);
@@ -329,8 +330,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     @Override
     public ResponseEntity<?> securityCheck(HttpServletRequest request, String accountNumber, BigDecimal amount) {
         String token = request.getHeader(SecurityConstants.HEADER_STRING);
-        MyData userToken = tokenService.getTokenUser(token);
-
+        //MyData userToken = tokenService.getTokenUser(token);
+        MyData userToken = (MyData)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (userToken == null) {
             return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
         }
