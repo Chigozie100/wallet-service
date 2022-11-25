@@ -223,7 +223,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                                 transferTransactionRequestData.getAmount(), transferTransactionRequestData.getTransactionCategory(), transferTransactionRequestData.getTranCrncy(), WalletTransStatus.PENDING);
         if (tranId == null) { return response; }
 
-        String transitAccount = getTransitAccount(transferTransactionRequestData.getTransactionCategory());
+        String transitAccount = getTransitAccount("INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
         response = processCBATransactionDoubleEntryWithTransit(transferTransactionRequestData.getPaymentReference(), transitAccount, transferTransactionRequestData.getDebitAccountNumber(),  transferTransactionRequestData.getBenefAccountNumber(), 
                                     transferTransactionRequestData.getTranNarration(), transferTransactionRequestData.getTransactionCategory(), transferTransactionRequestData.getAmount(), provider);
         
@@ -252,12 +252,14 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(transactionCategory);
         if (!eventInfo.isPresent()) {
+            log.error("no event found for transaction category {}", transactionCategory);
             return null;
         }
 
         Optional<WalletAccount> accountDebitTeller = walletAccountRepository
                 .findByUserPlaceholder(eventInfo.get().getPlaceholder(), eventInfo.get().getCrncyCode(), "0000");
         if (!accountDebitTeller.isPresent()) {
+            log.error("no account found for transaction category {}", transactionCategory);
             return null;
         }
 
