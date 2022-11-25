@@ -3,11 +3,11 @@ package com.wayapaychat.temporalwallet.service.impl;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import com.wayapaychat.temporalwallet.config.SecurityConstants;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.MifosTransfer;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
@@ -51,8 +50,7 @@ import com.wayapaychat.temporalwallet.exception.CustomException;
 @Service
 @Slf4j
 public class CoreBankingServiceImpl implements CoreBankingService {
-
-    private final TokenImpl tokenService;
+ 
     private final SwitchWalletService switchWalletService;
     private final WalletTransAccountRepository walletTransAccountRepository;
     private final WalletAccountRepository walletAccountRepository;
@@ -62,11 +60,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 	private final TemporalWalletDAO tempwallet;
 
     @Autowired
-    public CoreBankingServiceImpl(TokenImpl tokenService, SwitchWalletService switchWalletService,
+    public CoreBankingServiceImpl(SwitchWalletService switchWalletService,
             WalletTransAccountRepository walletTransAccountRepository, WalletAccountRepository walletAccountRepository,
             WalletEventRepository walletEventRepository, WalletTransactionRepository walletTransactionRepository,
             MifosWalletProxy mifosWalletProxy, TemporalWalletDAO tempwallet) {
-        this.tokenService = tokenService;
         this.switchWalletService = switchWalletService;
         this.walletTransAccountRepository = walletTransAccountRepository;
         this.walletAccountRepository = walletAccountRepository;
@@ -363,7 +360,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         MifosTransfer mifosTransfer = new MifosTransfer();
 
-        mifosTransfer.setRequestId(paymentReference);
+        mifosTransfer.setRequestId(generateSessionId());
         mifosTransfer.setAmount(amount);
         mifosTransfer.setNarration(narration);
         mifosTransfer.setTransactionType(TransactionTypeEnum.TRANSFER.getValue());
@@ -384,6 +381,12 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                 response = new ResponseEntity<>(new SuccessResponse("Provider corebanking transaction Successful"),  HttpStatus.ACCEPTED);
         }
         return response;
+    }
+ 
+
+    private String generateSessionId() {
+        long randomNum = (long) Math.floor(Math.random() * 9_000_000_000_00L) + 1_000_000_000_00L;
+        return  LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMddHHmmss")) + Long.toString(randomNum);
     }
 
 }
