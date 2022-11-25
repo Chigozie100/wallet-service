@@ -94,6 +94,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             double cumbalDrAmtDr = accountDebit.getCum_dr_amt() + transactionPojo.getAmount().doubleValue();
             //lien of same amount debited is also removed
             double lienAmt = accountDebit.getLien_amt() + transactionPojo.getAmount().doubleValue();
+            lienAmt = (lienAmt < 0) ? 0 : lienAmt;
 
             accountDebit.setLien_amt(lienAmt);
             accountDebit.setLast_tran_id_dr(transactionPojo.getTranId());
@@ -335,11 +336,15 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return new ResponseEntity<>(new ErrorResponse("INVALID SOURCE ACCOUNT"), HttpStatus.BAD_REQUEST);
         }
 
+        double sufficientFunds = ownerAccount.get().getCum_cr_amt() - ownerAccount.get().getCum_dr_amt() -  ownerAccount.get().getLien_amt() - amount.doubleValue();
+        if(sufficientFunds < 0){
+            return new ResponseEntity<>(new ErrorResponse("INSUFFICIENT FUNDS"), HttpStatus.BAD_REQUEST);
+        }
+        addLien(ownerAccount.get(),  amount);
+
         /**
          * TODO
          * 1. check has right to debit account
-         * 2. check has sufficient funds (available balance)
-         * then add lien so available balance will reduce
          * 3. check debit account exist
          * 4. check credit account exist
          * 5.
@@ -386,6 +391,14 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     private String generateSessionId() {
         long randomNum = (long) Math.floor(Math.random() * 9_000_000_000_00L) + 1_000_000_000_00L;
         return  LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMddHHmmss")) + Long.toString(randomNum);
+    }
+
+    @Override
+    public void addLien(WalletAccount account, BigDecimal amount) {
+
+        account.setLien_amt(amount.doubleValue());
+        walletAccountRepository.saveAndFlush(account);
+    
     }
 
 }

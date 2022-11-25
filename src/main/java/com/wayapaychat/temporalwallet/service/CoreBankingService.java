@@ -3,6 +3,7 @@ package com.wayapaychat.temporalwallet.service;
 
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.entity.Provider;
+import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.enumm.CategoryType;
 import com.wayapaychat.temporalwallet.enumm.WalletTransStatus;
 import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
@@ -37,5 +38,7 @@ public interface CoreBankingService {
     Long logTransaction(String fromAccountNumber, String toAccountNumber, BigDecimal amount, String transCategory,String tranCrncy, WalletTransStatus status);
     
     void updateTransactionLog(Long tranId, WalletTransStatus status);
+
+    void addLien(WalletAccount account, BigDecimal amount); 
 
 }
