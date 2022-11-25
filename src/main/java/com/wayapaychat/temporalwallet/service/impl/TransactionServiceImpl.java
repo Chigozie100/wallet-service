@@ -128,7 +128,7 @@ public class TransactionServiceImpl implements TransactionService {
          WalletUser xUser = walletUserRepository.findByAccount(accountDebit);
          Long xUserId = xUser.getUserId();
          // get user charge by eventId and userID
-         return userPricingRepository.findDetails(xUserId,eventId).orElse(null);
+         return userPricingRepository.findDetailsByCode(xUserId,eventId).orElse(null);
      }
 
      private BigDecimal getChargesAmount(UserPricing userPricingOptional, BigDecimal amount){
@@ -187,6 +187,7 @@ public class TransactionServiceImpl implements TransactionService {
                  System.out.println( "#################### ABOUT TO GET USER PRODUCT #################### " + eventId );
                  // get user charge by eventId and userID
                  UserPricing userPricingOptional = getUserProduct(accountDebit, eventId); // get user to
+
                  System.out.println( "#################### USER PRODUCT RESPONSE #################### " + eventId );
 
                  System.out.println( userPricingOptional +  " #################### ABOUT TO GET  PRODUCT RESPONSE #################### " + eventId );
