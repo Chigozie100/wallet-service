@@ -430,7 +430,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 	public AccountSumary getAccountSumaryLookUp(String account) {
 		AccountSumary mAccount = null;
 		StringBuilder query = new StringBuilder();
-		query.append("select user_id, cust_name, account_no, cust_debit_limit from m_wallet_user a, m_wallet_account b ");
+		query.append("select  user_id, email_address, mobile_no, cust_name, account_no, cust_debit_limit from m_wallet_user a, m_wallet_account b ");
 		query.append("where a.id = b.cif_id and account_no = ?");
 		String sql = query.toString();
 		try {

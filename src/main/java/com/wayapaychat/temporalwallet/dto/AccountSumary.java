@@ -15,11 +15,18 @@ public class AccountSumary {
 
 	private String debitLimit;
 
-	public AccountSumary(Long uId, String custName, String accountNo, String debitLimit) {
+	private String email;
+
+	private String phone;
+	
+
+	public AccountSumary(Long uId, String custName, String accountNo, String debitLimit, String email, String phone) {
 		this.uId = uId;
 		this.custName = custName;
 		this.accountNo = accountNo;
 		this.debitLimit = debitLimit;
+		this.email = email;
+		this.phone = phone;
 	}
 
 }

@@ -385,18 +385,23 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     public void logNotification(CBAEntryTransaction transactionPojo) {
         String tranDate = LocalDate.now().toString();
 
-        if(transactionPojo.getTranPart().intValue() != 1){
+        AccountSumary account = tempwallet.getAccountSumaryLookUp(transactionPojo.getAccountNo());
+        if(account == null){
+            return;
+        }
+
+        if(account.getEmail() == null){
             return;
         }
 
         StringBuilder message = new StringBuilder();
-        message.append(String.format("A transaction has occurred with reference: %s on your account see details below. \n", transactionPojo.getTranId()));
-        message.append(String.format("Amount :%s . \n", transactionPojo.getAccountNo()));
-        message.append(String.format("tranDate :%s . \n", tranDate));
-        message.append(String.format("Currency :%s . \n", transactionPojo.getTranId()));
-        message.append(String.format("Narration :%s . \n", transactionPojo.getTranNarration()));
+        message.append(String.format("A transaction has occurred with reference: %s on your account see details below. <br/>", transactionPojo.getTranId()));
+        message.append(String.format("Amount :%s <br/>", transactionPojo.getAmount()));
+        message.append(String.format("tranDate :%s <br/>", tranDate));
+        message.append(String.format("Currency :%s <br/>", transactionPojo.getTranCrncy()));
+        message.append(String.format("Narration :%s ", transactionPojo.getTranNarration()));
         
-        customNotification.pushEMAIL(this.appToken, transactionPojo.getUserToken().getFirstName(), transactionPojo.getUserToken().getEmail(), message.toString(), transactionPojo.getUserToken().getId());
+        customNotification.pushEMAIL(this.appToken, account.getCustName(), account.getEmail(), message.toString(), account.getUId());
 
     }
 
