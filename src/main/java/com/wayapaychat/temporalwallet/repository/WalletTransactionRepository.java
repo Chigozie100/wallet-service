@@ -70,7 +70,7 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.acctNum) LIKE UPPER('NGN%') AND u.del_flg = false AND u.partTranType = UPPER(:partTranType)" + " order by u.createdAt DESC ")
 	Page<WalletTransaction> findByAccountOfficial3(Pageable pageable, @Param("partTranType") String partTranType);
 
-	@Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.part_tran_type = 'D' AND UPPER(u.acctNum) = UPPER(:account) AND u.tranDate = (:todayDate) AND u.del_flg = false")
+	@Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND UPPER(u.acctNum) = UPPER(:account) AND u.tranDate = (:todayDate) AND u.del_flg = false")
 	BigDecimal totalTransactionAmountToday(String account, LocalDate todayDate);
 
 	@Query("SELECT sum(u.tranAmount) FROM WalletTransaction u " + "WHERE u.partTranType = 'D'" + " AND u.del_flg = false")
