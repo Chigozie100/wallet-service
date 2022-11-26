@@ -424,6 +424,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         BigDecimal totalTransactionToday = walletTransactionRepository.totalTransactionAmountToday(accountNumber, LocalDate.now());
+        log.info("totalTransactionToday {}", totalTransactionToday);
+        totalTransactionToday = totalTransactionToday == null? new BigDecimal(0):totalTransactionToday;
         if(totalTransactionToday.doubleValue() >= Double.parseDouble(account.getDebitLimit())){
             return new ResponseEntity<>(new ErrorResponse("DEBIT LIMIT REACHED"), HttpStatus.BAD_REQUEST);
         }
