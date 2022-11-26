@@ -349,19 +349,21 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         addLien(ownerAccount.get(),  amount);
 
         AccountSumary account = tempwallet.getAccountSumaryLookUp(accountNumber);
+        if(account == null){
+            return new ResponseEntity<>(new ErrorResponse("INVALID SOURCE ACCOUNT"), HttpStatus.BAD_REQUEST);
+        }
 
         boolean isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_OWNER"::equalsIgnoreCase);
         isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_APP"::equalsIgnoreCase)? true : isWriteAdmin;
-        
-        boolean isOwner = false;
-        if(account != null){
-            isOwner = Long.compare(account.getUId(), userToken.getId()) == 0;
-            log.info("user account lookup {}  {}", account.toString(), userToken.toString());
-        }
+        boolean isOwner =  Long.compare(account.getUId(), userToken.getId()) == 0;
 
         if(!isOwner && !isWriteAdmin){
             log.error("owner check {} {}", isOwner, isWriteAdmin);
             return new ResponseEntity<>(new ErrorResponse("INVALID SOURCE ACCOUNT"), HttpStatus.BAD_REQUEST);
+        }
+
+        if(amount.doubleValue() > Double.parseDouble(account.getDebitLimit())){
+            return new ResponseEntity<>(new ErrorResponse("DEBIT LIMIT REACHED"), HttpStatus.BAD_REQUEST);
         }
 
         return new ResponseEntity<>(userToken, HttpStatus.ACCEPTED);

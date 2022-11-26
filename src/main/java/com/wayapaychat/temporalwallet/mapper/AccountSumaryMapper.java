@@ -14,7 +14,8 @@ public class AccountSumaryMapper implements RowMapper<AccountSumary> {
 		Long uId = rs.getLong("user_id");
 		String custName = rs.getString("cust_name"); 
 		String accountNo = rs.getString("account_no"); 
-		return new AccountSumary(uId, custName, accountNo);
+		String debitLimit = rs.getString("cust_debit_limit"); 
+		return new AccountSumary(uId, custName, accountNo, debitLimit);
 	}
 
 }
