@@ -11,6 +11,7 @@ import java.util.concurrent.CompletableFuture;
 import javax.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -45,10 +46,14 @@ import com.wayapaychat.temporalwallet.enumm.ProviderType;
 import com.wayapaychat.temporalwallet.enumm.TransactionTypeEnum;
 import com.wayapaychat.temporalwallet.enumm.WalletTransStatus;
 import com.wayapaychat.temporalwallet.exception.CustomException;
+import com.wayapaychat.temporalwallet.notification.CustomNotification;
 
 @Service
 @Slf4j
 public class CoreBankingServiceImpl implements CoreBankingService {
+
+    @Value("${jwt.secret:2YuUlb+t36yVzrTkYLl8xBlBJSC41CE7uNF3somMDxdYDfcACv9JYIU54z17s4Ah313uKu/4Ll+vDNKpxx6v4Q==")
+    private String appToken;
  
     private final SwitchWalletService switchWalletService;
     private final WalletTransAccountRepository walletTransAccountRepository;
@@ -57,12 +62,13 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     private final WalletTransactionRepository walletTransactionRepository;
     private final MifosWalletProxy mifosWalletProxy;
 	private final TemporalWalletDAO tempwallet;
+    private final CustomNotification customNotification;
 
     @Autowired
     public CoreBankingServiceImpl(SwitchWalletService switchWalletService,
             WalletTransAccountRepository walletTransAccountRepository, WalletAccountRepository walletAccountRepository,
             WalletEventRepository walletEventRepository, WalletTransactionRepository walletTransactionRepository,
-            MifosWalletProxy mifosWalletProxy, TemporalWalletDAO tempwallet) {
+            MifosWalletProxy mifosWalletProxy, TemporalWalletDAO tempwallet, CustomNotification customNotification) {
         this.switchWalletService = switchWalletService;
         this.walletTransAccountRepository = walletTransAccountRepository;
         this.walletAccountRepository = walletAccountRepository;
@@ -70,6 +76,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         this.walletTransactionRepository = walletTransactionRepository;
         this.mifosWalletProxy = mifosWalletProxy;
         this.tempwallet = tempwallet;
+        this.customNotification = customNotification;
     }
 
     @Override
@@ -98,8 +105,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             accountCredit.setLast_tran_date(LocalDate.now());
             walletAccountRepository.saveAndFlush(accountCredit);
             
-            //Todo Notify
-            //CompletableFuture.runAsync(() -> notification );
+            CompletableFuture.runAsync(() -> logNotification(transactionPojo));
+
             return new ResponseEntity<>(new SuccessResponse("credit transaction Successful"), HttpStatus.ACCEPTED);
         } catch (Exception e) {
             e.printStackTrace();
@@ -133,8 +140,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             accountDebit.setLast_tran_date(LocalDate.now());
             walletAccountRepository.saveAndFlush(accountDebit);
 
-            //Todo Notify
-            //CompletableFuture.runAsync(() -> notification );
+            CompletableFuture.runAsync(() -> logNotification(transactionPojo));
+
             return new ResponseEntity<>(new SuccessResponse("debit transaction Successful"), HttpStatus.ACCEPTED);
         } catch (Exception e) {
             e.printStackTrace();
@@ -371,11 +378,24 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     
     }
 
-    /**
-     * TODO: function
-     * 
-     * Check if token has accesss to user id passed in parameter
-     */
+    @Override
+    public void logNotification(CBAEntryTransaction transactionPojo) {
+        String tranDate = LocalDate.now().toString();
+
+        if(transactionPojo.getTranPart().intValue() != 1){
+            return;
+        }
+
+        StringBuilder message = new StringBuilder();
+        message.append(String.format("A transaction has occurred with reference: {} on your account see details below. \n", transactionPojo.getTranId()));
+        message.append(String.format("Amount :{} . \n", transactionPojo.getAccountNo()));
+        message.append(String.format("tranDate :{} . \n", tranDate));
+        message.append(String.format("Currency :{} . \n", transactionPojo.getTranId()));
+        message.append(String.format("Narration :{} . \n", transactionPojo.getTranNarration()));
+        
+        customNotification.pushEMAIL(this.appToken, transactionPojo.getUserToken().getFirstName(), transactionPojo.getUserToken().getEmail(), message.toString(), transactionPojo.getUserToken().getId());
+
+    }
 
     @Override
     public ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount) {
@@ -422,5 +442,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         return new ResponseEntity<>(userToken, HttpStatus.ACCEPTED);
 
     }
+
 
 }
