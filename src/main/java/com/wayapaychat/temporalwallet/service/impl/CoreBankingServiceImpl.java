@@ -130,8 +130,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             double clrbalAmtDr = accountDebit.getClr_bal_amt() - transactionPojo.getAmount().doubleValue();
             double cumbalDrAmtDr = accountDebit.getCum_dr_amt() + transactionPojo.getAmount().doubleValue();
             //lien of same amount debited is also removed
-            double lienAmt = accountDebit.getLien_amt() + transactionPojo.getAmount().doubleValue();
-            lienAmt = (lienAmt < 0) ? 0 : lienAmt;
+            double lienAmt = accountDebit.getLien_amt() - transactionPojo.getAmount().doubleValue();
+            if(lienAmt <= 0){
+                accountDebit.setLien_reason("");
+                lienAmt = 0;
+            }
 
             accountDebit.setLien_amt(lienAmt);
             accountDebit.setLast_tran_id_dr(transactionPojo.getTranId());
