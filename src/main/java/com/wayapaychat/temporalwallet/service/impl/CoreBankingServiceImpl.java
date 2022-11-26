@@ -124,8 +124,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transactionPojo.getTranPart(), transactionPojo.getTransactionCategory(), transactionPojo.getSenderName(), accountCredit.getAcct_name());
             walletTransactionRepository.saveAndFlush(tranCredit);
 
-            double clrbalAmtDr = accountCredit.getClr_bal_amt() - transactionPojo.getAmount().doubleValue();
-            double cumbalDrAmtDr = accountCredit.getCum_dr_amt() + transactionPojo.getAmount().doubleValue();
+            double clrbalAmtDr = accountCredit.getClr_bal_amt() + transactionPojo.getAmount().doubleValue();
+            double cumbalDrAmtDr = accountCredit.getCum_cr_amt() - transactionPojo.getAmount().doubleValue();
             accountCredit.setLast_tran_id_dr(transactionPojo.getTranId());
             accountCredit.setClr_bal_amt(clrbalAmtDr);
             accountCredit.setCum_dr_amt(cumbalDrAmtDr);
@@ -324,6 +324,12 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
     }
 
+    /**
+     * TODO: function
+     * 
+     * Check if token has accesss to user id passed in parameter
+     */
+
     @Override
     public ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount) {
         MyData userToken = (MyData)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
@@ -344,7 +350,9 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         AccountSumary account = tempwallet.getAccountSumaryLookUp(accountNumber);
 
-        boolean isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_APP"::equalsIgnoreCase);
+        boolean isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_OWNER"::equalsIgnoreCase);
+        isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_APP"::equalsIgnoreCase)? true : isWriteAdmin;
+        
         boolean isOwner = false;
         if(account != null){
             isOwner = Long.compare(account.getUId(), userToken.getId()) == 0;
