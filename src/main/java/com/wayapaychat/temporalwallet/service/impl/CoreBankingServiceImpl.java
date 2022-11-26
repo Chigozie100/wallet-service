@@ -79,6 +79,36 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
+    public ResponseEntity<?> creditAccount(CBAEntryTransaction transactionPojo) {
+        log.info("Processing credit transaction {}", transactionPojo.toString());
+        try {
+            WalletAccount accountCredit = walletAccountRepository.findByAccountNo(transactionPojo.getAccountNo());
+
+            WalletTransaction tranCredit = new WalletTransaction(transactionPojo.getTranId(), accountCredit.getAccountNo(), transactionPojo.getAmount(), 
+                            transactionPojo.getTranType(), transactionPojo.getTranNarration(), LocalDate.now(), accountCredit.getAcct_crncy_code(), "C",
+                            accountCredit.getGl_code(), transactionPojo.getPaymentReference(), String.valueOf(transactionPojo.getUserToken().getId()), transactionPojo.getUserToken().getEmail(),
+                            transactionPojo.getTranPart(), transactionPojo.getTransactionCategory(), transactionPojo.getSenderName(), accountCredit.getAcct_name());
+            walletTransactionRepository.saveAndFlush(tranCredit);
+
+            double clrbalAmtDr = accountCredit.getClr_bal_amt() + transactionPojo.getAmount().doubleValue();
+            double cumbalDrAmtDr = accountCredit.getCum_cr_amt() - transactionPojo.getAmount().doubleValue();
+            accountCredit.setLast_tran_id_dr(transactionPojo.getTranId());
+            accountCredit.setClr_bal_amt(clrbalAmtDr);
+            accountCredit.setCum_dr_amt(cumbalDrAmtDr);
+            accountCredit.setLast_tran_date(LocalDate.now());
+            walletAccountRepository.saveAndFlush(accountCredit);
+            
+            //Todo Notify
+            //CompletableFuture.runAsync(() -> notification );
+            return new ResponseEntity<>(new SuccessResponse("credit transaction Successful"), HttpStatus.ACCEPTED);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ResponseEntity<>(new ErrorResponse("credit transaction failed"),  HttpStatus.BAD_REQUEST);
+        }
+
+    }
+
+    @Override
     public ResponseEntity<?> debitAccount(CBAEntryTransaction transactionPojo) {
         log.info("Processing debit transaction {}", transactionPojo.toString());
         try{
@@ -110,36 +140,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             e.printStackTrace();
             return new ResponseEntity<>(new ErrorResponse("debit transaction failed"),  HttpStatus.BAD_REQUEST);
         }
-    }
-
-    @Override
-    public ResponseEntity<?> creditAccount(CBAEntryTransaction transactionPojo) {
-        log.info("Processing credit transaction {}", transactionPojo.toString());
-        try {
-            WalletAccount accountCredit = walletAccountRepository.findByAccountNo(transactionPojo.getAccountNo());
-
-            WalletTransaction tranCredit = new WalletTransaction(transactionPojo.getTranId(), accountCredit.getAccountNo(), transactionPojo.getAmount(), 
-                            transactionPojo.getTranType(), transactionPojo.getTranNarration(), LocalDate.now(), accountCredit.getAcct_crncy_code(), "C",
-                            accountCredit.getGl_code(), transactionPojo.getPaymentReference(), String.valueOf(transactionPojo.getUserToken().getId()), transactionPojo.getUserToken().getEmail(),
-                            transactionPojo.getTranPart(), transactionPojo.getTransactionCategory(), transactionPojo.getSenderName(), accountCredit.getAcct_name());
-            walletTransactionRepository.saveAndFlush(tranCredit);
-
-            double clrbalAmtDr = accountCredit.getClr_bal_amt() + transactionPojo.getAmount().doubleValue();
-            double cumbalDrAmtDr = accountCredit.getCum_cr_amt() - transactionPojo.getAmount().doubleValue();
-            accountCredit.setLast_tran_id_dr(transactionPojo.getTranId());
-            accountCredit.setClr_bal_amt(clrbalAmtDr);
-            accountCredit.setCum_dr_amt(cumbalDrAmtDr);
-            accountCredit.setLast_tran_date(LocalDate.now());
-            walletAccountRepository.saveAndFlush(accountCredit);
-            
-            //Todo Notify
-            //CompletableFuture.runAsync(() -> notification );
-            return new ResponseEntity<>(new SuccessResponse("credit transaction Successful"), HttpStatus.ACCEPTED);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new ResponseEntity<>(new ErrorResponse("credit transaction failed"),  HttpStatus.BAD_REQUEST);
-        }
-
     }
 
     @Override
@@ -179,6 +179,40 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         return response;
     }
 
+
+    @Override
+    public ResponseEntity<?> processExternalCBATransactionDoubleEntry(String paymentReference, String fromAccount, String toAccount,
+            String narration, CategoryType category, BigDecimal amount, Provider provider) {
+        ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("ERROR PROCESSING"), HttpStatus.BAD_REQUEST);
+        WalletAccount accountDebit = walletAccountRepository.findByAccountNo(fromAccount);
+        WalletAccount accountCredit = walletAccountRepository.findByAccountNo(toAccount);
+        
+
+        MifosTransfer mifosTransfer = new MifosTransfer();
+
+        mifosTransfer.setRequestId(generateSessionId());
+        mifosTransfer.setAmount(amount);
+        mifosTransfer.setNarration(narration);
+        mifosTransfer.setTransactionType(TransactionTypeEnum.TRANSFER.getValue());
+
+        mifosTransfer.setDestinationAccountNumber(accountCredit.getNubanAccountNo());
+        mifosTransfer.setDestinationAccountType("SAVINGS");
+        mifosTransfer.setDestinationCurrency(accountCredit.getAcct_crncy_code());
+
+        mifosTransfer.setSourceAccountNumber(accountDebit.getNubanAccountNo());
+        mifosTransfer.setSourceAccountType("SAVINGS");
+        mifosTransfer.setSourceCurrency(accountDebit.getAcct_crncy_code());
+
+
+        switch (provider.getName()) {
+            case ProviderType.MIFOS:
+                mifosWalletProxy.transferMoney(mifosTransfer);
+            default:
+                response = new ResponseEntity<>(new SuccessResponse("Provider corebanking transaction Successful"),  HttpStatus.ACCEPTED);
+        }
+        return response;
+    }
+
     @Override
     public ResponseEntity<?> processCBATransactionDoubleEntryWithTransit(MyData userToken, String paymentReference, String transitAccount, String fromAccount,
             String toAccount, String narration, String category, BigDecimal amount, Provider provider) {
@@ -202,7 +236,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public ResponseEntity<?> transfer(TransferTransactionDTO transferTransactionRequestData) {
+    public ResponseEntity<?> transfer(TransferTransactionDTO transferTransactionRequestData, String channelEventId) {
 
         ResponseEntity<?> response = securityCheck(transferTransactionRequestData.getDebitAccountNumber(), transferTransactionRequestData.getAmount());
 		if(!response.getStatusCode().is2xxSuccessful()){
@@ -225,7 +259,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                                 transferTransactionRequestData.getAmount(), transferTransactionRequestData.getTransactionCategory(), transferTransactionRequestData.getTranCrncy(), WalletTransStatus.PENDING);
         if (tranId == null) { return new ResponseEntity<>(new ErrorResponse("ERROR PROCESSING TRANSACTION"), HttpStatus.BAD_REQUEST);  }
 
-        String transitAccount = getTransitAccount("INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+        String transitAccount = getTransitAccountNumber(channelEventId);
         response = processCBATransactionDoubleEntryWithTransit((MyData)response.getBody(), transferTransactionRequestData.getPaymentReference(), transitAccount, transferTransactionRequestData.getDebitAccountNumber(),  transferTransactionRequestData.getBenefAccountNumber(), 
                                     transferTransactionRequestData.getTranNarration(), transferTransactionRequestData.getTransactionCategory(), transferTransactionRequestData.getAmount(), provider);
         
@@ -250,18 +284,18 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 		return new ResponseEntity<>(new SuccessResponse("TRANSACTION SUCCESSFULLY", transaction), HttpStatus.CREATED);
     }
 
-    private String getTransitAccount(String transactionCategory) {
+    private String getTransitAccountNumber(String channelEventId) {
 
-        Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(transactionCategory);
+        Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(channelEventId);
         if (!eventInfo.isPresent()) {
-            log.error("no event found for transaction category {}", transactionCategory);
+            log.error("no event found for transaction category {}", channelEventId);
             return null;
         }
 
         Optional<WalletAccount> accountDebitTeller = walletAccountRepository
                 .findByUserPlaceholder(eventInfo.get().getPlaceholder(), eventInfo.get().getCrncyCode(), "0000");
         if (!accountDebitTeller.isPresent()) {
-            log.error("no account found for transaction category {}", transactionCategory);
+            log.error("no account found for transaction category {}", channelEventId);
             return null;
         }
 
@@ -324,6 +358,19 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
     }
 
+    private String generateSessionId() {
+        long randomNum = (long) Math.floor(Math.random() * 9_000_000_000_00L) + 1_000_000_000_00L;
+        return  LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMddHHmmss")) + Long.toString(randomNum);
+    }
+
+    @Override
+    public void addLien(WalletAccount account, BigDecimal amount) {
+
+        account.setLien_amt(amount.doubleValue());
+        walletAccountRepository.saveAndFlush(account);
+    
+    }
+
     /**
      * TODO: function
      * 
@@ -368,53 +415,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         return new ResponseEntity<>(userToken, HttpStatus.ACCEPTED);
 
-    }
-
-    @Override
-    public ResponseEntity<?> processExternalCBATransactionDoubleEntry(String paymentReference, String fromAccount, String toAccount,
-            String narration, CategoryType category, BigDecimal amount, Provider provider) {
-        ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse("ERROR PROCESSING"), HttpStatus.BAD_REQUEST);
-        WalletAccount accountDebit = walletAccountRepository.findByAccountNo(fromAccount);
-        WalletAccount accountCredit = walletAccountRepository.findByAccountNo(toAccount);
-        
-
-        MifosTransfer mifosTransfer = new MifosTransfer();
-
-        mifosTransfer.setRequestId(generateSessionId());
-        mifosTransfer.setAmount(amount);
-        mifosTransfer.setNarration(narration);
-        mifosTransfer.setTransactionType(TransactionTypeEnum.TRANSFER.getValue());
-
-        mifosTransfer.setDestinationAccountNumber(accountCredit.getNubanAccountNo());
-        mifosTransfer.setDestinationAccountType("SAVINGS");
-        mifosTransfer.setDestinationCurrency(accountCredit.getAcct_crncy_code());
-
-        mifosTransfer.setSourceAccountNumber(accountDebit.getNubanAccountNo());
-        mifosTransfer.setSourceAccountType("SAVINGS");
-        mifosTransfer.setSourceCurrency(accountDebit.getAcct_crncy_code());
-
-
-        switch (provider.getName()) {
-            case ProviderType.MIFOS:
-                mifosWalletProxy.transferMoney(mifosTransfer);
-            default:
-                response = new ResponseEntity<>(new SuccessResponse("Provider corebanking transaction Successful"),  HttpStatus.ACCEPTED);
-        }
-        return response;
-    }
- 
-
-    private String generateSessionId() {
-        long randomNum = (long) Math.floor(Math.random() * 9_000_000_000_00L) + 1_000_000_000_00L;
-        return  LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMddHHmmss")) + Long.toString(randomNum);
-    }
-
-    @Override
-    public void addLien(WalletAccount account, BigDecimal amount) {
-
-        account.setLien_amt(amount.doubleValue());
-        walletAccountRepository.saveAndFlush(account);
-    
     }
 
 }

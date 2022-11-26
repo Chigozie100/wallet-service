@@ -142,7 +142,7 @@ public class WalletTransactionController {
 			@Valid @RequestBody TransferTransactionDTO transfer) {
 		
 		try{
-			return coreBankingService.transfer(transfer);
+			return coreBankingService.transfer(transfer, "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
 		}catch (CustomException ex){
 			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}

@@ -23,22 +23,22 @@ public interface CoreBankingService {
 
     ResponseEntity<?> debitAccount(CBAEntryTransaction transactionPojo);
 
-    ResponseEntity<?> transfer(TransferTransactionDTO transferTransactionDTO);
-
-    ResponseEntity<?> processCBATransactionDoubleEntryWithTransit(MyData userToken, String paymentReference, String transitAccount, String fromAccount, String toAccount, String narration, String category, BigDecimal amount, Provider provider);
-
     ResponseEntity<?> processCBATransactionDoubleEntry(MyData userToken, String paymentReference, String fromAccount, String toAccount, String narration, CategoryType category, BigDecimal amount, Provider provider);
 
     ResponseEntity<?> processExternalCBATransactionDoubleEntry(String paymentReference, String fromAccount, String toAccount, String narration, CategoryType category, BigDecimal amount, Provider provider);
 
-    ResponseEntity<?> applyCharge(String transitAccount, String debitAccountNumber, String tranNarration, String transactionCategory, BigDecimal doubleValue, Provider provider);
+    ResponseEntity<?> processCBATransactionDoubleEntryWithTransit(MyData userToken, String paymentReference, String transitAccount, String fromAccount, String toAccount, String narration, String category, BigDecimal amount, Provider provider);
 
-    ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount);
+    ResponseEntity<?> transfer(TransferTransactionDTO transferTransactionDTO, String channelEventId);
+
+    ResponseEntity<?> applyCharge(String transitAccount, String debitAccountNumber, String tranNarration, String transactionCategory, BigDecimal doubleValue, Provider provider);
 
     Long logTransaction(String fromAccountNumber, String toAccountNumber, BigDecimal amount, String transCategory,String tranCrncy, WalletTransStatus status);
     
     void updateTransactionLog(Long tranId, WalletTransStatus status);
 
     void addLien(WalletAccount account, BigDecimal amount); 
+
+    ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount);
 
 }
