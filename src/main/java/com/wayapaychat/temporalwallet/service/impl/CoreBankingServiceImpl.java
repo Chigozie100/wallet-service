@@ -387,11 +387,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         StringBuilder message = new StringBuilder();
-        message.append(String.format("A transaction has occurred with reference: {} on your account see details below. \n", transactionPojo.getTranId()));
-        message.append(String.format("Amount :{} . \n", transactionPojo.getAccountNo()));
-        message.append(String.format("tranDate :{} . \n", tranDate));
-        message.append(String.format("Currency :{} . \n", transactionPojo.getTranId()));
-        message.append(String.format("Narration :{} . \n", transactionPojo.getTranNarration()));
+        message.append(String.format("A transaction has occurred with reference: %s on your account see details below. \n", transactionPojo.getTranId()));
+        message.append(String.format("Amount :%s . \n", transactionPojo.getAccountNo()));
+        message.append(String.format("tranDate :%s . \n", tranDate));
+        message.append(String.format("Currency :%s . \n", transactionPojo.getTranId()));
+        message.append(String.format("Narration :%s . \n", transactionPojo.getTranNarration()));
         
         customNotification.pushEMAIL(this.appToken, transactionPojo.getUserToken().getFirstName(), transactionPojo.getUserToken().getEmail(), message.toString(), transactionPojo.getUserToken().getId());
 
