@@ -389,15 +389,23 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return new ResponseEntity<>(new ErrorResponse("INVALID SOURCE ACCOUNT"), HttpStatus.BAD_REQUEST);
         }
 
+        AccountSumary account = tempwallet.getAccountSumaryLookUp(accountNumber);
+        if(account == null){
+            return new ResponseEntity<>(new ErrorResponse("INVALID SOURCE ACCOUNT"), HttpStatus.BAD_REQUEST);
+        }
+
         double sufficientFunds = ownerAccount.get().getCum_cr_amt() - ownerAccount.get().getCum_dr_amt() -  ownerAccount.get().getLien_amt() - amount.doubleValue();
         if(sufficientFunds < 0){
             return new ResponseEntity<>(new ErrorResponse("INSUFFICIENT FUNDS"), HttpStatus.BAD_REQUEST);
         }
-        addLien(ownerAccount.get(),  amount);
 
-        AccountSumary account = tempwallet.getAccountSumaryLookUp(accountNumber);
-        if(account == null){
-            return new ResponseEntity<>(new ErrorResponse("INVALID SOURCE ACCOUNT"), HttpStatus.BAD_REQUEST);
+        if(amount.doubleValue() > Double.parseDouble(account.getDebitLimit())){
+            return new ResponseEntity<>(new ErrorResponse("DEBIT LIMIT REACHED"), HttpStatus.BAD_REQUEST);
+        }
+
+        BigDecimal totalTransactionToday = walletTransactionRepository.totalTransactionAmountToday(accountNumber, LocalDate.now());
+        if(totalTransactionToday.doubleValue() >= Double.parseDouble(account.getDebitLimit())){
+            return new ResponseEntity<>(new ErrorResponse("DEBIT LIMIT REACHED"), HttpStatus.BAD_REQUEST);
         }
 
         boolean isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_OWNER"::equalsIgnoreCase);
@@ -409,9 +417,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return new ResponseEntity<>(new ErrorResponse("INVALID SOURCE ACCOUNT"), HttpStatus.BAD_REQUEST);
         }
 
-        if(amount.doubleValue() > Double.parseDouble(account.getDebitLimit())){
-            return new ResponseEntity<>(new ErrorResponse("DEBIT LIMIT REACHED"), HttpStatus.BAD_REQUEST);
-        }
+        addLien(ownerAccount.get(),  amount);
 
         return new ResponseEntity<>(userToken, HttpStatus.ACCEPTED);
 
