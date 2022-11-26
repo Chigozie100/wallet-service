@@ -305,7 +305,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         Optional<WalletAccount> accountDebitTeller = walletAccountRepository
                 .findByUserPlaceholder(eventInfo.get().getPlaceholder(), eventInfo.get().getCrncyCode(), "0000");
         if (!accountDebitTeller.isPresent()) {
-            log.error("no account found for transaction category {}", channelEventId);
+            log.error("no transit account found for transaction channel EventId {}", channelEventId);
             return null;
         }
 
@@ -395,10 +395,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         StringBuilder message = new StringBuilder();
-        message.append(String.format("A transaction has occurred with reference: %s on your account see details below. <br/>", transactionPojo.getTranId()));
-        message.append(String.format("Amount :%s <br/>", transactionPojo.getAmount()));
-        message.append(String.format("tranDate :%s <br/>", tranDate));
-        message.append(String.format("Currency :%s <br/>", transactionPojo.getTranCrncy()));
+        message.append(String.format("A transaction has occurred with reference: %s on your account see details below. \n", transactionPojo.getTranId()));
+        message.append(String.format("Amount :%s \n", transactionPojo.getAmount()));
+        message.append(String.format("Date :%s \n", tranDate));
+        //message.append(String.format("Currency :%s \n", transactionPojo.getTranCrncy()));
         message.append(String.format("Narration :%s ", transactionPojo.getTranNarration()));
         
         customNotification.pushEMAIL(this.appToken, account.getCustName(), account.getEmail(), message.toString(), account.getUId());
