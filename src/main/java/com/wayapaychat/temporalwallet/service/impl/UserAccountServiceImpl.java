@@ -650,7 +650,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		mifos.setLastName(userInfo.getLastName());
 
 		try{
-			System.out.println("mifosWalletProxy :: " + mifosWalletProxy);
+			log.info("mifosWalletProxy :: " + mifosWalletProxy);
 			MifosAccountCreationResponse response = mifosWalletProxy.createAccount(mifos);
 			log.info("pushToMifos after request build ::: " + mifos);
 
