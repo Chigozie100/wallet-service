@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -115,5 +116,7 @@ public interface UserAccountService {
 	ResponseEntity<?>  countInActiveAccount();
 
 	ResponseEntity<?>  createDefaultWallet(MyData user);
+
+	ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount);
 
 }

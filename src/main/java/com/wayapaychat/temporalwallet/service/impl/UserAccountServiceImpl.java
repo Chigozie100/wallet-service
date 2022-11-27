@@ -650,7 +650,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		mifos.setLastName(userInfo.getLastName());
 
 		try{
-			System.out.println("mifosWalletProxy :: " + mifosWalletProxy);
+			log.info("mifosWalletProxy :: " + mifosWalletProxy);
 			MifosAccountCreationResponse response = mifosWalletProxy.createAccount(mifos);
 			log.info("pushToMifos after request build ::: " + mifos);
 
@@ -1802,14 +1802,14 @@ public class UserAccountServiceImpl implements UserAccountService {
 				account.setLien_reason(user.getLienReason());
 			}else{
 				double acctAmt = account.getLien_amt() - user.getLienAmount().doubleValue();
-				System.out.println("###################### account.getLien_amt() ########### " + account.getLien_amt());
-				System.out.println("###################### user.getLienAmount() ########### " + user.getLienAmount());
+				log.info("###################### account.getLien_amt() ########### " + account.getLien_amt());
+				log.info("###################### user.getLienAmount() ########### " + user.getLienAmount());
 				account.setLien_amt(acctAmt);
 				account.setLien_reason(user.getLienReason());
 			}
 
 			WalletAccount account1 = walletAccountRepository.save(account);
-			System.out.println("Actual Value " + account1);
+			log.info("Actual Value " + account1);
 			return new ResponseEntity<>(new SuccessResponse("Account Lien successfully.", account), HttpStatus.OK);
 		} catch (Exception e) {
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage() + " : " + e.getMessage()),
@@ -1889,5 +1889,19 @@ public class UserAccountServiceImpl implements UserAccountService {
 		return null;
 	}
 
+	public ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount){
+		try{
+			Optional<WalletUser> walletUser = walletUserRepository.findUserId(Long.parseLong(userId));
+			if(walletUser.isPresent()){
+				WalletUser walletUser1 = walletUser.get();
+				walletUser1.setCust_debit_limit(amount.doubleValue());
+				walletUserRepository.save(walletUser1);
+			}
+			return new ResponseEntity<>(new SuccessResponse("SUCCESS", walletUserRepository.findUserId(Long.parseLong(userId))), HttpStatus.OK);
+		}catch (CustomException ex){
+			throw new CustomException("error", HttpStatus.EXPECTATION_FAILED);
+		}
+
+	}
 
 }
