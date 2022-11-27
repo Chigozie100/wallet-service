@@ -80,10 +80,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 	private final UserAccountService userAccountService;
 	private final UserPricingRepository userPricingRepository;
 	private final MifosWalletProxy mifosWalletProxy;
+	private final CoreBankingService coreBankingService;
 
 
 	@Autowired
-	public TransAccountServiceImpl(WalletUserRepository walletUserRepository, WalletAccountRepository walletAccountRepository, WalletAcountVirtualRepository walletAcountVirtualRepository, ReqIPUtils reqIPUtils, TemporalWalletDAO tempwallet, WalletTransactionRepository walletTransactionRepository, ParamDefaultValidation paramValidation, WalletTellerRepository walletTellerRepository, WalletEventRepository walletEventRepository, AuthUserServiceDAO authService, SwitchWalletService switchWalletService, TokenImpl tokenService, ExternalServiceProxyImpl userDataService, WalletNonWayaPaymentRepository walletNonWayaPaymentRepo, CustomNotification customNotification, WalletQRCodePaymentRepository walletQRCodePaymentRepo, WalletPaymentRequestRepository walletPaymentRequestRepo, ExternalServiceProxyImpl externalServiceProxy, AuthProxy authProxy, TransactionCountService transactionCountService, UserAccountService userAccountService, UserPricingRepository userPricingRepository, MifosWalletProxy mifosWalletProxy) {
+	public TransAccountServiceImpl(WalletUserRepository walletUserRepository, WalletAccountRepository walletAccountRepository, WalletAcountVirtualRepository walletAcountVirtualRepository, ReqIPUtils reqIPUtils, TemporalWalletDAO tempwallet, WalletTransactionRepository walletTransactionRepository, ParamDefaultValidation paramValidation, WalletTellerRepository walletTellerRepository, WalletEventRepository walletEventRepository, AuthUserServiceDAO authService, SwitchWalletService switchWalletService, TokenImpl tokenService, ExternalServiceProxyImpl userDataService, WalletNonWayaPaymentRepository walletNonWayaPaymentRepo, CustomNotification customNotification, WalletQRCodePaymentRepository walletQRCodePaymentRepo, WalletPaymentRequestRepository walletPaymentRequestRepo, ExternalServiceProxyImpl externalServiceProxy, AuthProxy authProxy, TransactionCountService transactionCountService, UserAccountService userAccountService, UserPricingRepository userPricingRepository, MifosWalletProxy mifosWalletProxy, CoreBankingService coreBankingService) {
 		this.walletUserRepository = walletUserRepository;
 		this.walletAccountRepository = walletAccountRepository;
 		this.walletAcountVirtualRepository = walletAcountVirtualRepository;
@@ -106,7 +107,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		this.transactionCountService = transactionCountService;
 		this.userAccountService = userAccountService;
 		this.userPricingRepository = userPricingRepository;
-
+		this.coreBankingService = coreBankingService;
 		this.mifosWalletProxy = mifosWalletProxy;
 	}
 
@@ -2545,74 +2546,16 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer,  boolean isMifos) {
-		String token = request.getHeader(SecurityConstants.HEADER_STRING);
-		MyData userToken = tokenService.getTokenUser(token);
-		if (userToken == null) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
-		}
 
-		String reference = transfer.getPaymentReference();
-
-		String fromAccountNumber = transfer.getOfficeDebitAccount();
-		String toAccountNumber = transfer.getCustomerCreditAccount();
-		if(fromAccountNumber.equals(toAccountNumber)) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "DEBIT ACCOUNT CAN'T BE THE SAME WITH CREDIT ACCOUNT", null);
-		}
-
-		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
-		CategoryType tranCategory = CategoryType.valueOf("TRANSFER");
+		ResponseEntity<?> response = coreBankingService.transfer(
+															new TransferTransactionDTO(
+																transfer.getOfficeDebitAccount(),  transfer.getCustomerCreditAccount(), transfer.getAmount(), 
+																transfer.getTranType(), transfer.getTranCrncy(),  transfer.getTranNarration(), 
+																transfer.getPaymentReference(), CategoryType.FUNDING.getValue()),  "WAYAOFFTOCUS");
 
 
-		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID ACCOUNT NO", null);
-		try {
-			int intRec = tempwallet.PaymenttranInsert("WAYAOFFTOCUS", fromAccountNumber, toAccountNumber, transfer.getAmount(), reference);
-			if (intRec == 1) {
-				String tranId = createTransaction(token, "WAYAOFFTOCUS",fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), reference,
-						request, tranCategory, isMifos);
-				String[] tranKey = tranId.split(Pattern.quote("|"));
-				if (tranKey[0].equals("DJGO")) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
-				}
-				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
-						.findByTranIdIgnoreCase(tranId);
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction);
-				if (transaction.isEmpty()) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
-				}
-
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION CREATE", transaction);
-
-				String tranDate = getTransactionDate();
-
-				if(StringUtils.isNumeric(toAccountNumber)){
-					WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
-					WalletUser yUser = walletUserRepository.findByAccount(yAccount);
-					String yfullName = yUser.getFirstName() + " " + yUser.getLastName();
-
-					String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
-							transfer.getTranNarration());
-					CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, yfullName,
-							yUser.getEmailAddress(), message2, userToken.getId(), transfer.getAmount().toString(), tranId,
-							tranDate, transfer.getTranNarration()));
-					CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName, yUser.getMobileNo(),
-							message2, userToken.getId()));
-					CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, yUser.getUserId().toString(),
-							message2, userToken.getId(),tranCategory.name()));
-				}
-
-			} else {
-				if (intRec == 2) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
-							"Unable to process duplicate transaction", null);
-				} else {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return resp;
+		return new ApiResponse<>(response.getStatusCode().is2xxSuccessful(),
+									 response.getStatusCode().value(), "PROCESSED", response.getBody());
 	}
 
 	@Override

@@ -24,6 +24,10 @@ public class UserPricing {
 
     private long userId;
 
+    private BigDecimal minimumAmount;
+
+    private BigDecimal maximumAmount;
+
     private BigDecimal generalAmount;
 
     private BigDecimal customAmount;
