@@ -194,7 +194,6 @@ public class TransactionServiceImpl implements TransactionService {
                  tranAmCharges = getChargesAmount(userPricingOptional, amount);
 
                  System.out.println( "#################### RESPONSE FROM GET  PRODUCT RESPONSE #################### " + tranAmCharges );
-
              }
          }
 

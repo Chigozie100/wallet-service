@@ -10,6 +10,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,6 +33,7 @@ public class SetupController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
     @PostMapping("")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> createReversalDay(@RequestParam("days") Integer days) {
         return reversalSetupService.create(days);
     }
@@ -41,6 +43,7 @@ public class SetupController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
     @GetMapping(path = "/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> ViewReversalDay(@PathVariable String id) {
         return reversalSetupService.view(Long.parseLong(id));
     }
@@ -49,6 +52,7 @@ public class SetupController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
     @GetMapping("")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> viewAllReversalDays() {
         return reversalSetupService.viewAll();
     }
@@ -57,6 +61,7 @@ public class SetupController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
     @PutMapping(path = "/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> updateReversalDay(@RequestParam("days") Integer days, @PathVariable String id) {
         return reversalSetupService.update(days,Long.parseLong(id));
     }
@@ -65,6 +70,7 @@ public class SetupController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
     @PutMapping(path = "/{id}/toggle")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> toggleReversalDay(@PathVariable String id) {
         return reversalSetupService.toggle(Long.parseLong(id));
     }
@@ -74,6 +80,7 @@ public class SetupController {
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Create RecurrentConfig ", tags = { "CONFIGURATIONS" })
     @PostMapping(path = "/recurrent-payment")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> createRecurrentConfig(@Valid @RequestBody RecurrentConfigPojo request) {
         return configService.createRecurrentPayment(request);
     }
@@ -83,6 +90,7 @@ public class SetupController {
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Update RecurrentConfig", tags = { "CONFIGURATIONS" })
     @PutMapping(path = "/recurrent-payment/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> updateRecurrentPayment(@Valid @RequestBody RecurrentConfigPojo request,
                                                     @PathVariable("id") Long id) {
         return configService.updateRecurrentPayment(request,id);
@@ -92,6 +100,7 @@ public class SetupController {
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "toggle RecurrentConfig", tags = { "CONFIGURATIONS" })
     @PutMapping(path = "/recurrent-payment/{id}/toggle")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> toggleRecurrentPayment(@PathVariable("id") Long id) {
         return configService.toggleRecurrentPayment(id);
     }
@@ -100,6 +109,7 @@ public class SetupController {
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Get Single RecurrentConfig", tags = { "CONFIGURATIONS" })
     @GetMapping(path = "/recurrent-payment/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> getRecurrentPayment(@PathVariable("id") Long id) {
         return configService.getRecurrentPayment(id);
     }
@@ -109,12 +119,9 @@ public class SetupController {
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Get All RecurrentConfig", tags = { "CONFIGURATIONS" })
     @GetMapping(path = "/recurrent-payment")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> getAllRecurrentPayment() {
         return configService.getAllRecurrentPayment();
     }
-
-    ///
-
-
 
 }

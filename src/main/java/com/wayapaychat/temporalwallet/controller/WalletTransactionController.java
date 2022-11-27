@@ -46,6 +46,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
 import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
+import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
 
 import io.swagger.annotations.ApiImplicitParam;
@@ -66,14 +67,17 @@ public class WalletTransactionController {
 	private final TransactionCountService transactionCountService;
 	private final TransactionService transactionService;
 	private final ModelMapper modelMapper;
+	private final CoreBankingService coreBankingService;
 
 	@Autowired
-	public WalletTransactionController(TransAccountService transAccountService, TemporalWalletDAO temporalWalletDAO, TransactionCountService transactionCountService, TransactionService transactionService, ModelMapper modelMapper) {
+	public WalletTransactionController(TransAccountService transAccountService, TemporalWalletDAO temporalWalletDAO, TransactionCountService transactionCountService, 
+												TransactionService transactionService, ModelMapper modelMapper, CoreBankingService coreBankingService) {
 		this.transAccountService = transAccountService;
 		this.temporalWalletDAO = temporalWalletDAO;
 		this.transactionCountService = transactionCountService;
 		this.transactionService = transactionService;
 		this.modelMapper = modelMapper;
+		this.coreBankingService = coreBankingService;
 	}
 
 
@@ -112,6 +116,8 @@ public class WalletTransactionController {
 	@PostMapping("/sendmoney/wallet")
 	public ResponseEntity<?> sendMoney(HttpServletRequest request,
 			@Valid @RequestBody TransferTransactionDTO transfer) {
+
+
 		// implement fraud or kyc check and other || or reverse transaction
 		Map<String, Object> map =  buildObject(transfer);
 
@@ -122,6 +128,22 @@ public class WalletTransactionController {
 			return transAccountService.sendMoney(request, transfer);
 		}catch (CustomException ex){
 			// check and reversed transaction
+			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
+		}
+
+	}
+
+	// Wallet call by other service
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Send Money to Account to Account", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
+	@PostMapping("/sendmoney/account")
+	public ResponseEntity<?> sendMoneyCBA(HttpServletRequest request,
+			@Valid @RequestBody TransferTransactionDTO transfer) {
+		
+		try{
+			return coreBankingService.transfer(transfer, "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+		}catch (CustomException ex){
 			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}
 

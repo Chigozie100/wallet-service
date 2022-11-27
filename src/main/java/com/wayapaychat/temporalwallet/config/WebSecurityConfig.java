@@ -19,51 +19,25 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 @EnableWebSecurity
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-
-//    @Autowired
-//    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-//        auth.userDetailsService(userService).passwordEncoder(bCryptPasswordEncoder);
-//    }
-
-//    @Bean
-//    @Override
-//    public AuthenticationManager authenticationManagerBean() throws Exception {
-//        return super.authenticationManagerBean();
-//    }
-
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
 
         httpSecurity.
                 cors().and().csrf().disable()
                 // dont authenticate this particular request
-                .authorizeRequests().antMatchers(
-                "/wallet/create/account","/api/v1/wallet/account/count/**", "/api/userjdbc/register/jdbc/add", "/api/v1/wallet/notify/**",
-                "/wallet/get/default/wallet/open/**","/wallet/create/cooperate/user","/api/v1/wallet/account/lookup/**","/temporal-service/api/v1/wallet/account/count/**", 
-                "/api/v1/wallet/user/account","/api/v1/wallet/transaction-count/{account}", "/api/v1/wallet/transaction/get-user-transaction-count/{userId}", "/api/v1/wallet/transaction/get-user-transaction-count", "/api/v1/wallet/create/cooperate/user","/api/users/register/admin", "/api/users/welcome").permitAll()
+                .authorizeRequests()
+                //.antMatchers("/wallet/create/account","/api/v1/wallet/account/count/**", "/api/userjdbc/register/jdbc/add", "/api/v1/wallet/notify/**",
+                //"/wallet/get/default/wallet/open/**","/wallet/create/cooperate/user","/api/v1/wallet/account/lookup/**","/temporal-service/api/v1/wallet/account/count/**", 
+                //"/api/v1/wallet/user/account","/api/v1/wallet/transaction-count/{account}", "/api/v1/wallet/transaction/get-user-transaction-count/{userId}", "/api/v1/wallet/transaction/get-user-transaction-count", "/api/v1/wallet/create/cooperate/user","/api/users/register/admin", "/api/users/welcome").permitAll()
                 //For Local Test Purpose
-                //.antMatchers("/api/v1/bank/**","/wallet/create-wallet","/api/v1/wallet/**","/wallet/**","/api/v1/switch/**").permitAll()
-                .antMatchers("/v2/api-docs", "/configuration/**", "/api/v1/wallet/admin/user/accounts/{user_id}", "/swagger*/**","/actuator/**", "/webjars/**").permitAll()
+                .antMatchers("/v2/api-docs", "/configuration/**", "/swagger*/**","/actuator/**", "/webjars/**").permitAll()
                 // all other requests need to be authenticated
                 .anyRequest().authenticated().and()
-
-//                .exceptionHandling().authenticationEntryPoint(authenticationEntryPoint())
-//                .and()
-                // make sure we use stateless session; session won't be used to
-                // store user's state.
-//                .addFilter(getAuthenticationFilter())
                 .addFilter(new AuthorizationFilter(authenticationManager())).sessionManagement()
 
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
     }
-
-//    private AuthenticationFilter getAuthenticationFilter() throws Exception {
-//        //JwtRequestFilter filter = new JwtRequestFilter(authenticationManager());
-//        final AuthenticationFilter filter = new AuthenticationFilter(authenticationManager());
-//        filter.setFilterProcessesUrl("/api/users/login");
-//        return filter;
-//    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {

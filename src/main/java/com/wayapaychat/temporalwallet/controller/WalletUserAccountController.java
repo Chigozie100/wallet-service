@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.controller;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -418,5 +419,17 @@ public class WalletUserAccountController {
     public ResponseEntity<?> countInActiveAccount() {
         return userAccountService.countInActiveAccount();
     }
+
+    @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "updateCustomerDebitLimit", notes = "updateCustomerDebitLimit", tags = { "USER-ACCOUNT-WALLET" })
+    @PostMapping("/updateCustomerDebitLimit")
+    public ResponseEntity<?> updateCustomerDebitLimit(@RequestParam("userId") String userId, @RequestParam("amount") BigDecimal amount) {
+        ResponseEntity<?> res = userAccountService.updateCustomerDebitLimit(userId, amount);
+        if (!res.getStatusCode().is2xxSuccessful()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+
 
 }

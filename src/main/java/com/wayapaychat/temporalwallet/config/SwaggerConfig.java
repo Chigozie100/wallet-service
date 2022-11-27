@@ -60,7 +60,7 @@ public class SwaggerConfig {
    
     
     public static final Contact DEFAULT_CONTACT = new Contact("API Support", "https://www.wayapaychat.com",
-			"admin@waya-paychat.com");
+			"admin@wayapaychat.com");
 	
 	public static final ApiInfo DEFAULT_API_INFO = new ApiInfo("TEMPORAL-WALLET-SERVICE REST API I",
 			"RESTFUL TEMPORAL WALLET API DOCUMENTATION", "1.0", "urn:tos", DEFAULT_CONTACT, "Apache 2.0",

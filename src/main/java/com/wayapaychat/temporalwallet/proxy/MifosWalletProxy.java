@@ -66,6 +66,6 @@ public interface MifosWalletProxy {
 	// Transfer MifosTransfer
 
 	@PostMapping("/wallet/transfer")
-	ApiResponse<?> transferMoney(@RequestHeader("authorization") String token, @RequestBody MifosTransfer transfer);
+	ApiResponse<?> transferMoney(@RequestBody MifosTransfer transfer);
 
 }

@@ -56,6 +56,9 @@ public interface WalletAccountRepository extends JpaRepository<WalletAccount, Lo
     @Query("SELECT count(u.id) FROM WalletAccount u WHERE u.del_flg = false")
     long countInActiveAccount();
 
+    @Query("SELECT count(u.id) FROM WalletAccount u WHERE u.accountNo = (:account) AND u.del_flg = false")
+    long countAccount(String account);
+
     @Query("SELECT sum(u.clr_bal_amt) FROM WalletAccount u WHERE u.del_flg = false")
     BigDecimal totalActiveAccount();
 
