@@ -1292,6 +1292,15 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Wallet User does not exist"), HttpStatus.NOT_FOUND);
 		}
 		List<WalletAccount> accounts = walletAccountRepository.findByUser(x);
+
+		if(accounts != null){
+			for (WalletAccount account : accounts) {
+				double clrbalAmtDr = account.getCum_cr_amt() - account.getCum_dr_amt();
+				account.setClr_bal_amt(clrbalAmtDr);
+				walletAccountRepository.save(account);
+			}
+		}
+
 		return new ResponseEntity<>(new SuccessResponse("Success.", accounts), HttpStatus.OK);
 	}
 
