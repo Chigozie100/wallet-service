@@ -793,22 +793,11 @@ public class WalletTransactionController {
 		return transAccountService.getPendingNoneWayaPaymentRequestAmount(userId);
 	}
 
-	// Wallet call by other service
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
-	@ApiOperation(value = "Non-Waya Payment", notes = "Transfer amount from user wallet to Non-waya", tags = {
-			"TRANSACTION-WALLET" })
-	@PostMapping("/non-waya/payment/new")
-	public ResponseEntity<?> NonWayaPayment(HttpServletRequest request,
-			@Valid @RequestBody() NonWayaPaymentDTO walletDto) {
-		return transAccountService.TransferNonPayment(request, walletDto);
-	}
-
 	@ApiImplicitParams({
 		@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Non-Waya Payment", notes = "Transfer amount from user wallet to Non-waya", tags = {
 			"TRANSACTION-WALLET" })
-	@PostMapping("/non-waya/payment/create")
+	@PostMapping("/non-waya/payment/new")
 	public ResponseEntity<?> nonWayaPayment(HttpServletRequest request,
 			@Valid @RequestBody() NonWayaPaymentDTO walletDto) {
 		return transAccountService.transferToNonPayment(request, walletDto);
