@@ -370,25 +370,34 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         String tranId = tempwallet.TransactionGenerate();
         processCBATransactionDoubleEntryWithTransit(userData, tranId, transitAccount, debitAccountNumber,  chargeCollectionAccount, tranNarration, transactionCategory, priceAmount, provider);
 
-        processCommission(userData, account.getUId(), chargeCollectionAccount, tranNarration, transactionCategory, transactionType, priceAmount, provider);
-
-        //Todo Charge VAT
+        processCommissionAndVAT(userData, account.getUId(), transitAccount, debitAccountNumber,  chargeCollectionAccount, tranNarration, transactionCategory, transactionType, provider, channelEventId);
 
     }
 
-    public void processCommission(MyData userData, Long userId, String debitAccountNumber, String tranNarration,
-    String transactionCategory, String transactionType, @NotNull BigDecimal priceAmount, Provider provider){
+    public void processCommissionAndVAT(MyData userData, Long userId, String transitAccount, String customerDebitAccountNumber, String chargeCollectionAccount, String tranNarration,
+                                    String transactionCategory, String transactionType, Provider provider, String channelEventId){
+
+        Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(channelEventId);
+        if (!eventInfo.isPresent()) { return; }
         
         TransactionTypeEnum commisTransaction = TransactionTypeEnum.valueOf(transactionType);
         if(!commisTransaction.equals(TransactionTypeEnum.BILLSPAYMENT)){ return; }
         
         Optional<WalletUser> userx = walletUserRepository.findById(userId);
 		if (!userx.isPresent()) { return; }
+
         Optional<WalletAccount> commissionAccount = walletAccountRepository.findByAccountUser(userx.get());
         if (!commissionAccount.isPresent()) { return; }
 
         tranNarration = "COMMISSION: ".concat(tranNarration);
-        processCBATransactionDoubleEntry(userData, tempwallet.TransactionGenerate(), debitAccountNumber,  commissionAccount.get().getAccountNo(), tranNarration, CategoryType.valueOf(transactionCategory), priceAmount, provider);
+
+        if(eventInfo.get().getTranAmt().doubleValue() > 0){
+            processCBATransactionDoubleEntry(userData, tempwallet.TransactionGenerate(), chargeCollectionAccount,  customerDebitAccountNumber, tranNarration, CategoryType.valueOf(transactionCategory), eventInfo.get().getTranAmt(), provider);   
+        } 
+        
+        if(eventInfo.get().getTaxAmt().doubleValue() > 0){
+            processCBATransactionDoubleEntryWithTransit(userData, tempwallet.TransactionGenerate(), transitAccount, customerDebitAccountNumber,  chargeCollectionAccount, tranNarration, transactionCategory, eventInfo.get().getTaxAmt(), provider);
+        } 
 
     }
 
