@@ -805,6 +805,16 @@ public class WalletTransactionController {
 	}
 
 	@ApiImplicitParams({
+		@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Non-Waya Payment", notes = "Transfer amount from user wallet to Non-waya", tags = {
+			"TRANSACTION-WALLET" })
+	@PostMapping("/non-waya/payment/create")
+	public ResponseEntity<?> nonWayaPayment(HttpServletRequest request,
+			@Valid @RequestBody() NonWayaPaymentDTO walletDto) {
+		return transAccountService.transferToNonPayment(request, walletDto);
+	}
+
+	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Non-Waya Payment for multiple transaction ", notes = "Transfer amount from user wallet to Non-waya for multiple transaction", tags = {
 			"TRANSACTION-WALLET" })

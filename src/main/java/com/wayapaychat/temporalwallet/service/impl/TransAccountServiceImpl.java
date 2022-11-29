@@ -33,6 +33,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -953,6 +954,61 @@ public class TransAccountServiceImpl implements TransAccountService {
  		}
 		map.put("Response", respList);
 		return map;
+	}
+
+	@Override
+	public ResponseEntity<?> transferToNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer) {
+		MyData userToken = (MyData)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+		String nonWayaDisbursementAccount = coreBankingService.getEventAccountNumber("DISBURSE_NONWAYAPT");
+		ResponseEntity<?> debitResponse = coreBankingService.transfer( new TransferTransactionDTO( transfer.getCustomerDebitAccountNo(),  nonWayaDisbursementAccount, transfer.getAmount(), 
+												TransactionTypeEnum.TRANSFER.getValue(), "NGN",  transfer.getTranNarration(), 
+																transfer.getPaymentReference(), CategoryType.TRANSFER.getValue()),  "NONWAYAPT");
+
+		if(!debitResponse.getStatusCode().is2xxSuccessful()){
+			return debitResponse;
+		}
+
+		String transactionToken = tempwallet.generateToken();
+		WalletNonWayaPayment nonpay =  new WalletNonWayaPayment(transactionToken, transfer.getEmailOrPhoneNo(),
+												transfer.getPaymentReference(), transfer.getCustomerDebitAccountNo(), transfer.getAmount(), transfer.getTranNarration(),
+												transfer.getTranCrncy(), transfer.getPaymentReference(), userToken.getId().toString(),
+												userToken.getEmail(), PaymentStatus.PENDING, transfer.getFullName());
+		walletNonWayaPaymentRepo.save(nonpay);
+
+
+		String tranDate = getCurrentDate();
+		String tranId = transfer.getPaymentReference();
+		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		String message = formatMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(), transfer.getTranNarration(), transactionToken);
+		String noneWaya = formatMoneWayaMessage(transfer.getAmount(), transfer.getPaymentReference(), tranDate, transfer.getTranCrncy(), transfer.getTranNarration(), transactionToken);
+
+		if (!StringUtils.isNumeric(transfer.getEmailOrPhoneNo())) {
+			log.info("EMAIL: " + transfer.getEmailOrPhoneNo()); 
+			CompletableFuture.runAsync(() -> customNotification.pushNonWayaEMAIL(token, transfer.getFullName(),
+					transfer.getEmailOrPhoneNo(), message, userToken.getId(), transfer.getAmount().toString(),
+					tranId, tranDate, transfer.getTranNarration()));
+
+			CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
+					userToken.getPhoneNumber(), noneWaya, userToken.getId()));
+
+			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
+					transfer.getEmailOrPhoneNo(), message, userToken.getId(),NON_WAYA_PAYMENT_REQUEST));
+		} else {
+			log.info("PHONE: " + transfer.getEmailOrPhoneNo());
+			CompletableFuture.runAsync(() -> customNotification.pushNonWayaEMAIL(token, transfer.getFullName(),
+					userToken.getEmail(), message, userToken.getId(), transfer.getAmount().toString(), tranId,
+					tranDate, transfer.getTranNarration()));
+
+			CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
+					transfer.getEmailOrPhoneNo(), noneWaya, userToken.getId()));
+
+			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
+					transfer.getEmailOrPhoneNo(), message, userToken.getId(),NON_WAYA_PAYMENT_REQUEST));
+		}
+
+		return debitResponse;
+
 	}
 
 	@Override

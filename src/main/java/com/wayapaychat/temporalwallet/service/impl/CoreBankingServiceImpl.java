@@ -324,7 +324,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                                 transferTransactionRequestData.getAmount(), transferTransactionRequestData.getTransactionCategory(), transferTransactionRequestData.getTranCrncy(), WalletTransStatus.PENDING);
         if (tranId == null) { return new ResponseEntity<>(new ErrorResponse("ERROR PROCESSING TRANSACTION"), HttpStatus.BAD_REQUEST);  }
 
-        String transitAccount = getTransitAccountNumber(channelEventId);
+        String transitAccount = getEventAccountNumber(channelEventId);
         MyData userData = (MyData)response.getBody();
         response = processCBATransactionDoubleEntryWithTransit(userData, transferTransactionRequestData.getPaymentReference(), transitAccount, transferTransactionRequestData.getDebitAccountNumber(),  transferTransactionRequestData.getBenefAccountNumber(), 
                                     transferTransactionRequestData.getTranNarration(), transferTransactionRequestData.getTransactionCategory(), transferTransactionRequestData.getAmount(), provider);
@@ -350,7 +350,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 		return new ResponseEntity<>(new SuccessResponse("TRANSACTION SUCCESSFULLY", transaction), HttpStatus.CREATED);
     }
 
-    private String getTransitAccountNumber(String channelEventId) {
+    @Override
+    public String getEventAccountNumber(String channelEventId) {
 
         Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(channelEventId);
         if (!eventInfo.isPresent()) {
@@ -380,7 +381,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         UserPricing userPricingOptional = userPricingRepository.findDetailsByCode(account.getUId(), channelEventId).orElse(null);
         if(userPricingOptional == null){ return; }
 
-        String chargeCollectionAccount = getTransitAccountNumber("INCOME_".concat(channelEventId));
+        String chargeCollectionAccount = getEventAccountNumber("INCOME_".concat(channelEventId));
         if(chargeCollectionAccount == null){ return; }
 
         BigDecimal priceAmount = new BigDecimal(0);
@@ -415,7 +416,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId("VAT_".concat(channelEventId));
         if (!eventInfo.isPresent()) { return; }
 
-        String vatCollectionAccount = getTransitAccountNumber("VAT_".concat(channelEventId));
+        String vatCollectionAccount = getEventAccountNumber("VAT_".concat(channelEventId));
         if(vatCollectionAccount == null){ return; }
         
         if(eventInfo.get().getTaxAmt().doubleValue() > 0){
