@@ -46,7 +46,6 @@ import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.entity.WalletEventCharges;
 import com.wayapaychat.temporalwallet.entity.WalletTransAccount;
 import com.wayapaychat.temporalwallet.entity.WalletTransaction;
-import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.enumm.CategoryType;
 import com.wayapaychat.temporalwallet.enumm.PriceCategory;
 import com.wayapaychat.temporalwallet.enumm.ProductPriceStatus;
@@ -74,14 +73,13 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 	private final TemporalWalletDAO tempwallet;
     private final CustomNotification customNotification;
 	private final UserPricingRepository userPricingRepository;
-    private final WalletUserRepository walletUserRepository;
 
     @Autowired
     public CoreBankingServiceImpl(SwitchWalletService switchWalletService,
             WalletTransAccountRepository walletTransAccountRepository, WalletAccountRepository walletAccountRepository,
             WalletEventRepository walletEventRepository, WalletTransactionRepository walletTransactionRepository,
             MifosWalletProxy mifosWalletProxy, TemporalWalletDAO tempwallet, CustomNotification customNotification,
-            UserPricingRepository userPricingRepository, WalletUserRepository walletUserRepository) {
+            UserPricingRepository userPricingRepository) {
         this.switchWalletService = switchWalletService;
         this.walletTransAccountRepository = walletTransAccountRepository;
         this.walletAccountRepository = walletAccountRepository;
@@ -91,7 +89,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         this.tempwallet = tempwallet;
         this.customNotification = customNotification;
         this.userPricingRepository = userPricingRepository;
-        this.walletUserRepository = walletUserRepository;
     }
 
     @Override
@@ -400,6 +397,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         if(priceAmount.doubleValue() <= 0){ return; }
 
+        if(priceAmount.doubleValue() > userPricingOptional.getCapPrice().doubleValue()){ 
+            priceAmount = userPricingOptional.getCapPrice();
+        }
+
         String tranId = tempwallet.TransactionGenerate();
         log.info("applying charge {}", priceAmount.doubleValue());
         processCBATransactionDoubleEntryWithTransit(userData, tranId, transitAccount, debitAccountNumber,  chargeCollectionAccount, tranNarration, transactionCategory, priceAmount, provider);
@@ -415,11 +416,12 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         if (!eventInfo.isPresent()) { return; }
 
         String vatCollectionAccount = getTransitAccountNumber("VAT_".concat(channelEventId));
+        if(vatCollectionAccount == null){ return; }
         
         if(eventInfo.get().getTaxAmt().doubleValue() > 0){
             tranNarration = "VAT: ".concat(tranNarration);
             BigDecimal vatAmount = priceAmount.multiply( eventInfo.get().getTaxAmt().divide(new BigDecimal(100)) );
-            processCBATransactionDoubleEntry(userData, tempwallet.TransactionGenerate(), chargeCollectionAccount, vatCollectionAccount, tranNarration, CategoryType.valueOf(transactionCategory), vatAmount, provider);
+            processCBATransactionDoubleEntryWithTransit(userData, tempwallet.TransactionGenerate(), transitAccount, customerDebitAccountNumber,  vatCollectionAccount, tranNarration, transactionCategory, vatAmount, provider);
         } 
 
     }
