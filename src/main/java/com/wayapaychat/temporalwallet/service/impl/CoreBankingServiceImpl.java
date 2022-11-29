@@ -111,6 +111,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
 			if(totalDr != null && totalCr != null){
 				double unClrbalAmt = totalCr.doubleValue() - totalDr.doubleValue();
+                account.get().setCum_cr_amt(totalCr.doubleValue());
+                account.get().setCum_dr_amt(totalDr.doubleValue());
 				account.get().setClr_bal_amt(Precision.round(unClrbalAmt-account.get().getLien_amt(), 2));
 				account.get().setUn_clr_bal_amt(Precision.round(unClrbalAmt, 2));
 				walletAccountRepository.saveAndFlush(account.get());
