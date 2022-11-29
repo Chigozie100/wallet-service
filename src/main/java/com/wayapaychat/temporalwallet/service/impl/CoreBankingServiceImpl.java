@@ -398,12 +398,12 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             priceAmount = BigDecimal.valueOf(userPricingOptional.getCustomAmount().doubleValue() / 100);
         }
 
-        if(priceAmount.doubleValue() > 0){
-            String tranId = tempwallet.TransactionGenerate();
-            log.info("applying charge {}", priceAmount.doubleValue());
-            processCBATransactionDoubleEntryWithTransit(userData, tranId, transitAccount, debitAccountNumber,  chargeCollectionAccount, tranNarration, transactionCategory, priceAmount, provider);
-        }
+        if(priceAmount.doubleValue() <= 0){ return; }
 
+        String tranId = tempwallet.TransactionGenerate();
+        log.info("applying charge {}", priceAmount.doubleValue());
+        processCBATransactionDoubleEntryWithTransit(userData, tranId, transitAccount, debitAccountNumber,  chargeCollectionAccount, tranNarration, transactionCategory, priceAmount, provider);
+    
         processCommissionAndVAT(userData, account.getUId(), transitAccount, debitAccountNumber,  chargeCollectionAccount, priceAmount, tranNarration, transactionCategory, transactionType, provider, channelEventId);
 
     }
@@ -425,10 +425,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         if(eventInfo.get().getTranAmt().doubleValue() > 0){
             tranNarration = "COMMISSION: ".concat(tranNarration);
-            processCBATransactionDoubleEntry(userData, tempwallet.TransactionGenerate(), chargeCollectionAccount,  customerDebitAccountNumber, tranNarration, CategoryType.valueOf(transactionCategory), eventInfo.get().getTranAmt(), provider);   
+            BigDecimal feeAmount = priceAmount.multiply( eventInfo.get().getTaxAmt().divide(new BigDecimal(100)) );
+            processCBATransactionDoubleEntry(userData, tempwallet.TransactionGenerate(), chargeCollectionAccount,  customerDebitAccountNumber, tranNarration, CategoryType.valueOf(transactionCategory), feeAmount, provider);   
         } 
         
-        if(eventInfo.get().getTaxAmt().doubleValue() > 0 && priceAmount.doubleValue() > 0){
+        if(eventInfo.get().getTaxAmt().doubleValue() > 0){
             tranNarration = "VAT: ".concat(tranNarration);
             BigDecimal vatAmount = priceAmount.multiply( eventInfo.get().getTaxAmt().divide(new BigDecimal(100)) );
             processCBATransactionDoubleEntryWithTransit(userData, tempwallet.TransactionGenerate(), transitAccount, customerDebitAccountNumber,  chargeCollectionAccount, tranNarration, transactionCategory, vatAmount, provider);
