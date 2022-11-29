@@ -16,6 +16,7 @@ import com.wayapaychat.temporalwallet.service.UserAccountService;
 import com.wayapaychat.temporalwallet.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.math3.util.Precision;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -1295,8 +1296,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 		if(accounts != null){
 			for (WalletAccount account : accounts) {
-				double clrbalAmtDr = account.getCum_cr_amt() - account.getCum_dr_amt();
-				account.setClr_bal_amt(clrbalAmtDr);
+				double unClrbalAmt = account.getCum_cr_amt() - account.getCum_dr_amt();
+				account.setUn_clr_bal_amt(Precision.round(unClrbalAmt, 2));
+				account.setClr_bal_amt(Precision.round(unClrbalAmt-account.getLien_amt(), 2));
 				walletAccountRepository.save(account);
 			}
 		}

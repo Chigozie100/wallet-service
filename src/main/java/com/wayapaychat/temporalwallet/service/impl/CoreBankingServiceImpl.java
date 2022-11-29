@@ -10,6 +10,7 @@ import java.util.concurrent.CompletableFuture;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.math3.util.Precision;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -110,12 +111,15 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transactionPojo.getTranPart(), transactionPojo.getTransactionCategory(), transactionPojo.getSenderName(), accountCredit.getAcct_name());
             walletTransactionRepository.saveAndFlush(tranCredit);
 
-            double clrbalAmtDr = accountCredit.getClr_bal_amt() + transactionPojo.getAmount().doubleValue();
-            double cumbalDrAmtDr = accountCredit.getCum_cr_amt() - transactionPojo.getAmount().doubleValue();
+            double cumbalCrAmt = accountCredit.getCum_cr_amt() + transactionPojo.getAmount().doubleValue();
             accountCredit.setLast_tran_id_dr(transactionPojo.getTranId());
-            accountCredit.setClr_bal_amt(clrbalAmtDr);
-            accountCredit.setCum_dr_amt(cumbalDrAmtDr);
+            accountCredit.setCum_cr_amt(cumbalCrAmt);
             accountCredit.setLast_tran_date(LocalDate.now());
+
+            double unClrbalAmt = accountCredit.getCum_cr_amt() - accountCredit.getCum_dr_amt();
+            accountCredit.setClr_bal_amt(Precision.round(unClrbalAmt-accountCredit.getLien_amt(), 2));
+            accountCredit.setUn_clr_bal_amt(Precision.round(unClrbalAmt, 2));
+
             walletAccountRepository.saveAndFlush(accountCredit);
             
             CompletableFuture.runAsync(() -> logNotification(transactionPojo));
@@ -140,8 +144,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                         transactionPojo.getTranPart(), transactionPojo.getTransactionCategory(), accountDebit.getAcct_name(), transactionPojo.getReceiverName());
             walletTransactionRepository.saveAndFlush(tranDebit);
 
-            double clrbalAmtDr = accountDebit.getClr_bal_amt() - transactionPojo.getAmount().doubleValue();
-            double cumbalDrAmtDr = accountDebit.getCum_dr_amt() + transactionPojo.getAmount().doubleValue();
+            double cumbalDrAmt = accountDebit.getCum_dr_amt() + transactionPojo.getAmount().doubleValue();
             //lien of same amount debited is also removed
             double lienAmt = accountDebit.getLien_amt() - transactionPojo.getAmount().doubleValue();
             if(lienAmt <= 0){
@@ -151,9 +154,13 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
             accountDebit.setLien_amt(lienAmt);
             accountDebit.setLast_tran_id_dr(transactionPojo.getTranId());
-            accountDebit.setClr_bal_amt(clrbalAmtDr);
-            accountDebit.setCum_dr_amt(cumbalDrAmtDr);
+            accountDebit.setCum_dr_amt(cumbalDrAmt);
             accountDebit.setLast_tran_date(LocalDate.now());
+
+            double unClrbalAmt = accountDebit.getCum_cr_amt() - accountDebit.getCum_dr_amt();
+            accountDebit.setClr_bal_amt(Precision.round(unClrbalAmt-lienAmt, 2));
+            accountDebit.setUn_clr_bal_amt(Precision.round(unClrbalAmt, 2));
+
             walletAccountRepository.saveAndFlush(accountDebit);
 
             CompletableFuture.runAsync(() -> logNotification(transactionPojo));
