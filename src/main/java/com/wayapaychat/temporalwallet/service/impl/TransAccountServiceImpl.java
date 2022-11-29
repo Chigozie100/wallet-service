@@ -3647,7 +3647,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		mifosTransfer.setSourceAccountType("SAVINGS");
 		mifosTransfer.setSourceCurrency(accountDebit.getAcct_crncy_code());
 		mifosTransfer.setTransactionType(TransactionTypeEnum.TRANSFER.getValue());
-		ApiResponse<?> response;
+		ExternalCBAResponse response;
 		System.out.println(" here" + mifosTransfer);
 		try{
 			log.info("## token  ####### :: " + token);
@@ -3658,7 +3658,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			System.out.println("ERROR posting to MIFOS :::: " + ex.getMessage());
 			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
 		}
-		System.out.println("RESPONSE" +  response.getData()); 
+		System.out.println("RESPONSE" +  response.getResponseDescription()); 
 		
 	}
  

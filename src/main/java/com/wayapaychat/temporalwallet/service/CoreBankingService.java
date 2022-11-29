@@ -31,7 +31,7 @@ public interface CoreBankingService {
 
     ResponseEntity<?> transfer(TransferTransactionDTO transferTransactionDTO, String channelEventId);
 
-    ResponseEntity<?> applyCharge(String transitAccount, String debitAccountNumber, String tranNarration, String transactionCategory, BigDecimal doubleValue, Provider provider);
+    void applyCharge(MyData userData, String transitAccount, String debitAccountNumber, String tranNarration, String transactionCategory, String transactionType, BigDecimal doubleValue, Provider provider, String channelEventId);
 
     Long logTransaction(String fromAccountNumber, String toAccountNumber, BigDecimal amount, String transCategory,String tranCrncy, WalletTransStatus status);
     
