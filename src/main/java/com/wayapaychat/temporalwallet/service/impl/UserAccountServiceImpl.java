@@ -1287,26 +1287,19 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> getUserAccountList(long userId){  
-
 		MyData tokenData = tokenService.getUserInformation();
 
-		System.out.println("USER ID" + userId);
-		int uId = (int) userId;
-		UserDetailPojo ur = authService.AuthUser(uId);
-
-		if (ur == null && userId != tokenData.getId()) {
-			return createDefaultWallet(tokenData);
+		if(tokenData == null){
+			return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
 		}
- 
 
-		WalletUser x = walletUserRepository.findByEmailAddress(ur.getEmail());
-		if (x == null && userId != tokenData.getId()) {
+		Optional<WalletUser> walletUser = walletUserRepository.findUserId(tokenData.getId());
+
+		if(!walletUser.isPresent()){
 			return createDefaultWallet(tokenData);
 		}
 
-
-		List<WalletAccount> accounts = walletAccountRepository.findByUser(x);
-
+		List<WalletAccount> accounts = walletAccountRepository.findByUser(walletUser.get());
 		return new ResponseEntity<>(new SuccessResponse("SUCCESS", accounts), HttpStatus.OK);
 
 	}
