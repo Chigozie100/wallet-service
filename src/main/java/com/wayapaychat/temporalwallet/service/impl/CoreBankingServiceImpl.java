@@ -383,7 +383,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         UserPricing userPricingOptional = userPricingRepository.findDetailsByCode(account.getUId(), channelEventId).orElse(null);
         if(userPricingOptional == null){ return; }
 
-        String chargeCollectionAccount = getTransitAccountNumber(userPricingOptional.getCode());
+        String chargeCollectionAccount = getTransitAccountNumber("INCOME_".concat(channelEventId));
         if(chargeCollectionAccount == null){ return; }
 
         BigDecimal priceAmount = new BigDecimal(0);
@@ -404,35 +404,22 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         log.info("applying charge {}", priceAmount.doubleValue());
         processCBATransactionDoubleEntryWithTransit(userData, tranId, transitAccount, debitAccountNumber,  chargeCollectionAccount, tranNarration, transactionCategory, priceAmount, provider);
     
-        processCommissionAndVAT(userData, account.getUId(), transitAccount, debitAccountNumber,  chargeCollectionAccount, priceAmount, tranNarration, transactionCategory, transactionType, provider, channelEventId);
+        processVAT(userData, account.getUId(), transitAccount, debitAccountNumber,  chargeCollectionAccount, priceAmount, tranNarration, transactionCategory, transactionType, provider, channelEventId);
 
     }
 
-    public void processCommissionAndVAT(MyData userData, Long userId, String transitAccount, String customerDebitAccountNumber, String chargeCollectionAccount, BigDecimal priceAmount, String tranNarration,
+    public void processVAT(MyData userData, Long userId, String transitAccount, String customerDebitAccountNumber, String chargeCollectionAccount, BigDecimal priceAmount, String tranNarration,
                                     String transactionCategory, String transactionType, Provider provider, String channelEventId){
         log.info("applying commision and VAT for transaction on {}", customerDebitAccountNumber);
-        Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(channelEventId);
+        Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId("VAT_".concat(channelEventId));
         if (!eventInfo.isPresent()) { return; }
-        
-        TransactionTypeEnum commisTransaction = TransactionTypeEnum.valueOf(transactionType);
-        if(!commisTransaction.equals(TransactionTypeEnum.BILLSPAYMENT)){ return; }
-        
-        Optional<WalletUser> userx = walletUserRepository.findById(userId);
-		if (!userx.isPresent()) { return; }
 
-        Optional<WalletAccount> commissionAccount = walletAccountRepository.findByAccountUser(userx.get());
-        if (!commissionAccount.isPresent()) { return; }
-
-        if(eventInfo.get().getTranAmt().doubleValue() > 0){
-            tranNarration = "COMMISSION: ".concat(tranNarration);
-            BigDecimal feeAmount = priceAmount.multiply( eventInfo.get().getTaxAmt().divide(new BigDecimal(100)) );
-            processCBATransactionDoubleEntry(userData, tempwallet.TransactionGenerate(), chargeCollectionAccount,  customerDebitAccountNumber, tranNarration, CategoryType.valueOf(transactionCategory), feeAmount, provider);   
-        } 
+        String vatCollectionAccount = getTransitAccountNumber("VAT_".concat(channelEventId));
         
         if(eventInfo.get().getTaxAmt().doubleValue() > 0){
             tranNarration = "VAT: ".concat(tranNarration);
             BigDecimal vatAmount = priceAmount.multiply( eventInfo.get().getTaxAmt().divide(new BigDecimal(100)) );
-            processCBATransactionDoubleEntryWithTransit(userData, tempwallet.TransactionGenerate(), transitAccount, customerDebitAccountNumber,  chargeCollectionAccount, tranNarration, transactionCategory, vatAmount, provider);
+            processCBATransactionDoubleEntry(userData, tempwallet.TransactionGenerate(), chargeCollectionAccount, vatCollectionAccount, tranNarration, CategoryType.valueOf(transactionCategory), vatAmount, provider);
         } 
 
     }
