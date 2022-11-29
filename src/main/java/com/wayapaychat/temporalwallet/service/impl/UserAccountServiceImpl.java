@@ -1903,7 +1903,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 	@Override
 	public ResponseEntity<?> createDefaultWallet(MyData tokenData) {
 		return null;
-		WalletUserDTO createAccount = new WalletUserDTO();
+		/*WalletUserDTO createAccount = new WalletUserDTO();
         // Default Debit Limit SetUp
         createAccount.setCustDebitLimit(50000.00);
         // Default Account Expiration Date
@@ -1924,7 +1924,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         createAccount.setAccountType("saving");
         createAccount.setCorporate(tokenData.isCorporate());
 		log.info("retrying to create wallet for {}",createAccount.getEmailId());
-		return createUserAccount(createAccount );
+		return createUserAccount(createAccount );*/
 	}
 
 	public ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount){
