@@ -376,7 +376,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     @Override
     public void applyCharge(MyData userData, String transitAccount, String debitAccountNumber, String tranNarration,
             String transactionCategory, String transactionType, @NotNull BigDecimal bigDecimal, Provider provider, String channelEventId) {
-
+        log.info("applying charge for transaction on {}", debitAccountNumber);
         AccountSumary account = tempwallet.getAccountSumaryLookUp(debitAccountNumber);
         if(account == null){ return; }
 
@@ -400,6 +400,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         if(priceAmount.doubleValue() > 0){
             String tranId = tempwallet.TransactionGenerate();
+            log.info("applying charge {}", priceAmount.doubleValue());
             processCBATransactionDoubleEntryWithTransit(userData, tranId, transitAccount, debitAccountNumber,  chargeCollectionAccount, tranNarration, transactionCategory, priceAmount, provider);
         }
 
@@ -409,7 +410,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     public void processCommissionAndVAT(MyData userData, Long userId, String transitAccount, String customerDebitAccountNumber, String chargeCollectionAccount, BigDecimal priceAmount, String tranNarration,
                                     String transactionCategory, String transactionType, Provider provider, String channelEventId){
-
+        log.info("applying commision and VAT for transaction on {}", customerDebitAccountNumber);
         Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(channelEventId);
         if (!eventInfo.isPresent()) { return; }
         
