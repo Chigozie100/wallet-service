@@ -389,13 +389,13 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         Optional<WalletAccount> commissionAccount = walletAccountRepository.findByAccountUser(userx.get());
         if (!commissionAccount.isPresent()) { return; }
 
-        tranNarration = "COMMISSION: ".concat(tranNarration);
-
         if(eventInfo.get().getTranAmt().doubleValue() > 0){
+            tranNarration = "COMMISSION: ".concat(tranNarration);
             processCBATransactionDoubleEntry(userData, tempwallet.TransactionGenerate(), chargeCollectionAccount,  customerDebitAccountNumber, tranNarration, CategoryType.valueOf(transactionCategory), eventInfo.get().getTranAmt(), provider);   
         } 
         
         if(eventInfo.get().getTaxAmt().doubleValue() > 0){
+            tranNarration = "VAT: ".concat(tranNarration);
             processCBATransactionDoubleEntryWithTransit(userData, tempwallet.TransactionGenerate(), transitAccount, customerDebitAccountNumber,  chargeCollectionAccount, tranNarration, transactionCategory, eventInfo.get().getTaxAmt(), provider);
         } 
 
