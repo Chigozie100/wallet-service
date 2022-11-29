@@ -403,11 +403,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             processCBATransactionDoubleEntryWithTransit(userData, tranId, transitAccount, debitAccountNumber,  chargeCollectionAccount, tranNarration, transactionCategory, priceAmount, provider);
         }
 
-        processCommissionAndVAT(userData, account.getUId(), transitAccount, debitAccountNumber,  chargeCollectionAccount, tranNarration, transactionCategory, transactionType, provider, channelEventId);
+        processCommissionAndVAT(userData, account.getUId(), transitAccount, debitAccountNumber,  chargeCollectionAccount, priceAmount, tranNarration, transactionCategory, transactionType, provider, channelEventId);
 
     }
 
-    public void processCommissionAndVAT(MyData userData, Long userId, String transitAccount, String customerDebitAccountNumber, String chargeCollectionAccount, String tranNarration,
+    public void processCommissionAndVAT(MyData userData, Long userId, String transitAccount, String customerDebitAccountNumber, String chargeCollectionAccount, BigDecimal priceAmount, String tranNarration,
                                     String transactionCategory, String transactionType, Provider provider, String channelEventId){
 
         Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(channelEventId);
@@ -427,9 +427,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             processCBATransactionDoubleEntry(userData, tempwallet.TransactionGenerate(), chargeCollectionAccount,  customerDebitAccountNumber, tranNarration, CategoryType.valueOf(transactionCategory), eventInfo.get().getTranAmt(), provider);   
         } 
         
-        if(eventInfo.get().getTaxAmt().doubleValue() > 0){
+        if(eventInfo.get().getTaxAmt().doubleValue() > 0 && priceAmount.doubleValue() > 0){
             tranNarration = "VAT: ".concat(tranNarration);
-            processCBATransactionDoubleEntryWithTransit(userData, tempwallet.TransactionGenerate(), transitAccount, customerDebitAccountNumber,  chargeCollectionAccount, tranNarration, transactionCategory, eventInfo.get().getTaxAmt(), provider);
+            BigDecimal vatAmount = priceAmount.multiply( eventInfo.get().getTaxAmt().divide(new BigDecimal(100)) );
+            processCBATransactionDoubleEntryWithTransit(userData, tempwallet.TransactionGenerate(), transitAccount, customerDebitAccountNumber,  chargeCollectionAccount, tranNarration, transactionCategory, vatAmount, provider);
         } 
 
     }
