@@ -398,10 +398,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             priceAmount = BigDecimal.valueOf(userPricingOptional.getCustomAmount().doubleValue() / 100);
         }
 
-        if(priceAmount.doubleValue() == 0){return; }
-
-        String tranId = tempwallet.TransactionGenerate();
-        processCBATransactionDoubleEntryWithTransit(userData, tranId, transitAccount, debitAccountNumber,  chargeCollectionAccount, tranNarration, transactionCategory, priceAmount, provider);
+        if(priceAmount.doubleValue() > 0){
+            String tranId = tempwallet.TransactionGenerate();
+            processCBATransactionDoubleEntryWithTransit(userData, tranId, transitAccount, debitAccountNumber,  chargeCollectionAccount, tranNarration, transactionCategory, priceAmount, provider);
+        }
 
         processCommissionAndVAT(userData, account.getUId(), transitAccount, debitAccountNumber,  chargeCollectionAccount, tranNarration, transactionCategory, transactionType, provider, channelEventId);
 
