@@ -19,6 +19,8 @@ public interface CoreBankingService {
 
     ResponseEntity<?> createAccount(TransactionPojo transactionPojo);
 
+    ResponseEntity<?> getAccountDetails(String accountNo);
+
     ResponseEntity<?> creditAccount(CBAEntryTransaction transactionPojo);
 
     ResponseEntity<?> debitAccount(CBAEntryTransaction transactionPojo);

@@ -99,6 +99,30 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         return null;
     }
 
+    public ResponseEntity<?> getAccountDetails(String accountNo){
+
+		try{
+			Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
+			if (!account.isPresent()) {
+				return new ResponseEntity<>(new ErrorResponse("Unable to fetch account"), HttpStatus.BAD_REQUEST);
+			}
+			BigDecimal totalDr = walletTransactionRepository.totalTransactionAmount(accountNo, "D");
+			BigDecimal totalCr = walletTransactionRepository.totalTransactionAmount(accountNo, "C");
+
+			if(totalDr != null && totalCr != null){
+				double unClrbalAmt = totalCr.doubleValue() - totalDr.doubleValue();
+				account.get().setClr_bal_amt(Precision.round(unClrbalAmt-account.get().getLien_amt(), 2));
+				account.get().setUn_clr_bal_amt(Precision.round(unClrbalAmt, 2));
+				walletAccountRepository.saveAndFlush(account.get());
+			}
+
+			return new ResponseEntity<>(new SuccessResponse("Wallet", account), HttpStatus.OK);
+		}catch (Exception ex){
+            ex.printStackTrace();
+			return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),  HttpStatus.BAD_REQUEST);
+		}
+	}
+
     @Override
     public ResponseEntity<?> creditAccount(CBAEntryTransaction transactionPojo) {
         log.info("Processing credit transaction {}", transactionPojo.toString());

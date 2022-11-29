@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
+import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.UserAccountService;
 
 import io.swagger.annotations.ApiImplicitParam;
@@ -42,6 +43,9 @@ public class WalletUserAccountController {
 	
 	@Autowired
     UserAccountService userAccountService;
+
+    @Autowired
+    CoreBankingService coreBankingService;
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
@@ -325,6 +329,13 @@ public class WalletUserAccountController {
     @GetMapping(path = "/user-account/{accountNo}")
     public ResponseEntity<?> getAccountDetails(@PathVariable String accountNo) throws Exception {
         return userAccountService.getAccountDetails(accountNo);
+    }
+
+    @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Get Wallet Account Info By Account Number", tags = { "USER-ACCOUNT-WALLET" })
+    @GetMapping(path = "/user-balance-account/{accountNo}")
+    public ResponseEntity<?> balanceAccountDetails(@PathVariable String accountNo) throws Exception {
+        return coreBankingService.getAccountDetails(accountNo);
     }
 
 	@ApiOperation(value = "Get Wallet Default Account", tags = { "USER-ACCOUNT-WALLET" })

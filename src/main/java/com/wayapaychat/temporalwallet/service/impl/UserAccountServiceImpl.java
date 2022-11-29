@@ -50,7 +50,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 	private final AuthProxy authProxy;
 
 
-		@Value("${waya.wallet.productcode}")
+	@Value("${waya.wallet.productcode}")
 	private String wayaProduct;
 
 	@Value("${waya.wallet.commissioncode}")
