@@ -1902,7 +1902,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> createDefaultWallet(MyData tokenData) {
-		
+		return null;
 		WalletUserDTO createAccount = new WalletUserDTO();
         // Default Debit Limit SetUp
         createAccount.setCustDebitLimit(50000.00);
