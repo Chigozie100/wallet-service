@@ -19,6 +19,8 @@ public interface CoreBankingService {
 
     ResponseEntity<?> createAccount(TransactionPojo transactionPojo);
 
+    ResponseEntity<?> getAccountDetails(String accountNo);
+
     ResponseEntity<?> creditAccount(CBAEntryTransaction transactionPojo);
 
     ResponseEntity<?> debitAccount(CBAEntryTransaction transactionPojo);
@@ -31,7 +33,9 @@ public interface CoreBankingService {
 
     ResponseEntity<?> transfer(TransferTransactionDTO transferTransactionDTO, String channelEventId);
 
-    ResponseEntity<?> applyCharge(String transitAccount, String debitAccountNumber, String tranNarration, String transactionCategory, BigDecimal doubleValue, Provider provider);
+    String getEventAccountNumber(String channelEventId);
+
+    void applyCharge(MyData userData, String transitAccount, String debitAccountNumber, String tranNarration, String transactionCategory, String transactionType, BigDecimal doubleValue, Provider provider, String channelEventId);
 
     Long logTransaction(String fromAccountNumber, String toAccountNumber, BigDecimal amount, String transCategory,String tranCrncy, WalletTransStatus status);
     

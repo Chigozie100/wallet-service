@@ -141,6 +141,8 @@ public interface TransAccountService {
 
 	ApiResponse<?> EventNonRedeemMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer);
 
+	ResponseEntity<?> transferToNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer);
+
 	ApiResponse<?> TranChargeReport();
 
 	ApiResponse<?> CommissionPaymentHistory();

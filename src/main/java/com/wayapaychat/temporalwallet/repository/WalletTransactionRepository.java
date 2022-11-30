@@ -73,6 +73,9 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 	@Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND UPPER(u.acctNum) = UPPER(:account) AND u.tranDate = (:todayDate) AND u.del_flg = false")
 	BigDecimal totalTransactionAmountToday(String account, LocalDate todayDate);
 
+	@Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = (:partTranType) AND UPPER(u.acctNum) = UPPER(:account) AND u.del_flg = false")
+	BigDecimal totalTransactionAmount(String account, String partTranType);
+
 	@Query("SELECT sum(u.tranAmount) FROM WalletTransaction u " + "WHERE u.partTranType = 'D'" + " AND u.del_flg = false")
 	BigDecimal findByAllDTransaction();
 

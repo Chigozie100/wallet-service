@@ -5,6 +5,7 @@ import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.AccountLienDTO;
 import com.wayapaychat.temporalwallet.dto.AdminLocalTransferDTO;
+import com.wayapaychat.temporalwallet.dto.ExternalCBAResponse;
 import com.wayapaychat.temporalwallet.dto.MifosTransfer;
 import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.enumm.CategoryType;
@@ -471,7 +472,7 @@ public class PostPaymentServiceImpl implements IPostPaymentService {
         mifosTransfer.setSourceAccountType("SAVINGS");
         mifosTransfer.setSourceCurrency(accountDebit.getAcct_crncy_code());
         mifosTransfer.setTransactionType(TransactionTypeEnum.TRANSFER.getValue());
-        ApiResponse<?> response;
+        ExternalCBAResponse response;
         System.out.println(" here" + mifosTransfer);
         try{
             log.info("## token  ####### :: " + token);
@@ -483,7 +484,7 @@ public class PostPaymentServiceImpl implements IPostPaymentService {
             throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
 
-        return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", response.getData());
+        return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", response.getResponseCode());
     }
 
     private UserPricing getUserProduct(WalletAccount accountDebit, String eventId){

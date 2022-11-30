@@ -15,6 +15,7 @@ import javax.validation.Valid;
 
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.*;
+import com.wayapaychat.temporalwallet.enumm.TransactionTypeEnum;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import com.wayapaychat.temporalwallet.service.TransactionCountService;
@@ -117,17 +118,9 @@ public class WalletTransactionController {
 	public ResponseEntity<?> sendMoney(HttpServletRequest request,
 			@Valid @RequestBody TransferTransactionDTO transfer) {
 
-
-		// implement fraud or kyc check and other || or reverse transaction
-		Map<String, Object> map =  buildObject(transfer);
-
-		Map<String, Object> map1 = transactionService.processPayment(request,map);
-		boolean isMifos = (Boolean) map1.get("isMifos");
-		log.info("isMifos :: " + isMifos);
 		try{
-			return transAccountService.sendMoney(request, transfer);
+			return coreBankingService.transfer(transfer, "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
 		}catch (CustomException ex){
-			// check and reversed transaction
 			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}
 
@@ -192,14 +185,30 @@ public class WalletTransactionController {
 	@ApiOperation(value = "To transfer money from one waya official account to another", notes = "Post Money", tags = {
 			"TRANSACTION-WALLET" })
 	@PostMapping("/official/transfer")
-	public ResponseEntity<?> OfficialSendMoney(HttpServletRequest request,
-			@Valid @RequestBody OfficeTransferDTO transfer) {
-		ApiResponse<?> res = transAccountService.OfficialMoneyTransferSw(request, transfer);
-		if (!res.getStatus()) {
-			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+	public ResponseEntity<?> OfficialSendMoney(@Valid @RequestBody OfficeTransferDTO transfer) {
+
+//		ApiResponse<?> res = transAccountService.OfficialMoneyTransferSw(request, transfer);
+//		if (!res.getStatus()) {
+//			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+//		}
+
+		TransferTransactionDTO transactionDTO = new TransferTransactionDTO();
+		transactionDTO.setAmount(transfer.getAmount());
+		transactionDTO.setBenefAccountNumber(transfer.getOfficeCreditAccount());
+		transactionDTO.setDebitAccountNumber(transfer.getOfficeDebitAccount());
+		transactionDTO.setPaymentReference(transfer.getPaymentReference());
+		transactionDTO.setTranCrncy(transfer.getTranCrncy());
+		transactionDTO.setTranNarration(transfer.getTranNarration());
+		transactionDTO.setTransactionCategory(TransactionTypeEnum.TRANSFER.name());
+		transactionDTO.setTranType(transfer.getTranType());
+		try{
+			log.info("Send Money: {}", transfer);
+			return coreBankingService.transfer(transactionDTO, "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+
+		}catch (CustomException ex){
+			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}
-		log.info("Send Money: {}", transfer);
-		return new ResponseEntity<>(res, HttpStatus.OK);
+
 	}
 
 	@ApiImplicitParams({
@@ -207,19 +216,32 @@ public class WalletTransactionController {
 	@ApiOperation(value = "To transfer money from one waya official account to user wallet", notes = "Post Money", tags = {
 			"TRANSACTION-WALLET" })
 	@PostMapping("/official/user/transfer")
-	public ResponseEntity<?> OfficialUserMoneyEventID(HttpServletRequest request,
-											   @Valid @RequestBody OfficeUserTransferDTO transfer) {
-		Map<String, Object> map =  buildObject(transfer);
-		Map<String, Object> map1 = transactionService.processPayment(request,map);
-		boolean isMifos = (Boolean) map1.get("isMifos");
+	public ResponseEntity<?> OfficialUserMoneyEventID(@Valid @RequestBody OfficeUserTransferDTO transfer) {
 
-		//OfficeUserTransferDTO
-		ApiResponse<?> res = transAccountService.OfficialUserTransfer(request, transfer, false);
-		if (!res.getStatus()) {
-			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+//
+//		//OfficeUserTransferDTO
+//		ApiResponse<?> res = transAccountService.OfficialUserTransfer(request, transfer, false);
+//		if (!res.getStatus()) {
+//			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+//		}
+
+		TransferTransactionDTO transactionDTO = new TransferTransactionDTO();
+		transactionDTO.setAmount(transfer.getAmount());
+		transactionDTO.setBenefAccountNumber(transfer.getCustomerCreditAccount());
+		transactionDTO.setDebitAccountNumber(transfer.getOfficeDebitAccount());
+		transactionDTO.setPaymentReference(transfer.getPaymentReference());
+		transactionDTO.setTranCrncy(transfer.getTranCrncy());
+		transactionDTO.setTranNarration(transfer.getTranNarration());
+		transactionDTO.setTransactionCategory(TransactionTypeEnum.TRANSFER.name());
+		transactionDTO.setTranType(transfer.getTranType());
+
+		try{
+			log.info("Send Money: {}", transfer);
+			return coreBankingService.transfer(transactionDTO, "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+
+		}catch (CustomException ex){
+			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}
-		log.info("Send Money: {}", transfer);
-		return new ResponseEntity<>(res, HttpStatus.OK);
 	}
 
 	@ApiImplicitParams({
@@ -229,6 +251,7 @@ public class WalletTransactionController {
 	@PostMapping("/official/user/transfer-multiple")
 	public ResponseEntity<?> OfficialUserMoneyMultiple(HttpServletRequest request,
 											   @Valid @RequestBody List<OfficeUserTransferDTO> transfer) {
+
 		ApiResponse<?> res = transAccountService.OfficialUserTransferMultiple(request, transfer);
 		if (!res.getStatus()) {
 			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
@@ -253,7 +276,11 @@ public class WalletTransactionController {
 		log.info("channel : {} " + channel);
 		transfer.setEventId(eventId);
 		boolean isMifos = (Boolean) map1.get("isMifos");
+
+
+
 		return transAccountService.BankTransferPayment(request, transfer, isMifos);
+
 	}
 
 	@ApiImplicitParams({
@@ -793,15 +820,14 @@ public class WalletTransactionController {
 		return transAccountService.getPendingNoneWayaPaymentRequestAmount(userId);
 	}
 
-	// Wallet call by other service
 	@ApiImplicitParams({
-			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+		@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Non-Waya Payment", notes = "Transfer amount from user wallet to Non-waya", tags = {
 			"TRANSACTION-WALLET" })
 	@PostMapping("/non-waya/payment/new")
-	public ResponseEntity<?> NonWayaPayment(HttpServletRequest request,
+	public ResponseEntity<?> nonWayaPayment(HttpServletRequest request,
 			@Valid @RequestBody() NonWayaPaymentDTO walletDto) {
-		return transAccountService.TransferNonPayment(request, walletDto);
+		return transAccountService.transferToNonPayment(request, walletDto);
 	}
 
 	@ApiImplicitParams({
