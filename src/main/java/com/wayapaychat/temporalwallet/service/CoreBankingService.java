@@ -33,7 +33,7 @@ public interface CoreBankingService {
 
     ResponseEntity<?> transfer(TransferTransactionDTO transferTransactionDTO, String channelEventId);
 
-    public String getEventAccountNumber(String channelEventId);
+    String getEventAccountNumber(String channelEventId);
 
     void applyCharge(MyData userData, String transitAccount, String debitAccountNumber, String tranNarration, String transactionCategory, String transactionType, BigDecimal doubleValue, Provider provider, String channelEventId);
 
