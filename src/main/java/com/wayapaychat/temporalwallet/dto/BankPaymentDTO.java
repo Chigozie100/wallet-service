@@ -41,4 +41,8 @@ public class BankPaymentDTO {
 
 	private String receiverName;
 
+	private String eventId;
+
+
+
 }

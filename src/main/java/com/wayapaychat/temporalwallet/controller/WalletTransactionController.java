@@ -19,6 +19,7 @@ import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import com.wayapaychat.temporalwallet.service.TransactionCountService;
 import com.wayapaychat.temporalwallet.service.TransactionService;
+import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.PDFExporter;
 import io.swagger.annotations.ApiResponses;
 import org.modelmapper.ModelMapper;
@@ -45,6 +46,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
 import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
+import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
 
 import io.swagger.annotations.ApiImplicitParam;
@@ -65,14 +67,17 @@ public class WalletTransactionController {
 	private final TransactionCountService transactionCountService;
 	private final TransactionService transactionService;
 	private final ModelMapper modelMapper;
+	private final CoreBankingService coreBankingService;
 
 	@Autowired
-	public WalletTransactionController(TransAccountService transAccountService, TemporalWalletDAO temporalWalletDAO, TransactionCountService transactionCountService, TransactionService transactionService, ModelMapper modelMapper) {
+	public WalletTransactionController(TransAccountService transAccountService, TemporalWalletDAO temporalWalletDAO, TransactionCountService transactionCountService, 
+												TransactionService transactionService, ModelMapper modelMapper, CoreBankingService coreBankingService) {
 		this.transAccountService = transAccountService;
 		this.temporalWalletDAO = temporalWalletDAO;
 		this.transactionCountService = transactionCountService;
 		this.transactionService = transactionService;
 		this.modelMapper = modelMapper;
+		this.coreBankingService = coreBankingService;
 	}
 
 
@@ -111,13 +116,37 @@ public class WalletTransactionController {
 	@PostMapping("/sendmoney/wallet")
 	public ResponseEntity<?> sendMoney(HttpServletRequest request,
 			@Valid @RequestBody TransferTransactionDTO transfer) {
-		// implement fraud or kyc check and other || or reverse transaction
-//		Map<String, Object> map =  buildObject(transfer);
-//
-//		if (!transactionService.processPayment(map))
-//			throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
 
-		return transAccountService.sendMoney(request, transfer);
+
+		// implement fraud or kyc check and other || or reverse transaction
+		Map<String, Object> map =  buildObject(transfer);
+
+		Map<String, Object> map1 = transactionService.processPayment(request,map);
+		boolean isMifos = (Boolean) map1.get("isMifos");
+		log.info("isMifos :: " + isMifos);
+		try{
+			return transAccountService.sendMoney(request, transfer);
+		}catch (CustomException ex){
+			// check and reversed transaction
+			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
+		}
+
+	}
+
+	// Wallet call by other service
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Send Money to Account to Account", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
+	@PostMapping("/sendmoney/account")
+	public ResponseEntity<?> sendMoneyCBA(HttpServletRequest request,
+			@Valid @RequestBody TransferTransactionDTO transfer) {
+		
+		try{
+			return coreBankingService.transfer(transfer, "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+		}catch (CustomException ex){
+			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
+		}
+
 	}
 
 	@ApiImplicitParams({
@@ -180,6 +209,10 @@ public class WalletTransactionController {
 	@PostMapping("/official/user/transfer")
 	public ResponseEntity<?> OfficialUserMoneyEventID(HttpServletRequest request,
 											   @Valid @RequestBody OfficeUserTransferDTO transfer) {
+		Map<String, Object> map =  buildObject(transfer);
+		Map<String, Object> map1 = transactionService.processPayment(request,map);
+		boolean isMifos = (Boolean) map1.get("isMifos");
+
 		//OfficeUserTransferDTO
 		ApiResponse<?> res = transAccountService.OfficialUserTransfer(request, transfer, false);
 		if (!res.getStatus()) {
@@ -211,12 +244,16 @@ public class WalletTransactionController {
 	@PostMapping("/fund/bank/account")
 	public ResponseEntity<?> fundBank(HttpServletRequest request, @Valid @RequestBody BankPaymentDTO transfer) {
 		System.out.println("transfer : {} " + transfer);
-//		Map<String, Object> map =  buildObject(transfer);
-//
-//		if (!transactionService.processPayment(map))
-//			throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+		Map<String, Object> map =  buildObject(transfer);
 
-		return transAccountService.BankTransferPayment(request, transfer);
+
+		Map<String, Object> map1 = transactionService.processPayment(request,map);
+		String channel = (String) map1.get("channel");
+		String eventId = (String) map1.get("eventId");
+		log.info("channel : {} " + channel);
+		transfer.setEventId(eventId);
+		boolean isMifos = (Boolean) map1.get("isMifos");
+		return transAccountService.BankTransferPayment(request, transfer, isMifos);
 	}
 
 	@ApiImplicitParams({
@@ -236,15 +273,29 @@ public class WalletTransactionController {
 
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Admin Send Money From Official Account to commercial bank", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
+	@PostMapping("/Official/fund/bank/mutilple-account")
+	public ResponseEntity<?> officialFundBankMultiple(HttpServletRequest request, @Valid @RequestBody List<BankPaymentOfficialDTO> transfer) {
+		System.out.println("transfer : {} " + transfer);
+//		Map<String, Object> map =  buildObject(transfer);
+//
+//		if (!transactionService.processPayment(map))
+//			throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+
+		return transAccountService.BankTransferPaymentOfficialMultiple(request, transfer);
+
+	}
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Admin Send Money to Wallet", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/admin/sendmoney")
 	public ResponseEntity<?> AdminsendMoney(HttpServletRequest request,
 			@Valid @RequestBody AdminLocalTransferDTO transfer) {
 
-//		Map<String, Object> map =  buildObject(transfer);
-//
-//		if (!transactionService.processPayment(map))
-//			throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+		Map<String, Object> map =  buildObject(transfer);
+		Map<String, Object> map1 = transactionService.processPayment(request,map);
+		boolean isMifos = (Boolean) map1.get("isMifos");
 
 		ApiResponse<?> res = transAccountService.AdminsendMoney(request, transfer);
 		if (!res.getStatus()) {
@@ -535,12 +586,20 @@ public class WalletTransactionController {
 	@PostMapping("/event/charge/payment")
 	public ResponseEntity<?> EventPayment(HttpServletRequest request, @RequestBody() EventPaymentDTO walletDto) {
 
-//		Map<String, Object> map =  buildObject(walletDto);
-//
-//		if (!transactionService.processPayment(map))
-//			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
+		Map<String, Object> map =  buildObject(walletDto);
 
-		return transAccountService.EventTransferPayment(request, walletDto);
+		Map<String, Object> map1 = transactionService.processPayment(request,map);
+
+		boolean isMifos = (Boolean) map1.get("isMifos");
+		String channel = (String) map1.get("channel");
+		String eventId = (String) map1.get("eventId");
+		walletDto.setEventId(eventId);
+
+		System.out.println(" active channel :: " + channel);
+		System.out.println(" isMifos :: " + isMifos);
+		System.out.println(" walletDto :: " + walletDto);
+
+		return transAccountService.EventTransferPayment(request, walletDto, isMifos);
 
 	}
 
@@ -734,15 +793,14 @@ public class WalletTransactionController {
 		return transAccountService.getPendingNoneWayaPaymentRequestAmount(userId);
 	}
 
-	// Wallet call by other service
 	@ApiImplicitParams({
-			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+		@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Non-Waya Payment", notes = "Transfer amount from user wallet to Non-waya", tags = {
 			"TRANSACTION-WALLET" })
 	@PostMapping("/non-waya/payment/new")
-	public ResponseEntity<?> NonWayaPayment(HttpServletRequest request,
+	public ResponseEntity<?> nonWayaPayment(HttpServletRequest request,
 			@Valid @RequestBody() NonWayaPaymentDTO walletDto) {
-		return transAccountService.TransferNonPayment(request, walletDto);
+		return transAccountService.transferToNonPayment(request, walletDto);
 	}
 
 	@ApiImplicitParams({
@@ -1090,18 +1148,7 @@ public class WalletTransactionController {
 			@RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
 			@RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
 			@PathVariable("acctNo") String acctNo) {
-		ApiResponse<?> res;
-		try {
-			res = transAccountService.statementReport(fromdate, todate, acctNo);
-			if (!res.getStatus()) {
-				return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
-			}
-			return new ResponseEntity<>(res, HttpStatus.OK);
-		} catch (Exception e) {
-			e.printStackTrace();
-			res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
-			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-		}
+		return getResponseEntity(fromdate, todate, acctNo);
 
 	}
 
@@ -1112,6 +1159,11 @@ public class WalletTransactionController {
 			@RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
 			@RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
 			@PathVariable("acctNo") String acctNo) {
+		return getResponseEntity(fromdate, todate, acctNo);
+
+	}
+
+	private ResponseEntity<?> getResponseEntity(@DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @RequestParam("fromdate") Date fromdate, @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) @RequestParam("todate") Date todate, @PathVariable("acctNo") String acctNo) {
 		ApiResponse<?> res;
 		try {
 			res = transAccountService.statementReport(fromdate, todate, acctNo);
@@ -1124,7 +1176,6 @@ public class WalletTransactionController {
 			res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
 			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
 		}
-
 	}
 
 	@ApiImplicitParams({
@@ -1248,7 +1299,7 @@ public class WalletTransactionController {
 		Map<String, Object> map = new HashMap<>();
 		map.put("benefAccountNumber", transfer.getBenefAccountNumber());
 		map.put("debitAccountNumber", transfer.getDebitAccountNumber());
-		map.put("eventId", null);
+		map.put("eventId", "WAYATRAN");
 		map.put("transType", transfer.getTranType());
 		map.put("transCategory", transfer.getTransactionCategory());
 		map.put("tranCrncy", transfer.getTranCrncy());
@@ -1286,6 +1337,17 @@ public class WalletTransactionController {
 		map.put("amount", transfer.getAmount());
 		return map;
 	}
+
+	private Map<String, Object> buildObject(OfficeUserTransferDTO transfer){
+		Map<String, Object> map = new HashMap<>();
+		map.put("benefAccountNumber", transfer.getCustomerCreditAccount());
+		map.put("debitAccountNumber", transfer.getOfficeDebitAccount());
+		map.put("eventId", "WAYAOFFTOCUS");
+		map.put("tranCrncy", transfer.getTranCrncy());
+		map.put("amount", transfer.getAmount());
+		return map;
+	}
+	//
 
 	private Map<String, Object> buildObject(BankPaymentOfficialDTO transfer){
 

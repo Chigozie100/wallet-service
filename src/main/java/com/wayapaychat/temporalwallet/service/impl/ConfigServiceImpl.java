@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -10,6 +11,7 @@ import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.pojo.RecurrentConfigPojo;
 import com.wayapaychat.temporalwallet.repository.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +24,7 @@ import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.ParamDefaultValidation;
 import com.wayapaychat.temporalwallet.util.SuccessResponse;
 
+@Slf4j
 @Service
 public class ConfigServiceImpl implements ConfigService {
 
@@ -37,9 +40,10 @@ public class ConfigServiceImpl implements ConfigService {
 	private final WalletEventRepository walletEventRepository;
 	private final WalletTransactionChargeRepository walletTransactionChargeRepository;
 	private final RecurrentConfigRepository recurrentConfigRepository;
+	private final ChannelProviderRepository channelProviderRepository;
 
 	@Autowired
-	public ConfigServiceImpl(WalletConfigRepository walletConfigRepo, WalletBankConfigRepository walletBankConfigRepo, WalletProductCodeRepository walletProductCodeRepo, WalletProductRepository walletProductRepo, ParamDefaultValidation paramValidation, WalletInterestRepository walletInterestRepo, WalletGLAccountRepository walletGLAccountRepo, WalletTellerRepository walletTellerRepository, AuthUserServiceDAO authUserService, WalletEventRepository walletEventRepository, WalletTransactionChargeRepository walletTransactionChargeRepository, RecurrentConfigRepository recurrentConfigRepository) {
+	public ConfigServiceImpl(WalletConfigRepository walletConfigRepo, WalletBankConfigRepository walletBankConfigRepo, WalletProductCodeRepository walletProductCodeRepo, WalletProductRepository walletProductRepo, ParamDefaultValidation paramValidation, WalletInterestRepository walletInterestRepo, WalletGLAccountRepository walletGLAccountRepo, WalletTellerRepository walletTellerRepository, AuthUserServiceDAO authUserService, WalletEventRepository walletEventRepository, WalletTransactionChargeRepository walletTransactionChargeRepository, RecurrentConfigRepository recurrentConfigRepository, ChannelProviderRepository channelProviderRepository) {
 		this.walletConfigRepo = walletConfigRepo;
 		this.walletBankConfigRepo = walletBankConfigRepo;
 		this.walletProductCodeRepo = walletProductCodeRepo;
@@ -52,6 +56,7 @@ public class ConfigServiceImpl implements ConfigService {
 		this.walletEventRepository = walletEventRepository;
 		this.walletTransactionChargeRepository = walletTransactionChargeRepository;
 		this.recurrentConfigRepository = recurrentConfigRepository;
+		this.channelProviderRepository = channelProviderRepository;
 	}
 
 	@Override
@@ -62,7 +67,7 @@ public class ConfigServiceImpl implements ConfigService {
         	walletBankConfigRepo.save(bank);
             return new ResponseEntity<>(new SuccessResponse("Default Code Created Successfully.", bank), HttpStatus.CREATED);
         }
-        WalletConfig wallet = null;
+        WalletConfig wallet;
         WalletBankConfig bank = new WalletBankConfig(configPojo.getCodeDesc(),configPojo.getCodeValue(),configPojo.getCodeSymbol());
         Collection<WalletBankConfig> bankConfig = new ArrayList<>();
         bankConfig.add(bank);
@@ -84,7 +89,7 @@ public class ConfigServiceImpl implements ConfigService {
 	@Override
 	public ResponseEntity<?> getListCodeValue(Long id) {
 		Optional<WalletBankConfig> wallet = walletBankConfigRepo.findById(id);
-		if (!wallet.isPresent()) {
+		if (wallet.isEmpty()) {
             return new ResponseEntity<>(new ErrorResponse("Invalid Code Id"), HttpStatus.BAD_REQUEST);
         }
 		return new ResponseEntity<>(new SuccessResponse("Success", wallet.get()), HttpStatus.OK);
@@ -100,7 +105,7 @@ public class ConfigServiceImpl implements ConfigService {
 	
 	public ResponseEntity<?> getCode(Long id) {
 		Optional<WalletConfig> config = walletConfigRepo.findById(id);
-		if (!config.isPresent()) {
+		if (config.isEmpty()) {
             return new ResponseEntity<>(new ErrorResponse("Invalid Code Id"), HttpStatus.BAD_REQUEST);
         }
 		List<WalletBankConfig> wallet = walletBankConfigRepo.findByConfig(config.get());
@@ -149,7 +154,7 @@ public class ConfigServiceImpl implements ConfigService {
 	public ResponseEntity<?> findProduct(Long id) {
 		try {
 			Optional<WalletProductCode> product = walletProductCodeRepo.findById(id);
-			if(!product.isPresent()) {
+			if(product.isEmpty()) {
 				return new ResponseEntity<>(new ErrorResponse("Invalid Product Id"), HttpStatus.BAD_REQUEST);
 			}
             return new ResponseEntity<>(new SuccessResponse("Success.", product.get()), HttpStatus.CREATED);
@@ -227,11 +232,7 @@ public class ConfigServiceImpl implements ConfigService {
 			slabValue = "D";
 		}
 		Optional<WalletInterest> version = walletInterestRepo.findByIntTblCodeIgnoreCase(intL.getInterestCode());
-		if(version.isPresent()) {
-			slabVersion = "0000" + (Integer.parseInt(version.get().getInt_version_num()) + 1);
-		}else {
-			slabVersion = "00001";
-		}
+		slabVersion = version.map(walletInterest -> "0000" + (Integer.parseInt(walletInterest.getInt_version_num()) + 1)).orElse("00001");
 		if(intL.getEndSlabAmt() <= intL.getBeginSlabAmt()) {
 			return new ResponseEntity<>(new ErrorResponse("End amount slab can't be equal to zero or less than begin amount slab"), HttpStatus.BAD_REQUEST);
 		}
@@ -292,7 +293,7 @@ public class ConfigServiceImpl implements ConfigService {
 	@Override
 	public ResponseEntity<?> ListTellersTill() {
 		List<WalletTeller> teller = walletTellerRepository.findAll();
-		if(teller == null) {
+		if(teller.isEmpty()) {
 			return new ResponseEntity<>(new ErrorResponse("No teller till exist"), HttpStatus.BAD_REQUEST);
 		}
 		return new ResponseEntity<>(new SuccessResponse("Success", teller), HttpStatus.OK);
@@ -328,7 +329,7 @@ public class ConfigServiceImpl implements ConfigService {
 		}
 
 		Optional<WalletEventCharges> walletEventCharges = walletEventRepository.findById(eventId);
-		if(!walletEventCharges.isPresent()){
+		if(walletEventCharges.isEmpty()){
 			return new ResponseEntity<>(new ErrorResponse("Event Not Found"), HttpStatus.BAD_REQUEST);
 		}
 		WalletEventCharges eventCharges = walletEventCharges.get();
@@ -355,7 +356,7 @@ public class ConfigServiceImpl implements ConfigService {
 	public ResponseEntity<?> deleteEvent(Long eventId) {
 		try {
 			Optional<WalletEventCharges> walletEventCharges = walletEventRepository.findById(eventId);
-			if(!walletEventCharges.isPresent()){
+			if(walletEventCharges.isEmpty()){
 				return new ResponseEntity<>(new ErrorResponse("Event Not Found"), HttpStatus.BAD_REQUEST);
 			}
 			WalletEventCharges walletEventCharges1 = walletEventCharges.get();
@@ -367,35 +368,45 @@ public class ConfigServiceImpl implements ConfigService {
 		}
 	}
 
+	private ResponseEntity<?> switchMode(ChargeDTO event, ModifyChargeDTO modifyChargeDTO){
+
+		String mode;
+		if (event !=null){
+			mode = event.getChargePerMode();
+		}else {
+			mode = modifyChargeDTO.getChargePerMode();
+		}
+
+
+		switch (mode) {
+			case "TRANSAC":
+			case "MONTHLY":
+			case "DAILY":
+			case "QUATERLY":
+			case "YEARLY":
+				break;
+			default:
+				return new ResponseEntity<>(new ErrorResponse("Charge PER mode doesn't exist"), HttpStatus.BAD_REQUEST);
+		}
+		return null;
+	}
+
 	@Override
 	public ResponseEntity<?> createCharge(ChargeDTO event) {
 		
 		if(event.getFixedAmount() != 0 && event.getFixedPercent() != 0) {
 			return new ResponseEntity<>(new ErrorResponse("Both can't be maintained. Maintain either fixed Amount or Percent"), HttpStatus.BAD_REQUEST);
 		}
-		
-		switch (event.getChargePerMode()) {
-		  case "TRANSAC":
-		    break;
-		  case "DAILY":
-		    break;
-		  case "MONTHLY":
-		    break;
-		  case "QUATERLY":
-			break;
-		  case "YEARLY":
-			break;
-		  default:
-			  return new ResponseEntity<>(new ErrorResponse("Charge PER mode doesn't exist"), HttpStatus.BAD_REQUEST);
-		}
-		
+
+		ResponseEntity<?> responseEntity = switchMode(event, null);
+		log.info("switchMode" +responseEntity);
 		boolean validate = paramValidation.validateDefaultCode(event.getCurrencyCode(),"Currency");
 		if(!validate) {
 			return new ResponseEntity<>(new ErrorResponse("Currency Code Validation Failed"), HttpStatus.BAD_REQUEST);
 		}
 		
 		Optional<WalletEventCharges> wCharge = walletEventRepository.findByEventId(event.getChargeEvent());
-		if(!wCharge.isPresent()) {
+		if(wCharge.isEmpty()) {
 			return new ResponseEntity<>(new ErrorResponse("Event Validation Failed"), HttpStatus.BAD_REQUEST);
 		}
 		
@@ -419,29 +430,15 @@ public class ConfigServiceImpl implements ConfigService {
 		if(event.getFixedAmount() != 0 && event.getFixedPercent() != 0) {
 			return new ResponseEntity<>(new ErrorResponse("Both can't be maintained. Maintain either fixed Amount or Percent"), HttpStatus.BAD_REQUEST);
 		}
-		
-		switch (event.getChargePerMode()) {
-		  case "TRANSAC":
-		    break;
-		  case "DAILY":
-		    break;
-		  case "MONTHLY":
-		    break;
-		  case "QUATERLY":
-			break;
-		  case "YEARLY":
-			break;
-		  default:
-			  return new ResponseEntity<>(new ErrorResponse("Charge PER mode doesn't exist"), HttpStatus.BAD_REQUEST);
-		}
-		
+		ResponseEntity<?> responseEntity = switchMode(null, event);
+		log.info("switchMode" +responseEntity);
 		Optional<WalletEventCharges> wCharge = walletEventRepository.findByEventId(event.getChargeEvent());
-		if(!wCharge.isPresent()) {
+		if(wCharge.isEmpty()) {
 			return new ResponseEntity<>(new ErrorResponse("Event Validation Failed"), HttpStatus.BAD_REQUEST);
 		}
 		
 		Optional<WalletTransactionCharge> EventCharge = walletTransactionChargeRepository.findById(chargeId);
-		if(!EventCharge.isPresent()) {
+		if(EventCharge.isEmpty()) {
 			return new ResponseEntity<>(new ErrorResponse("Invalid Charge ID"), HttpStatus.BAD_REQUEST);
 		}
 		WalletTransactionCharge eventchg = EventCharge.get();
@@ -471,7 +468,7 @@ public class ConfigServiceImpl implements ConfigService {
 	public ResponseEntity<?> getSingleEvents(Long id) {
 		try{
 			Optional<WalletEventCharges> walletEventCharges = walletEventRepository.findById(id);
-			if(!walletEventCharges.isPresent()){
+			if(walletEventCharges.isEmpty()){
 				return new ResponseEntity<>(new ErrorResponse("Event Not Found"), HttpStatus.BAD_REQUEST);
 			}
 			return new ResponseEntity<>(new SuccessResponse("Success", walletEventCharges.get()), HttpStatus.OK);
@@ -484,7 +481,7 @@ public class ConfigServiceImpl implements ConfigService {
 	@Override
 	public ResponseEntity<?> ListTranCharge() {
 		List<WalletTransactionCharge> event = walletTransactionChargeRepository.findAll();
-		if(event == null) {
+		if(event.isEmpty()) {
 			return new ResponseEntity<>(new ErrorResponse("No event exist"), HttpStatus.BAD_REQUEST);
 		}
 		return new ResponseEntity<>(new SuccessResponse("Success", event), HttpStatus.OK);
@@ -493,7 +490,7 @@ public class ConfigServiceImpl implements ConfigService {
 	public ResponseEntity<?> findTranCharge(Long id) {
 		try {
 			Optional<WalletTransactionCharge> charge = walletTransactionChargeRepository.findById(id);
-			if(!charge.isPresent()) {
+			if(charge.isEmpty()) {
 				return new ResponseEntity<>(new ErrorResponse("Invalid Charge Id"), HttpStatus.BAD_REQUEST);
 			}
             return new ResponseEntity<>(new SuccessResponse("Success.", charge.get()), HttpStatus.CREATED);
@@ -502,38 +499,70 @@ public class ConfigServiceImpl implements ConfigService {
         }
 	}
 
+	@Override
+	public ResponseEntity<?> AutoCreateTransAccount(AutoCreateAccount request) {
+		try{
+			WalletConfigDTO walletConfigDTO = new WalletConfigDTO();
+			walletConfigDTO.setCodeDesc(request.getCodeDesc());
+			walletConfigDTO.setCodeName(request.getCodeName());
+			walletConfigDTO.setCodeSymbol(request.getCodeSymbol());
+			walletConfigDTO.setCodeValue(request.getCodeValue());
+
+			ResponseEntity<?> entity = createDefaultCode(walletConfigDTO);
+			ResponseEntity<?> responseEntity = null;
+			log.info(" ######### FINISH  CREATING createDefaultCode::: " + entity);
+			if(entity.getStatusCode().is2xxSuccessful()){
+				EventChargeDTO eventChargeDTO = new EventChargeDTO();
+				eventChargeDTO.setChargeCustomer(request.isChargeCustomer());
+				eventChargeDTO.setChargeWaya(request.isChargeWaya());
+				eventChargeDTO.setCrncyCode(request.getCrncyCode());
+				eventChargeDTO.setEventId(request.getEventId());
+				eventChargeDTO.setPlaceholder(request.getCodeValue());
+				eventChargeDTO.setTaxable(false);
+				eventChargeDTO.setTaxAmt(BigDecimal.valueOf(0.00));
+				eventChargeDTO.setTranAmt(BigDecimal.valueOf(0.00));
+				eventChargeDTO.setTranNarration(request.getTranNarration());
+
+				responseEntity = createdEvents(eventChargeDTO);
+				log.info(" ######### FINISH CREATING  createdEvents::: " + responseEntity);
+			}
+
+			return responseEntity;
+		} catch (Exception e) {
+			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+		}
+
+	}
+
 
 	//RecurrentConfigRepository recurrentConfigRepository;
 	public ResponseEntity<?> createRecurrentPayment(RecurrentConfigPojo request) {
 		try {
 			RecurrentConfig recurrentConfig = new RecurrentConfig();
-			recurrentConfig.setAmount(request.getAmount());
-			recurrentConfig.setOfficialAccountNumber(request.getOfficialAccountNumber());
-			recurrentConfig.setPayDate(request.getPayDate());
-			recurrentConfig.setDuration(request.getDuration());
-			recurrentConfig.setInterval(request.getInterval());
-			recurrentConfig = recurrentConfigRepository.save(recurrentConfig);
-			return new ResponseEntity<>(new SuccessResponse("Success.", recurrentConfig), HttpStatus.CREATED);
+			return getResponseEntity(request, recurrentConfig);
 		} catch (Exception e) {
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 	}
 
+	private ResponseEntity<?> getResponseEntity(RecurrentConfigPojo request, RecurrentConfig recurrentConfig) {
+		recurrentConfig.setAmount(request.getAmount());
+		recurrentConfig.setOfficialAccountNumber(request.getOfficialAccountNumber());
+		recurrentConfig.setPayDate(request.getPayDate());
+		recurrentConfig.setDuration(request.getDuration());
+		recurrentConfig.setInterval(request.getInterval());
+		recurrentConfig = recurrentConfigRepository.save(recurrentConfig);
+		return new ResponseEntity<>(new SuccessResponse("Success.", recurrentConfig), HttpStatus.CREATED);
+	}
+
 	public ResponseEntity<?> updateRecurrentPayment(RecurrentConfigPojo request, Long id) {
 		try {
 			Optional<RecurrentConfig> recurrentConfig = recurrentConfigRepository.findById(id);
-			if (!recurrentConfig.isPresent()){
+			if (recurrentConfig.isEmpty()){
 				throw new CustomException("Record not Found !!", HttpStatus.BAD_REQUEST);
 			}
 				RecurrentConfig recurrentConfig1 = recurrentConfig.get();
-				recurrentConfig1.setAmount(request.getAmount());
-				recurrentConfig1.setOfficialAccountNumber(request.getOfficialAccountNumber());
-				recurrentConfig1.setPayDate(request.getPayDate());
-				recurrentConfig1.setDuration(request.getDuration());
-				recurrentConfig1.setInterval(request.getInterval());
-				recurrentConfig1 = recurrentConfigRepository.save(recurrentConfig1);
-
-			return new ResponseEntity<>(new SuccessResponse("Success.", recurrentConfig1), HttpStatus.CREATED);
+			return getResponseEntity(request, recurrentConfig1);
 		} catch (Exception e) {
 			throw new CustomException("", HttpStatus.BAD_REQUEST);
 		}
@@ -542,7 +571,7 @@ public class ConfigServiceImpl implements ConfigService {
 	public ResponseEntity<?> toggleRecurrentPayment(Long id) {
 		try {
 			Optional<RecurrentConfig> recurrentConfig = recurrentConfigRepository.findById(id);
-			if (!recurrentConfig.isPresent()){
+			if (recurrentConfig.isEmpty()){
 				throw new CustomException("Record not Found !!", HttpStatus.BAD_REQUEST);
 			}
 			RecurrentConfig recurrentConfig1 = recurrentConfig.get();
@@ -571,7 +600,7 @@ public class ConfigServiceImpl implements ConfigService {
 	public ResponseEntity<?> getRecurrentPayment(Long id) {
 		try {
 			Optional<RecurrentConfig> recurrentConfig = recurrentConfigRepository.findById(id);
-			if (!recurrentConfig.isPresent()){
+			if (recurrentConfig.isEmpty()){
 				throw new CustomException("Record not Found !!", HttpStatus.BAD_REQUEST);
 			}
 			return new ResponseEntity<>(new SuccessResponse("Success.", recurrentConfig.get()), HttpStatus.CREATED);
@@ -579,6 +608,56 @@ public class ConfigServiceImpl implements ConfigService {
 			throw new CustomException("", HttpStatus.BAD_REQUEST);
 		}
 	}
+
+	@Override
+	public ResponseEntity<?> createChannel(String name) {
+		try {
+			channelProviderRepository.findByName(name).orElseThrow(()-> new CustomException("Record already exist", HttpStatus.BAD_REQUEST));
+
+			ChannelProvider channelProvider = new ChannelProvider();
+			channelProvider.setActive(false);
+			channelProvider.setName(name);
+			channelProviderRepository.save(channelProvider);
+			return new ResponseEntity<>(new SuccessResponse("Success.", channelProvider), HttpStatus.CREATED);
+		} catch (Exception e) {
+			throw new CustomException("", HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@Override
+	public ResponseEntity<?> updateChannel(String name, Long id) {
+		try {
+			ChannelProvider channelProvider1 = channelProviderRepository.findById(id).orElseThrow(()-> new CustomException("Record already exist", HttpStatus.BAD_REQUEST));
+			channelProvider1.setName(name);
+			return new ResponseEntity<>(new SuccessResponse("Success.", channelProviderRepository.save(channelProvider1)), HttpStatus.CREATED);
+		} catch (Exception e) {
+			throw new CustomException("", HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@Override
+	public ResponseEntity<?> toggleChannel(Long id) {
+		try {
+			ChannelProvider channelProvider1 = channelProviderRepository.findById(id).orElseThrow(()-> new CustomException("Record already exist", HttpStatus.BAD_REQUEST));
+			channelProvider1.setActive(!channelProvider1.isActive());
+			channelProvider1 = channelProviderRepository.save(channelProvider1);
+
+			return new ResponseEntity<>(new SuccessResponse("Success.", channelProvider1), HttpStatus.CREATED);
+		} catch (Exception e) {
+			throw new CustomException("", HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	@Override
+	public ChannelProvider findActiveChannel() {
+		try {
+			ChannelProvider channelProvider1 = channelProviderRepository.findByActive().orElseThrow(()-> new CustomException("Record not found", HttpStatus.NOT_FOUND));
+			return channelProvider1;
+		} catch (Exception e) {
+			throw new CustomException("", HttpStatus.BAD_REQUEST);
+		}
+	}
+
 
 }
 

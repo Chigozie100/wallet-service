@@ -8,15 +8,15 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface UserPricingService {
-    ResponseEntity<?> create(Long userId, String fullName, BigDecimal amount, String product);
+    ResponseEntity<?> create(Long userId, String fullName, BigDecimal amount, String product, String code);
 
     ResponseEntity<?> update(Long userId, BigDecimal discountAmount, BigDecimal customAmount, BigDecimal capAmount, String product);
-
 
     ResponseEntity<?> updateCustomProduct(BigDecimal capAmount, BigDecimal discountAmount, BigDecimal customAmount, String product);
 
     ResponseEntity<?> getAllUserPricing(int page, int size);
 
+    ResponseEntity<?> getAllUserPricingUserId(String userId, String product);
 
     ResponseEntity<?> applyDiscountToAll(BigDecimal discountAmount);
 

@@ -1,6 +1,5 @@
 package com.wayapaychat.temporalwallet.pojo;
 
-import com.wayapaychat.temporalwallet.enumm.TransactionType;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -15,5 +14,14 @@ public class TransactionPojo {
     private String accountNo;
     private String description;
     double amount;
+
+    public TransactionPojo(String transactionType, String accountNo, String description, double amount) {
+        this.transactionType = transactionType;
+        this.accountNo = accountNo;
+        this.description = description;
+        this.amount = amount;
+    }
+
+    
 
 }

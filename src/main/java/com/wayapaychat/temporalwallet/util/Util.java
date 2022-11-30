@@ -10,11 +10,11 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.security.spec.KeySpec;
-import java.util.Base64;
-import java.util.Random;
+import java.util.*;
 
 public class Util {
 
@@ -123,7 +123,7 @@ public class Util {
 
     }
 
-    public static String generateRandomNumber(int length) {
+    public String generateRandomNumber(int length) {
 
         int randNumOrigin = generateRandomNumber(58, 34);
         int randNumBound = generateRandomNumber(354, 104);
@@ -136,7 +136,7 @@ public class Util {
                         StringBuilder::append)
                 .toString();
     }
-    public static int generateRandomNumber(int max, int min) {
+    public int generateRandomNumber(int max, int min) {
         return (int) (Math.random() * (max - min + 1) + min);
     }
 
@@ -191,4 +191,29 @@ public class Util {
         }
         return null;
     }
+
+    public static BigDecimal computePercentage(BigDecimal amount, BigDecimal percentageValue){
+        BigDecimal per = BigDecimal.valueOf(percentageValue.doubleValue() / 100);
+        return BigDecimal.valueOf(per.doubleValue() * amount.doubleValue());
+    }
+
+    public static ArrayList<Map<String, String>> products(){
+
+        ArrayList<Map<String, String>> list = new ArrayList<>();
+
+        Map<String, String> map = new HashMap<>();
+        map.put("Virtual Account Issuance","VIRTUALACCOUNTISS");
+        map.put("Funding via card","PAYSTACK");
+        map.put("Funding via bank account","PAYSTK");
+        map.put("Funding via Bank Transfer","PAYSTK");
+        map.put("Internal Bank Transfer","WAYATRAN");
+        map.put("External Bank Transfer","BANKPMT");
+        map.put("Sms Alert","SMSCHG");
+        map.put("Bills Payment","AITCOL");
+
+        list.add(map);
+        return list;
+    }
+
+
 }

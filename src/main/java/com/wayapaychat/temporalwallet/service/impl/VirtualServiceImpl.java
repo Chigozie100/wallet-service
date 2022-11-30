@@ -47,11 +47,12 @@ public class VirtualServiceImpl implements VirtualService {
     @Override
     public ResponseEntity<?> registerWebhookUrl(VirtualAccountHookRequest request) {
         try{
+            Util util = new Util();
 
             VirtualAccountHook virtualAccountHook = new VirtualAccountHook();
             virtualAccountHook.setBank(request.getBank());
             virtualAccountHook.setBankCode(request.getBankCode());
-            virtualAccountHook.setVirtualAccountCode(Util.generateRandomNumber(4));
+            virtualAccountHook.setVirtualAccountCode(util.generateRandomNumber(4));
             virtualAccountHook.setUsername(request.getUsername());
             virtualAccountHook.setPassword(encode(request.getPassword()));
             virtualAccountHook.setCallbackUrl(request.getCallbackUrl());
@@ -93,6 +94,8 @@ public class VirtualServiceImpl implements VirtualService {
 
 
     private WalletUserDTO getUserWalletData(VirtualAccountRequest account){
+        Util util = new Util();
+
         WalletUserDTO walletUserDTO = new WalletUserDTO();
         walletUserDTO.setUserId(Long.parseLong(account.getUserId()));
         walletUserDTO.setAccountType("savings");
@@ -101,7 +104,7 @@ public class VirtualServiceImpl implements VirtualService {
         ZonedDateTime zdt = time.atZone(ZoneId.systemDefault());
         Date output = Date.from(zdt.toInstant());
         walletUserDTO.setCustExpIssueDate(output);
-        walletUserDTO.setCustIssueId(Util.generateRandomNumber(9));
+        walletUserDTO.setCustIssueId(util.generateRandomNumber(9));
         walletUserDTO.setCustSex("MALE");
         walletUserDTO.setCustTitleCode("MR");
         walletUserDTO.setDob(new Date());

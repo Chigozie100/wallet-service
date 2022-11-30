@@ -19,20 +19,22 @@ import org.springframework.stereotype.Repository;
 
 import com.wayapaychat.temporalwallet.dto.AccountLookUp;
 import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
+import com.wayapaychat.temporalwallet.dto.AccountSumary;
 import com.wayapaychat.temporalwallet.dto.AccountTransChargeDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionHistoryDTO;
-import com.wayapaychat.temporalwallet.config.SecurityCrypto;
 import com.wayapaychat.temporalwallet.entity.Provider;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.enumm.ProviderType;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.mapper.AccountLookUpMapper;
 import com.wayapaychat.temporalwallet.mapper.AccountStatementMapper;
+import com.wayapaychat.temporalwallet.mapper.AccountSumaryMapper;
 import com.wayapaychat.temporalwallet.mapper.AccountTransChargeMapper;
 import com.wayapaychat.temporalwallet.mapper.CommissionHistoryMapper;
 import com.wayapaychat.temporalwallet.mapper.TransWalletMapper;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import com.wayapaychat.temporalwallet.service.SwitchWalletService;
+import com.wayapaychat.temporalwallet.util.SecurityCrypto;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -425,22 +427,22 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		return count;
 	}
 
-//	public ResponseEntity<?> transactionCount(String accountNo) {
-//		StringBuilder query = new StringBuilder();
-//		String count = "";
-//		query.append("SELECT tran_id FROM m_accounts_transaction WHERE processed_flg = 'Y' ");
-//		query.append("AND credit_account_no = ?");
-//		String sql = query.toString();
-//		try {
-//			Object[] params = new Object[] {accountNo.trim().toUpperCase()};
-//			count = jdbcTemplate.queryForObject(sql, String.class, params);
-//			log.info("TOTAL TRANSACTION COUNT: {}", count);
-//		} catch (Exception ex) {
-//			log.error(ex.getMessage());
-//		}
-//		return new ResponseEntity<>(new SuccessResponse(count), HttpStatus.OK);
-//	}
-	
+	public AccountSumary getAccountSumaryLookUp(String account) {
+		AccountSumary mAccount = null;
+		StringBuilder query = new StringBuilder();
+		query.append("select  user_id, email_address, mobile_no, cust_name, account_no, cust_debit_limit from m_wallet_user a, m_wallet_account b ");
+		query.append("where a.id = b.cif_id and account_no = ?");
+		String sql = query.toString();
+		try {
+			AccountSumaryMapper rowMapper = new AccountSumaryMapper();
+			Object[] params = new Object[] { account.trim()};
+			mAccount = jdbcTemplate.queryForObject(sql, rowMapper, params);
+		} catch (Exception ex) {
+			log.error(ex.getMessage());
+		}
+		return mAccount;
+	}
+
 	public AccountLookUp GetAccountLookUp(String account) {
 		AccountLookUp mAccount = null;
 		StringBuilder query = new StringBuilder();
@@ -532,7 +534,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		SimpleDateFormat formatter = new SimpleDateFormat("ddMMyyyy");
 		String strDate = formatter.format(date);
 		switch (provider.getName()) {
-		case ProviderType.MAINMIFO:
+		case ProviderType.MIFOS:
 			String secretDate = SecurityCrypto.decrypt((SecurityCrypto.decodeKey(keymifos)), keysecret);
 			System.out.println("Decryption Value = " + secretDate);
 			String[] keyDecrypt = secretDate.split(Pattern.quote(","));

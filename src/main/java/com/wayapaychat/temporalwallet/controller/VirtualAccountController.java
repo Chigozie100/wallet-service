@@ -2,7 +2,6 @@ package com.wayapaychat.temporalwallet.controller;
 
 import com.wayapaychat.temporalwallet.pojo.VirtualAccountHookRequest;
 import com.wayapaychat.temporalwallet.pojo.VirtualAccountRequest;
-import com.wayapaychat.temporalwallet.service.UserAccountService;
 import com.wayapaychat.temporalwallet.service.VirtualService;
 import com.wayapaychat.temporalwallet.util.SuccessResponse;
 import io.swagger.annotations.ApiImplicitParam;
@@ -14,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +42,7 @@ public class VirtualAccountController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     public CompletableFuture<ResponseEntity<SuccessResponse>> createVirtualAccount(@RequestBody VirtualAccountRequest accountRequest){
 
         return CompletableFuture.completedFuture(virtualService.createVirtualAccount(accountRequest));
@@ -56,13 +57,11 @@ public class VirtualAccountController {
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
     @Async
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     public CompletableFuture<ResponseEntity<?>> registerWebhookUrl(@RequestBody VirtualAccountHookRequest accountRequest){
 
         return CompletableFuture.completedFuture(virtualService.registerWebhookUrl(accountRequest));
     }
-
-
-    //ResponseEntity<?> registerWebhookUrl(VirtualAccountHookRequest request)
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
@@ -73,6 +72,7 @@ public class VirtualAccountController {
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
     @Async
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
     public CompletableFuture<SuccessResponse> accountTransactionQuery(
             @RequestParam(defaultValue = "2020076821") String accountNumber,
             @RequestParam(defaultValue = "20200724") LocalDate startDate,
@@ -80,22 +80,11 @@ public class VirtualAccountController {
         return CompletableFuture.completedFuture(virtualService.accountTransactionQuery(accountNumber,startDate,endDate));
     }
 
-//    @ApiOperation(value = "Generate Account Statement by tran Date", tags = { "BANK-VIRTUAL-ACCOUNT" })
-//    @GetMapping(path = "/account/statement/{accountNo}")
-//    public ResponseEntity<?> FilterAccountStatement(@PathVariable String accountNo,
-//                                                    @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
-//                                                    @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate) {
-//        ApiResponse<?> res = userAccountService.fetchFilterTransaction(accountNo,fromdate,todate);
-//        if (!res.getStatus()) {
-//            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
-//        }
-//        return new ResponseEntity<>(res, HttpStatus.OK);
-//    }
-
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Account Balance", tags = { "BANK-VIRTUAL-ACCOUNT" })
     @GetMapping(path = "/accountBalance/{accountNo}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
     public CompletableFuture<SuccessResponse> balanceEnquiry(@PathVariable String accountNo) {
         return CompletableFuture.completedFuture(virtualService.balanceEnquiry(accountNo));
     }

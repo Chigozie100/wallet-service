@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.controller;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -8,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import com.wayapaychat.temporalwallet.dto.*;
+import com.wayapaychat.temporalwallet.pojo.MifosCreateAccount;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
+import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.UserAccountService;
 
 import io.swagger.annotations.ApiImplicitParam;
@@ -41,6 +44,11 @@ public class WalletUserAccountController {
 	@Autowired
     UserAccountService userAccountService;
 
+    @Autowired
+    CoreBankingService coreBankingService;
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Create a User", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/create-user")
     public ResponseEntity<?> createUser(@Valid @RequestBody UserDTO user) {
@@ -65,6 +73,15 @@ public class WalletUserAccountController {
 		log.info("Request input: {}",user);
 		return userAccountService.modifyUserAccount(user);
         //return userAccountService.modifyUserAccount(user);
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "createAccountOnMIFOS", tags = { "USER-ACCOUNT-WALLET" })
+    @PostMapping(path = "/user/mifos-account")
+    public ResponseEntity<?> createAccountOnMIFOS(@Valid @RequestBody MifosCreateAccount user) {
+        log.info("Request input: {}",user);
+        return userAccountService.createAccountOnMIFOS(user);
     }
 
     @ApiImplicitParams({
@@ -148,7 +165,8 @@ public class WalletUserAccountController {
 	 }
 	
 	//Wallet call by other service
-	@ApiOperation(value = "Create a Wallet", tags = { "USER-ACCOUNT-WALLET" })
+    @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Create a Wallet | add additional wallet", tags = { "USER-ACCOUNT-WALLET" })
     @PostMapping(path = "/create-wallet")
     public ResponseEntity<?> createAccount(@Valid @RequestBody AccountPojo2 accountPojo) {
 		return userAccountService.createAccount(accountPojo);
@@ -313,6 +331,13 @@ public class WalletUserAccountController {
         return userAccountService.getAccountDetails(accountNo);
     }
 
+    @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Get Wallet Account Info By Account Number", tags = { "USER-ACCOUNT-WALLET" })
+    @GetMapping(path = "/user-balance-account/{accountNo}")
+    public ResponseEntity<?> balanceAccountDetails(@PathVariable String accountNo) throws Exception {
+        return coreBankingService.getAccountDetails(accountNo);
+    }
+
 	@ApiOperation(value = "Get Wallet Default Account", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/default/{user_id}")
     public ResponseEntity<?> getAcctDefault(@PathVariable Long user_id) {
@@ -405,5 +430,17 @@ public class WalletUserAccountController {
     public ResponseEntity<?> countInActiveAccount() {
         return userAccountService.countInActiveAccount();
     }
+
+    @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "updateCustomerDebitLimit", notes = "updateCustomerDebitLimit", tags = { "USER-ACCOUNT-WALLET" })
+    @PostMapping("/updateCustomerDebitLimit")
+    public ResponseEntity<?> updateCustomerDebitLimit(@RequestParam("userId") String userId, @RequestParam("amount") BigDecimal amount) {
+        ResponseEntity<?> res = userAccountService.updateCustomerDebitLimit(userId, amount);
+        if (!res.getStatusCode().is2xxSuccessful()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+
 
 }

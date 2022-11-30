@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.proxy;
 
+import com.wayapaychat.temporalwallet.dto.ExternalCBAResponse;
 import com.wayapaychat.temporalwallet.dto.MifosTransfer;
 import com.wayapaychat.temporalwallet.pojo.MifosBlockAccount;
 import com.wayapaychat.temporalwallet.pojo.MifosCreateAccount;
@@ -49,9 +50,6 @@ public interface MifosWalletProxy {
 	@GetMapping("/api/v1/wallet-transactions/name-enquiry")
 	ApiResponse getByAccountNumber(@RequestParam("accountNo") String accountNo, @RequestHeader("authorization") String token);
 
-
-	// new update  // [https://services.staging.wayabank.ng/middletier-service/wallet/create/user
-	//http://services.staging.wayabank.ng/middletier-service/wallet/create/user
 	@PostMapping("/wallet/create/user")
 	MifosAccountCreationResponse createAccount(@RequestBody MifosCreateAccount reAccount);
 
@@ -65,6 +63,6 @@ public interface MifosWalletProxy {
 	// Transfer MifosTransfer
 
 	@PostMapping("/wallet/transfer")
-	ApiResponse<?> transferMoney(@RequestHeader("authorization") String token, @RequestBody MifosTransfer transfer);
+	ExternalCBAResponse transferMoney(@RequestBody MifosTransfer transfer);
 
 }

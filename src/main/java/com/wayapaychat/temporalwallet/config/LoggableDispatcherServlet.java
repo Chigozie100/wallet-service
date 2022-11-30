@@ -4,27 +4,20 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wayapaychat.temporalwallet.SpringApplicationContext;
-import com.wayapaychat.temporalwallet.entity.Users;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.pojo.LogMessage;
 import com.wayapaychat.temporalwallet.pojo.LogRequest;
 import com.wayapaychat.temporalwallet.pojo.MyData;
-import com.wayapaychat.temporalwallet.security.AuthenticatedUserFacade;
-import com.wayapaychat.temporalwallet.security.UserPrincipal;
 import com.wayapaychat.temporalwallet.service.LogService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.servlet.DispatcherServlet;
 import org.springframework.web.servlet.HandlerExecutionChain;

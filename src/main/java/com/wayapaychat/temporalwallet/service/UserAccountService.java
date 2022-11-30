@@ -1,11 +1,13 @@
 package com.wayapaychat.temporalwallet.service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
+import com.wayapaychat.temporalwallet.pojo.MifosCreateAccount;
 import org.springframework.http.ResponseEntity;
 
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
@@ -70,6 +72,8 @@ public interface UserAccountService {
 	ResponseEntity<?> searchAccount(String search);
 	
 	ResponseEntity<?> modifyUserAccount(UserAccountDTO user);
+
+	ResponseEntity<?> createAccountOnMIFOS(MifosCreateAccount user);
 	
 	ResponseEntity<?> ToggleAccount(AccountToggleDTO user);
 	
@@ -112,5 +116,7 @@ public interface UserAccountService {
 	ResponseEntity<?>  countInActiveAccount();
 
 	ResponseEntity<?>  createDefaultWallet(MyData user);
+
+	ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount);
 
 }

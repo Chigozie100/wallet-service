@@ -44,8 +44,14 @@ spring:
     username: postgres
     password: flints11
     driver-class-name: org.postgresql.Driver
+  hikari:
+    minimumIdle: 2
+    maximumPoolSize: 16
+    idleTimeout: 120000
+    connectionTimeout: 300000
+    leakDetectionThreshold: 300000
   flyway:
-    baselineOnMigrate: true
+    baselineOnMigrate: false
     locations: classpath:db/migration
     schemas: public
     enabled: false
@@ -57,14 +63,14 @@ job:
     twelam: 0 0 0 * * ? #1 am every day
 
 
-#eureka:
-#  client:
-#    serviceUrl:
-#      defaultZone: http://localhost/eureka
-#    service-url:
-#      default-zone: http://localhost/eureka
-#  instance:
-#    preferIpAddress: true
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: http://localhost/eureka
+    service-url:
+      default-zone: http://localhost/eureka
+  instance:
+    preferIpAddress: true
 
 waya:
   wallet:
