@@ -1716,9 +1716,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 		MifosBlockAccount mifosBlockAccount = new MifosBlockAccount();
 
 		mifosBlockAccount.setAccountNumber(account.getNubanAccountNo());
-			ApiResponse<?> response;
 
-		if(isBlock){
+			if(isBlock){
 			mifosBlockAccount.setNarration("block account");
 			CompletableFuture.runAsync(()-> processBlocking(token, mifosBlockAccount, true));
 
@@ -1920,6 +1919,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 	}
 
 	public ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount){
+		System.out.println("updateCustomerDebitLimit :: " + amount);
+		System.out.println("updateCustomerDebitLimit userId :: " + userId);
 		try{
 			Optional<WalletUser> walletUser = walletUserRepository.findUserId(Long.parseLong(userId));
 			if(walletUser.isPresent()){
