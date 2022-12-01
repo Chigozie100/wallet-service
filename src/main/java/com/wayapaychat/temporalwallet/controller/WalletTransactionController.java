@@ -24,6 +24,7 @@ import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.PDFExporter;
 import io.swagger.annotations.ApiResponses;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -320,16 +321,13 @@ public class WalletTransactionController {
 	public ResponseEntity<?> AdminsendMoney(HttpServletRequest request,
 			@Valid @RequestBody AdminLocalTransferDTO transfer) {
 
-		Map<String, Object> map =  buildObject(transfer);
-		Map<String, Object> map1 = transactionService.processPayment(request,map);
-		boolean isMifos = (Boolean) map1.get("isMifos");
+		OfficeUserTransferDTO _transfer = new OfficeUserTransferDTO();
+		BeanUtils.copyProperties(transfer, _transfer);
+		_transfer.setOfficeDebitAccount(transfer.getDebitAccountNumber());
+		_transfer.setCustomerCreditAccount(transfer.getBenefAccountNumber());
 
-		ApiResponse<?> res = transAccountService.AdminsendMoney(request, transfer);
-		if (!res.getStatus()) {
-			return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
-		}
-		log.info("Send Money: {}", transfer);
-		return new ResponseEntity<>(res, HttpStatus.OK);
+		return transAccountService.doOfficialUserTransfer(request, _transfer);
+
 	}
 
 	@ApiImplicitParams({

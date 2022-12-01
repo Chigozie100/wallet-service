@@ -2557,17 +2557,21 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return resp;
 	}
 
+	public ResponseEntity<?> doOfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer) {
+
+		return coreBankingService.transfer(
+											new TransferTransactionDTO(
+												transfer.getOfficeDebitAccount(),  transfer.getCustomerCreditAccount(), transfer.getAmount(), 
+												transfer.getTranType(), transfer.getTranCrncy(),  transfer.getTranNarration(), 
+												transfer.getPaymentReference(), CategoryType.FUNDING.getValue()),  "WAYAOFFTOCUS");
+	}
+
 	public ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer,  boolean isMifos) {
 
-		ResponseEntity<?> response = coreBankingService.transfer(
-															new TransferTransactionDTO(
-																transfer.getOfficeDebitAccount(),  transfer.getCustomerCreditAccount(), transfer.getAmount(), 
-																transfer.getTranType(), transfer.getTranCrncy(),  transfer.getTranNarration(), 
-																transfer.getPaymentReference(), CategoryType.FUNDING.getValue()),  "WAYAOFFTOCUS");
-
-
+		ResponseEntity<?> response = doOfficialUserTransfer(request, transfer);
 		return new ApiResponse<>(response.getStatusCode().is2xxSuccessful(),
 									 response.getStatusCode().value(), "PROCESSED", response.getBody());
+
 	}
 
 	@Override
