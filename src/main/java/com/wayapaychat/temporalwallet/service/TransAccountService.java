@@ -53,6 +53,8 @@ public interface TransAccountService {
 
 	ApiResponse<?> OfficialMoneyTransferSw(HttpServletRequest request, OfficeTransferDTO transfer);
 
+	ResponseEntity<?> doOfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer);
+
 	ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer, boolean isMifos);
 	
 	ApiResponse<?> OfficialUserTransferSystemSwitch(Map<String, String > mapp, String token, HttpServletRequest request, OfficeUserTransferDTO transfer);
