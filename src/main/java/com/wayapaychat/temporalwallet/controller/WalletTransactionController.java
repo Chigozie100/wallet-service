@@ -337,21 +337,7 @@ public class WalletTransactionController {
 			"TRANSACTION-WALLET" })
 	@PostMapping("/event/charge/payment")
 	public ResponseEntity<?> EventPayment(HttpServletRequest request, @RequestBody() EventPaymentDTO walletDto) {
-
-		Map<String, Object> map =  buildObject(walletDto);
-
-		Map<String, Object> map1 = transactionService.processPayment(request,map);
-
-		boolean isMifos = (Boolean) map1.get("isMifos");
-		String channel = (String) map1.get("channel");
-		String eventId = (String) map1.get("eventId");
-		walletDto.setEventId(eventId);
-
-		System.out.println(" active channel :: " + channel);
-		System.out.println(" isMifos :: " + isMifos);
-		System.out.println(" walletDto :: " + walletDto);
-
-		return transAccountService.EventTransferPayment(request, walletDto, isMifos);
+		return transAccountService.EventTransferPayment(request, walletDto, false);
 
 	}
 

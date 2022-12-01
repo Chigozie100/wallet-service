@@ -271,72 +271,26 @@ public class TransAccountServiceImpl implements TransAccountService {
 	public ResponseEntity<?> EventTransferPayment(HttpServletRequest request, EventPaymentDTO transfer, boolean isMifos) {
 		log.info("Transaction Request Creation: {}", transfer.toString());
 
-		String token = request.getHeader(SecurityConstants.HEADER_STRING);
-		MyData userToken = tokenService.getTokenUser(token);
-		if (userToken == null) {
-			return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
+		Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(transfer.getEventId());
+		if(!eventInfo.isPresent()){
+			return new ResponseEntity<>(new ErrorResponse("ERROR PROCESSING TRANSACTION"), HttpStatus.BAD_REQUEST);
 		}
 
-		String reference;
-		reference = tempwallet.TransactionGenerate();
-		if (reference.equals("")) {
-			reference = transfer.getPaymentReference();
+		String nonWayaDisbursementAccount = coreBankingService.getEventAccountNumber(transfer.getEventId());
+		TransferTransactionDTO transferTransactionDTO;
+		if(eventInfo.get().isChargeWaya()){
+			transferTransactionDTO = new TransferTransactionDTO( nonWayaDisbursementAccount, transfer.getCustomerAccountNumber(), transfer.getAmount(), 
+											TransactionTypeEnum.TRANSFER.getValue(), "NGN",  transfer.getTranNarration(), 
+															transfer.getPaymentReference(), CategoryType.TRANSFER.getValue());
 		}
-		String toAccountNumber = transfer.getCustomerAccountNumber();
-		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf("CARD");
-		CategoryType tranCategory = CategoryType.valueOf(transfer.getTransactionCategory());
-
-		ResponseEntity<?> resp;
-		try {
-			int intRec = tempwallet.PaymenttranInsert(transfer.getEventId(), "", toAccountNumber, transfer.getAmount(),
-					reference);
-			String tranId;
-			if (intRec == 1) {
-				if(transfer.getEventId().equals("SMSCHG")){
-					tranId = createEventTransactionDebitUserCreditWayaAccount(transfer.getEventId(), toAccountNumber, transfer.getTranCrncy(),
-							transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory, userToken);
-				}else if (transfer.getEventId().equals("AITCOL")){
-					tranId = createEventTransactionForBillsPayment(transfer.getEventId(), toAccountNumber, transfer.getTranCrncy(),
-							transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory);
-				}else{
-					tranId = createEventTransaction(transfer.getEventId(), toAccountNumber, transfer.getTranCrncy(),
-							transfer.getAmount(), tranType, transfer.getTranNarration(), reference, request, tranCategory, isMifos);
-
-				}
-				log.info("################### AFTER PAYMENT one ###################");
-				log.info("AFTER PAYMENT " + tranId);
-
-
-				String[] tranKey = tranId.split(Pattern.quote("|"));
-				if (tranKey[0].equals("DJGO")) {
-					return new ResponseEntity<>(new ErrorResponse(tranKey[1]), HttpStatus.BAD_REQUEST);
-				}
-				log.info("Transaction ID Response: {}", tranId);
-				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
-						.findByTranIdIgnoreCase(tranId);
-
-				if (transaction.isEmpty()) {
-					return new ResponseEntity<>(new ErrorResponse("TRANSACTION FAILED TO CREATE"),
-							HttpStatus.BAD_REQUEST);
-				}
-				resp = new ResponseEntity<>(new SuccessResponse("TRANSACTION CREATE", transaction), HttpStatus.CREATED);
-				log.info("Transaction Response {} ", resp.toString());
-
-
-			} else {
-				if (intRec == 2) {
-					return new ResponseEntity<>(new ErrorResponse("UNABLE TO PROCESS DUPLICATE TRANSACTION REFERENCE"),
-							HttpStatus.BAD_REQUEST);
-				} else {
-					return new ResponseEntity<>(new ErrorResponse("UNKNOWN DATABASE ERROR. PLEASE CONTACT ADMIN"),
-							HttpStatus.BAD_REQUEST);
-				}
-			}
-		} catch (Exception ex) {
-			log.error("Error occurred - GET WALLET TRANSACTION :"+ ex.getMessage());
-			return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+		else{
+			transferTransactionDTO = new TransferTransactionDTO( transfer.getCustomerAccountNumber(), nonWayaDisbursementAccount, transfer.getAmount(), 
+											TransactionTypeEnum.TRANSFER.getValue(), "NGN",  transfer.getTranNarration(), 
+															transfer.getPaymentReference(), CategoryType.TRANSFER.getValue());
 		}
-		return resp;
+		
+		return coreBankingService.transfer( transferTransactionDTO,  "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+
 	}
 
 	@Override
