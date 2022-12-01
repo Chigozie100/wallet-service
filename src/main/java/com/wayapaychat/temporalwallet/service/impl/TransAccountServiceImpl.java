@@ -26,6 +26,7 @@ import com.wayapaychat.temporalwallet.repository.*;
 import com.wayapaychat.temporalwallet.service.*;
 import com.wayapaychat.temporalwallet.util.*;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -2684,93 +2685,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	public ApiResponse<?> AdminsendMoney(HttpServletRequest request, AdminLocalTransferDTO transfer) {
-		log.info("inside AdminsendMoney: {}", transfer);
-		String token = request.getHeader(SecurityConstants.HEADER_STRING);
-		MyData userToken = tokenService.getTokenUser(token);
-		if (userToken == null) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID TOKEN", null);
-		}
-		log.info("Send Money: userToken {}", userToken);
-		UserDetailPojo user = authService.AuthUser(transfer.getUserId().intValue());
-		if (user == null) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID USER ID", null);
-		}
-		log.info("UserDetailPojo: user {} ", user);
-		if (!user.is_admin()) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "USER ID PERFORMING OPERATION IS NOT AN ADMIN",
-					null);
-		}
 
-		String fromAccountNumber = transfer.getDebitAccountNumber();
-		String toAccountNumber = transfer.getBenefAccountNumber();
-		if(fromAccountNumber.equals(toAccountNumber)) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "DEBIT ACCOUNT CAN'T BE THE SAME WITH CREDIT ACCOUNT", null);
-		}
-		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
-		CategoryType tranCategory = CategoryType.valueOf("TRANSFER");
+		OfficeUserTransferDTO _transfer = new OfficeUserTransferDTO();
+		BeanUtils.copyProperties(transfer, _transfer);
+		_transfer.setOfficeDebitAccount(transfer.getDebitAccountNumber());
+		_transfer.setCustomerCreditAccount(transfer.getBenefAccountNumber());
 
-		ApiResponse<?> resp = new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
-		try {
-			int intRec = tempwallet.PaymenttranInsert("WAYAADMTOCUS", fromAccountNumber, toAccountNumber, transfer.getAmount(),
-					transfer.getPaymentReference());
-			if (intRec == 1) {
-				String tranId = createTransaction(token, "WAYAADMTOCUS", fromAccountNumber, toAccountNumber, transfer.getTranCrncy(),
-						transfer.getAmount(), tranType, transfer.getTranNarration(), transfer.getPaymentReference(),
-						request, tranCategory, false);
-				String[] tranKey = tranId.split(Pattern.quote("|"));
-				if (tranKey[0].equals("DJGO")) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, tranKey[1], null);
-				}
-				Optional<List<WalletTransaction>> transaction = walletTransactionRepository
-						.findByTranIdIgnoreCase(tranId);
-				if (transaction.isEmpty()) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION FAILED TO CREATE", null);
-				}
-				resp = new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION SUCCESSFUL", transaction.get());
+		return OfficialUserTransfer(request, _transfer, false);
 
-				String tranDate = getTransactionDate();
-
-				WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber);
-				WalletUser xUser = walletUserRepository.findByAccount(xAccount);
-				String xfullName = xUser.getFirstName() + " " + xUser.getLastName();
-
-				String message1 = formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
-						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, xfullName,
-						xUser.getEmailAddress(), message1, userToken.getId(), transfer.getAmount().toString(), tranId,
-						tranDate, transfer.getTranNarration()));
-				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName, xUser.getMobileNo(),
-						message1, userToken.getId()));
-				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, "0",
-						message1, xUser.getUserId(),ADMIN_TRANSACTION));
-				//String token, String name, String recipient, String message, Long userId, String category
-
-				WalletAccount yAccount = walletAccountRepository.findByAccountNo(toAccountNumber);
-				WalletUser yUser = walletUserRepository.findByAccount(yAccount);
-				String yfullName = yUser.getFirstName() + " " + yUser.getLastName();
-
-				String message2 = formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
-						transfer.getTranNarration());
-				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, yfullName,
-						yUser.getEmailAddress(), message2, userToken.getId(), transfer.getAmount().toString(), tranId,
-						tranDate, transfer.getTranNarration()));
-				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName, yUser.getMobileNo(),
-						message2, userToken.getId()));
-				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, yUser.getUserId().toString(),
-						message2, 0L,ADMIN_TRANSACTION));
-
-			} else {
-				if (intRec == 2) {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND,
-							"Unable to process duplicate transaction", null);
-				} else {
-					return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unknown Database Error", null);
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return resp;
 	}
 
 
