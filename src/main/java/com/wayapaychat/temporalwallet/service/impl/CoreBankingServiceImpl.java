@@ -373,7 +373,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     @Override
     public void applyCharge(MyData userData, String transitAccount, String debitAccountNumber, String tranNarration,
-            String transactionCategory, String transactionType, @NotNull BigDecimal bigDecimal, Provider provider, String channelEventId) {
+            String transactionCategory, String transactionType, @NotNull BigDecimal amount, Provider provider, String channelEventId) {
         log.info("applying charge for transaction on {}", debitAccountNumber);
         AccountSumary account = tempwallet.getAccountSumaryLookUp(debitAccountNumber);
         if(account == null){ return; }
@@ -390,10 +390,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             priceAmount = userPricingOptional.getGeneralAmount();
         }
         else if(userPricingOptional.getStatus().equals(ProductPriceStatus.GENERAL)){
-            priceAmount = BigDecimal.valueOf(userPricingOptional.getGeneralAmount().doubleValue() / 100);
+            priceAmount = BigDecimal.valueOf(amount.doubleValue() * userPricingOptional.getGeneralAmount().doubleValue() / 100);
         }
         else if(userPricingOptional.getStatus().equals(ProductPriceStatus.CUSTOM)){
-            priceAmount = BigDecimal.valueOf(userPricingOptional.getCustomAmount().doubleValue() / 100);
+            priceAmount = BigDecimal.valueOf(amount.doubleValue() * userPricingOptional.getCustomAmount().doubleValue() / 100);
         }
 
         if(priceAmount.doubleValue() <= 0){ return; }

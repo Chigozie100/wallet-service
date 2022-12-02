@@ -1,6 +1,7 @@
 package com.wayapaychat.temporalwallet.service;
 
 import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
@@ -200,4 +201,6 @@ public interface TransAccountService {
 	ResponseEntity<?>  debitTransactionAmountOffical();
 	ResponseEntity<?>  creditTransactionAmountOffical();
 	ResponseEntity<?>  debitAndCreditTransactionAmountOfficial();
+
+	BigDecimal computeTransFee(String accountDebit, BigDecimal amount, String eventId);
 }
