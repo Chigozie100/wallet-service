@@ -8,16 +8,15 @@ import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.pojo.*;
-import com.wayapaychat.temporalwallet.proxy.AuthProxy;
 import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
 import com.wayapaychat.temporalwallet.repository.*;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.response.MifosAccountCreationResponse;
 import com.wayapaychat.temporalwallet.service.UserAccountService;
+import com.wayapaychat.temporalwallet.service.UserPricingService;
 import com.wayapaychat.temporalwallet.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.math3.util.Precision;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -51,6 +50,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 	private final WalletEventRepository walletEventRepo;
 	private final MifosWalletProxy mifosWalletProxy;
 	private final TokenImpl tokenService;
+	private final UserPricingService userPricingService;
 
 
 	@Value("${waya.wallet.productcode}")
@@ -69,9 +69,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 	private String financialInstitutionCode;
 
 	@Autowired
-	public UserAccountServiceImpl(WalletUserRepository walletUserRepository, WalletAccountRepository walletAccountRepository, WalletProductRepository walletProductRepository, 
-									WalletProductCodeRepository walletProductCodeRepository, AuthUserServiceDAO authService, ReqIPUtils reqUtil, ParamDefaultValidation paramValidation, 
-										WalletTellerRepository walletTellerRepository, TemporalWalletDAO tempwallet, WalletEventRepository walletEventRepo, MifosWalletProxy mifosWalletProxy, TokenImpl tokenService) {
+	public UserAccountServiceImpl(WalletUserRepository walletUserRepository, WalletAccountRepository walletAccountRepository, WalletProductRepository walletProductRepository,
+								  WalletProductCodeRepository walletProductCodeRepository, AuthUserServiceDAO authService, ReqIPUtils reqUtil, ParamDefaultValidation paramValidation,
+								  WalletTellerRepository walletTellerRepository, TemporalWalletDAO tempwallet, WalletEventRepository walletEventRepo, MifosWalletProxy mifosWalletProxy, TokenImpl tokenService, UserPricingService userPricingService) {
 		this.walletUserRepository = walletUserRepository;
 		this.walletAccountRepository = walletAccountRepository;
 		this.walletProductRepository = walletProductRepository;
@@ -84,6 +84,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		this.walletEventRepo = walletEventRepo;
 		this.mifosWalletProxy = mifosWalletProxy;
 		this.tokenService = tokenService;
+		this.userPricingService = userPricingService;
 	}
 
 
@@ -441,7 +442,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 
 		int userId = user.getUserId().intValue();
-		UserDetailPojo wallet = authService.AuthUser(userId);   // no need to make this cak
+		UserDetailPojo wallet = authService.AuthUser(userId);
 
 		if (wallet == null) {
 			return new ResponseEntity<>(new ErrorResponse("Auth User ID does not exists"), HttpStatus.BAD_REQUEST);
@@ -635,6 +636,11 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 			// call to Mifos to create a user
 			CompletableFuture.runAsync(()-> pushToMifos(userInfo, sAcct));
+
+			// call to create a user pricing
+			CompletableFuture.runAsync(()->userPricingService.createUserPricing(userx));
+
+			// setup user pricing
 
 			return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
 					HttpStatus.CREATED);

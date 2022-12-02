@@ -47,4 +47,5 @@ public interface CoreBankingService {
 
     ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount);
 
+
 }

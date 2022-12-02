@@ -1,8 +1,8 @@
 package com.wayapaychat.temporalwallet.controller;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
@@ -15,23 +15,16 @@ import javax.validation.Valid;
 
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.*;
-import com.wayapaychat.temporalwallet.enumm.TransactionTypeEnum;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import com.wayapaychat.temporalwallet.service.TransactionCountService;
 import com.wayapaychat.temporalwallet.service.TransactionService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.PDFExporter;
-import io.swagger.annotations.ApiResponses;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.InputStreamResource;
-import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,9 +34,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
 
 import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
 import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
@@ -122,7 +113,6 @@ public class WalletTransactionController {
 		}catch (CustomException ex){
 			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}
-
 	}
 
 	// Wallet call by other service
@@ -755,6 +745,7 @@ public class WalletTransactionController {
 		return transAccountService.debitAndCreditTransactionAmount();
 	}
 
+
 	@ApiOperation(value = "User Transaction Count ", notes = "User Transaction Count", tags = { "TRANSACTION-WALLET" })
 	@GetMapping("/transaction/get-user-transaction-count")
 	public ResponseEntity<?> userTransactionCount() {
@@ -765,6 +756,14 @@ public class WalletTransactionController {
 	@GetMapping("/transaction/get-user-transaction-count/{userId}")
 	public ResponseEntity<?> getUserCount(@PathVariable String userId) {
 		return transactionCountService.getUserCount(userId);
+	}
+
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "User Transaction Fee ", notes = "User Transaction Fee", tags = { "TRANSACTION-WALLET" })
+	@GetMapping("/transaction/get-user-transaction-fee/{accountNo}/{amount}/{eventId}")
+	public BigDecimal getUserTransactionFee(@PathVariable String accountNo, @PathVariable BigDecimal amount, @PathVariable String eventId) {
+		return transAccountService.computeTransFee(accountNo,amount,eventId);
 	}
 
 	private Map<String, Object> buildObject(EventPaymentDTO transfer){

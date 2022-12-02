@@ -17,6 +17,7 @@ import com.wayapaychat.temporalwallet.repository.WalletUserRepository;
 import com.wayapaychat.temporalwallet.service.UserPricingService;
 import static com.wayapaychat.temporalwallet.util.Constant.*;
 
+import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.SuccessResponse;
 import com.wayapaychat.temporalwallet.util.Util;
 import lombok.extern.slf4j.Slf4j;
@@ -67,7 +68,7 @@ public class UserPricingServiceImpl implements UserPricingService {
               userPricing.setFullName(fullName);
               userPricing.setCustomAmount(BigDecimal.valueOf(0.00));
               userPricing.setDiscount(BigDecimal.valueOf(0.00));
-              userPricing.setCapPrice(BigDecimal.valueOf(0.00));
+              userPricing.setCapPrice(BigDecimal.valueOf(200.00));
               userPricing.setCreatedAt(new Date());
               userPricing.setProduct(product);
               userPricing.setStatus(ProductPriceStatus.GENERAL);
@@ -81,6 +82,24 @@ public class UserPricingServiceImpl implements UserPricingService {
             throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
         }
         return null;
+    }
+
+    @Override
+    public ResponseEntity<?> createUserPricing(String userId) {
+        WalletUser existingUser = walletUserRepository.findByUserId(Long.parseLong(userId));
+        if (existingUser != null) {
+            return new ResponseEntity<>(new ErrorResponse("Wallet User already exists"), HttpStatus.BAD_REQUEST);
+        }
+        ResponseEntity<?> responseEntity = createUserPricing(existingUser);
+        log.info("responseEntity" +responseEntity);
+        return new ResponseEntity<>(new SuccessResponse(ADD_PRICE, null), HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<?> createUserPricing(WalletUser userx) {
+        processUserPricing(new ArrayList<>(), "createUserPricing", userx);
+        return new ResponseEntity<>(new SuccessResponse(ADD_PRICE, null), HttpStatus.OK);
+
     }
 
     @Override
@@ -205,7 +224,6 @@ public class UserPricingServiceImpl implements UserPricingService {
     }
 
     private void doDelete(){
-       // List<UserPricing> userPricingList = userPricingRepository.findAll();
         try{
             userPricingRepository.deleteAllInBatch();
         }catch (Exception ex){
@@ -244,7 +262,34 @@ public class UserPricingServiceImpl implements UserPricingService {
         try{
             List<WalletUser> userList = walletUserRepository.findAll();
             userPricingRepository.deleteAll();
-            List<Map<String, String>> products = Util.products();
+            processUserPricing(userList,"doSync",null);
+        }catch (Exception ex){
+            throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+        }
+        log.info(" ####### User and Changes Sync thread completed ###### ");
+    }
+
+
+    private void processUserPricing(List<WalletUser> userList, String actionType, WalletUser userx){
+        try{
+
+        List<Map<String, String>> products = Util.products();
+        if(userList.isEmpty()){
+            if(userx !=null){
+                for (Map<String, String> tmpData : products) {
+                    Set<String> key = tmpData.keySet();
+                    Iterator it = key.iterator();
+                    while (it.hasNext()) {
+                        String hmKey = (String) it.next();
+                        String hmData = tmpData.get(hmKey);
+                        log.info("Key: " + hmKey + " & Data: " + hmData);
+                        create(userx.getUserId(), userx.getFirstName() + " " + userx.getLastName(), BigDecimal.valueOf(10.00), hmKey, hmData);
+                    }
+
+                }
+            }
+
+        }else{
 
             for (WalletUser list: userList){
                 for (Map<String, String> tmpData : products) {
@@ -255,17 +300,20 @@ public class UserPricingServiceImpl implements UserPricingService {
                         String hmData = tmpData.get(hmKey);
                         if (list.isCorporate() || !list.isCorporate()) {
                             log.info("Corporate uses only");
-                            create(list.getUserId(), list.getFirstName() + " " + list.getLastName(), BigDecimal.valueOf(10.00), hmKey, hmData);
+                            if(actionType.equals("doSync")){
+                                create(list.getUserId(), list.getFirstName() + " " + list.getLastName(), BigDecimal.valueOf(10.00), hmKey, hmData);
+                            }
                         }
-                        System.out.println("Key: " + hmKey + " & Data: " + hmData);
-                       // it.remove(); // avoids a ConcurrentModificationException
+                        log.info("Key: " + hmKey + " & Data: " + hmData);
+                        // it.remove(); // avoids a ConcurrentModificationException
                     }
                 }
+            }
         }
+
         }catch (Exception ex){
-            throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+            throw new CustomException("Error in processUserPricing" + ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
-        log.info(" ####### User and Changes Sync thread completed ###### ");
     }
 
 
