@@ -3306,25 +3306,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
 		try {
 
-			System.out.println("############# BEFORE mifos " + mifos);
-			// call Mifos
-//			if(mifos){
-//				WalletAccount accountDebit = walletAccountRepository.findByAccountNo(debitAcctNo);
-//				WalletAccount accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
-//				System.out.println("############# BEFORE mifos inside 1" + mifos);
-//				WalletAccount finalAccountCredit1 = accountCredit;
-//				WalletAccount finalAccountDebit1 = accountDebit;
-//
-//				String tranId = tempwallet.GenerateTranId();
-//				String finalTranId = tranId;
-//				System.out.println("############# BEFORE mifos inside 2" + mifos);
-//				ApiResponse<?> response = postToMifos(token, finalAccountCredit1, finalAccountDebit1, amount, tranNarration, finalTranId,  tranType);
-//
-//				System.out.println("############# AFTER mifos inside 2" + response);
-//				if(!response.getStatus()){
-//					throw new CustomException("Error in posting to MIFOS", HttpStatus.EXPECTATION_FAILED);
-//				}
-//			}
+			log.info("############# BEFORE mifos " + mifos);
 
 			int n = 1;
 			log.info("START TRANSACTION");
@@ -3345,16 +3327,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 
 			// ########################### REMOVE THIS CODE ########################
-
-
 			// To fetch BankAcccount and Does it exist
 			WalletAccount accountDebit = walletAccountRepository.findByAccountNo(debitAcctNo);
 			WalletAccount accountCredit; // = walletAccountRepository.findByAccountNo(creditAcctNo);
 
 
-			System.out.println(" debitAcctNo ::: " + accountDebit);
-			System.out.println(" accountCredit ::: " + creditAcctNo);
-
+			log.info(" debitAcctNo ::: " + accountDebit);
+			log.info(" accountCredit ::: " + creditAcctNo);
 
 			if (!charge.isChargeCustomer() && charge.isChargeWaya()) {
 				if(!StringUtils.isNumeric(debitAcctNo)){
@@ -3364,18 +3343,18 @@ public class TransAccountServiceImpl implements TransAccountService {
 				accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
 				tranAmCharges = charge.getTranAmt();
 			} else {
-				System.out.println( "#################### HERE WER AER CHARGIN CUSTOMER #################### ");
+				log.info( "#################### HERE WER AER CHARGIN CUSTOMER #################### ");
 				System.out.println(debitAcctNo + " Charge here " + charge.getTranAmt());
 				accountCredit = accountDebitTeller;
 				accountDebit = walletAccountRepository.findByAccountNo(debitAcctNo);
 				//tranAmCharges = charge.getTranAmt();
 
-				System.out.println( "#################### ABOUT TO GET USER PRODUCT #################### " + eventId );
+				log.info( "#################### ABOUT TO GET USER PRODUCT #################### " + eventId );
 				// get user charge by eventId and userID
 				UserPricing userPricingOptional = getUserProduct(accountDebit, eventId); // get user to
-				System.out.println( "#################### USER PRODUCT RESPONSE #################### " + eventId );
+				log.info( "#################### USER PRODUCT RESPONSE #################### " + eventId );
 
-				System.out.println( "#################### ABOUT TO GET  PRODUCT RESPONSE #################### " + eventId );
+				log.info( "#################### ABOUT TO GET  PRODUCT RESPONSE #################### " + eventId );
 				tranAmCharges = getChargesAmount(userPricingOptional, amount);
 
 			}
@@ -3483,7 +3462,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	private void removeLien(WalletAccount accountDebit, BigDecimal amount){
 
-		System.out.println("############### AccountDebit ::: #################3  " + accountDebit);
+		log.info("############### AccountDebit ::: #################3  " + accountDebit);
 		// get user current Lien
 		AccountLienDTO accountLienDTO = new AccountLienDTO();
 		accountLienDTO.setCustomerAccountNo(accountDebit.getAccountNo());
@@ -3500,31 +3479,31 @@ public class TransAccountServiceImpl implements TransAccountService {
 			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
 		}
 
-		System.out.println("############### RESPONSE FROM REMOVING LIEN  :: ###############"  + responseEntity);
+		log.info("############### RESPONSE FROM REMOVING LIEN  :: ###############"  + responseEntity);
 
 	}
 
 
 	private void postToMifos(String token,WalletAccount accountCredit, WalletAccount accountDebit, BigDecimal amount, String tranNarration, String tranId,
 							 TransactionTypeEnum tranType){
-		System.out.println("############# BEFORE accountCredit " + accountCredit);
-		System.out.println("############# accountDebit" + accountDebit);
-		System.out.println("############# amount" + amount);
-		System.out.println("############# tranNarration" + tranNarration);
-		System.out.println("############# tranNarration" + tranId);
-		System.out.println("############# tranNarration" + tranType);
+		log.info("############# BEFORE accountCredit " + accountCredit);
+		log.info("############# accountDebit" + accountDebit);
+		log.info("############# amount" + amount);
+		log.info("############# tranNarration" + tranNarration);
+		log.info("############# tranNarration" + tranId);
+		log.info("############# tranNarration" + tranType);
 
 
 		if(accountCredit.getNubanAccountNo() !=null){
-			System.out.println("this is not  null");
+			log.info("this is not  null");
 		}else{
-			System.out.println("this is null");
+			log.info("this is null");
 		}
 
 		if(accountDebit.getNubanAccountNo() !=null){
-			System.out.println(" 22this is not  null");
+			log.info(" 22this is not  null");
 		}else{
-			System.out.println("this is null");
+			log.info("this is null");
 		}
 		MifosTransfer mifosTransfer = new MifosTransfer();
 		mifosTransfer.setAmount(amount);
@@ -6733,27 +6712,42 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 	private BigDecimal computePercentage(BigDecimal amount, BigDecimal percentageValue){
 		BigDecimal per = BigDecimal.valueOf(percentageValue.doubleValue() / 100);
+		log.info("per :: " + per);
 		return BigDecimal.valueOf(per.doubleValue() * amount.doubleValue());
 	}
 
-	private BigDecimal getChargesAmount(UserPricing userPricingOptional, BigDecimal amount){
+	public BigDecimal computeTransFee(String accountDebit, BigDecimal amount,  String eventId){
+		WalletAccount account = walletAccountRepository.findByAccountNo(accountDebit);
+		UserPricing userPricingOptional = getUserProduct(account, eventId);
+		return getChargesAmount(userPricingOptional, amount);
+	}
+
+	public BigDecimal getChargesAmount(UserPricing userPricingOptional, BigDecimal amount){
 		BigDecimal percentage = null;
-		System.out.println("Inside getChargesAmount userPricingOptional" + userPricingOptional);
-		System.out.println("Inside getChargesAmount amount" + amount);
+		log.info("Inside getChargesAmount userPricingOptional" + userPricingOptional);
+		log.info("Inside getChargesAmount amount" + amount);
 		if(userPricingOptional.getStatus().equals(ProductPriceStatus.GENERAL)){
-
-				percentage = computePercentage(amount, userPricingOptional.getGeneralAmount());
+			log.info(" #### GENERAL  PRICING #####  ::");
+		percentage = computePercentage(amount, userPricingOptional.getGeneralAmount());
 				// apply discount if applicable
-
+			log.info(" #### GENERAL  PRICe  #####  :: " + percentage);
 		}else if (userPricingOptional.getStatus().equals(ProductPriceStatus.CUSTOM)){
 			if(userPricingOptional.getPriceType().equals(PriceCategory.FIXED)){
 				percentage = userPricingOptional.getGeneralAmount();
+				log.info(" #### CUSTOM  PRICe  #####  :: " + percentage);
 			}else {
 				// apply discount if applicable
 				percentage = computePercentage(amount, userPricingOptional.getCustomAmount());
 			}
 		}
+		if(amount.doubleValue() <= 0){ return percentage; }
 
+		if(percentage.doubleValue() > userPricingOptional.getCapPrice().doubleValue()){
+			percentage = userPricingOptional.getCapPrice();
+		}
+
+		log.info("CAP PRICE ::" + userPricingOptional.getCapPrice());
+		log.info("TRANSACTION FEE ::" + percentage);
 		return percentage;
 
 	}
@@ -6770,16 +6764,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 		String email = tokenData != null ? tokenData.getEmail() : "";
 		String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
-		// **********************************************
 
-		// AUth Security check
-		// **********************************************
-
-		// **********************************************
-		// Account Transaction Locks
-		// *********************************************
-
-		// **********************************************
 		String tranId;
 		if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
 			tranId = tempwallet.SystemGenerateTranId();
