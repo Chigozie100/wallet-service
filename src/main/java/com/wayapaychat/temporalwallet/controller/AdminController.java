@@ -13,6 +13,8 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
@@ -69,17 +71,14 @@ public class AdminController {
     public ResponseEntity<?> OfficialSendMoney(@Valid @RequestBody OfficeTransferDTO transfer) {
 
         TransferTransactionDTO transactionDTO = new TransferTransactionDTO();
-        transactionDTO.setAmount(transfer.getAmount());
+        BeanUtils.copyProperties(transfer, transactionDTO);
         transactionDTO.setBenefAccountNumber(transfer.getOfficeCreditAccount());
         transactionDTO.setDebitAccountNumber(transfer.getOfficeDebitAccount());
-        transactionDTO.setPaymentReference(transfer.getPaymentReference());
-        transactionDTO.setTranCrncy(transfer.getTranCrncy());
-        transactionDTO.setTranNarration(transfer.getTranNarration());
         transactionDTO.setTransactionCategory(TransactionTypeEnum.TRANSFER.name());
-        transactionDTO.setTranType(transfer.getTranType());
+
         try{
             log.info("Send Money: {}", transfer);
-            return coreBankingService.transfer(transactionDTO, "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+            return coreBankingService.transfer(transactionDTO, "WAYAOFFTOCUS");
 
         }catch (CustomException ex){
             return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
@@ -95,18 +94,14 @@ public class AdminController {
     public ResponseEntity<?> OfficialUserMoneyEventID(@Valid @RequestBody OfficeUserTransferDTO transfer) {
 
         TransferTransactionDTO transactionDTO = new TransferTransactionDTO();
-        transactionDTO.setAmount(transfer.getAmount());
+        BeanUtils.copyProperties(transfer, transactionDTO);  
         transactionDTO.setBenefAccountNumber(transfer.getCustomerCreditAccount());
         transactionDTO.setDebitAccountNumber(transfer.getOfficeDebitAccount());
-        transactionDTO.setPaymentReference(transfer.getPaymentReference());
-        transactionDTO.setTranCrncy(transfer.getTranCrncy());
-        transactionDTO.setTranNarration(transfer.getTranNarration());
         transactionDTO.setTransactionCategory(TransactionTypeEnum.TRANSFER.name());
-        transactionDTO.setTranType(transfer.getTranType());
 
         try{
             log.info("Send Money: {}", transfer);
-            return coreBankingService.transfer(transactionDTO, "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+            return coreBankingService.transfer(transactionDTO, "WAYAOFFTOCUS");
 
         }catch (CustomException ex){
             return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
