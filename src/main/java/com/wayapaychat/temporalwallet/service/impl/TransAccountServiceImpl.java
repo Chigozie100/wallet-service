@@ -2905,20 +2905,23 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Override
 	public ApiResponse<?> AdminSendMoneyCustomer(HttpServletRequest request, AdminWalletTransactionDTO transfer) {
-		Provider provider = switchWalletService.getActiveProvider();
-		System.out.println("provider :: {} " + provider);
-		if (provider == null) {
-			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NO PROVIDER SWITCHE", null);
+		Optional<WalletUser> wallet = walletUserRepository.findByEmailOrPhoneNumberOrId(transfer.getEmailOrPhoneNumberOrUserId());
+		if (!wallet.isPresent()) {
+				return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE OR ID DOES NOT EXIST",null);
 		}
-		log.info("WALLET PROVIDER: " + provider.getName());
-		switch (provider.getName()) {
-			case ProviderType.MIFOS:
-				return AdminSendMoneyCustomerSwitch(request, transfer, true);
-			case ProviderType.TEMPORAL:
-				return AdminSendMoneyCustomerSwitch(request, transfer, false);
-			default:
-				return AdminSendMoneyCustomerSwitch(request, transfer, false);
+ 
+		Optional<WalletAccount> defaultAcct = walletAccountRepository.findByDefaultAccount(wallet.get());
+		if (defaultAcct.isEmpty()) {
+			return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "NO ACCOUNT NUMBER EXIST", null);
 		}
+
+		OfficeUserTransferDTO _transfer = new OfficeUserTransferDTO();
+		BeanUtils.copyProperties(transfer, _transfer);
+		_transfer.setOfficeDebitAccount(transfer.getDebitAccountNumber());
+		_transfer.setCustomerCreditAccount(defaultAcct.get().getAccountNo());
+
+		return OfficialUserTransfer(request, _transfer, false);
+
 	}
 
 	public ApiResponse<?> AdminSendMoneyCustomerSwitch(HttpServletRequest request, AdminWalletTransactionDTO transfer, boolean isMifos) {
