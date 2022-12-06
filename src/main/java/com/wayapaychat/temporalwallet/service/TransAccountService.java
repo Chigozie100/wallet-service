@@ -26,7 +26,7 @@ public interface TransAccountService {
 
 	ResponseEntity<?> adminTransferForUser(HttpServletRequest request, String command, AdminUserTransferDTO adminTranser);
 
-	ApiResponse<?> cashTransferByAdmin(HttpServletRequest request, String command, WalletAdminTransferDTO adminTranser);
+	ResponseEntity<?> cashTransferByAdmin(HttpServletRequest request, String command, WalletAdminTransferDTO adminTranser);
 
 	ApiResponse<TransactionRequest> transferUserToUser(HttpServletRequest request, String command, TransactionRequest transfer);
 
@@ -72,7 +72,7 @@ public interface TransAccountService {
 
 	ResponseEntity<?> AdminCommissionMoney(HttpServletRequest request, CommissionTransferDTO transfer);
 
-	ApiResponse<?> ClientCommissionMoney(HttpServletRequest request, ClientComTransferDTO transfer);
+	ResponseEntity<?> ClientCommissionMoney(HttpServletRequest request, ClientComTransferDTO transfer);
 
 	ResponseEntity<?> sendMoneyCustomer(HttpServletRequest request, WalletTransactionDTO transfer);
 
@@ -132,9 +132,9 @@ public interface TransAccountService {
 
 	ResponseEntity<?> BankTransferPaymentOfficialMultiple(HttpServletRequest request, List<BankPaymentOfficialDTO> transfer);
 
-	ApiResponse<?> EventNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer);
+	ResponseEntity<?> EventNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer);
 
-	ApiResponse<?> EventNonPaymentMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer);
+	ResponseEntity<?> EventNonPaymentMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer);
 
 	ResponseEntity<?> getListOfNonWayaTransfers(HttpServletRequest request, String userId, int page, int  size);
 
