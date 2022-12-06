@@ -52,13 +52,13 @@ public interface TransAccountService {
 
 	ResponseEntity<?> PostExternalMoney(HttpServletRequest request, CardRequestPojo transfer, Long userId);
 
-	ApiResponse<?> OfficialMoneyTransferSw(HttpServletRequest request, OfficeTransferDTO transfer);
+	ResponseEntity<?> OfficialMoneyTransferSw(HttpServletRequest request, OfficeTransferDTO transfer);
 
 	ResponseEntity<?> doOfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer);
 
 	ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer, boolean isMifos);
-	
-	ApiResponse<?> OfficialUserTransferSystemSwitch(Map<String, String > mapp, String token, HttpServletRequest request, OfficeUserTransferDTO transfer);
+
+	ResponseEntity<?> OfficialUserTransferSystemSwitch(Map<String, String > mapp, String token, HttpServletRequest request, OfficeUserTransferDTO transfer);
 
 	ApiResponse<?> OfficialUserTransferMultiple(HttpServletRequest request, List<OfficeUserTransferDTO> transfer);
 
@@ -70,15 +70,15 @@ public interface TransAccountService {
 
 	ApiResponse<?> AdminSendMoneyMultiple(HttpServletRequest request, List<AdminLocalTransferDTO> transfer);
 
-	ApiResponse<?> AdminCommissionMoney(HttpServletRequest request, CommissionTransferDTO transfer);
+	ResponseEntity<?> AdminCommissionMoney(HttpServletRequest request, CommissionTransferDTO transfer);
 
 	ApiResponse<?> ClientCommissionMoney(HttpServletRequest request, ClientComTransferDTO transfer);
 
-	ApiResponse<?> sendMoneyCustomer(HttpServletRequest request, WalletTransactionDTO transfer);
+	ResponseEntity<?> sendMoneyCustomer(HttpServletRequest request, WalletTransactionDTO transfer);
 
 	ApiResponse<?> AdminSendMoneyCustomer(HttpServletRequest request, AdminWalletTransactionDTO transfer);
 
-	ApiResponse<?> ClientSendMoneyCustomer(HttpServletRequest request, ClientWalletTransactionDTO transfer);
+	ResponseEntity<?> ClientSendMoneyCustomer(HttpServletRequest request, ClientWalletTransactionDTO transfer);
 
 	ApiResponse<?> getStatement(String accountNumber);
 
@@ -100,7 +100,7 @@ public interface TransAccountService {
 
 	ResponseEntity<?> EventCommissionPayment(HttpServletRequest request, EventPaymentDTO eventPay);
 
-	ApiResponse<?> sendMoneyCharge(HttpServletRequest request, WalletTransactionChargeDTO transfer);
+	ResponseEntity<?>  sendMoneyCharge(HttpServletRequest request, WalletTransactionChargeDTO transfer);
 
 	ResponseEntity<?> TranReversePayment(HttpServletRequest request, ReverseTransactionDTO reverseDto) throws ParseException;
 
@@ -126,7 +126,7 @@ public interface TransAccountService {
 
 	ApiResponse<?> PaymentTransFilter(String acctNo);
 
-	ResponseEntity<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer, boolean isMifos);
+	ResponseEntity<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer);
 
 	ResponseEntity<?> BankTransferPaymentOfficial(HttpServletRequest request, BankPaymentOfficialDTO transfer);
 
