@@ -201,8 +201,8 @@ public class AdminController {
     public ResponseEntity<?> CommissionMoney(HttpServletRequest request,
                                              @Valid @RequestBody ClientComTransferDTO transfer) {
 
-        ApiResponse<?> res = transAccountService.ClientCommissionMoney(request, transfer);
-        if (!res.getStatus()) {
+        ResponseEntity<?> res = transAccountService.ClientCommissionMoney(request, transfer);
+        if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
         log.info("Send Money: {}", transfer);
@@ -249,8 +249,8 @@ public class AdminController {
     @PostMapping("/admin/wallet/payment")
     public ResponseEntity<?> AdminPaymentService(HttpServletRequest request,
                                                  @RequestBody() WalletAdminTransferDTO walletDto, @RequestParam("command") String command) {
-        ApiResponse<?> res = transAccountService.cashTransferByAdmin(request, command, walletDto);
-        if (!res.getStatus()) {
+        ResponseEntity<?> res = transAccountService.cashTransferByAdmin(request, command, walletDto);
+        if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
         return new ResponseEntity<>(res, HttpStatus.OK);
