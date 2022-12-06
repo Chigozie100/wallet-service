@@ -105,8 +105,7 @@ public class WalletTransactionController {
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Send Money to Wallet", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/sendmoney/wallet")
-	public ResponseEntity<?> sendMoney(HttpServletRequest request,
-			@Valid @RequestBody TransferTransactionDTO transfer) {
+	public ResponseEntity<?> sendMoney(@Valid @RequestBody TransferTransactionDTO transfer) {
 
 		try{
 			return coreBankingService.transfer(transfer, "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
@@ -165,17 +164,8 @@ public class WalletTransactionController {
 	@ApiOperation(value = "Send Money to commercial bank", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/fund/bank/account")
 	public ResponseEntity<?> fundBank(HttpServletRequest request, @Valid @RequestBody BankPaymentDTO transfer) {
-		System.out.println("transfer : {} " + transfer);
-		Map<String, Object> map =  buildObject(transfer);
 
-		Map<String, Object> map1 = transactionService.processPayment(request,map);
-		String channel = (String) map1.get("channel");
-		String eventId = (String) map1.get("eventId");
-		log.info("channel : {} " + channel);
-		transfer.setEventId(eventId);
-		boolean isMifos = (Boolean) map1.get("isMifos");
-
-		return transAccountService.BankTransferPayment(request, transfer, isMifos);
+		return transAccountService.BankTransferPayment(request, transfer);
 
 	}
 
@@ -185,8 +175,8 @@ public class WalletTransactionController {
 	@PostMapping("/sendmoney/wallet/charge")
 	public ResponseEntity<?> PushsendMoney(HttpServletRequest request,
 			@Valid @RequestBody WalletTransactionChargeDTO transfer) {
-		ApiResponse<?> res = transAccountService.sendMoneyCharge(request, transfer);
-		if (!res.getStatus()) {
+		ResponseEntity<?>  res = transAccountService.sendMoneyCharge(request, transfer);
+		if (!res.getStatusCode().is2xxSuccessful()) {
 			return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
 		}
 		log.info("Send Money: {}", transfer);
@@ -200,8 +190,8 @@ public class WalletTransactionController {
 	public ResponseEntity<?> sendMoneyCustomer(HttpServletRequest request,
 			@Valid @RequestBody WalletTransactionDTO transfer) {
 
-		ApiResponse<?> res = transAccountService.sendMoneyCustomer(request, transfer);
-		if (!res.getStatus()) {
+		ResponseEntity<?> res = transAccountService.sendMoneyCustomer(request, transfer);
+		if (!res.getStatusCode().is2xxSuccessful()) {
 			return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
 		}
 		log.info("Send Money: {}", transfer);
@@ -217,8 +207,8 @@ public class WalletTransactionController {
 	public ResponseEntity<?> ClientSendMoney(HttpServletRequest request,
 			@Valid @RequestBody ClientWalletTransactionDTO transfer) {
 
-		ApiResponse<?> res = transAccountService.ClientSendMoneyCustomer(request, transfer);
-		if (!res.getStatus()) {
+		ResponseEntity<?> res = transAccountService.ClientSendMoneyCustomer(request, transfer);
+		if (!res.getStatusCode().is2xxSuccessful()) {
 			return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
 		}
 		log.info("Send Money: {}", transfer);
@@ -243,11 +233,6 @@ public class WalletTransactionController {
 	@PostMapping("/fund/transfer/wallet")
 	public ResponseEntity<?> handleTransactions(HttpServletRequest request,
 			@RequestBody TransferTransactionDTO transactionPojo) {
-
-//		Map<String, Object> map =  buildObject(transactionPojo);
-//
-//		if (!transactionService.processPayment(map))
-//			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
 
 		return transAccountService.makeWalletTransaction(request, "", transactionPojo);
 

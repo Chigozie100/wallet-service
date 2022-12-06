@@ -183,8 +183,8 @@ public class AdminController {
     @PostMapping("/admin/commission/transfer")
     public ResponseEntity<?> AdminCommissionMoney(HttpServletRequest request,
                                                   @Valid @RequestBody CommissionTransferDTO transfer) {
-        ApiResponse<?> res = transAccountService.AdminCommissionMoney(request, transfer);
-        if (!res.getStatus()) {
+        ResponseEntity<?> res = transAccountService.AdminCommissionMoney(request, transfer);
+        if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
         log.info("Send Money: {}", transfer);
