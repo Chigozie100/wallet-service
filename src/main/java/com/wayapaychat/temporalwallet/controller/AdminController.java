@@ -116,8 +116,8 @@ public class AdminController {
     public ResponseEntity<?> OfficialUserMoneyMultiple(HttpServletRequest request,
                                                        @Valid @RequestBody List<OfficeUserTransferDTO> transfer) {
 
-        ApiResponse<?> res = transAccountService.OfficialUserTransferMultiple(request, transfer);
-        if (!res.getStatus()) {
+        ResponseEntity<?> res = transAccountService.OfficialUserTransferMultiple(request, transfer);
+        if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
         log.info("Send Money: {}", transfer);
@@ -429,8 +429,8 @@ public class AdminController {
     @PostMapping("/transfer/bulk-transaction")
     public ResponseEntity<?> createBulkTrans(HttpServletRequest request,
                                              @Valid @RequestBody BulkTransactionCreationDTO userList) {
-        ApiResponse<?> res = transAccountService.createBulkTransaction(request, userList);
-        if (!res.getStatus()) {
+        ResponseEntity<?> res = transAccountService.createBulkTransaction(request, userList);
+        if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
         log.info("Send Money: {}", userList);
@@ -443,8 +443,8 @@ public class AdminController {
             "ADMIN" })
     @PostMapping(path = "/transfer/bulk-transaction-excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createBulkTransExcel(HttpServletRequest request, @RequestPart("file") MultipartFile file) {
-        ApiResponse<?> res = transAccountService.createBulkExcelTrans(request, file);
-        if (!res.getStatus()) {
+        ResponseEntity<?> res = transAccountService.createBulkExcelTrans(request, file);
+        if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
         log.info("Send Money: {}", file);

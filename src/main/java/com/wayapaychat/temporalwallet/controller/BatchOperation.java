@@ -44,8 +44,8 @@ public class BatchOperation {
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER')")
     public ResponseEntity<?> OfficialUserMoney(HttpServletRequest request,
                                                @Valid @RequestBody List<OfficeUserTransferDTO> transfer) {
-        ApiResponse<?> res = transAccountService.OfficialUserTransferMultiple(request, transfer);
-        if (!res.getStatus()) {
+        ResponseEntity<?> res = transAccountService.OfficialUserTransferMultiple(request, transfer);
+        if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
         log.info("Send Money: {}", transfer);

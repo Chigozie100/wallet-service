@@ -366,8 +366,8 @@ public class WalletTransactionController {
 			"TRANSACTION-WALLET" })
 	@PostMapping("/non-waya/transaction/redeem")
 	public ResponseEntity<?> NonWayaRedeem(HttpServletRequest request, @RequestBody() NonWayaPaymentDTO walletDto) {
-		ApiResponse<?> res = transAccountService.EventNonRedeem(request, walletDto);
-		if (!res.getStatus()) {
+		ResponseEntity<?> res = transAccountService.EventNonRedeem(request, walletDto);
+		if (!res.getStatusCode().is2xxSuccessful()) {
 			return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
 		}
 		return new ResponseEntity<>(res, HttpStatus.OK);
@@ -379,8 +379,8 @@ public class WalletTransactionController {
 			"TRANSACTION-WALLET" })
 	@PostMapping("/non-waya/transaction/redeem-multiple")
 	public ResponseEntity<?> NonWayaRedeemMultiple(HttpServletRequest request, @RequestBody() List<NonWayaPaymentDTO> walletDto) {
-		ApiResponse<?> res = transAccountService.EventNonRedeemMultiple(request, walletDto);
-		if (!res.getStatus()) {
+		ResponseEntity<?> res = transAccountService.EventNonRedeemMultiple(request, walletDto);
+		if (!res.getStatusCode().is2xxSuccessful()) {
 			return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
 		}
 		return new ResponseEntity<>(res, HttpStatus.OK);
@@ -566,7 +566,6 @@ public class WalletTransactionController {
 		return transAccountService.WayaPaymentRequestUsertoUser(request, transfer);
 	}
 
-
 	// Wallet call by other service
 
 
@@ -750,26 +749,5 @@ public class WalletTransactionController {
 	public BigDecimal getUserTransactionFee(@PathVariable String accountNo, @PathVariable BigDecimal amount, @PathVariable String eventId) {
 		return transAccountService.computeTransFee(accountNo,amount,eventId);
 	}
-
-	private Map<String, Object> buildObject(EventPaymentDTO transfer){
-		Map<String, Object> map = new HashMap<>();
-		map.put("debitAccountNumber", transfer.getCustomerAccountNumber());
-		map.put("eventId", transfer.getEventId());
-		map.put("transCategory", transfer.getTransactionCategory());
-		map.put("tranCrncy", transfer.getTranCrncy());
-		map.put("amount", transfer.getAmount());
-		return map;
-	}
-	private Map<String, Object> buildObject(BankPaymentDTO transfer){
-		Map<String, Object> map = new HashMap<>();
-		map.put("debitAccountNumber", transfer.getCustomerAccountNumber());
-		map.put("eventId", "BANKPMT");
-		map.put("transCategory", transfer.getTransactionCategory());
-		map.put("tranCrncy", transfer.getTranCrncy());
-		map.put("amount", transfer.getAmount());
-		return map;
-	}
-
-
 
 }
