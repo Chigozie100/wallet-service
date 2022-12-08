@@ -510,12 +510,12 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         Optional<WalletAccount> ownerAccount = walletAccountRepository.findByAccount(accountNumber);
         if (!ownerAccount.isPresent()) {
-            return new ResponseEntity<>(new ErrorResponse("INVALID SOURCE ACCOUNT"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ErrorResponse(String.format("INVALID SOURCE ACCOUNT %s", accountNumber)), HttpStatus.BAD_REQUEST);
         }
 
         AccountSumary account = tempwallet.getAccountSumaryLookUp(accountNumber);
         if(account == null){
-            return new ResponseEntity<>(new ErrorResponse("INVALID SOURCE ACCOUNT"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ErrorResponse(String.format("INVALID SOURCE ACCOUNT %s", accountNumber)), HttpStatus.BAD_REQUEST);
         }
 
         double sufficientFunds = ownerAccount.get().getCum_cr_amt() - ownerAccount.get().getCum_dr_amt() -  ownerAccount.get().getLien_amt() - amount.doubleValue();
@@ -542,7 +542,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         if(!isOwner && !isWriteAdmin){
             log.error("owner check {} {}", isOwner, isWriteAdmin);
-            return new ResponseEntity<>(new ErrorResponse("INVALID SOURCE ACCOUNT"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ErrorResponse(String.format("INVALID SOURCE ACCOUNT %s %s %s", accountNumber, isOwner, isWriteAdmin)), HttpStatus.BAD_REQUEST);
         }
 
         addLien(ownerAccount.get(),  amount);
