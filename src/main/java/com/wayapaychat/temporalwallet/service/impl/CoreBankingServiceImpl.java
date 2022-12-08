@@ -444,7 +444,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             walletTransAccount.setStatus(status);
             return walletTransAccountRepository.save(walletTransAccount).getId();
         } catch (CustomException ex) {
-            return null;
+            log.info("logTransaction ::::" + ex.getMessage());
+            throw new CustomException("Error in loggin transaction :: " + ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
 
     }
