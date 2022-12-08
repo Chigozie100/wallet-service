@@ -519,6 +519,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         double sufficientFunds = ownerAccount.get().getCum_cr_amt() - ownerAccount.get().getCum_dr_amt() -  ownerAccount.get().getLien_amt() - amount.doubleValue();
+
+        System.out.println(" sufficientFunds :: " + sufficientFunds);
         if(sufficientFunds < 0){
             return new ResponseEntity<>(new ErrorResponse("INSUFFICIENT FUNDS"), HttpStatus.BAD_REQUEST);
         }
