@@ -1197,9 +1197,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	public ResponseEntity<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer) {
 
+		log.info("BankTransferPayment :: " + transfer);
+
 		MyData userToken = (MyData)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-		String wayaDisbursementAccount = coreBankingService.getEventAccountNumber(transfer.getEventId());
+		String wayaDisbursementAccount = coreBankingService.getEventAccountNumber(EventCharge.BANKPMT.name());
+
+		log.info("BankTransferPayment :: wayaDisbursementAccount " + wayaDisbursementAccount);
 
 		ResponseEntity<?> debitResponse = coreBankingService.transfer( new TransferTransactionDTO( transfer.getCustomerAccountNumber(),  wayaDisbursementAccount, transfer.getAmount(),
 				TransactionTypeEnum.TRANSFER.getValue(), "NGN",  transfer.getTranNarration(),
