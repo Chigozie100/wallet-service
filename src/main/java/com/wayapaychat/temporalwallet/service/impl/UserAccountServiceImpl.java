@@ -1729,11 +1729,11 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 			if(isBlock){
 			mifosBlockAccount.setNarration("block account");
-			CompletableFuture.runAsync(()-> processBlocking(token, mifosBlockAccount, true));
+			//CompletableFuture.runAsync(()-> processBlocking(token, mifosBlockAccount, true));
 
 		}else{
 			mifosBlockAccount.setNarration("unblock account");
-			CompletableFuture.runAsync(()-> processBlocking(token, mifosBlockAccount, false));
+			//CompletableFuture.runAsync(()-> processBlocking(token, mifosBlockAccount, false));
 		}
 
 		} catch (Exception e) {
@@ -1741,7 +1741,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 	}
 
-	// private void processBlocking(String token, MifosBlockAccount mifosBlockAccount, boolean isBlocking){
+ private void processBlocking(String token, MifosBlockAccount mifosBlockAccount, boolean isBlocking){
 	// 	try {
 	// 		if(isBlocking){
 	// 			ApiResponse<?> response = mifosWalletProxy.blockAccount(token,mifosBlockAccount);
@@ -1754,7 +1754,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 	// 	} catch (Exception e) {
 	// 		throw new CustomException(e.getMessage(),HttpStatus.BAD_REQUEST);
 	// 	}
-	// }
+	}
 
 
 	@Override
