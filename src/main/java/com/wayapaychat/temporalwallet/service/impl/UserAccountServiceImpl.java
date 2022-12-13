@@ -1728,11 +1728,11 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 			if(isBlock){
 			mifosBlockAccount.setNarration("block account");
-			CompletableFuture.runAsync(()-> processBlocking(token, mifosBlockAccount, true));
+			//CompletableFuture.runAsync(()-> processBlocking(token, mifosBlockAccount, true));
 
 		}else{
 			mifosBlockAccount.setNarration("unblock account");
-			CompletableFuture.runAsync(()-> processBlocking(token, mifosBlockAccount, false));
+			//CompletableFuture.runAsync(()-> processBlocking(token, mifosBlockAccount, false));
 		}
 
 		} catch (Exception e) {
