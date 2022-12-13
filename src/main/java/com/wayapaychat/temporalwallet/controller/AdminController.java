@@ -278,16 +278,13 @@ public class AdminController {
 
     
     @ApiImplicitParams({
-        @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-@ApiOperation(value = "Office Event: Temporal - Official Transfer Multiple", notes = "Transfer amount from Temporal wallet to Official wallet mutiliple transaction", tags = {
-        "ADMIN" })
-@PostMapping("/event/office/temporal-to-official")
-public ResponseEntity<?> TemporalToOfficialWallet(HttpServletRequest request, @RequestBody() TemporalToOfficialWalletDTO walletDto) {
-    return transAccountService.TemporalWalletToOfficialWallet(request, walletDto);
-}
-
-
-
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Office Event: Temporal - Official Transfer Multiple", notes = "Transfer amount from Temporal wallet to Official wallet mutiliple transaction", tags = {
+            "ADMIN" })
+    @PostMapping("/event/office/temporal-to-official")
+    public ResponseEntity<?> TemporalToOfficialWallet(HttpServletRequest request, @RequestBody() TemporalToOfficialWalletDTO walletDto) {
+        return transAccountService.TemporalWalletToOfficialWallet(request, walletDto);
+    }
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
