@@ -690,7 +690,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 	// 		throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
 	// 	}
 		return new ResponseEntity<>(new SuccessResponse("Successfully createAccountOnMIFOS"),
-	// 			HttpStatus.OK);
+				HttpStatus.OK);
 }
 
 	public ResponseEntity<?> modifyUserAccount(UserAccountDTO user) {
