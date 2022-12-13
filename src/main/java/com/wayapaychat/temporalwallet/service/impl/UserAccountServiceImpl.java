@@ -38,19 +38,44 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserAccountServiceImpl implements UserAccountService {
 
-	private final WalletUserRepository walletUserRepository;
-	private final WalletAccountRepository walletAccountRepository;
-	private final WalletProductRepository walletProductRepository;
-	private final WalletProductCodeRepository walletProductCodeRepository;
-	private final AuthUserServiceDAO authService;
-	private final ReqIPUtils reqUtil;
-	private final ParamDefaultValidation paramValidation;
-	private final WalletTellerRepository walletTellerRepository;
-	private final TemporalWalletDAO tempwallet;
-	private final WalletEventRepository walletEventRepo;
-	private final MifosWalletProxy mifosWalletProxy;
-	private final TokenImpl tokenService;
-	private final UserPricingService userPricingService;
+	@Autowired
+	private WalletUserRepository walletUserRepository;
+
+	@Autowired
+	private WalletAccountRepository walletAccountRepository;
+
+	@Autowired
+	private  WalletProductRepository walletProductRepository;
+	
+	@Autowired
+	private  WalletProductCodeRepository walletProductCodeRepository;
+
+	@Autowired
+	private AuthUserServiceDAO authService;
+
+	@Autowired
+	private ReqIPUtils reqUtil;
+
+	@Autowired
+	private ParamDefaultValidation paramValidation;
+
+	@Autowired
+	private WalletTellerRepository walletTellerRepository;
+
+	@Autowired
+	private TemporalWalletDAO tempwallet;
+	
+	@Autowired
+	private WalletEventRepository walletEventRepo;
+
+	@Autowired
+	private MifosWalletProxy mifosWalletProxy;
+
+	@Autowired
+	private TokenImpl tokenService;
+
+	@Autowired
+	UserPricingService userPricingService;
 
 
 	@Value("${waya.wallet.productcode}")
@@ -68,26 +93,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 	@Value("${ofi.financialInstitutionCode}")
 	private String financialInstitutionCode;
 
-	@Autowired
-	public UserAccountServiceImpl(WalletUserRepository walletUserRepository, WalletAccountRepository walletAccountRepository, WalletProductRepository walletProductRepository,
-								  WalletProductCodeRepository walletProductCodeRepository, AuthUserServiceDAO authService, ReqIPUtils reqUtil, ParamDefaultValidation paramValidation,
-								  WalletTellerRepository walletTellerRepository, TemporalWalletDAO tempwallet, WalletEventRepository walletEventRepo, MifosWalletProxy mifosWalletProxy, TokenImpl tokenService, UserPricingService userPricingService) {
-		this.walletUserRepository = walletUserRepository;
-		this.walletAccountRepository = walletAccountRepository;
-		this.walletProductRepository = walletProductRepository;
-		this.walletProductCodeRepository = walletProductCodeRepository;
-		this.authService = authService;
-		this.reqUtil = reqUtil;
-		this.paramValidation = paramValidation;
-		this.walletTellerRepository = walletTellerRepository;
-		this.tempwallet = tempwallet;
-		this.walletEventRepo = walletEventRepo;
-		this.mifosWalletProxy = mifosWalletProxy;
-		this.tokenService = tokenService;
-		this.userPricingService = userPricingService;
-	}
-
-
+	
+ 
 	public String generateRandomNumber(int length) {
 
 		int randNumOrigin = generateRandomNumber(58, 34);
