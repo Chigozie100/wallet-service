@@ -78,7 +78,7 @@ public class AdminController {
 
         try{
             log.info("Send Money: {}", transfer);
-            return coreBankingService.transfer(transactionDTO, "WAYAOFFTOCUS");
+            return coreBankingService.transfer(transactionDTO, "WAYAOFFTOOFF");
 
         }catch (CustomException ex){
             return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
@@ -275,6 +275,18 @@ public class AdminController {
     public ResponseEntity<?> TemporalToOfficialWalletDTO(HttpServletRequest request, @RequestBody() List<TemporalToOfficialWalletDTO> walletDto) {
         return transAccountService.TemporalWalletToOfficialWalletMutiple(request, walletDto);
     }
+
+    
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+@ApiOperation(value = "Office Event: Temporal - Official Transfer Multiple", notes = "Transfer amount from Temporal wallet to Official wallet mutiliple transaction", tags = {
+        "ADMIN" })
+@PostMapping("/event/office/temporal-to-official")
+public ResponseEntity<?> TemporalToOfficialWallet(HttpServletRequest request, @RequestBody() TemporalToOfficialWalletDTO walletDto) {
+    return transAccountService.TemporalWalletToOfficialWallet(request, walletDto);
+}
+
+
 
 
     @ApiImplicitParams({

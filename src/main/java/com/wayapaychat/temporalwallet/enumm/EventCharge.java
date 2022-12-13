@@ -3,7 +3,15 @@ package com.wayapaychat.temporalwallet.enumm;
 import java.util.Optional;
 
 public enum EventCharge {
-    BANKPMT;
+    BANKPMT,
+    FUNDINGVIACARD,
+    MANAGEMENTACCOUNT,
+    ADDCARD,
+    INCOME_,
+    VAT_,
+    DISBURS_,
+    COLLECTION_,
+    PAYSTACK;
     public static Optional<EventCharge> find(String value){
         if (isNonEmpty(value)){
             try {

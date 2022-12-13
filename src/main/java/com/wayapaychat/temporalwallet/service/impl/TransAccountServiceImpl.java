@@ -166,27 +166,32 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	@Override
 	public ResponseEntity<?> EventTransferPayment(HttpServletRequest request, EventPaymentDTO transfer, boolean isMifos) {
+		
 		log.info("Transaction Request Creation: {}", transfer.toString());
+
+		TransferTransactionDTO transferTransactionDTO =null;
+		String managementAccount = null;
 
 		Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(transfer.getEventId());
 		if(eventInfo.isEmpty()){
 			return new ResponseEntity<>(new ErrorResponse("ERROR PROCESSING TRANSACTION"), HttpStatus.BAD_REQUEST);
 		}
 
-		String nonWayaDisbursementAccount = coreBankingService.getEventAccountNumber(transfer.getEventId());
-		TransferTransactionDTO transferTransactionDTO;
 		if(eventInfo.get().isChargeWaya()){
-			transferTransactionDTO = new TransferTransactionDTO( nonWayaDisbursementAccount, transfer.getCustomerAccountNumber(), transfer.getAmount(), 
+			managementAccount = coreBankingService.getEventAccountNumber( EventCharge.DISBURS_.name().concat(transfer.getEventId()) );
+			transferTransactionDTO = new TransferTransactionDTO( managementAccount, transfer.getCustomerAccountNumber(), transfer.getAmount(), 
 											TransactionTypeEnum.TRANSFER.getValue(), "NGN",  transfer.getTranNarration(), 
 															transfer.getPaymentReference(), CategoryType.TRANSFER.getValue());
 		}
 		else{
-			transferTransactionDTO = new TransferTransactionDTO( transfer.getCustomerAccountNumber(), nonWayaDisbursementAccount, transfer.getAmount(), 
+			managementAccount = coreBankingService.getEventAccountNumber( EventCharge.COLLECTION_.name().concat(transfer.getEventId()) );
+			transferTransactionDTO = new TransferTransactionDTO( transfer.getCustomerAccountNumber(), managementAccount, transfer.getAmount(), 
 											TransactionTypeEnum.TRANSFER.getValue(), "NGN",  transfer.getTranNarration(), 
 															transfer.getPaymentReference(), CategoryType.TRANSFER.getValue());
+		
 		}
 		
-		return coreBankingService.transfer( transferTransactionDTO,  "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+		return coreBankingService.transfer( transferTransactionDTO, transfer.getEventId());
 
 	}
 
