@@ -7,7 +7,8 @@ import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
-import com.wayapaychat.temporalwallet.pojo.*; 
+import com.wayapaychat.temporalwallet.pojo.*;
+import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
 import com.wayapaychat.temporalwallet.repository.*;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.response.MifosAccountCreationResponse;
@@ -37,42 +38,20 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserAccountServiceImpl implements UserAccountService {
 
-	@Autowired
-	private WalletUserRepository walletUserRepository;
 
-	@Autowired
-	private WalletAccountRepository walletAccountRepository;
-
-	@Autowired
-	private  WalletProductRepository walletProductRepository;
-	
-	@Autowired
-	private  WalletProductCodeRepository walletProductCodeRepository;
-
-	@Autowired
-	private AuthUserServiceDAO authService;
-
-	@Autowired
-	private ReqIPUtils reqUtil;
-
-	@Autowired
-	private ParamDefaultValidation paramValidation;
-
-	@Autowired
-	private WalletTellerRepository walletTellerRepository;
-
-	@Autowired
-	private TemporalWalletDAO tempwallet;
-
-	@Autowired
-	private WalletEventRepository walletEventRepo;
- 
-
-	@Autowired
-	private TokenImpl tokenService;
-
-	@Autowired
-	UserPricingService userPricingService;
+	private final WalletUserRepository walletUserRepository;
+	private final WalletAccountRepository walletAccountRepository;
+	private final WalletProductRepository walletProductRepository;
+	private final WalletProductCodeRepository walletProductCodeRepository;
+	private final AuthUserServiceDAO authService;
+	private final ReqIPUtils reqUtil;
+	private final ParamDefaultValidation paramValidation;
+	private final WalletTellerRepository walletTellerRepository;
+	private final TemporalWalletDAO tempwallet;
+	private final WalletEventRepository walletEventRepo;
+	private final MifosWalletProxy mifosWalletProxy;
+	private final TokenImpl tokenService;
+	private final UserPricingService userPricingService;
 
 
 	@Value("${waya.wallet.productcode}")
@@ -89,6 +68,26 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Value("${ofi.financialInstitutionCode}")
 	private String financialInstitutionCode;
+
+
+	@Autowired
+	public UserAccountServiceImpl(WalletUserRepository walletUserRepository, WalletAccountRepository walletAccountRepository, WalletProductRepository walletProductRepository,
+								  WalletProductCodeRepository walletProductCodeRepository, AuthUserServiceDAO authService, ReqIPUtils reqUtil, ParamDefaultValidation paramValidation,
+								  WalletTellerRepository walletTellerRepository, TemporalWalletDAO tempwallet, WalletEventRepository walletEventRepo, MifosWalletProxy mifosWalletProxy, TokenImpl tokenService, UserPricingService userPricingService) {
+		this.walletUserRepository = walletUserRepository;
+		this.walletAccountRepository = walletAccountRepository;
+		this.walletProductRepository = walletProductRepository;
+		this.walletProductCodeRepository = walletProductCodeRepository;
+		this.authService = authService;
+		this.reqUtil = reqUtil;
+		this.paramValidation = paramValidation;
+		this.walletTellerRepository = walletTellerRepository;
+		this.tempwallet = tempwallet;
+		this.walletEventRepo = walletEventRepo;
+		this.mifosWalletProxy = mifosWalletProxy;
+		this.tokenService = tokenService;
+		this.userPricingService = userPricingService;
+	}
 
 	
  
@@ -665,30 +664,30 @@ public class UserAccountServiceImpl implements UserAccountService {
 		mifos.setMobileNumber(userInfo.getMobileNo());
 		mifos.setLastName(userInfo.getLastName());
 
-	// 	try{
-	// 		log.info("mifosWalletProxy :: " + mifosWalletProxy);
-	// 		MifosAccountCreationResponse response = mifosWalletProxy.createAccount(mifos);
-	// 		log.info("pushToMifos after request build ::: " + mifos);
+		try{
+			log.info("mifosWalletProxy :: " + mifosWalletProxy);
+			MifosAccountCreationResponse response = mifosWalletProxy.createAccount(mifos);
+			log.info("pushToMifos after request build ::: " + mifos);
 
-	// 	 log.info("RESPONSE FROM MIFOS::: " + response);
-	// 	}catch (Exception ex){
-	// 		log.info("RESPONSE FROM MIFOS::: " + ex);
-	// 		throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
-	// 	}
+		 log.info("RESPONSE FROM MIFOS::: " + response);
+		}catch (Exception ex){
+			log.info("RESPONSE FROM MIFOS::: " + ex);
+			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+		}
 
 }
 
 	 public ResponseEntity<?> createAccountOnMIFOS(MifosCreateAccount user) {
-	// 	try{
-	// 		System.out.println("mifosWalletProxy :: " + mifosWalletProxy);
-	// 		MifosAccountCreationResponse response = mifosWalletProxy.createAccount(user);
-	// 		log.info("pushToMifos after request build ::: " + user);
+		try{
+			System.out.println("mifosWalletProxy :: " + mifosWalletProxy);
+			MifosAccountCreationResponse response = mifosWalletProxy.createAccount(user);
+			log.info("pushToMifos after request build ::: " + user);
 
-	// 		log.info("RESPONSE FROM MIFOS::: " + response);
-	// 	}catch (Exception ex){
-	// 		log.info("RESPONSE FROM MIFOS::: " + ex);
-	// 		throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
-	// 	}
+			log.info("RESPONSE FROM MIFOS::: " + response);
+		}catch (Exception ex){
+			log.info("RESPONSE FROM MIFOS::: " + ex);
+			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+		}
 		return new ResponseEntity<>(new SuccessResponse("Successfully createAccountOnMIFOS"),
 				HttpStatus.OK);
 }
@@ -1729,11 +1728,11 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 			if(isBlock){
 			mifosBlockAccount.setNarration("block account");
-			//CompletableFuture.runAsync(()-> processBlocking(token, mifosBlockAccount, true));
+			CompletableFuture.runAsync(()-> processBlocking(token, mifosBlockAccount, true));
 
 		}else{
 			mifosBlockAccount.setNarration("unblock account");
-			//CompletableFuture.runAsync(()-> processBlocking(token, mifosBlockAccount, false));
+			CompletableFuture.runAsync(()-> processBlocking(token, mifosBlockAccount, false));
 		}
 
 		} catch (Exception e) {
@@ -1742,18 +1741,18 @@ public class UserAccountServiceImpl implements UserAccountService {
 	}
 
  private void processBlocking(String token, MifosBlockAccount mifosBlockAccount, boolean isBlocking){
-	// 	try {
-	// 		if(isBlocking){
-	// 			ApiResponse<?> response = mifosWalletProxy.blockAccount(token,mifosBlockAccount);
-	// 			log.info("RESPONSE FROM MIFOS blocking account: " + response);
-	// 		}else {
-	// 			ApiResponse<?> response = mifosWalletProxy.blockAccount(token,mifosBlockAccount);
-	// 			log.info("RESPONSE FROM MIFOS unblocking account: " + response);
-	// 		}
+		try {
+			if(isBlocking){
+				ApiResponse<?> response = mifosWalletProxy.blockAccount(token,mifosBlockAccount);
+				log.info("RESPONSE FROM MIFOS blocking account: " + response);
+			}else {
+				ApiResponse<?> response = mifosWalletProxy.blockAccount(token,mifosBlockAccount);
+				log.info("RESPONSE FROM MIFOS unblocking account: " + response);
+			}
 
-	// 	} catch (Exception e) {
-	// 		throw new CustomException(e.getMessage(),HttpStatus.BAD_REQUEST);
-	// 	}
+		} catch (Exception e) {
+			throw new CustomException(e.getMessage(),HttpStatus.BAD_REQUEST);
+		}
 	}
 
 
