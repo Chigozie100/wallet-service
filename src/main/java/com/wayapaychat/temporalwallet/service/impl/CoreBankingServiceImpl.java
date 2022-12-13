@@ -10,6 +10,7 @@ import java.util.concurrent.CompletableFuture;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.math3.util.Precision;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -323,21 +324,26 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         Long tranId = logTransaction(transferTransactionRequestData.getDebitAccountNumber(), transferTransactionRequestData.getBenefAccountNumber(),
                                 transferTransactionRequestData.getAmount(), transferTransactionRequestData.getTransactionCategory(), transferTransactionRequestData.getTranCrncy(), WalletTransStatus.PENDING);
         if (tranId == null) { return new ResponseEntity<>(new ErrorResponse("ERROR PROCESSING TRANSACTION"), HttpStatus.BAD_REQUEST);  }
-
-        String transitAccount = getEventAccountNumber(channelEventId);
-        MyData userData = (MyData)response.getBody();
-        response = processCBATransactionDoubleEntryWithTransit(userData, transferTransactionRequestData.getPaymentReference(), transitAccount, transferTransactionRequestData.getDebitAccountNumber(),  transferTransactionRequestData.getBenefAccountNumber(), 
-                                    transferTransactionRequestData.getTranNarration(), transferTransactionRequestData.getTransactionCategory(), transferTransactionRequestData.getAmount(), provider);
         
+        MyData userData = (MyData)response.getBody();
+        String transitAccount = getEventAccountNumber(channelEventId);
+        response = processCBATransactionDoubleEntryWithTransit(userData, transferTransactionRequestData.getPaymentReference(), transitAccount, transferTransactionRequestData.getDebitAccountNumber(),  transferTransactionRequestData.getBenefAccountNumber(), 
+                                        transferTransactionRequestData.getTranNarration(), transferTransactionRequestData.getTransactionCategory(), transferTransactionRequestData.getAmount(), provider);
+       
+
         if (!response.getStatusCode().is2xxSuccessful()) {
             updateTransactionLog(tranId, WalletTransStatus.REVERSED);
             return response;
         }
 
         // Async or schedule
-        CompletableFuture.runAsync(() -> 
-                    applyCharge(userData, transitAccount, transferTransactionRequestData.getDebitAccountNumber(), transferTransactionRequestData.getTranNarration(), 
-                        transferTransactionRequestData.getTranType(), transferTransactionRequestData.getTransactionCategory(),  transferTransactionRequestData.getAmount(), provider, channelEventId));
+
+        if(transitAccount !=null){
+            final String finalTransitAccount = transitAccount;
+            CompletableFuture.runAsync(() -> 
+            applyCharge(userData, finalTransitAccount, transferTransactionRequestData.getDebitAccountNumber(), transferTransactionRequestData.getTranNarration(), 
+                transferTransactionRequestData.getTranType(), transferTransactionRequestData.getTransactionCategory(),  transferTransactionRequestData.getAmount(), provider, channelEventId));
+        }
 
         updateTransactionLog(tranId, WalletTransStatus.SUCCESSFUL);
 
@@ -349,6 +355,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
 		return new ResponseEntity<>(new SuccessResponse("TRANSACTION SUCCESSFULLY", transaction), HttpStatus.CREATED);
     }
+
+
+    // auto move money WAYA MFB (Mifos) Paystack Intransit disbursement account is debited with 10,000
+    // to User James Waya MFB (Mifos) Customer Account is credited with 10,000
 
     @Override
     public String getEventAccountNumber(String channelEventId) {
@@ -444,7 +454,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             walletTransAccount.setStatus(status);
             return walletTransAccountRepository.save(walletTransAccount).getId();
         } catch (CustomException ex) {
-            return null;
+            log.info("logTransaction ::::" + ex.getMessage());
+            throw new CustomException("Error in loggin transaction :: " + ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
 
     }
@@ -503,24 +514,27 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     @Override
     public ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount) {
+        log.info("securityCheck :: " + accountNumber);
         MyData userToken = (MyData)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (userToken == null) {
             return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
         }
 
         Optional<WalletAccount> ownerAccount = walletAccountRepository.findByAccount(accountNumber);
+        log.info("ownerAccount :: " + ownerAccount);
         if (!ownerAccount.isPresent()) {
             return new ResponseEntity<>(new ErrorResponse(String.format("INVALID SOURCE ACCOUNT %s", accountNumber)), HttpStatus.BAD_REQUEST);
         }
 
         AccountSumary account = tempwallet.getAccountSumaryLookUp(accountNumber);
+        log.info("AccountSumary :: " + account);
         if(account == null){
             return new ResponseEntity<>(new ErrorResponse(String.format("INVALID SOURCE ACCOUNT %s", accountNumber)), HttpStatus.BAD_REQUEST);
         }
 
         double sufficientFunds = ownerAccount.get().getCum_cr_amt() - ownerAccount.get().getCum_dr_amt() -  ownerAccount.get().getLien_amt() - amount.doubleValue();
 
-        System.out.println(" sufficientFunds :: " + sufficientFunds);
+        log.info(" sufficientFunds :: " + sufficientFunds);
         if(sufficientFunds < 0){
             return new ResponseEntity<>(new ErrorResponse("INSUFFICIENT FUNDS"), HttpStatus.BAD_REQUEST);
         }
@@ -540,9 +554,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_APP"::equalsIgnoreCase)? true : isWriteAdmin;
         boolean isOwner =  Long.compare(account.getUId(), userToken.getId()) == 0;
 
-        if(!isOwner && !isWriteAdmin){
-            log.error("owner check {} {}", isOwner, isWriteAdmin);
-            return new ResponseEntity<>(new ErrorResponse(String.format("INVALID SOURCE ACCOUNT %s %s %s", accountNumber, isOwner, isWriteAdmin)), HttpStatus.BAD_REQUEST);
+        if(StringUtils.isNumeric(accountNumber)){
+            if(!isOwner && !isWriteAdmin){
+                log.error("owner check {} {}", isOwner, isWriteAdmin);
+                return new ResponseEntity<>(new ErrorResponse(String.format("INVALID SOURCE ACCOUNT %s %s %s", accountNumber, isOwner, isWriteAdmin)), HttpStatus.BAD_REQUEST);
+            }
         }
 
         addLien(ownerAccount.get(),  amount);
