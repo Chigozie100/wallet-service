@@ -124,12 +124,12 @@ public class UserPricingServiceImpl implements UserPricingService {
     }
 
     @Override
-    public ResponseEntity<?> updateCustomProduct(BigDecimal capAmount, BigDecimal discountAmount, BigDecimal generalAmount, String product) {
-        CompletableFuture.runAsync(() -> processCustomProduct(capAmount, discountAmount, generalAmount, product));
+    public ResponseEntity<?> updateCustomProduct(BigDecimal capAmount, BigDecimal discountAmount, BigDecimal generalAmount, String product, String priceType) {
+        CompletableFuture.runAsync(() -> processCustomProduct(capAmount, discountAmount, generalAmount, product, priceType));
         return new ResponseEntity<>(new SuccessResponse(INPROGRESS, null), HttpStatus.OK);
     }
 
-    private void processCustomProduct(BigDecimal capAmount, BigDecimal discountAmount, BigDecimal generalAmount, String product){
+    private void processCustomProduct(BigDecimal capAmount, BigDecimal discountAmount, BigDecimal generalAmount, String product, String priceType){
         try{
             List<UserPricing> userPricingList = userPricingRepository.findByProduct(product);
 
@@ -138,6 +138,7 @@ public class UserPricingServiceImpl implements UserPricingService {
                 Objects.requireNonNull(userPricing).setGeneralAmount(generalAmount);
                 userPricing.setCapPrice(capAmount);
                 userPricing.setDiscount(discountAmount);
+                userPricing.setPriceType(PriceCategory.valueOf(priceType));
                 userPricingRepository.save(userPricing);
             }
         } catch (Exception e) {

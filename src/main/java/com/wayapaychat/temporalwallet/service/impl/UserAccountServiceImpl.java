@@ -600,7 +600,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			// Commission Wallet
 			if (wallet.is_corporate()) {
 				Optional<WalletAccount> acct = walletAccountRepository.findByAccountUser(userx);
-
+				String _nubanAccountNumber = Util.generateNuban(financialInstitutionCode, accountType);
 				if (!acct.isPresent()) {
 					code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission, wayaCommGLCode);
 					product = walletProductRepository.findByProductCode(wayaProductCommission, wayaCommGLCode);
@@ -622,16 +622,17 @@ public class UserAccountServiceImpl implements UserAccountService {
 					user.setDescription("COMMISSION ACCOUNT");
 					if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 							|| product.getProduct_type().equals("ODA"))) {
-						caccount = new WalletAccount("0000", "", acctNo, "0",acct_name, userx, code.getGlSubHeadCode(),
+						caccount = new WalletAccount("0000", "", acctNo, _nubanAccountNumber,acct_name, userx, code.getGlSubHeadCode(),
 								wayaProductCommission, acct_ownership, hashed_no, product.isInt_paid_flg(),
 								product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 								product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
 								product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(),
 								false, accountType, user.getDescription());
 					}
-					walletAccountRepository.save(caccount);
+					WalletAccount cAcct = walletAccountRepository.save(caccount);
+					// call to Mifos to create commission
+					CompletableFuture.runAsync(()-> pushToMifos(userInfo, cAcct));
 				}
-
 			}
 			sAcct.setWalletDefault(true);
 			walletAccountRepository.save(sAcct);
@@ -1905,7 +1906,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 	public ResponseEntity<?> createDefaultWallet(MyData tokenData) {
 		WalletUserDTO createAccount = new WalletUserDTO();
         // Default Debit Limit SetUp
-        createAccount.setCustDebitLimit(50000.00);
+        createAccount.setCustDebitLimit(0.0);
         // Default Account Expiration Date
         LocalDateTime time = LocalDateTime.of(2099, Month.DECEMBER, 30, 0, 0);
         createAccount.setCustExpIssueDate(Date.from(time.atZone(ZoneId.systemDefault()).toInstant()));

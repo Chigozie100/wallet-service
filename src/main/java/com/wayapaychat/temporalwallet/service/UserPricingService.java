@@ -17,7 +17,7 @@ public interface UserPricingService {
 
     ResponseEntity<?> update(Long userId, BigDecimal discountAmount, BigDecimal customAmount, BigDecimal capAmount, String product);
 
-    ResponseEntity<?> updateCustomProduct(BigDecimal capAmount, BigDecimal discountAmount, BigDecimal customAmount, String product);
+    ResponseEntity<?> updateCustomProduct(BigDecimal capAmount, BigDecimal discountAmount, BigDecimal customAmount, String product, String priceType);
 
     ResponseEntity<?> getAllUserPricing(int page, int size);
 

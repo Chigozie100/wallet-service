@@ -13,7 +13,7 @@ import com.wayapaychat.temporalwallet.pojo.CreateAccountPojo;
 import com.wayapaychat.temporalwallet.pojo.MifosTransactionPojo;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 
-@FeignClient(name = "MIFOS-WALLET-SERVICE", url = "https://services.staging.wayabank.ng/middletier-service", configuration = WalletClientConfiguration.class)
+@FeignClient(name = "MIFOS-WALLET-SERVICE", url = "${waya.wallet.mifosurl}", configuration = WalletClientConfiguration.class)
 public interface MifosWalletProxy {
 
 	//OPEN ENDPOINT, MIFOS ACCOUNT CREATION
