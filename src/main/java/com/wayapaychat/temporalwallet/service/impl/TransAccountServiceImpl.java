@@ -177,13 +177,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 
 		if(eventInfo.get().isChargeWaya()){
-			managementAccount = coreBankingService.getEventAccountNumber( EventCharge.DISBURS_.name().concat(transfer.getEventId()) );
+			managementAccount = coreBankingService.getEventAccountNumber( EventCharge.COLLECTION_.name().concat(transfer.getEventId()) );
 			transferTransactionDTO = new TransferTransactionDTO( managementAccount, transfer.getCustomerAccountNumber(), transfer.getAmount(), 
 											TransactionTypeEnum.TRANSFER.getValue(), "NGN",  transfer.getTranNarration(), 
 															transfer.getPaymentReference(), CategoryType.TRANSFER.getValue());
 		}
 		else{
-			managementAccount = coreBankingService.getEventAccountNumber( EventCharge.COLLECTION_.name().concat(transfer.getEventId()) );
+			managementAccount = coreBankingService.getEventAccountNumber( EventCharge.DISBURS_.name().concat(transfer.getEventId()) );
 			transferTransactionDTO = new TransferTransactionDTO( transfer.getCustomerAccountNumber(), managementAccount, transfer.getAmount(), 
 											TransactionTypeEnum.TRANSFER.getValue(), "NGN",  transfer.getTranNarration(), 
 															transfer.getPaymentReference(), CategoryType.TRANSFER.getValue());

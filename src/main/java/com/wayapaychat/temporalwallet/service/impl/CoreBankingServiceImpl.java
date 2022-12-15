@@ -304,6 +304,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     @Override
     public ResponseEntity<?> transfer(TransferTransactionDTO transferTransactionRequestData, String channelEventId) {
 
+        log.info(" #####  INSIDE TRANSFER ####### " + transferTransactionRequestData);
         ResponseEntity<?> response = securityCheck(transferTransactionRequestData.getDebitAccountNumber(), transferTransactionRequestData.getAmount());
 		if(!response.getStatusCode().is2xxSuccessful()){
 			return response;
