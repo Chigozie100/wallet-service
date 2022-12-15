@@ -331,10 +331,7 @@ public class WalletTransactionController {
 	@PostMapping("/event/trade/payment")
 	public ResponseEntity<?> BuySellPayment(HttpServletRequest request, @RequestBody() WayaTradeDTO walletDto) {
 
-//		Map<String, Object> map =  buildObject(walletDto);
-//
-//		if (!transactionService.processPayment(map))
-//			throw new CustomException("Fraud Detection Error", HttpStatus.EXPECTATION_FAILED);
+ 
 
 		ApiResponse<?> res = transAccountService.EventBuySellPayment(request, walletDto);
 		if (!res.getStatus()) {
