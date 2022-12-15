@@ -521,4 +521,13 @@ public class AdminController {
     }
 
 
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "get official account by event id  ", notes = "get official account by event id", tags = { "ADMIN" })
+    @GetMapping("/offical-account/{eventID}")
+    public ResponseEntity<?> getSingleAccountByEventID(@PathVariable("eventID") String eventId) {
+        return transAccountService.getSingleAccountByEventID(eventId);
+    }
+
+
 }
