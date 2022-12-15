@@ -630,8 +630,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 								false, accountType, user.getDescription());
 					}
 					walletAccountRepository.save(caccount);
+					// call to Mifos to create commission
+					CompletableFuture.runAsync(()-> pushToMifos(userInfo, _nubanAccountNumber));
 				}
-
 			}
 			sAcct.setWalletDefault(true);
 			walletAccountRepository.save(sAcct);
