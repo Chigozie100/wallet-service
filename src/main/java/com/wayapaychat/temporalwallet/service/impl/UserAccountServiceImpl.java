@@ -629,9 +629,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 								product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(),
 								false, accountType, user.getDescription());
 					}
-					walletAccountRepository.save(caccount);
+					WalletAccount cAcct = walletAccountRepository.save(caccount);
 					// call to Mifos to create commission
-					CompletableFuture.runAsync(()-> pushToMifos(userInfo, _nubanAccountNumber));
+					CompletableFuture.runAsync(()-> pushToMifos(userInfo, cAcct));
 				}
 			}
 			sAcct.setWalletDefault(true);
@@ -1906,7 +1906,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 	public ResponseEntity<?> createDefaultWallet(MyData tokenData) {
 		WalletUserDTO createAccount = new WalletUserDTO();
         // Default Debit Limit SetUp
-        createAccount.setCustDebitLimit(50000.00);
+        createAccount.setCustDebitLimit(0.0);
         // Default Account Expiration Date
         LocalDateTime time = LocalDateTime.of(2099, Month.DECEMBER, 30, 0, 0);
         createAccount.setCustExpIssueDate(Date.from(time.atZone(ZoneId.systemDefault()).toInstant()));
