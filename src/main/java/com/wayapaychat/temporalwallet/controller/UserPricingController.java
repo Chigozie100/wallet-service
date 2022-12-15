@@ -59,9 +59,9 @@ public class UserPricingController {
             MediaType.APPLICATION_JSON_VALUE)
     @Async
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
-    public CompletableFuture<ResponseEntity<?>> updateCustomProductPrice(@RequestParam("capAmount") BigDecimal  capAmount, @RequestParam("discountAmount") BigDecimal discountAmount, @RequestParam("customAmount") BigDecimal customAmount, @RequestParam("product") String product) {
+    public CompletableFuture<ResponseEntity<?>> updateCustomProductPrice(@RequestParam("capAmount") BigDecimal  capAmount, @RequestParam("discountAmount") BigDecimal discountAmount, @RequestParam("customAmount") BigDecimal customAmount, @RequestParam("product") String product, @RequestParam("priceType") String priceType) {
 
-        return CompletableFuture.completedFuture(userPricingService.updateCustomProduct(capAmount, discountAmount,customAmount, product));
+        return CompletableFuture.completedFuture(userPricingService.updateCustomProduct(capAmount, discountAmount,customAmount, product, priceType));
     }
 
 
@@ -134,6 +134,17 @@ public class UserPricingController {
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     public CompletableFuture<ResponseEntity<?>> deleteUserPricing(@PathVariable String apiKey) {
         return CompletableFuture.completedFuture(userPricingService.deleteAll(apiKey));
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "delete-all", notes = "delete-all", tags = { "USER-PRICING" })
+    @DeleteMapping(value = "/creat-user-pricing", produces =
+            MediaType.APPLICATION_JSON_VALUE)
+    @Async
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
+    public CompletableFuture<ResponseEntity<?>> create(@PathVariable String userId) {
+        return CompletableFuture.completedFuture(userPricingService.createUserPricing(userId));
     }
 
 

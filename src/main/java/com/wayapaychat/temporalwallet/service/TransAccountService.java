@@ -1,6 +1,7 @@
 package com.wayapaychat.temporalwallet.service;
 
 import java.io.ByteArrayInputStream;
+import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.List;
@@ -14,10 +15,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.wayapaychat.temporalwallet.entity.Transactions;
 import com.wayapaychat.temporalwallet.entity.WalletTransaction;
 import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
-import com.wayapaychat.temporalwallet.pojo.TransactionRequest;
 import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 
@@ -25,9 +24,7 @@ public interface TransAccountService {
 
 	ResponseEntity<?> adminTransferForUser(HttpServletRequest request, String command, AdminUserTransferDTO adminTranser);
 
-	ApiResponse<?> cashTransferByAdmin(HttpServletRequest request, String command, WalletAdminTransferDTO adminTranser);
-
-	ApiResponse<TransactionRequest> transferUserToUser(HttpServletRequest request, String command, TransactionRequest transfer);
+	ResponseEntity<?> cashTransferByAdmin(HttpServletRequest request, String command, WalletAdminTransferDTO adminTranser);
 
 	ApiResponse<Page<WalletTransaction>> findAllTransaction(int page, int size);
 
@@ -36,8 +33,6 @@ public interface TransAccountService {
 	ApiResponse<List<AccountStatementDTO>> ReportTransaction(String accountNo);
 
 	ApiResponse<Page<WalletTransaction>> getTransactionByWalletId(int page, int size, Long walletId);
-
-	ApiResponse<Page<Transactions>> getTransactionByType(int page, int size, String transactionType);
 
 	ApiResponse<Page<WalletTransaction>> findByAccountNumber(int page, int size, String accountNumber);
 
@@ -51,31 +46,33 @@ public interface TransAccountService {
 
 	ResponseEntity<?> PostExternalMoney(HttpServletRequest request, CardRequestPojo transfer, Long userId);
 
-	ApiResponse<?> OfficialMoneyTransferSw(HttpServletRequest request, OfficeTransferDTO transfer);
+	ResponseEntity<?> OfficialMoneyTransferSw(HttpServletRequest request, OfficeTransferDTO transfer);
+
+	ResponseEntity<?> doOfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer);
 
 	ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer, boolean isMifos);
-	
-	ApiResponse<?> OfficialUserTransferSystemSwitch(Map<String, String > mapp, String token, HttpServletRequest request, OfficeUserTransferDTO transfer);
 
-	ApiResponse<?> OfficialUserTransferMultiple(HttpServletRequest request, List<OfficeUserTransferDTO> transfer);
+	ResponseEntity<?> OfficialUserTransferSystemSwitch(Map<String, String > mapp, String token, HttpServletRequest request, OfficeUserTransferDTO transfer);
 
-	ApiResponse<?> createBulkTransaction(HttpServletRequest request, BulkTransactionCreationDTO bulk);
+	ResponseEntity<?> OfficialUserTransferMultiple(HttpServletRequest request, List<OfficeUserTransferDTO> transfer);
 
-	ApiResponse<?> createBulkExcelTrans(HttpServletRequest request, MultipartFile file);
+	ResponseEntity<?> createBulkTransaction(HttpServletRequest request, BulkTransactionCreationDTO bulk);
+
+	ResponseEntity<?> createBulkExcelTrans(HttpServletRequest request, MultipartFile file);
 
 	ApiResponse<?> AdminsendMoney(HttpServletRequest request, AdminLocalTransferDTO transfer);
 
 	ApiResponse<?> AdminSendMoneyMultiple(HttpServletRequest request, List<AdminLocalTransferDTO> transfer);
 
-	ApiResponse<?> AdminCommissionMoney(HttpServletRequest request, CommissionTransferDTO transfer);
+	ResponseEntity<?> AdminCommissionMoney(HttpServletRequest request, CommissionTransferDTO transfer);
 
-	ApiResponse<?> ClientCommissionMoney(HttpServletRequest request, ClientComTransferDTO transfer);
+	ResponseEntity<?> ClientCommissionMoney(HttpServletRequest request, ClientComTransferDTO transfer);
 
-	ApiResponse<?> sendMoneyCustomer(HttpServletRequest request, WalletTransactionDTO transfer);
+	ResponseEntity<?> sendMoneyCustomer(HttpServletRequest request, WalletTransactionDTO transfer);
 
 	ApiResponse<?> AdminSendMoneyCustomer(HttpServletRequest request, AdminWalletTransactionDTO transfer);
 
-	ApiResponse<?> ClientSendMoneyCustomer(HttpServletRequest request, ClientWalletTransactionDTO transfer);
+	ResponseEntity<?> ClientSendMoneyCustomer(HttpServletRequest request, ClientWalletTransactionDTO transfer);
 
 	ApiResponse<?> getStatement(String accountNumber);
 
@@ -97,7 +94,7 @@ public interface TransAccountService {
 
 	ResponseEntity<?> EventCommissionPayment(HttpServletRequest request, EventPaymentDTO eventPay);
 
-	ApiResponse<?> sendMoneyCharge(HttpServletRequest request, WalletTransactionChargeDTO transfer);
+	ResponseEntity<?>  sendMoneyCharge(HttpServletRequest request, WalletTransactionChargeDTO transfer);
 
 	ResponseEntity<?> TranReversePayment(HttpServletRequest request, ReverseTransactionDTO reverseDto) throws ParseException;
 
@@ -123,23 +120,23 @@ public interface TransAccountService {
 
 	ApiResponse<?> PaymentTransFilter(String acctNo);
 
-	ResponseEntity<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer, boolean isMifos);
+	ResponseEntity<?> BankTransferPayment(HttpServletRequest request, BankPaymentDTO transfer);
 
 	ResponseEntity<?> BankTransferPaymentOfficial(HttpServletRequest request, BankPaymentOfficialDTO transfer);
 
 	ResponseEntity<?> BankTransferPaymentOfficialMultiple(HttpServletRequest request, List<BankPaymentOfficialDTO> transfer);
 
-	ApiResponse<?> EventNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer);
+	ResponseEntity<?> EventNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer);
 
-	ApiResponse<?> EventNonPaymentMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer);
+	ResponseEntity<?> EventNonPaymentMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer);
 
 	ResponseEntity<?> getListOfNonWayaTransfers(HttpServletRequest request, String userId, int page, int  size);
 
 	ResponseEntity<?> listOfNonWayaTransfers(HttpServletRequest request, int page, int  size);
 
-	ApiResponse<?> EventNonRedeem(HttpServletRequest request, NonWayaPaymentDTO transfer);
+	ResponseEntity<?> EventNonRedeem(HttpServletRequest request, NonWayaPaymentDTO transfer);
 
-	ApiResponse<?> EventNonRedeemMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer);
+	ResponseEntity<?> EventNonRedeemMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer);
 
 	ResponseEntity<?> transferToNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer);
 
@@ -147,7 +144,7 @@ public interface TransAccountService {
 
 	ApiResponse<?> CommissionPaymentHistory();
 
-	ResponseEntity<?> TransferNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer);
+
 
 	ResponseEntity<?> TransferNonPaymentMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer);
 
@@ -198,4 +195,6 @@ public interface TransAccountService {
 	ResponseEntity<?>  debitTransactionAmountOffical();
 	ResponseEntity<?>  creditTransactionAmountOffical();
 	ResponseEntity<?>  debitAndCreditTransactionAmountOfficial();
+
+	BigDecimal computeTransFee(String accountDebit, BigDecimal amount, String eventId);
 }

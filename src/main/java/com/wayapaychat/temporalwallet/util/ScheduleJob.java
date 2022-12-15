@@ -12,6 +12,7 @@ import com.wayapaychat.temporalwallet.service.TransAccountService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -168,8 +169,8 @@ public class ScheduleJob {
         mapp.put("receiverEmail", email);
 
 
-        ApiResponse<?> response = transAccountService.OfficialUserTransferSystemSwitch(mapp, token,null, officeUserTransferDTO);
-        log.info(String.valueOf(response.getData()));
+        ResponseEntity<?> response = transAccountService.OfficialUserTransferSystemSwitch(mapp, token,null, officeUserTransferDTO);
+        log.info(String.valueOf(response.getBody()));
     }
 
     @Scheduled(cron = "${job.cron.twelam}")
@@ -259,7 +260,7 @@ public class ScheduleJob {
         String token = tokenImpl.getToken();
         for(WalletAccount data: userAccount){
             OfficeUserTransferDTO transfer = getOfficeUserTransferDTO(data, recurrentConfig);
-            ApiResponse<?> response = transAccountService.OfficialUserTransferSystemSwitch(null, token, null, transfer);
+            ResponseEntity<?> response = transAccountService.OfficialUserTransferSystemSwitch(null, token, null, transfer);
             objectArrayList.add(response);
         }
 

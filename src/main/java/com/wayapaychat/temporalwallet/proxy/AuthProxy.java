@@ -16,10 +16,10 @@ import java.util.HashMap;
 public interface AuthProxy {
 
     @GetMapping("/pin/validate-pin/{pin}")
-    public ApiResponse validatePin(@PathVariable("pin") String pin, @RequestHeader("Authorization") String token);
+    ApiResponse validatePin(@PathVariable("pin") String pin, @RequestHeader("Authorization") String token);
 
     @PostMapping("/auth/validate-user")
-	public TokenCheckResponse getUserDataToken(@RequestHeader("authorization") String token);
+	TokenCheckResponse getUserDataToken(@RequestHeader("authorization") String token);
 
     @PostMapping("/auth/validate-user")
     TokenCheckResponse getSignedOnUser();
