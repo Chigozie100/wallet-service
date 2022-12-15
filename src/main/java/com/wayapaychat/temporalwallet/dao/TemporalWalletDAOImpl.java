@@ -1,17 +1,12 @@
 package com.wayapaychat.temporalwallet.dao;
 
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
-import java.util.regex.Pattern;
-
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -22,9 +17,7 @@ import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
 import com.wayapaychat.temporalwallet.dto.AccountSumary;
 import com.wayapaychat.temporalwallet.dto.AccountTransChargeDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionHistoryDTO;
-import com.wayapaychat.temporalwallet.entity.Provider;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
-import com.wayapaychat.temporalwallet.enumm.ProviderType;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.mapper.AccountLookUpMapper;
 import com.wayapaychat.temporalwallet.mapper.AccountStatementMapper;
@@ -33,9 +26,6 @@ import com.wayapaychat.temporalwallet.mapper.AccountTransChargeMapper;
 import com.wayapaychat.temporalwallet.mapper.CommissionHistoryMapper;
 import com.wayapaychat.temporalwallet.mapper.TransWalletMapper;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
-import com.wayapaychat.temporalwallet.service.SwitchWalletService;
-import com.wayapaychat.temporalwallet.util.SecurityCrypto;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Repository
@@ -45,18 +35,6 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
 	
-	@Value("${waya.service.keytemporal}")
-	private String keytemporal;
-
-	@Value("${waya.service.keymifos}")
-	private String keymifos;
-
-	@Value("${waya.service.keysecret}")
-	private String keysecret;
-
-	@Autowired
-	private SwitchWalletService switchWalletService;
-
 	@Override
 	public WalletAccount GetCommission(int cifId) {
 		StringBuilder query = new StringBuilder();
@@ -526,37 +504,6 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 			log.error(ex.getMessage());
 		}
 		return wallet;
-	}
-
-	public void getSecurity() {
-		Provider provider = switchWalletService.getActiveProvider();
-		Date date = new Date();
-		SimpleDateFormat formatter = new SimpleDateFormat("ddMMyyyy");
-		String strDate = formatter.format(date);
-		switch (provider.getName()) {
-		case ProviderType.MIFOS:
-			String secretDate = SecurityCrypto.decrypt((SecurityCrypto.decodeKey(keymifos)), keysecret);
-			System.out.println("Decryption Value = " + secretDate);
-			String[] keyDecrypt = secretDate.split(Pattern.quote(","));
-			String keyDate = keyDecrypt[0];
-			String[] keyval = keyDate.split(Pattern.quote(":"));
-			String compareKey = keyval[1];
-			if ((Integer.parseInt(strDate)) > (Integer.parseInt(compareKey))) {
-				throw new CustomException("migration checksum mismatch", HttpStatus.UNPROCESSABLE_ENTITY);
-			}
-		case ProviderType.TEMPORAL:
-			secretDate = SecurityCrypto.decrypt((SecurityCrypto.decodeKey(keytemporal)), keysecret);
-			System.out.println("Decryption Value = " + secretDate);
-			keyDecrypt = secretDate.split(Pattern.quote(","));
-			keyDate = keyDecrypt[0];
-			keyval = keyDate.split(Pattern.quote(":"));
-			compareKey = keyval[1];
-			if ((Integer.parseInt(strDate)) > (Integer.parseInt(compareKey))) {
-				throw new CustomException("migration checksum mismatch", HttpStatus.UNPROCESSABLE_ENTITY);
-			}
-		default:
-			throw new CustomException("migration checksum mismatch", HttpStatus.UNPROCESSABLE_ENTITY);
-		}
 	}
 
 }
