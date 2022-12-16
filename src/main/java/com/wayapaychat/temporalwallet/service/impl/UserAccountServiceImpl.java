@@ -1297,21 +1297,39 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> getUserAccountList(long userId){  
-		MyData tokenData = tokenService.getUserInformation();
 
+		MyData tokenData = tokenService.getUserInformation();
 		if(tokenData == null){
 			return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
 		}
 
-		Optional<WalletUser> walletUser = walletUserRepository.findUserId(tokenData.getId());
+		if(!isAllowed(tokenData, userId)){
+			return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
+		}
 
-		if(!walletUser.isPresent()){
+		Optional<WalletUser> walletUser = walletUserRepository.findUserId(userId);
+
+		if(!walletUser.isPresent() && Long.compare(userId, tokenData.getId()) == 0){
 			return createDefaultWallet(tokenData);
 		}
 
 		List<WalletAccount> accounts = walletAccountRepository.findByUser(walletUser.get());
 		return new ResponseEntity<>(new SuccessResponse("SUCCESS", accounts), HttpStatus.OK);
 
+	}
+
+	private boolean isAllowed(MyData tokenData, long userId){
+
+		boolean isWriteAdmin = tokenData.getRoles().stream().anyMatch("ROLE_ADMIN_OWNER"::equalsIgnoreCase);
+        isWriteAdmin = tokenData.getRoles().stream().anyMatch("ROLE_ADMIN_APP"::equalsIgnoreCase)? true : isWriteAdmin;
+        boolean isOwner =  Long.compare(userId, tokenData.getId()) == 0;
+
+		if(isOwner || isWriteAdmin){
+			log.error("owner check {} {}", isOwner, isWriteAdmin);
+			return true;
+		}
+        
+		return false;
 	}
 
 
