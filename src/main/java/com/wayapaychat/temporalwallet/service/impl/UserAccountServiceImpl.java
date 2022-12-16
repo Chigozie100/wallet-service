@@ -1014,6 +1014,15 @@ public class UserAccountServiceImpl implements UserAccountService {
 	}
 
 	public ResponseEntity<?> createAccount(AccountPojo2 accountPojo) {
+		MyData tokenData = tokenService.getUserInformation();
+		if(tokenData == null){
+			return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
+		}
+
+		if(!isAllowed(tokenData, accountPojo.getUserId())){
+			return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
+		}
+
 		int userId = accountPojo.getUserId().intValue();
 		UserDetailPojo user = authService.AuthUser(userId);
 		if (user == null) {
@@ -1021,10 +1030,14 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 		WalletUser y = walletUserRepository.findByUserId(accountPojo.getUserId());
 		WalletUser x = walletUserRepository.findByEmailAddress(user.getEmail());
-		if (x == null && y == null) {
-			creatUserAccountUtil(user);
+
+		if(x == null && y == null && Long.compare(accountPojo.getUserId(), tokenData.getId()) == 0){
+			return createDefaultWallet(tokenData);
+		}
+		else if(x == null && y == null){
 			return new ResponseEntity<>(new ErrorResponse("Default Wallet Not Created"), HttpStatus.BAD_REQUEST);
 		}
+
 		if (!y.getEmailAddress().equals(x.getEmailAddress())) {
 			return new ResponseEntity<>(new ErrorResponse("Wallet Data Integrity.please contact Admin"),
 					HttpStatus.BAD_REQUEST);
@@ -1093,27 +1106,32 @@ public class UserAccountServiceImpl implements UserAccountService {
 			try {
 				String hashed_no = reqUtil
 						.WayaEncrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
-
-				WalletAccount account = new WalletAccount();
+ 
 				if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 						|| product.getProduct_type().equals("ODA"))) {
-					account = new WalletAccount("0000", "", acctNo, "0", acct_name, y, code.getGlSubHeadCode(), wayaProduct,
+					String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, accountPojo.getAccountType());
+					WalletAccount _account  = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, y, code.getGlSubHeadCode(), wayaProduct,
 							acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 							LocalDate.now(), product.getCrncy_code(), product.getProduct_type(),
 							product.isChq_book_flg(), product.getCash_dr_limit(), product.getXfer_dr_limit(),
 							product.getCash_cr_limit(), product.getXfer_cr_limit(), false, accountPojo.getAccountType(), accountPojo.getDescription());
-				}
-				walletAccountRepository.save(account);
-				return new ResponseEntity<>(new SuccessResponse("Account Created Successfully.", account),
+				
+					walletAccountRepository.save(_account);
+					// call to Mifos to create a user
+					CompletableFuture.runAsync(()-> pushToMifos(y, _account));
+				
+					return new ResponseEntity<>(new SuccessResponse("Account Created Successfully.", _account),
 						HttpStatus.CREATED);
+
+				}
 			} catch (Exception e) {
 				return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 			}
-		} else {
-			return new ResponseEntity<>(new ErrorResponse("Default Wallet has not been created.please contact Admin"),
-					HttpStatus.NOT_FOUND);
-		}
+		} 
 
+		return new ResponseEntity<>(new ErrorResponse("Default Wallet has not been created.please contact Admin"),
+					HttpStatus.NOT_FOUND);
+	
 	}
 
 	public ResponseEntity<?> createAccountProduct(AccountProductDTO accountPojo) {
@@ -1311,6 +1329,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 		if(!walletUser.isPresent() && Long.compare(userId, tokenData.getId()) == 0){
 			return createDefaultWallet(tokenData);
+		}
+		else if(!walletUser.isPresent()){
+			return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
 		}
 
 		List<WalletAccount> accounts = walletAccountRepository.findByUser(walletUser.get());
