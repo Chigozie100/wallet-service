@@ -197,4 +197,7 @@ public interface TransAccountService {
 	ResponseEntity<?>  debitAndCreditTransactionAmountOfficial();
 
 	BigDecimal computeTransFee(String accountDebit, BigDecimal amount, String eventId);
+
+
+	ResponseEntity<?>  getSingleAccountByEventID(String eventId);
 }
