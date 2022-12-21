@@ -40,7 +40,7 @@ public class Util {
 
             // It will generate 8 digit random Number from 0 to 99999999 And format as
             // String
-            Random rnd = new Random();
+            SecureRandom rnd = new SecureRandom();
             switch (accountType) {
                 case "ledger":
                     accountType = "9999999";
