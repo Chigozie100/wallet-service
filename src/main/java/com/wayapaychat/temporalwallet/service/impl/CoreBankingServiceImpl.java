@@ -526,12 +526,16 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         if (!ownerAccount.isPresent()) {
             return new ResponseEntity<>(new ErrorResponse(String.format("INVALID SOURCE ACCOUNT %s", accountNumber)), HttpStatus.BAD_REQUEST);
         }
+        log.info(" ###################### AFTER findByAccount :: #################### " );
+
 
         AccountSumary account = tempwallet.getAccountSumaryLookUp(accountNumber);
         log.info("AccountSumary :: " + account);
         if(account == null){
             return new ResponseEntity<>(new ErrorResponse(String.format("INVALID SOURCE ACCOUNT %s", accountNumber)), HttpStatus.BAD_REQUEST);
         }
+
+        log.info(" ###################### AFTER getAccountSumaryLookUp :: #################### " );
 
         double sufficientFunds = ownerAccount.get().getCum_cr_amt() - ownerAccount.get().getCum_dr_amt() -  ownerAccount.get().getLien_amt() - amount.doubleValue();
 

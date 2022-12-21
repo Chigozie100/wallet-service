@@ -11,7 +11,7 @@ import lombok.Data;
 public class BankPaymentDTO {
 	
 	@NotNull
-	@Size(min=3, max=20)
+	@Size(min=3, max=50)
 	private String bankName;
     
 	@NotNull
