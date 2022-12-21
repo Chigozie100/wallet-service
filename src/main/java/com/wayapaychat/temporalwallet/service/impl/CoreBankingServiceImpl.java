@@ -395,18 +395,14 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         String chargeCollectionAccount = getEventAccountNumber("INCOME_".concat(channelEventId));
         if(chargeCollectionAccount == null){ return; }
 
-        BigDecimal priceAmount = new BigDecimal(0);
-        
-        if(userPricingOptional.getPriceType().equals(PriceCategory.FIXED)){
-            priceAmount = userPricingOptional.getGeneralAmount();
-        }
-        else if(userPricingOptional.getStatus().equals(ProductPriceStatus.GENERAL)){
-            priceAmount = BigDecimal.valueOf(amount.doubleValue() * userPricingOptional.getGeneralAmount().doubleValue() / 100);
-        }
-        else if(userPricingOptional.getStatus().equals(ProductPriceStatus.CUSTOM)){
-            priceAmount = BigDecimal.valueOf(amount.doubleValue() * userPricingOptional.getCustomAmount().doubleValue() / 100);
-        }
+        BigDecimal priceAmount = userPricingOptional.getStatus().equals(ProductPriceStatus.GENERAL) 
+                                    ? userPricingOptional.getGeneralAmount() // Get general amount
+                                    : userPricingOptional.getCustomAmount(); // Get custom amount
 
+        priceAmount =  !userPricingOptional.getPriceType().equals(PriceCategory.FIXED)
+                                    ? BigDecimal.valueOf(amount.doubleValue() * priceAmount.doubleValue() / 100) // compute percentage
+                                    : priceAmount; // Get fixed amount
+        
         if(priceAmount.doubleValue() <= 0){ return; }
 
         if(priceAmount.doubleValue() > userPricingOptional.getCapPrice().doubleValue()){ 
@@ -526,12 +522,16 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         if (!ownerAccount.isPresent()) {
             return new ResponseEntity<>(new ErrorResponse(String.format("INVALID SOURCE ACCOUNT %s", accountNumber)), HttpStatus.BAD_REQUEST);
         }
+        log.info(" ###################### AFTER findByAccount :: #################### " );
+
 
         AccountSumary account = tempwallet.getAccountSumaryLookUp(accountNumber);
         log.info("AccountSumary :: " + account);
         if(account == null){
             return new ResponseEntity<>(new ErrorResponse(String.format("INVALID SOURCE ACCOUNT %s", accountNumber)), HttpStatus.BAD_REQUEST);
         }
+
+        log.info(" ###################### AFTER getAccountSumaryLookUp :: #################### " );
 
         double sufficientFunds = ownerAccount.get().getCum_cr_amt() - ownerAccount.get().getCum_dr_amt() -  ownerAccount.get().getLien_amt() - amount.doubleValue();
 
