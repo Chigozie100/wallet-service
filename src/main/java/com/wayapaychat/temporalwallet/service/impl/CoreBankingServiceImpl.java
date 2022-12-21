@@ -383,58 +383,89 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
 
     @Override
-    public void applyCharge(MyData userData, String transitAccount, String debitAccountNumber, String tranNarration,
-            String transactionCategory, String transactionType, @NotNull BigDecimal amount, Provider provider, String channelEventId) {
-        log.info("applying charge for transaction on {}", debitAccountNumber);
-        AccountSumary account = tempwallet.getAccountSumaryLookUp(debitAccountNumber);
-        if(account == null){ return; }
-
-        UserPricing userPricingOptional = userPricingRepository.findDetailsByCode(account.getUId(), channelEventId).orElse(null);
-        if(userPricingOptional == null){ return; }
-
-        String chargeCollectionAccount = getEventAccountNumber("INCOME_".concat(channelEventId));
-        if(chargeCollectionAccount == null){ return; }
-
+    public BigDecimal computeTransactionFee(String accountNumber, BigDecimal amount,  String eventId){
         BigDecimal priceAmount = new BigDecimal(0);
-        
-        if(userPricingOptional.getPriceType().equals(PriceCategory.FIXED)){
-            priceAmount = userPricingOptional.getGeneralAmount();
-        }
-        else if(userPricingOptional.getStatus().equals(ProductPriceStatus.GENERAL)){
-            priceAmount = BigDecimal.valueOf(amount.doubleValue() * userPricingOptional.getGeneralAmount().doubleValue() / 100);
-        }
-        else if(userPricingOptional.getStatus().equals(ProductPriceStatus.CUSTOM)){
-            priceAmount = BigDecimal.valueOf(amount.doubleValue() * userPricingOptional.getCustomAmount().doubleValue() / 100);
-        }
 
-        if(priceAmount.doubleValue() <= 0){ return; }
+        Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
+        if (!eventInfo.isPresent()) { return priceAmount; }
+
+        AccountSumary account = tempwallet.getAccountSumaryLookUp(accountNumber);
+        if(account == null){ return priceAmount; }
+
+        UserPricing userPricingOptional = userPricingRepository.findDetailsByCode(account.getUId(), eventId).orElse(null);
+        if(userPricingOptional == null){ return priceAmount; }
+
+        priceAmount = userPricingOptional.getStatus().equals(ProductPriceStatus.GENERAL) 
+                                    ? userPricingOptional.getGeneralAmount() // Get general amount
+                                    : userPricingOptional.getCustomAmount(); // Get custom amount
+
+        priceAmount =  !userPricingOptional.getPriceType().equals(PriceCategory.FIXED)
+                                    ? BigDecimal.valueOf(amount.doubleValue() * priceAmount.doubleValue() / 100) // compute percentage
+                                    : priceAmount; // Get fixed amount
+        
+        if(priceAmount.doubleValue() <= 0){ return priceAmount; }
 
         if(priceAmount.doubleValue() > userPricingOptional.getCapPrice().doubleValue()){ 
             priceAmount = userPricingOptional.getCapPrice();
         }
+        
+        //add vat to fee
+        priceAmount = BigDecimal.valueOf(priceAmount.doubleValue() + computeVatFee(priceAmount, eventId).doubleValue());
 
+        return priceAmount;
+    }
+
+    @Override
+    public BigDecimal computeVatFee(BigDecimal fee,  String eventId){
+        BigDecimal vatAmount = new BigDecimal(0);
+
+        Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
+        if (!eventInfo.isPresent()) { return vatAmount; }
+
+       
+        if(eventInfo.get().getTaxAmt().doubleValue() > 0){
+            vatAmount = BigDecimal.valueOf(fee.doubleValue() * eventInfo.get().getTaxAmt().doubleValue()/100);
+        } 
+
+        return vatAmount;
+    }
+
+
+    @Override
+    public void applyCharge(MyData userData, String transitAccount, String debitAccountNumber, String tranNarration,
+            String transactionCategory, String transactionType, @NotNull BigDecimal amount, Provider provider, String channelEventId) {
+        log.info("applying charge for transaction on {}", debitAccountNumber);
+
+        String chargeCollectionAccount = getEventAccountNumber("INCOME_".concat(channelEventId));
+        if(chargeCollectionAccount == null){ return; }
+
+        BigDecimal priceAmount = this.computeTransactionFee(debitAccountNumber, amount, channelEventId);
         String tranId = tempwallet.TransactionGenerate();
-        log.info("applying charge {}", priceAmount.doubleValue());
+
+        //get vat and deduct from charge to get income amount
+        BigDecimal vatAmount = this.computeVatFee(priceAmount, channelEventId); 
+        priceAmount = BigDecimal.valueOf(priceAmount.doubleValue() - vatAmount.doubleValue());
+        
+
+        log.info("applying income charge {}", priceAmount.doubleValue());
         processCBATransactionDoubleEntryWithTransit(userData, tranId, transitAccount, debitAccountNumber,  chargeCollectionAccount, tranNarration, transactionCategory, priceAmount, provider);
-    
-        processVAT(userData, account.getUId(), transitAccount, debitAccountNumber,  chargeCollectionAccount, priceAmount, tranNarration, transactionCategory, transactionType, provider, channelEventId);
+        
+        processVAT(userData, transitAccount, debitAccountNumber,  chargeCollectionAccount, vatAmount, tranNarration, transactionCategory, transactionType, provider, channelEventId);
 
     }
 
-    public void processVAT(MyData userData, Long userId, String transitAccount, String customerDebitAccountNumber, String chargeCollectionAccount, BigDecimal priceAmount, String tranNarration,
+    public void processVAT(MyData userData, String transitAccount, String customerDebitAccountNumber, String chargeCollectionAccount, BigDecimal vatAmount, String tranNarration,
                                     String transactionCategory, String transactionType, Provider provider, String channelEventId){
-        log.info("applying commision and VAT for transaction on {}", customerDebitAccountNumber);
-        Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId("VAT_".concat(channelEventId));
-        if (!eventInfo.isPresent()) { return; }
+        log.info("applying VAT for transaction on {}", customerDebitAccountNumber);
+        if(vatAmount.doubleValue() <= 0){ return;}
 
         String vatCollectionAccount = getEventAccountNumber("VAT_".concat(channelEventId));
         if(vatCollectionAccount == null){ return; }
         
-        if(eventInfo.get().getTaxAmt().doubleValue() > 0){
-            tranNarration = "VAT: ".concat(tranNarration);
-            BigDecimal vatAmount = priceAmount.multiply( eventInfo.get().getTaxAmt().divide(new BigDecimal(100)) );
-            processCBATransactionDoubleEntryWithTransit(userData, tempwallet.TransactionGenerate(), transitAccount, customerDebitAccountNumber,  vatCollectionAccount, tranNarration, transactionCategory, vatAmount, provider);
-        } 
+
+        tranNarration = "VAT: ".concat(tranNarration);
+        processCBATransactionDoubleEntryWithTransit(userData, tempwallet.TransactionGenerate(), transitAccount, customerDebitAccountNumber,  vatCollectionAccount, tranNarration, transactionCategory, vatAmount, provider);
+        
 
     }
 
@@ -526,12 +557,16 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         if (!ownerAccount.isPresent()) {
             return new ResponseEntity<>(new ErrorResponse(String.format("INVALID SOURCE ACCOUNT %s", accountNumber)), HttpStatus.BAD_REQUEST);
         }
+        log.info(" ###################### AFTER findByAccount :: #################### " );
+
 
         AccountSumary account = tempwallet.getAccountSumaryLookUp(accountNumber);
         log.info("AccountSumary :: " + account);
         if(account == null){
             return new ResponseEntity<>(new ErrorResponse(String.format("INVALID SOURCE ACCOUNT %s", accountNumber)), HttpStatus.BAD_REQUEST);
         }
+
+        log.info(" ###################### AFTER getAccountSumaryLookUp :: #################### " );
 
         double sufficientFunds = ownerAccount.get().getCum_cr_amt() - ownerAccount.get().getCum_dr_amt() -  ownerAccount.get().getLien_amt() - amount.doubleValue();
 

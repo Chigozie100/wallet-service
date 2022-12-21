@@ -106,8 +106,9 @@ public class UserPricingServiceImpl implements UserPricingService {
     public ResponseEntity<?> update(Long userId, BigDecimal discountAmount, BigDecimal customAmount, BigDecimal capAmount, String product) {
         try{
             Optional<UserPricing> userPricingOptional = userPricingRepository.findDetails(userId,product);
+            System.out.println("userPricingOptional :: " + userPricingOptional);
             if(userPricingOptional.isEmpty()){
-                throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+                throw new CustomException("userPricingOptional is Empty", HttpStatus.EXPECTATION_FAILED);
             }
             UserPricing userPricing = userPricingOptional.get();
             userPricing.setUserId(userId);
@@ -116,10 +117,11 @@ public class UserPricingServiceImpl implements UserPricingService {
             userPricing.setCapPrice(capAmount);
             userPricing.setUpdatedAt(new Date());
             userPricing.setStatus(ProductPriceStatus.CUSTOM);
-            return new ResponseEntity<>(new SuccessResponse(UPDATE_PRICE, userPricingRepository.save(userPricing)), HttpStatus.OK);
-        } catch (Exception e) {
+            userPricing = userPricingRepository.save(userPricing);
+            return new ResponseEntity<>(new SuccessResponse(UPDATE_PRICE, userPricing), HttpStatus.OK);
+        } catch (CustomException e) {
             log.error("UNABLE TO CREATE: {}", e.getMessage());
-            throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+            throw new CustomException(e.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
     }
 
@@ -240,9 +242,9 @@ public class UserPricingServiceImpl implements UserPricingService {
         }
     }
 
-    public ResponseEntity<?> applyGeneralToAll(BigDecimal amount) {
+    public ResponseEntity<?> applyGeneralToAll(BigDecimal amount, String productType,BigDecimal capAmount, PriceCategory priceType) {
         try{
-            CompletableFuture.runAsync(()-> doApplyGeneralToAll(amount));
+            CompletableFuture.runAsync(()-> doApplyGeneralToAll(amount, productType, capAmount, priceType));
             return new ResponseEntity<>(new SuccessResponse(APPLY_GENERAL, null), HttpStatus.OK);
         } catch (Exception e) {
             log.error("UNABLE TO APPLY_CAP: {}", e.getMessage());
@@ -250,10 +252,12 @@ public class UserPricingServiceImpl implements UserPricingService {
         }
     }
 
-    private void doApplyGeneralToAll(BigDecimal amount){
-        List<UserPricing> userPricingList = userPricingRepository.findAll();
+    private void doApplyGeneralToAll(BigDecimal amount, String productType,BigDecimal capAmount, PriceCategory priceType){
+        List<UserPricing> userPricingList = userPricingRepository.getAllDetailsByCode(productType);
         for (UserPricing data: userPricingList){
             data.setGeneralAmount(amount);
+             data.setCapPrice(capAmount);
+             data.setPriceType(priceType);
             userPricingRepository.save(data);
         }
     }
