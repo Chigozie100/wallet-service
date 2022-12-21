@@ -47,5 +47,8 @@ public interface CoreBankingService {
 
     ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount);
 
+    BigDecimal computeTransactionFee(String accountNumber, BigDecimal amount,  String eventId);
+
+    BigDecimal computeVatFee(BigDecimal fee,  String eventId);
 
 }
