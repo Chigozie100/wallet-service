@@ -4202,10 +4202,8 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		return BigDecimal.valueOf(per.doubleValue() * amount.doubleValue());
 	}
 
-	public BigDecimal computeTransFee(String accountDebit, BigDecimal amount,  String eventId){
-		WalletAccount account = walletAccountRepository.findByAccountNo(accountDebit);
-		UserPricing userPricingOptional = getUserProduct(account, eventId);
-		return getChargesAmount(userPricingOptional, amount);
+	public BigDecimal computeTransFee(String accountDebit, BigDecimal amount,  String eventId){ 
+		return coreBankingService.computeTransactionFee(accountDebit, amount, eventId);
 	}
 
 	public BigDecimal getChargesAmount(UserPricing userPricingOptional, BigDecimal amount){
