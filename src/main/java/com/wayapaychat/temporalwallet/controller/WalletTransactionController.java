@@ -164,7 +164,6 @@ public class WalletTransactionController {
 	public ResponseEntity<?> fundBank(HttpServletRequest request, @Valid @RequestBody BankPaymentDTO transfer) {
 
 		return transAccountService.BankTransferPayment(request, transfer);
-
 	}
 
 	@ApiImplicitParams({

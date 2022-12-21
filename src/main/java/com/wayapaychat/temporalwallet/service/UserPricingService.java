@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.service;
 
 import com.wayapaychat.temporalwallet.dto.BillerManagementResponse;
 import com.wayapaychat.temporalwallet.entity.WalletUser;
+import com.wayapaychat.temporalwallet.enumm.PriceCategory;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import org.springframework.http.ResponseEntity;
 
@@ -28,8 +29,8 @@ public interface UserPricingService {
     ResponseEntity<?> applyCapToAll(BigDecimal capAmount);
 
     ResponseEntity<?> deleteAll(String apiKey);
-
-    ResponseEntity<?> applyGeneralToAll(BigDecimal amount);
+ 
+    ResponseEntity<?> applyGeneralToAll(BigDecimal amount, String productType,BigDecimal capAmount, PriceCategory priceType);
 
     ResponseEntity<?> syncWalletUser(String apiKey);
 

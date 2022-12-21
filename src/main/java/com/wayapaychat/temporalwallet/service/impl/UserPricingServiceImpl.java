@@ -240,9 +240,9 @@ public class UserPricingServiceImpl implements UserPricingService {
         }
     }
 
-    public ResponseEntity<?> applyGeneralToAll(BigDecimal amount) {
+    public ResponseEntity<?> applyGeneralToAll(BigDecimal amount, String productType,BigDecimal capAmount, PriceCategory priceType) {
         try{
-            CompletableFuture.runAsync(()-> doApplyGeneralToAll(amount));
+            CompletableFuture.runAsync(()-> doApplyGeneralToAll(amount, productType, capAmount, priceType));
             return new ResponseEntity<>(new SuccessResponse(APPLY_GENERAL, null), HttpStatus.OK);
         } catch (Exception e) {
             log.error("UNABLE TO APPLY_CAP: {}", e.getMessage());
@@ -250,10 +250,12 @@ public class UserPricingServiceImpl implements UserPricingService {
         }
     }
 
-    private void doApplyGeneralToAll(BigDecimal amount){
-        List<UserPricing> userPricingList = userPricingRepository.findAll();
+    private void doApplyGeneralToAll(BigDecimal amount, String productType,BigDecimal capAmount, PriceCategory priceType){
+        List<UserPricing> userPricingList = userPricingRepository.getAllDetailsByCode(productType);
         for (UserPricing data: userPricingList){
             data.setGeneralAmount(amount);
+             data.setCapPrice(capAmount);
+             data.setPriceType(priceType);
             userPricingRepository.save(data);
         }
     }

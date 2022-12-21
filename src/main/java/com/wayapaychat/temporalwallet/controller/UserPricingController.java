@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.controller;
 
+import com.wayapaychat.temporalwallet.enumm.PriceCategory;
 import com.wayapaychat.temporalwallet.service.UserPricingService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -119,9 +120,9 @@ public class UserPricingController {
             MediaType.APPLICATION_JSON_VALUE)
     @Async
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
-    public CompletableFuture<ResponseEntity<?>> applyGeneralToAll(@RequestParam("capAmount") BigDecimal capAmount) {
+    public CompletableFuture<ResponseEntity<?>> applyGeneralToAll(@RequestParam("generalPrice") BigDecimal generalPrice, @RequestParam("productType") String productType, @RequestParam("capAmount") BigDecimal capAmount, @RequestParam(defaultValue = "FIXED") PriceCategory priceType) {
 
-        return CompletableFuture.completedFuture(userPricingService.applyGeneralToAll(capAmount));
+        return CompletableFuture.completedFuture(userPricingService.applyGeneralToAll(generalPrice,productType, capAmount, priceType));
     }
 
 
