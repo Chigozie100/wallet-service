@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.controller;
 
+import com.wayapaychat.temporalwallet.entity.UserPricing;
 import com.wayapaychat.temporalwallet.enumm.PriceCategory;
 import com.wayapaychat.temporalwallet.service.UserPricingService;
 import io.swagger.annotations.ApiImplicitParam;
@@ -15,6 +16,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -47,23 +49,23 @@ public class UserPricingController {
             MediaType.APPLICATION_JSON_VALUE)
     @Async
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
-    public CompletableFuture<ResponseEntity<?>> updateCustomPrice(@RequestParam("userId") Long  userId, @RequestParam("discountAmount") BigDecimal discountAmount, @RequestParam("customAmount") BigDecimal customAmount, @RequestParam("capAmount") BigDecimal capAmount , @RequestParam("product") String product) {
+    public CompletableFuture<ResponseEntity<?>> updateCustomPrice(@RequestParam("userId") Long  userId, @RequestParam("discountAmount") BigDecimal discountAmount, @RequestParam("customAmount") BigDecimal customAmount, @RequestParam("capAmount") BigDecimal capAmount , @RequestParam("product") String product, @RequestParam(defaultValue = "FIXED") PriceCategory priceType) {
 
-        return CompletableFuture.completedFuture(userPricingService.update(userId, discountAmount, customAmount, capAmount, product));
+        return CompletableFuture.completedFuture(userPricingService.update(userId, discountAmount, customAmount, capAmount, product, priceType));
     }
 
 
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
-    @ApiOperation(value = "Update Custom Price", notes = "Update Custom Pricing", tags = { "USER-PRICING" })
-    @PutMapping(value = "/custom-pricing-product", produces =
-            MediaType.APPLICATION_JSON_VALUE)
-    @Async
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
-    public CompletableFuture<ResponseEntity<?>> updateCustomProductPrice(@RequestParam("capAmount") BigDecimal  capAmount, @RequestParam("discountAmount") BigDecimal discountAmount, @RequestParam("customAmount") BigDecimal customAmount, @RequestParam("product") String product, @RequestParam("priceType") String priceType) {
+//     @ApiImplicitParams({
+//             @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+//     @ApiOperation(value = "Update Custom Price", notes = "Update Custom Pricing", tags = { "USER-PRICING" })
+//     @PutMapping(value = "/custom-pricing-product", produces =
+//             MediaType.APPLICATION_JSON_VALUE)
+//     @Async
+//     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
+//     public CompletableFuture<ResponseEntity<?>> updateCustomProductPrice(@RequestParam("capAmount") BigDecimal  capAmount, @RequestParam("discountAmount") BigDecimal discountAmount, @RequestParam("customAmount") BigDecimal customAmount, @RequestParam("product") String product, @RequestParam(defaultValue = "FIXED") PriceCategory priceType) {
 
-        return CompletableFuture.completedFuture(userPricingService.updateCustomProduct(capAmount, discountAmount,customAmount, product, priceType));
-    }
+//         return CompletableFuture.completedFuture(userPricingService.updateCustomProduct(capAmount, discountAmount,customAmount, product, priceType));
+//     }
 
 
     @ApiImplicitParams({
@@ -139,8 +141,8 @@ public class UserPricingController {
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
-    @ApiOperation(value = "delete-all", notes = "delete-all", tags = { "USER-PRICING" })
-    @DeleteMapping(value = "/creat-user-pricing", produces =
+    @ApiOperation(value = "creat-user-pricing", notes = "creat-user-pricing", tags = { "USER-PRICING" })
+    @PostMapping(value = "/creat-user-pricing", produces =
             MediaType.APPLICATION_JSON_VALUE)
     @Async
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
@@ -148,5 +150,61 @@ public class UserPricingController {
         return CompletableFuture.completedFuture(userPricingService.createUserPricing(userId));
     }
 
+
+// @ApiImplicitParams({
+//         @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+// @ApiOperation(value = "distinctSearch", notes = "distinctSearch", tags = { "USER-PRICING" })
+// @GetMapping(value = "/distinctSearch", produces =
+//         MediaType.APPLICATION_JSON_VALUE)
+// @Async
+// @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
+// public CompletableFuture<ResponseEntity<List<UserPricing>>> distinctSearch() {
+//     return CompletableFuture.completedFuture(userPricingService.distinctSearch());
+// }
+
+@ApiImplicitParams({
+        @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+@ApiOperation(value = "create-products", notes = "delete-all", tags = { "USER-PRICING" })
+@PostMapping(value = "/products", produces =
+        MediaType.APPLICATION_JSON_VALUE)
+@Async
+@PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
+public CompletableFuture<ResponseEntity<?>> createProducts(@RequestParam("name") String name, @RequestParam("description") String description,@RequestParam("eventId") String eventId) {
+    return CompletableFuture.completedFuture(userPricingService.createProducts(name,description,eventId));
+}
+
+@ApiImplicitParams({
+        @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+@ApiOperation(value = "update-products", notes = "update-products", tags = { "USER-PRICING" })
+@PutMapping(value = "/products/{id}", produces =
+        MediaType.APPLICATION_JSON_VALUE)
+@Async
+@PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
+public CompletableFuture<ResponseEntity<?>> editProducts(@PathVariable("id") Long id, @RequestParam("name") String name, @RequestParam("description") String description,@RequestParam("eventId") String eventId) {
+    return CompletableFuture.completedFuture(userPricingService.editProducts(id,name,description,eventId));
+}
+
+@ApiImplicitParams({
+        @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+@ApiOperation(value = "get-products", notes = "get-products", tags = { "USER-PRICING" })
+@GetMapping(value = "/products", produces =
+        MediaType.APPLICATION_JSON_VALUE)
+@Async
+@PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
+public CompletableFuture<ResponseEntity<?>> getAllProducts() {
+    return CompletableFuture.completedFuture(userPricingService.getAllProducts());
+}
+
+@ApiImplicitParams({
+        @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+@ApiOperation(value = "filter by user name", notes = "search", tags = { "USER-PRICING" })
+@GetMapping(value = "/products/search/{value}", produces =
+        MediaType.APPLICATION_JSON_VALUE)
+@Async
+@PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
+public CompletableFuture<ResponseEntity<?>> getAllProducts(@PathVariable("value") String value) {
+    return CompletableFuture.completedFuture(userPricingService.search(value));
+}
+ 
 
 }

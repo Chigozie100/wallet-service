@@ -62,7 +62,7 @@ public class Constant {
     public static final String ADD_PRICE = "CUSTOM PRICE CREATED";
     public static final String UPDATE_PRICE = "CUSTOM PRICE UPDATED";
 
-    public static final String USER_PRICE_SYNC = "USER PRICING SYNC";
+    public static final String USER_PRICE_SYNC = "USER PRICING SYNC"; 
 
     public static final String APPLY_DISCOUNT = "APPLYING DISCOUNT AMOUNT...";
 

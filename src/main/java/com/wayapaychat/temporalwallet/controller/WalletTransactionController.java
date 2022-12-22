@@ -11,15 +11,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
-import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import com.wayapaychat.temporalwallet.service.TransactionCountService;
-import com.wayapaychat.temporalwallet.service.TransactionService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.PDFExporter;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -53,21 +50,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WalletTransactionController {
 
-	private final TransAccountService transAccountService;
-	private final TemporalWalletDAO temporalWalletDAO;
+	private final TransAccountService transAccountService; 
 	private final TransactionCountService transactionCountService;
-	private final TransactionService transactionService;
-	private final ModelMapper modelMapper;
 	private final CoreBankingService coreBankingService;
 
 	@Autowired
-	public WalletTransactionController(TransAccountService transAccountService, TemporalWalletDAO temporalWalletDAO, TransactionCountService transactionCountService, 
-												TransactionService transactionService, ModelMapper modelMapper, CoreBankingService coreBankingService) {
+	public WalletTransactionController(TransAccountService transAccountService, TransactionCountService transactionCountService, CoreBankingService coreBankingService) {
 		this.transAccountService = transAccountService;
-		this.temporalWalletDAO = temporalWalletDAO;
 		this.transactionCountService = transactionCountService;
-		this.transactionService = transactionService;
-		this.modelMapper = modelMapper;
 		this.coreBankingService = coreBankingService;
 	}
 

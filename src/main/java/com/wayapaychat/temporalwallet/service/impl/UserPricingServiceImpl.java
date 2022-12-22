@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.service.impl;
 
 import com.wayapaychat.temporalwallet.dto.BillerManagementResponse;
 import com.wayapaychat.temporalwallet.entity.Billers;
+import com.wayapaychat.temporalwallet.entity.ProductPricing;
 import com.wayapaychat.temporalwallet.entity.UserPricing;
 import com.wayapaychat.temporalwallet.entity.WalletEventCharges;
 import com.wayapaychat.temporalwallet.entity.WalletUser;
@@ -11,6 +12,7 @@ import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.notification.ResponseObj;
 import com.wayapaychat.temporalwallet.proxy.BillsPayProxy;
 import com.wayapaychat.temporalwallet.repository.BillersRepository;
+import com.wayapaychat.temporalwallet.repository.ProductPricingRepository;
 import com.wayapaychat.temporalwallet.repository.UserPricingRepository;
 import com.wayapaychat.temporalwallet.repository.WalletEventRepository;
 import com.wayapaychat.temporalwallet.repository.WalletUserRepository;
@@ -43,15 +45,17 @@ public class UserPricingServiceImpl implements UserPricingService {
     private final WalletEventRepository walletEventRepository;
     private final BillsPayProxy billsPayProxy;
     private final BillersRepository billersRepository;
+    private final ProductPricingRepository productPricingRepository;
 
 
     @Autowired
-    public UserPricingServiceImpl(UserPricingRepository userPricingRepository, WalletUserRepository walletUserRepository, WalletEventRepository walletEventRepository, BillsPayProxy billsPayProxy, BillersRepository billersRepository) {
+    public UserPricingServiceImpl(UserPricingRepository userPricingRepository, WalletUserRepository walletUserRepository, WalletEventRepository walletEventRepository, BillsPayProxy billsPayProxy, BillersRepository billersRepository, ProductPricingRepository productPricingRepository) {
         this.userPricingRepository = userPricingRepository;
         this.walletUserRepository = walletUserRepository;
         this.walletEventRepository = walletEventRepository;
         this.billsPayProxy = billsPayProxy;
         this.billersRepository = billersRepository;
+        this.productPricingRepository = productPricingRepository;
     }
 
 
@@ -103,10 +107,10 @@ public class UserPricingServiceImpl implements UserPricingService {
     }
 
     @Override
-    public ResponseEntity<?> update(Long userId, BigDecimal discountAmount, BigDecimal customAmount, BigDecimal capAmount, String product) {
+    public ResponseEntity<?> update(Long userId, BigDecimal discountAmount, BigDecimal customAmount, BigDecimal capAmount, String product, PriceCategory priceType) {
         try{
             Optional<UserPricing> userPricingOptional = userPricingRepository.findDetails(userId,product);
-            System.out.println("userPricingOptional :: " + userPricingOptional);
+ 
             if(userPricingOptional.isEmpty()){
                 throw new CustomException("userPricingOptional is Empty", HttpStatus.EXPECTATION_FAILED);
             }
@@ -116,7 +120,13 @@ public class UserPricingServiceImpl implements UserPricingService {
             userPricing.setDiscount(discountAmount);
             userPricing.setCapPrice(capAmount);
             userPricing.setUpdatedAt(new Date());
-            userPricing.setStatus(ProductPriceStatus.CUSTOM);
+            if(customAmount.doubleValue() <= 0){
+                userPricing.setStatus(ProductPriceStatus.GENERAL);
+            }else{
+                userPricing.setStatus(ProductPriceStatus.CUSTOM);
+            }
+          
+            userPricing.setPriceType(priceType);
             userPricing = userPricingRepository.save(userPricing);
             return new ResponseEntity<>(new SuccessResponse(UPDATE_PRICE, userPricing), HttpStatus.OK);
         } catch (CustomException e) {
@@ -126,21 +136,28 @@ public class UserPricingServiceImpl implements UserPricingService {
     }
 
     @Override
-    public ResponseEntity<?> updateCustomProduct(BigDecimal capAmount, BigDecimal discountAmount, BigDecimal generalAmount, String product, String priceType) {
+    public ResponseEntity<?> updateCustomProduct(BigDecimal capAmount, BigDecimal discountAmount, BigDecimal generalAmount, String product, PriceCategory priceType) {
         CompletableFuture.runAsync(() -> processCustomProduct(capAmount, discountAmount, generalAmount, product, priceType));
         return new ResponseEntity<>(new SuccessResponse(INPROGRESS, null), HttpStatus.OK);
     }
 
-    private void processCustomProduct(BigDecimal capAmount, BigDecimal discountAmount, BigDecimal generalAmount, String product, String priceType){
+    private void processCustomProduct(BigDecimal capAmount, BigDecimal discountAmount, BigDecimal generalAmount, String product, PriceCategory priceType){
         try{
-            List<UserPricing> userPricingList = userPricingRepository.findByProduct(product);
+            List<UserPricing> userPricingList = userPricingRepository.getAllDetailsByCode(product);
 
             for(UserPricing data: userPricingList){
                 UserPricing userPricing = userPricingRepository.findById(data.getId()).orElse(null);
                 Objects.requireNonNull(userPricing).setGeneralAmount(generalAmount);
                 userPricing.setCapPrice(capAmount);
                 userPricing.setDiscount(discountAmount);
-                userPricing.setPriceType(PriceCategory.valueOf(priceType));
+                userPricing.setUpdatedAt(new Date());
+                userPricing.setPriceType(priceType);
+                if(generalAmount.doubleValue() <= 0){
+                    userPricing.setStatus(ProductPriceStatus.GENERAL);
+                }else{
+                    userPricing.setStatus(ProductPriceStatus.CUSTOM);
+                }
+              
                 userPricingRepository.save(userPricing);
             }
         } catch (Exception e) {
@@ -266,10 +283,11 @@ public class UserPricingServiceImpl implements UserPricingService {
     private void doSync(){
         try{
             List<WalletUser> userList = walletUserRepository.findAll();
+         
             userPricingRepository.deleteAll();
             processUserPricing(userList,"doSync",null);
         }catch (Exception ex){
-            throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+            throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
         log.info(" ####### User and Changes Sync thread completed ###### ");
     }
@@ -278,39 +296,27 @@ public class UserPricingServiceImpl implements UserPricingService {
     private void processUserPricing(List<WalletUser> userList, String actionType, WalletUser userx){
         try{
 
-        List<Map<String, String>> products = Util.products();
+      //  List<Map<String, String>> products = Util.products();
+
+        List<ProductPricing> productss = productPricingRepository.findAll();
+        log.info("productss : "+ productss); 
+        log.info("userx : "+ userx); 
         if(userList.isEmpty()){
             if(userx !=null){
-                for (Map<String, String> tmpData : products) {
-                    Set<String> key = tmpData.keySet();
-                    Iterator it = key.iterator();
-                    while (it.hasNext()) {
-                        String hmKey = (String) it.next();
-                        String hmData = tmpData.get(hmKey);
-                        log.info("Key: " + hmKey + " & Data: " + hmData);
-                        create(userx.getUserId(), userx.getFirstName() + " " + userx.getLastName(), BigDecimal.valueOf(10.00), hmKey, hmData);
-                    }
 
+                for(ProductPricing data: productss){
+                    create(userx.getUserId(), userx.getFirstName() + " " + userx.getLastName(), BigDecimal.valueOf(10.00), data.getName(), data.getCode());
                 }
+
             }
 
-        }else{
-
+        }else{ 
             for (WalletUser list: userList){
-                for (Map<String, String> tmpData : products) {
-                    Set<String> key = tmpData.keySet();
-                    Iterator it = key.iterator();
-                    while (it.hasNext()) {
-                        String hmKey = (String) it.next();
-                        String hmData = tmpData.get(hmKey);
-                        if (list.isCorporate() || !list.isCorporate()) {
-                            log.info("Corporate uses only");
-                            if(actionType.equals("doSync")){
-                                create(list.getUserId(), list.getFirstName() + " " + list.getLastName(), BigDecimal.valueOf(10.00), hmKey, hmData);
-                            }
+                for(ProductPricing data: productss){
+                    if (list.isCorporate() || !list.isCorporate()) {
+                        if(actionType.equals("doSync")){
+                            create(list.getUserId(), list.getFirstName() + " " + list.getLastName(), BigDecimal.valueOf(10.00), data.getName(), data.getCode());
                         }
-                        log.info("Key: " + hmKey + " & Data: " + hmData);
-                        // it.remove(); // avoids a ConcurrentModificationException
                     }
                 }
             }
@@ -373,15 +379,73 @@ public class UserPricingServiceImpl implements UserPricingService {
         }
     }
 
-    private List<WalletEventCharges> getWalletEventCharges(){
+
+    public ResponseEntity<List<UserPricing>> search(String fullName){
 
         try{
-           return walletEventRepository.findAll();
+            List<UserPricing> list = userPricingRepository.searchByFullNameLike(fullName.toUpperCase());
+            return ResponseEntity.status(HttpStatus.OK).body(list);
         }catch (Exception ex){
-            throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
+            throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
     }
 
 
+    public ResponseEntity<List<UserPricing>> distinctSearch(){
+
+        try{
+            log.info("findDistinctName LIST " + userPricingRepository.countProducts());
+            log.info("userPricingRepository.advancedSearch()" + userPricingRepository.advancedSearch());
+            log.info("userPricingRepository.advancedSearch()" + userPricingRepository.advancedSearch());
+            return ResponseEntity.status(HttpStatus.OK).body(null);
+        }catch (Exception ex){
+            throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+        }
+    }
+
+    public ResponseEntity<?> createProducts(String name, String description, String event){
+
+        try{
+            ProductPricing product = new ProductPricing();
+            product.setName(name);
+            product.setDescription(description);
+            product.setCode(event);
+            product = productPricingRepository.save(product);
+            return ResponseEntity.status(HttpStatus.OK).body(product);
+        }catch (Exception ex){
+            throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+        }
+    }
+
+    public ResponseEntity<?> editProducts(Long id, String code, String name, String description){
+
+        try{
+            Optional<ProductPricing> product = productPricingRepository.findById(id);
+            if(product.isEmpty()){
+                return null;
+            }
+            ProductPricing productPricing = product.get();
+            productPricing.setCode(code);
+            productPricing.setName(name);
+            productPricing.setDescription(description);
+            productPricing = productPricingRepository.save(productPricing);
+            return ResponseEntity.status(HttpStatus.OK).body(productPricing);
+        }catch (Exception ex){
+            throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+        }
+    }
+    
+    public ResponseEntity<?> getAllProducts(){
+
+        try{ 
+            return new ResponseEntity<>(new SuccessResponse(SUCCESS_MESSAGE, productPricingRepository.findAll()), HttpStatus.OK);
+        }catch (Exception ex){
+            throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+        }
+    }
+
+
+
+    
 
 }
