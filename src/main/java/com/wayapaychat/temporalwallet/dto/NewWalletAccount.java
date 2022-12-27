@@ -91,6 +91,8 @@ public class NewWalletAccount {
 	
 	private Long userId;
 
+	private String description;
+
 	public NewWalletAccount(WalletAccount acct, Long userId) {
 		super();
 		this.id = acct.getId();
@@ -134,6 +136,7 @@ public class NewWalletAccount {
 		this.walletDefault = acct.isWalletDefault();
 		this.lien_reason = acct.getLien_reason();
 		this.userId = userId;
+		this.description = acct.getDescription();
 	}
 	
 	
