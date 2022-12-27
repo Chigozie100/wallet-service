@@ -21,6 +21,8 @@ public class NewWalletAccount {
 
 	private String accountNo;
 
+	private String nuban_account_no;
+
 	private String acct_name;
 
 	private String gl_code;
@@ -97,6 +99,7 @@ public class NewWalletAccount {
 		this.sol_id = acct.getSol_id();
 		this.bacid = acct.getBacid();
 		this.accountNo = acct.getAccountNo();
+		this.nuban_account_no = acct.getNubanAccountNo();
 		this.acct_name = acct.getAcct_name();
 		this.gl_code = acct.getGl_code();
 		this.product_code = acct.getProduct_code();
