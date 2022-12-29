@@ -403,9 +403,9 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                                     ? userPricingOptional.getGeneralAmount() // Get general amount
                                     : userPricingOptional.getCustomAmount(); // Get custom amount
 
-        priceAmount =  !userPricingOptional.getPriceType().equals(PriceCategory.FIXED)
-                                    ? BigDecimal.valueOf(amount.doubleValue() * priceAmount.doubleValue() / 100) // compute percentage
-                                    : priceAmount; // Get fixed amount
+        priceAmount =  userPricingOptional.getPriceType().equals(PriceCategory.FIXED)
+                                    ? priceAmount // compute percentage
+                                    : BigDecimal.valueOf(Precision.round(amount.doubleValue() * priceAmount.doubleValue() / 100, 2)); // Get fixed amount
         
         if(priceAmount.doubleValue() <= 0){ return priceAmount; }
 
@@ -414,8 +414,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
         
         //add vat to fee
-        priceAmount = BigDecimal.valueOf(priceAmount.doubleValue() + computeVatFee(priceAmount, eventId).doubleValue());
-
+        priceAmount = BigDecimal.valueOf(Precision.round(priceAmount.doubleValue() + computeVatFee(priceAmount, eventId).doubleValue(), 2) );
+        log.info(" Transaction Fee {}", priceAmount.doubleValue());
         return priceAmount;
     }
 
@@ -428,7 +428,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
        
         if(eventInfo.get().getTaxAmt().doubleValue() > 0){
-            vatAmount = BigDecimal.valueOf(fee.doubleValue() * eventInfo.get().getTaxAmt().doubleValue()/100);
+            vatAmount = BigDecimal.valueOf(Precision.round(fee.doubleValue() * eventInfo.get().getTaxAmt().doubleValue()/100,2));
         } 
 
         return vatAmount;
@@ -448,7 +448,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         //get vat and deduct from charge to get income amount
         BigDecimal vatAmount = this.computeVatFee(priceAmount, channelEventId); 
-        priceAmount = BigDecimal.valueOf(priceAmount.doubleValue() - vatAmount.doubleValue());
+        priceAmount = BigDecimal.valueOf(Precision.round(priceAmount.doubleValue() - vatAmount.doubleValue(),2));
         
 
         log.info("applying income charge {}", priceAmount.doubleValue());
