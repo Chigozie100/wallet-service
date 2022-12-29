@@ -199,6 +199,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     @Override
     public ResponseEntity<?>  processCBATransactionDoubleEntry(MyData userToken, String paymentReference,  String fromAccount, String toAccount, String narration, CategoryType category, BigDecimal amount, Provider provider){
 
+        if(amount.doubleValue() <= 0){ 
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_AMOUNT.getValue()), HttpStatus.BAD_REQUEST);
+        }
+
         String tranId = tempwallet.TransactionGenerate();
         TransactionTypeEnum tranType = TransactionTypeEnum.BANK;
         ResponseEntity<?> response = processExternalCBATransactionDoubleEntry(paymentReference, fromAccount, toAccount, narration, category, amount, provider);
