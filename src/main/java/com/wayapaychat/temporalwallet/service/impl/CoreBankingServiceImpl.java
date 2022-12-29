@@ -552,6 +552,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
         }
 
+        if(amount.doubleValue() <= 0){
+            return new ResponseEntity<>(new ErrorResponse(String.format("INVALID AMOUN %s", amount)), HttpStatus.BAD_REQUEST);
+        }
+
         Optional<WalletAccount> ownerAccount = walletAccountRepository.findByAccount(accountNumber);
         log.info("ownerAccount :: " + ownerAccount);
         if (!ownerAccount.isPresent()) {
