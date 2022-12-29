@@ -125,7 +125,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference(), CategoryType.TRANSFER.getValue());
 		}
 
-		return coreBankingService.transfer( transferTransactionDTO,  "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+		return coreBankingService.transfer( transferTransactionDTO,  "WAYATRAN");
 
 	}
 
@@ -160,7 +160,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference(), CategoryType.TRANSFER.getValue());
 		}
 
-		return coreBankingService.transfer( transferTransactionDTO,  "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+		return coreBankingService.transfer( transferTransactionDTO,  "WAYATRAN");
 	}
 
 	@Override
@@ -316,7 +316,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				tranType.getValue(), "NGN",  transfer.getTranNarration(),
 					transfer.getPaymentReference(), tranCategory.getValue());
 
-		return coreBankingService.transfer( transferTransactionDTO,  "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+		return coreBankingService.transfer( transferTransactionDTO,  "WAYATRAN");
 
 	}
 
@@ -344,7 +344,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					TransactionTypeEnum.TRANSFER.getValue(), "NGN",  transfer.getTranNarration(),
 					transfer.getPaymentReference(), tranCategory.getValue());
 
-		return coreBankingService.transfer( transferTransactionDTO,  "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+		return coreBankingService.transfer( transferTransactionDTO,  "WAYATRAN");
 
 	}
 
@@ -385,7 +385,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference(), CategoryType.TRANSFER.getValue());
 		}
 
-		return coreBankingService.transfer( transferTransactionDTO,  "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+		return coreBankingService.transfer( transferTransactionDTO,  "WAYATRAN");
 
 	}
 
@@ -1329,7 +1329,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		transactionDTO.setBenefAccountNumber(toAccountNumber);
 		transactionDTO.setAmount(transfer.getAmount());
 
-		ResponseEntity<?> debitResponse = coreBankingService.transfer(transactionDTO, "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+		ResponseEntity<?> debitResponse = coreBankingService.transfer(transactionDTO, "WAYATRAN");
 
 		if(!debitResponse.getStatusCode().is2xxSuccessful()){
 			return debitResponse;
@@ -1371,7 +1371,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		transactionDTO.setBenefAccountNumber(toAccountNumber);
 		transactionDTO.setAmount(transfer.getAmount());
 
-		ResponseEntity<?> debitResponse = coreBankingService.transfer(transactionDTO, "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+		ResponseEntity<?> debitResponse = coreBankingService.transfer(transactionDTO, "WAYATRAN");
 
 		if(!debitResponse.getStatusCode().is2xxSuccessful()){
 			return debitResponse;
@@ -1440,7 +1440,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		ResponseEntity<?> debitResponse = coreBankingService.transfer( new TransferTransactionDTO( wayaDisbursementAccount,  toAccountNumber, transfer.getAmount(),
 				TransactionTypeEnum.BANK.getValue(), "NGN",  transfer.getTranNarration(),
-				transfer.getPaymentReference(), CategoryType.TRANSFER.getValue()),  "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+				transfer.getPaymentReference(), CategoryType.TRANSFER.getValue()),  "WAYATRAN");
 
 		if(!debitResponse.getStatusCode().is2xxSuccessful()){
 			return debitResponse;
@@ -1484,7 +1484,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		ResponseEntity<?> debitResponse = coreBankingService.transfer( new TransferTransactionDTO( fromAccountNumber,  toAccountNumber, transfer.getAmount(),
 				tranType.getValue(), "NGN",  transfer.getTranNarration(),
-				transfer.getPaymentReference(), tranCategory.name()),  "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+				transfer.getPaymentReference(), tranCategory.name()),  "WAYATRAN");
 
 		if(!debitResponse.getStatusCode().is2xxSuccessful()){
 			return debitResponse;
@@ -1537,7 +1537,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		ResponseEntity<?> debitResponse = coreBankingService.transfer( new TransferTransactionDTO( fromAccountNumber,  toAccountNumber, transfer.getAmount(),
 				tranType.getValue(), "NGN",  transfer.getTranNarration(),
-				transfer.getPaymentReference(), tranCategory.name()),  "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+				transfer.getPaymentReference(), tranCategory.name()),  "WAYATRAN");
 
 		if(!debitResponse.getStatusCode().is2xxSuccessful()){
 			return debitResponse;
@@ -1595,7 +1595,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		ResponseEntity<?> debitResponse = coreBankingService.transfer( new TransferTransactionDTO( transfer.getDebitAccountNumber(),  transfer.getBenefAccountNumber(), transfer.getAmount(),
 				tranType.getValue(), "NGN",  transfer.getTranNarration(),
-				transfer.getPaymentReference(), tranCategory.name()),  "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+				transfer.getPaymentReference(), tranCategory.name()),  "WAYATRAN");
 
 		if(!debitResponse.getStatusCode().is2xxSuccessful()){
 			return debitResponse;
@@ -1635,7 +1635,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		ResponseEntity<?> debitResponse = coreBankingService.transfer( new TransferTransactionDTO( transfer.getDebitAccountNumber(),  transfer.getBenefAccountNumber(), transfer.getAmount(),
 				tranType.getValue(), "NGN",  transfer.getTranNarration(),
-				transfer.getPaymentReference(), tranCategory.name()),  "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+				transfer.getPaymentReference(), tranCategory.name()),  "WAYATRAN");
 
 		if(!debitResponse.getStatusCode().is2xxSuccessful()){
 			return debitResponse;
@@ -1656,7 +1656,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		transactionDTO.setBenefAccountNumber(transfer.getBenefAccountNumber());
 		transactionDTO.setAmount(transfer.getAmount());
 
-		ResponseEntity<?> debitResponse = coreBankingService.transfer(transactionDTO, "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+		ResponseEntity<?> debitResponse = coreBankingService.transfer(transactionDTO, "WAYATRAN");
 
 		if(!debitResponse.getStatusCode().is2xxSuccessful()){
 			return debitResponse;
@@ -1704,7 +1704,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		transactionDTO.setBenefAccountNumber(toAccountNumber);
 		transactionDTO.setAmount(transfer.getAmount());
 
-		ResponseEntity<?> debitResponse = coreBankingService.transfer(transactionDTO, "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+		ResponseEntity<?> debitResponse = coreBankingService.transfer(transactionDTO, "WAYATRAN");
 
 		if(!debitResponse.getStatusCode().is2xxSuccessful()){
 			return debitResponse;
@@ -1788,7 +1788,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		transactionDTO.setBenefAccountNumber(toAccountNumber);
 		transactionDTO.setAmount(transfer.getAmount());
 
-		ResponseEntity<?> debitResponse = coreBankingService.transfer(transactionDTO, "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+		ResponseEntity<?> debitResponse = coreBankingService.transfer(transactionDTO, "WAYATRAN");
 
 		if(!debitResponse.getStatusCode().is2xxSuccessful()){
 			return debitResponse;
@@ -4728,7 +4728,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 				debitResponse = coreBankingService.transfer(new TransferTransactionDTO(debitAcctNo, mUser.getCustomerAccountNo(), mUser.getAmount(),
 						TransactionTypeEnum.TRANSFER.getValue(), "NGN", "Builk Account Creation",
-						reference, CategoryType.TRANSFER.getValue()), "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+						reference, CategoryType.TRANSFER.getValue()), "WAYATRAN");
 
 			}
 
@@ -4748,7 +4748,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 				 debitResponse = coreBankingService.transfer( new TransferTransactionDTO( mUser.getOfficeAccountNo(),  mUser.getCustomerAccountNo(), mUser.getAmount(),
 						TransactionTypeEnum.TRANSFER.getValue(), "NGN",  mUser.getTranNarration(),
-						mUser.getPaymentReference(), CategoryType.TRANSFER.getValue()),  "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+						mUser.getPaymentReference(), CategoryType.TRANSFER.getValue()),  "WAYATRAN");
 
 			}
 
