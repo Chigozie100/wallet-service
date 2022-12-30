@@ -91,8 +91,8 @@ public class UserPricingServiceImpl implements UserPricingService {
     @Override
     public ResponseEntity<?> createUserPricing(String userId) {
         WalletUser existingUser = walletUserRepository.findByUserId(Long.parseLong(userId));
-        if (existingUser != null) {
-            return new ResponseEntity<>(new ErrorResponse("Wallet User already exists"), HttpStatus.BAD_REQUEST);
+        if (existingUser == null) {
+            return new ResponseEntity<>(new ErrorResponse("Wallet User does not exists"), HttpStatus.BAD_REQUEST);
         }
         ResponseEntity<?> responseEntity = createUserPricing(existingUser);
         log.info("responseEntity" +responseEntity);

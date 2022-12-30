@@ -96,7 +96,7 @@ public class WalletTransactionController {
 	public ResponseEntity<?> sendMoney(@Valid @RequestBody TransferTransactionDTO transfer) {
 
 		try{
-			return coreBankingService.transfer(transfer, "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+			return coreBankingService.transfer(transfer, "WAYATRAN");
 		}catch (CustomException ex){
 			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}
@@ -110,7 +110,7 @@ public class WalletTransactionController {
 	public ResponseEntity<?> sendMoneyCBA(HttpServletRequest request,
 			@Valid @RequestBody TransferTransactionDTO transfer) {
 		try{
-			return coreBankingService.transfer(transfer, "INTERNAL_TRANS_INTRANSIT_DISBURS_ACCOUNT");
+			return coreBankingService.transfer(transfer, "WAYATRAN");
 		}catch (CustomException ex){
 			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}

@@ -199,6 +199,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     @Override
     public ResponseEntity<?>  processCBATransactionDoubleEntry(MyData userToken, String paymentReference,  String fromAccount, String toAccount, String narration, CategoryType category, BigDecimal amount, Provider provider){
 
+        if(amount.doubleValue() <= 0){ 
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_AMOUNT.getValue()), HttpStatus.BAD_REQUEST);
+        }
+
         String tranId = tempwallet.TransactionGenerate();
         TransactionTypeEnum tranType = TransactionTypeEnum.BANK;
         ResponseEntity<?> response = processExternalCBATransactionDoubleEntry(paymentReference, fromAccount, toAccount, narration, category, amount, provider);
@@ -399,9 +403,9 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                                     ? userPricingOptional.getGeneralAmount() // Get general amount
                                     : userPricingOptional.getCustomAmount(); // Get custom amount
 
-        priceAmount =  !userPricingOptional.getPriceType().equals(PriceCategory.FIXED)
-                                    ? BigDecimal.valueOf(amount.doubleValue() * priceAmount.doubleValue() / 100) // compute percentage
-                                    : priceAmount; // Get fixed amount
+        priceAmount =  userPricingOptional.getPriceType().equals(PriceCategory.FIXED)
+                                    ? priceAmount // compute percentage
+                                    : BigDecimal.valueOf(Precision.round(amount.doubleValue() * priceAmount.doubleValue() / 100, 2)); // Get fixed amount
         
         if(priceAmount.doubleValue() <= 0){ return priceAmount; }
 
@@ -410,8 +414,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
         
         //add vat to fee
-        priceAmount = BigDecimal.valueOf(priceAmount.doubleValue() + computeVatFee(priceAmount, eventId).doubleValue());
-
+        priceAmount = BigDecimal.valueOf(Precision.round(priceAmount.doubleValue() + computeVatFee(priceAmount, eventId).doubleValue(), 2) );
+        log.info(" Transaction Fee {}", priceAmount.doubleValue());
         return priceAmount;
     }
 
@@ -424,7 +428,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
        
         if(eventInfo.get().getTaxAmt().doubleValue() > 0){
-            vatAmount = BigDecimal.valueOf(fee.doubleValue() * eventInfo.get().getTaxAmt().doubleValue()/100);
+            vatAmount = BigDecimal.valueOf(Precision.round(fee.doubleValue() * eventInfo.get().getTaxAmt().doubleValue()/100,2));
         } 
 
         return vatAmount;
@@ -444,7 +448,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         //get vat and deduct from charge to get income amount
         BigDecimal vatAmount = this.computeVatFee(priceAmount, channelEventId); 
-        priceAmount = BigDecimal.valueOf(priceAmount.doubleValue() - vatAmount.doubleValue());
+        priceAmount = BigDecimal.valueOf(Precision.round(priceAmount.doubleValue() - vatAmount.doubleValue(),2));
         
 
         log.info("applying income charge {}", priceAmount.doubleValue());
@@ -550,6 +554,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         MyData userToken = (MyData)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (userToken == null) {
             return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
+        }
+
+        if(amount.doubleValue() <= 0){
+            return new ResponseEntity<>(new ErrorResponse(String.format("INVALID AMOUN %s", amount)), HttpStatus.BAD_REQUEST);
         }
 
         Optional<WalletAccount> ownerAccount = walletAccountRepository.findByAccount(accountNumber);
