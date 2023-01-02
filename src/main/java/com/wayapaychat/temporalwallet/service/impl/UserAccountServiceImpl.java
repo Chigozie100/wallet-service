@@ -17,6 +17,7 @@ import com.wayapaychat.temporalwallet.service.UserPricingService;
 import com.wayapaychat.temporalwallet.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -986,6 +987,11 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Product Type Does Not Match"), HttpStatus.BAD_REQUEST);
 		}
 
+		WalletUser walletUser = walletUserRepository.findByUserId(Long.valueOf(1));
+		if (ObjectUtils.isEmpty(walletUser)){
+			return new ResponseEntity<>(new ErrorResponse("System config not completed"), HttpStatus.BAD_REQUEST);
+		}
+
 		String acctNo = product.getCrncy_code() + "0000" + user.getPlaceholderCode();
 		String acct_ownership = "O";
 
@@ -996,18 +1002,18 @@ public class UserAccountServiceImpl implements UserAccountService {
 			String hashed_no = reqUtil
 					.WayaEncrypt(0L + "|" + acctNo + "|" + user.getProductCode() + "|" + product.getCrncy_code());
 
-			WalletAccount account = new WalletAccount();
-			account = new WalletAccount("0000", user.getPlaceholderCode(), acctNo, nubanAccountNumber,user.getAccountName(), null,
+			WalletAccount _account = new WalletAccount("0000", user.getPlaceholderCode(), acctNo, nubanAccountNumber,user.getAccountName(), null,
 					code.getGlSubHeadCode(), product.getProductCode(), acct_ownership, hashed_no,
 					product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
 					product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
 					product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
 					product.getXfer_cr_limit(), false, user.getAccountType(), user.getDescription());
-			walletAccountRepository.save(account);
+			_account.setUser(walletUser);	
+			walletAccountRepository.save(_account);
 			event.setProcessflg(true);
 			walletEventRepo.save(event);
-			return new ResponseEntity<>(new SuccessResponse("Office Account created successfully.", account),
-					HttpStatus.CREATED);
+			CompletableFuture.runAsync(()-> pushToMifos(walletUser, _account));
+			return new ResponseEntity<>(new SuccessResponse("Office Account created successfully.", _account), HttpStatus.CREATED);
 		} catch (Exception e) {
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
