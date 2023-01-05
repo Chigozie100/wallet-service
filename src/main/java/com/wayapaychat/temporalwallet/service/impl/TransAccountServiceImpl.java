@@ -25,6 +25,8 @@ import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
 import com.wayapaychat.temporalwallet.repository.*;
 import com.wayapaychat.temporalwallet.service.*;
 import com.wayapaychat.temporalwallet.util.*;
+
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
@@ -5088,6 +5090,8 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	public ResponseEntity<?>  debitAndCreditTransactionAmount(){
 		BigDecimal count = walletTransactionRepository.findByAllDTransaction();
 		BigDecimal amount = walletTransactionRepository.findByAllCTransaction();
+		if(ObjectUtils.isEmpty(count)){ count =  BigDecimal.valueOf(0.0); }
+		if(ObjectUtils.isEmpty(amount)){ amount = BigDecimal.valueOf(0.0); }
 		BigDecimal total = BigDecimal.valueOf(count.doubleValue() + amount.doubleValue());
 		return new ResponseEntity<>(new SuccessResponse("SUCCESS", total), HttpStatus.OK);
 	}
@@ -5105,6 +5109,8 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	public ResponseEntity<?>  debitAndCreditTransactionAmountOfficial(){
 		BigDecimal count = walletTransactionRepository.findByAllCTransactionOfficial();
 		BigDecimal amount = walletTransactionRepository.findByAllDTransactionOfficial();
+		if(ObjectUtils.isEmpty(count)){ count =  BigDecimal.valueOf(0.0); }
+		if(ObjectUtils.isEmpty(amount)){ amount = BigDecimal.valueOf(0.0); }
 		BigDecimal total = BigDecimal.valueOf(count.doubleValue() + amount.doubleValue());
 		return new ResponseEntity<>(new SuccessResponse("SUCCESS", total), HttpStatus.OK);
 	}
