@@ -10,7 +10,7 @@ import java.util.concurrent.CompletableFuture;
 
 import javax.validation.constraints.NotNull;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.math3.util.Precision;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,7 +32,6 @@ import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletEventRepository;
 import com.wayapaychat.temporalwallet.repository.WalletTransAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletTransactionRepository;
-import com.wayapaychat.temporalwallet.repository.WalletUserRepository;
 import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.SwitchWalletService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
@@ -100,6 +99,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     public ResponseEntity<?> getAccountDetails(String accountNo){
 
 		try{
+            // ResponseEntity<?> response = securityCheck(accountNo, BigDecimal.valueOf(0));
+            // if(!response.getStatusCode().is2xxSuccessful()){
+            //     return response;
+            // }
+
 			Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
 			if (!account.isPresent()) {
 				return new ResponseEntity<>(new ErrorResponse("Unable to fetch account"), HttpStatus.BAD_REQUEST);
@@ -107,15 +111,17 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 			BigDecimal totalDr = walletTransactionRepository.totalTransactionAmount(accountNo, "D");
 			BigDecimal totalCr = walletTransactionRepository.totalTransactionAmount(accountNo, "C");
 
-			if(totalDr != null && totalCr != null){
-				double unClrbalAmt = totalCr.doubleValue() - totalDr.doubleValue();
-                account.get().setCum_cr_amt(totalCr.doubleValue());
-                account.get().setCum_dr_amt(totalDr.doubleValue());
-				account.get().setClr_bal_amt(Precision.round(unClrbalAmt-account.get().getLien_amt(), 2));
-				account.get().setUn_clr_bal_amt(Precision.round(unClrbalAmt, 2));
-				walletAccountRepository.saveAndFlush(account.get());
-			}
 
+            if(ObjectUtils.isEmpty(totalDr)){ totalDr =  BigDecimal.valueOf(0.0); }
+            if(ObjectUtils.isEmpty(totalCr)){ totalCr = BigDecimal.valueOf(0.0); } 
+
+            double unClrbalAmt = totalCr.doubleValue() - totalDr.doubleValue();
+            account.get().setCum_cr_amt(totalCr.doubleValue());
+            account.get().setCum_dr_amt(totalDr.doubleValue());
+            account.get().setClr_bal_amt(Precision.round(unClrbalAmt-account.get().getLien_amt(), 2));
+            account.get().setUn_clr_bal_amt(Precision.round(unClrbalAmt, 2));
+            walletAccountRepository.saveAndFlush(account.get());
+			
 			return new ResponseEntity<>(new SuccessResponse("Wallet", account), HttpStatus.OK);
 		}catch (Exception ex){
             ex.printStackTrace();
@@ -598,11 +604,9 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_APP"::equalsIgnoreCase)? true : isWriteAdmin;
         boolean isOwner =  Long.compare(account.getUId(), userToken.getId()) == 0;
 
-        if(StringUtils.isNumeric(accountNumber)){
-            if(!isOwner && !isWriteAdmin){
-                log.error("owner check {} {}", isOwner, isWriteAdmin);
-                return new ResponseEntity<>(new ErrorResponse(String.format("INVALID SOURCE ACCOUNT %s %s %s", accountNumber, isOwner, isWriteAdmin)), HttpStatus.BAD_REQUEST);
-            }
+        if(!isOwner && !isWriteAdmin){
+            log.error("owner check {} {}", isOwner, isWriteAdmin);
+            return new ResponseEntity<>(new ErrorResponse(String.format("INVALID SOURCE ACCOUNT %s %s %s", accountNumber, isOwner, isWriteAdmin)), HttpStatus.BAD_REQUEST);
         }
 
         addLien(ownerAccount.get(),  amount);

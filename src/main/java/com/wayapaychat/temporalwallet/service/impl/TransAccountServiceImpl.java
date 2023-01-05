@@ -5110,7 +5110,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		BigDecimal count = walletTransactionRepository.findByAllCTransactionOfficial();
 		BigDecimal amount = walletTransactionRepository.findByAllDTransactionOfficial();
 		if(ObjectUtils.isEmpty(count)){ count =  BigDecimal.valueOf(0.0); }
-		if(ObjectUtils.isEmpty(amount)){ amount = BigDecimal.valueOf(0.0); }
+		if(ObjectUtils.isEmpty(amount)){ amount = BigDecimal.valueOf(0.0); } 
 		BigDecimal total = BigDecimal.valueOf(count.doubleValue() + amount.doubleValue());
 		return new ResponseEntity<>(new SuccessResponse("SUCCESS", total), HttpStatus.OK);
 	}
