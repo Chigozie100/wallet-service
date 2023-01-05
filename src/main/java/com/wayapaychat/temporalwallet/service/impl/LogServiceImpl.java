@@ -20,9 +20,9 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public void saveLog(LogRequest logPojo) {
+    public void saveLog(LogRequest logPojo, String token) {
         try {
-            logServiceProxy.saveNewLog(logPojo);
+            logServiceProxy.saveNewLog(logPojo,token);
         } catch (Exception e) {
             log.error("Error saving Logs:: {}", e.getMessage());
         }

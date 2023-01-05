@@ -4,7 +4,6 @@ import com.wayapaychat.temporalwallet.dto.BillerManagementResponse;
 import com.wayapaychat.temporalwallet.entity.Billers;
 import com.wayapaychat.temporalwallet.entity.ProductPricing;
 import com.wayapaychat.temporalwallet.entity.UserPricing;
-import com.wayapaychat.temporalwallet.entity.WalletEventCharges;
 import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.enumm.PriceCategory;
 import com.wayapaychat.temporalwallet.enumm.ProductPriceStatus;
@@ -21,7 +20,6 @@ import static com.wayapaychat.temporalwallet.util.Constant.*;
 
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.SuccessResponse;
-import com.wayapaychat.temporalwallet.util.Util;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -295,8 +293,6 @@ public class UserPricingServiceImpl implements UserPricingService {
 
     private void processUserPricing(List<WalletUser> userList, String actionType, WalletUser userx){
         try{
-
-      //  List<Map<String, String>> products = Util.products();
 
         List<ProductPricing> productss = productPricingRepository.findAll();
         log.info("productss : "+ productss); 
