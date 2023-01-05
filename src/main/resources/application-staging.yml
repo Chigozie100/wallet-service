@@ -59,9 +59,9 @@ job:
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://eureka-service/eureka
+      defaultZone: https://services.staging.wayabank.ng/eureka
     service-url:
-      default-zone: http://eureka-service/eureka
+      default-zone: https://services.staging.wayabank.ng/eureka
   instance:
     preferIpAddress: true
 
