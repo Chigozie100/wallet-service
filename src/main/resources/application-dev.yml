@@ -75,7 +75,7 @@ eureka:
 waya:
   wallet:
     auth: AUTHENTICATION-SERVICE
-    authurl: ${CONFIG_BASEURL_AUTH:https://services.staging.wayabank.ng/auth-service/api/v1}
+    authurl: ${CONFIG_BASEURL_AUTH:http://localhost:8012/api/v1}
     mifos: MIFOS-WALLET-SERVICE
     mifosurl: ${CONFIG_BASEURL_MWALLET:https://services.staging.wayabank.ng/middletier-service}
     productcode: ${CONFIG_PRODUCT_SAVINGS:SB601}

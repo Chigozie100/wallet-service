@@ -180,6 +180,10 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
 			default:
 				action = "CREATE";
 		}
+		
+		TokenImpl tokenImpl = ((TokenImpl) SpringApplicationContext.getBean("tokenImpl"));
+        String systemToken = tokenImpl.getToken();
+		
 		LogService userService = ((LogService) SpringApplicationContext.getBean("logServiceImpl"));
 		LogRequest pojo = new LogRequest();
 		pojo.setAction(action);
@@ -198,6 +202,6 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
 		}
 		pojo.setModule(controller);
 		if(userService != null)
-			userService.saveLog(pojo);
+			userService.saveLog(pojo,systemToken);
 	}
 }

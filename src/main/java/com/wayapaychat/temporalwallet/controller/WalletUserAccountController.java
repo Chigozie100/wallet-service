@@ -269,6 +269,7 @@ public class WalletUserAccountController {
         return userAccountService.getUserAccountList(user_id);
     }
 
+    @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "List User wallets", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/admin/user/accounts/{user_id}")
     public ResponseEntity<?> GetListAccount(@PathVariable long user_id) {
