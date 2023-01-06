@@ -1,6 +1,5 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
-import com.wayapaychat.temporalwallet.config.SecurityConstants;
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.*;
@@ -17,10 +16,13 @@ import com.wayapaychat.temporalwallet.service.UserPricingService;
 import com.wayapaychat.temporalwallet.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
@@ -285,16 +287,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 	}
 
-//
-//	private ApiResponse validatePin2(String pin, String auth_token){
-//		try{
-//			return authProxy.validatePin(pin, auth_token);
-//
-//		}catch (Exception ex){
-//			throw new CustomException("Pin validation failed: "+ ex.getLocalizedMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
-//		}
-//
-//	}
+
 	@Override
 	public WalletAccount createNubanAccount(WalletUserDTO user) {
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
@@ -405,7 +398,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 						product.getXfer_cr_limit(),true, user.getAccountType(), user.getDescription());
 			}
 			WalletAccount sAcct = walletAccountRepository.save(account);
-			WalletAccount caccount = new WalletAccount();
+			//WalletAccount caccount = new WalletAccount();
 			// Commission Wallet
 
 			sAcct.setWalletDefault(true);
@@ -986,6 +979,11 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Product Type Does Not Match"), HttpStatus.BAD_REQUEST);
 		}
 
+		WalletUser walletUser = walletUserRepository.findByUserId(Long.valueOf(1));
+		if (ObjectUtils.isEmpty(walletUser)){
+			return new ResponseEntity<>(new ErrorResponse("System config not completed"), HttpStatus.BAD_REQUEST);
+		}
+
 		String acctNo = product.getCrncy_code() + "0000" + user.getPlaceholderCode();
 		String acct_ownership = "O";
 
@@ -996,18 +994,18 @@ public class UserAccountServiceImpl implements UserAccountService {
 			String hashed_no = reqUtil
 					.WayaEncrypt(0L + "|" + acctNo + "|" + user.getProductCode() + "|" + product.getCrncy_code());
 
-			WalletAccount account = new WalletAccount();
-			account = new WalletAccount("0000", user.getPlaceholderCode(), acctNo, nubanAccountNumber,user.getAccountName(), null,
+			WalletAccount _account = new WalletAccount("0000", user.getPlaceholderCode(), acctNo, nubanAccountNumber,user.getAccountName(), null,
 					code.getGlSubHeadCode(), product.getProductCode(), acct_ownership, hashed_no,
 					product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
 					product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
 					product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
 					product.getXfer_cr_limit(), false, user.getAccountType(), user.getDescription());
-			walletAccountRepository.save(account);
+			_account.setUser(walletUser);	
+			walletAccountRepository.save(_account);
 			event.setProcessflg(true);
 			walletEventRepo.save(event);
-			return new ResponseEntity<>(new SuccessResponse("Office Account created successfully.", account),
-					HttpStatus.CREATED);
+			CompletableFuture.runAsync(()-> pushToMifos(walletUser, _account));
+			return new ResponseEntity<>(new SuccessResponse("Office Account created successfully.", _account), HttpStatus.CREATED);
 		} catch (Exception e) {
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
@@ -1283,6 +1281,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> getAccountInfo(String accountNo) {
+		securityWtihAccountNo(accountNo);
 		WalletAccount account = walletAccountRepository.findByAccountNo(accountNo);
 		if (account == null) {
 			return new ResponseEntity<>(new ErrorResponse("Invalid Account"), HttpStatus.BAD_REQUEST);
@@ -1291,6 +1290,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 	}
 
 	public ResponseEntity<?> fetchAccountDetail(String accountNo) {
+		securityWtihAccountNo(accountNo);
 		WalletAccount acct = walletAccountRepository.findByAccountNo(accountNo);
 		if (acct == null) {
 			return new ResponseEntity<>(new ErrorResponse("Invalid Account"), HttpStatus.NOT_FOUND);
@@ -1315,7 +1315,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> getUserAccountList(long userId){  
-
+		securityCheck(userId);
 		MyData tokenData = tokenService.getUserInformation();
 		if(tokenData == null){
 			return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
@@ -1356,6 +1356,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 
 	public ResponseEntity<?> ListUserAccount(long userId) {
+		securityCheck(userId);
 		int uId = (int) userId;
 		UserDetailPojo ur = authService.AuthUser(uId);
 		if (ur == null) {
@@ -1387,6 +1388,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> getUserCommissionList(long userId) {
+		securityCheck(userId);
 		WalletUser userx = walletUserRepository.findByUserId(userId);
 		if (userx == null) {
 			return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
@@ -1400,6 +1402,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> makeDefaultWallet(String accountNo) {
+		securityWtihAccountNo(accountNo);
 		WalletAccount account = walletAccountRepository.findByAccountNo(accountNo);
 		if (account == null) {
 			return new ResponseEntity<>(new ErrorResponse("Invalid Account No"), HttpStatus.BAD_REQUEST);
@@ -1407,9 +1410,35 @@ public class UserAccountServiceImpl implements UserAccountService {
 		return new ResponseEntity<>(new SuccessResponse("Default wallet set", account), HttpStatus.OK);
 
 	}
+	private MyData getEmailFromToken(long userId){
+		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+		return (MyData) auth.getPrincipal();
+	}
+ 
+	private void securityWtihAccountNo(String accountNo){
+		try{
+			WalletAccount walletAccount = walletAccountRepository.findByAccountNo(accountNo);
+			WalletUser xUser = walletUserRepository.findByAccount(walletAccount); 
+			securityCheck(Long.valueOf(xUser.getUserId()));
+		}catch(CustomException ex){
+			throw new CustomException("Your Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	private void securityCheck(long userId){
+		MyData jwtUser = getEmailFromToken(userId);
+		WalletUser user = walletUserRepository.findByUserId(userId);
+		if(!user.getEmailAddress().equals(jwtUser.getEmail()) || user.getUserId() != userId){
+			throw new CustomException("Your Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
+		}
+	}
+ 
 
 	@Override
 	public ResponseEntity<?> UserWalletLimit(long userId) {
+		//security check
+		securityCheck(userId);
+		
 		WalletUser user = walletUserRepository.findByUserId(userId);
 		if (user == null) {
 			return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
@@ -1428,6 +1457,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> getAccountCommission(String accountNo) {
+		securityWtihAccountNo(accountNo);
 		Optional<WalletAccount> account = walletAccountRepository.findByAccountProductCode(wayaProductCommission,
 				accountNo);
 		if (!account.isPresent()) {
@@ -1437,7 +1467,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 	}
 
 	public ResponseEntity<?> getAccountDetails(String accountNo) throws Exception {
-
+		securityWtihAccountNo(accountNo);
 		try{
 			Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
 			if (!account.isPresent()) {
@@ -1451,6 +1481,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> getAccountDefault(Long user_id) {
+		securityCheck(user_id);
 		WalletUser user = walletUserRepository.findByUserId(user_id);
 		if (user == null) {
 			return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
@@ -1505,6 +1536,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ApiResponse<?> fetchTransaction(String acctNo) {
+		securityWtihAccountNo(acctNo);
 		List<AccountStatementDTO> account = tempwallet.fetchTransaction(acctNo);
 		if (account.isEmpty()) {
 			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO TRANSACTION RECORD", null);
@@ -1514,6 +1546,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ApiResponse<?> fetchFilterTransaction(String acctNo, Date fromdate, Date todate) {
+		securityWtihAccountNo(acctNo);
 		LocalDate fromDate = fromdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 		LocalDate toDate = todate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 		List<AccountStatementDTO> account = tempwallet.fetchFilterTransaction(acctNo, fromDate, toDate);
@@ -1525,6 +1558,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ApiResponse<?> fetchRecentTransaction(Long user_id) {
+		securityCheck(user_id);
 		WalletUser user = walletUserRepository.findByUserId(user_id);
 		if (user == null) {
 			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "USER ID DOES NOT EXIST", null);
@@ -1555,11 +1589,14 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> getListWalletAccount() {
-		List<WalletAccount> account = walletAccountRepository.findByWalletAccount();
-		if (account.isEmpty()) {
+		
+		WalletUser user = Util.checkOwner();
+		List<WalletAccount> findByUser = walletAccountRepository.findByUser(user);
+	  
+		if (findByUser.isEmpty()) {
 			return new ResponseEntity<>(new ErrorResponse("NO WAYA ACCOUNT"), HttpStatus.BAD_REQUEST);
 		}
-		return new ResponseEntity<>(new SuccessResponse("LIST WAYA ACCOUNT", account), HttpStatus.OK);
+		return new ResponseEntity<>(new SuccessResponse("LIST WAYA ACCOUNT", findByUser), HttpStatus.OK);
 	}
 
 	@Override
@@ -1727,15 +1764,6 @@ public class UserAccountServiceImpl implements UserAccountService {
 				return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"), HttpStatus.NOT_FOUND);
 			}
 
-//			if (account.isAcct_cls_flg() && account.getClr_bal_amt() != 0) {
-//				return new ResponseEntity<>(
-//						new ErrorResponse("Account balance must be equal to zero before it can be closed"),
-//						HttpStatus.NOT_FOUND);
-//			} else {
-//				if (account.isAcct_cls_flg())
-//					return new ResponseEntity<>(new ErrorResponse("Account already blocked"), HttpStatus.NOT_FOUND);
-//			}
-
 			if(user.isBlock()){
 				account.setAcct_cls_date(LocalDate.now());
 				account.setAcct_cls_flg(true);
@@ -1760,7 +1788,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 	}
 
 	private void blockAccount(WalletAccount account, HttpServletRequest request, boolean isBlock){
-		String token = request.getHeader(SecurityConstants.HEADER_STRING);
+		log.info("request : " + request);
 		try{
 		MifosBlockAccount mifosBlockAccount = new MifosBlockAccount();
 
@@ -1768,27 +1796,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 			if(isBlock){
 			mifosBlockAccount.setNarration("block account");
-			//CompletableFuture.runAsync(()-> processBlocking(token, mifosBlockAccount, true));
 
 		}else{
 			mifosBlockAccount.setNarration("unblock account");
-			//CompletableFuture.runAsync(()-> processBlocking(token, mifosBlockAccount, false));
 		}
-
-		} catch (Exception e) {
-			throw new CustomException(e.getMessage(),HttpStatus.BAD_REQUEST);
-		}
-	}
-
- private void processBlocking(String token, MifosBlockAccount mifosBlockAccount, boolean isBlocking){
-		try {
-			if(isBlocking){
-				ApiResponse<?> response = mifosWalletProxy.blockAccount(token,mifosBlockAccount);
-				log.info("RESPONSE FROM MIFOS blocking account: " + response);
-			}else {
-				ApiResponse<?> response = mifosWalletProxy.blockAccount(token,mifosBlockAccount);
-				log.info("RESPONSE FROM MIFOS unblocking account: " + response);
-			}
 
 		} catch (Exception e) {
 			throw new CustomException(e.getMessage(),HttpStatus.BAD_REQUEST);
@@ -1836,6 +1847,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		int count = 0;
 		for (AccountCloseDTO data: user){
 			ResponseEntity<?> dd = AccountAccessClosure(data);
+			log.info("dd : " + dd);
 			count ++;
 		}
 		return new ResponseEntity<>(new SuccessResponse(count + "accounts closed successfully.", user), HttpStatus.OK);
@@ -1843,7 +1855,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> AccountAccessLien(AccountLienDTO user) {
-		System.out.println(" ##### AccountAccessLien #### ");
+		log.info(" ##### AccountAccessLien #### ");
 		try {
 			if (user.getLienAmount().compareTo(BigDecimal.ZERO) == 0) {
 				return new ResponseEntity<>(new ErrorResponse("Lien Amount should not be 0"), HttpStatus.NOT_FOUND);

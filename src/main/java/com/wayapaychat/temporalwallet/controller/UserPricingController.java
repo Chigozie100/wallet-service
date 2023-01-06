@@ -142,7 +142,7 @@ public class UserPricingController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "creat-user-pricing", notes = "creat-user-pricing", tags = { "USER-PRICING" })
-    @PostMapping(value = "/creat-user-pricing", produces =
+    @GetMapping(value = "/create-user-pricing/{userId}", produces =
             MediaType.APPLICATION_JSON_VALUE)
     @Async
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
