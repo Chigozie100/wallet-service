@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.entity.WalletUser;
 
-@Repository
+@Repository("walletUserRepository")
 public interface WalletUserRepository extends JpaRepository<WalletUser, Long> {
 	
 	//@Query(value = "SELECT u FROM WalletUser u " + "WHERE UPPER(u.emailAddress) = UPPER(:email) " + " AND u.userId = (:userId) " + " AND u.del_flg = false")

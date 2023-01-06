@@ -3,9 +3,11 @@ package com.wayapaychat.temporalwallet.controller;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.enumm.TransactionTypeEnum;
 import com.wayapaychat.temporalwallet.exception.CustomException;
+import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
+import com.wayapaychat.temporalwallet.service.UserAccountService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -31,6 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -43,11 +46,13 @@ import java.util.List;
 public class AdminController {
     private final TransAccountService transAccountService;
     private final CoreBankingService coreBankingService;
+    private final UserAccountService userAccountService;
 
     @Autowired
-    public AdminController(TransAccountService transAccountService, CoreBankingService coreBankingService) {
+    public AdminController(TransAccountService transAccountService, CoreBankingService coreBankingService, UserAccountService userAccountService) {
         this.transAccountService = transAccountService;
         this.coreBankingService = coreBankingService;
+        this.userAccountService = userAccountService;
     }
 
 
@@ -513,7 +518,7 @@ public class AdminController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Admin Transaction Reversal for faild transactions", notes = "Transfer amount from one wallet to another wallet", tags = {
-            "TRANSACTION-WALLET" })
+            "ADMIN" })
     @PostMapping("/transaction/reverse-failed-transaction")
     public ResponseEntity<?> PaymentReversalRevised(HttpServletRequest request,
                                                     @RequestBody() ReverseTransactionDTO reverseDto) throws ParseException {
@@ -529,5 +534,167 @@ public class AdminController {
         return transAccountService.getSingleAccountByEventID(eventId);
     }
 
+    @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "List all wallet accounts", tags = { "ADMIN" })
+    @GetMapping(path = "/wallet/account")
+    public ResponseEntity<?> ListAllWalletAccount() { 
+        return userAccountService.getListWalletAccount();
+    }
+	
+    	@ApiOperation(value = "Get simulated Account", tags = { "ADMIN" })
+    @GetMapping(path = "/simulated/{user_id}")
+    public ResponseEntity<?> GetAcctSimulated(@PathVariable Long user_id) {
+        return userAccountService.getAccountSimulated(user_id);
+    }
+	
+	@ApiOperation(value = "List all simulated accounts", tags = { "ADMIN" })
+    @GetMapping(path = "/simulated/account")
+    public ResponseEntity<?> ListAllSimulatedAccount() {
+        return userAccountService.getListSimulatedAccount();
+    }
+	
+	@ApiOperation(value = "Create a Simulated User", tags = { "ADMIN" })
+    @PostMapping(path = "simulated/account")
+    public ResponseEntity<?> createSIMUser(@Valid @RequestBody AccountPojo2 user) {
+		log.info("Request input: {}",user);
+		return userAccountService.createAccount(user);
+    }
 
+    @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Create a wallet account", tags = { "ADMIN" })
+    @PostMapping(path = "/official/user/account")
+    public ResponseEntity<?> createUserAccount(@Valid @RequestBody AccountPojo2 accountPojo) {
+		return userAccountService.createAccount(accountPojo);
+    }
+	
+	@ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Create a waya official account", tags = { "ADMIN" })
+    @PostMapping(path = "/official/waya/account")
+    public ResponseEntity<?> createOfficialAccount(@Valid @RequestBody OfficialAccountDTO account) {
+		return userAccountService.createOfficialAccount(account);
+    }
+
+    @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Create a waya official account", tags = { "ADMIN" })
+    @PostMapping(path = "/official/waya/account-multiple")
+    public ArrayList<Object> createOfficialAccount(@Valid @RequestBody List<OfficialAccountDTO> account) {
+        return userAccountService.createOfficialAccount(account);
+    }
+
+    @ApiOperation(value = "List all waya official accounts", tags = { "ADMIN" })
+    @GetMapping(path = "/waya/official/account")
+    public ResponseEntity<?> ListAllWayaAccount() {
+        return userAccountService.getListWayaAccount();
+    }
+	
+
+    @ApiOperation(value = "Delete,Pause and Block User Account",  tags = { "ADMIN" })
+    @PostMapping(path = "/user/account/access")
+    public ResponseEntity<?> postAccountRestriction(@Valid @RequestBody AdminAccountRestrictionDTO user) {
+		log.info("Request input: {}",user);
+		return userAccountService.UserAccountAccess(user);
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Delete User Account", tags = { "ADMIN" })
+    @PostMapping(path = "/user/account/delete")
+    public ResponseEntity<?> postAccountUser(@Valid @RequestBody UserAccountDelete user) {
+		log.info("Request input: {}",user);
+		return userAccountService.AccountAccessDelete(user);
+    }
+	
+	@ApiOperation(value = "Pause Account / Freeze Account", tags = { "ADMIN" })
+    @PostMapping(path = "/account/pause")
+    public ResponseEntity<?> postAccountPause(@Valid @RequestBody AccountFreezeDTO user) {
+		log.info("Request input: {}",user);
+		return userAccountService.AccountAccessPause(user);
+    }
+
+
+    @ApiOperation(value = " Block / UnBlock", tags = { "ADMIN" })
+    @PostMapping(path = "/account/block")
+    public ResponseEntity<?> postAccountBlock(@Valid @RequestBody AccountBlockDTO user, HttpServletRequest request) {
+        log.info("Request input: {}",user);
+        return userAccountService.AccountAccessBlockAndUnblock(user, request);
+    }
+
+
+    @ApiOperation(value = "Delete Account / Block / UnBlock", tags = { "ADMIN" })
+    @PostMapping(path = "/account/closure")
+    public ResponseEntity<?> postAccountClosure(@Valid @RequestBody AccountCloseDTO user) {
+		log.info("Request input: {}",user);
+		return userAccountService.AccountAccessClosure(user);
+    }
+
+    @ApiOperation(value = "Delete Multiple Account", tags = { "ADMIN" })
+    @PostMapping(path = "/account/closure-multiple")
+    public ResponseEntity<?> postAccountClosureMultiple(@Valid @RequestBody List<AccountCloseDTO> user) {
+        log.info("Request input: {}",user);
+        return userAccountService.AccountAccessClosureMultiple(user);
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Transaction account block / unblock", tags = { "ADMIN" })
+    @PostMapping(path = "/account/lien/transaction")
+    public ResponseEntity<?> postAccountLien(@Valid @RequestBody AccountLienDTO user) {
+		log.info("Request input: {}",user);
+		return userAccountService.AccountAccessLien(user);
+    }
+	
+	 @ApiOperation(value = "Create Admin Cash Wallet - (Admin COnsumption Only)", tags = { "ADMIN" })
+	 @PostMapping(path = "/cash/account")
+	 public ResponseEntity<?> createCashAccounts(@Valid @RequestBody WalletCashAccountDTO user) {
+		 return userAccountService.createCashAccount(user);
+	        //return userAccountService.createCashAccount(user);
+	 }
+
+	 @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	 @ApiOperation(value = "Create Event Wallet Account - (Admin COnsumption Only)",  tags = { "ADMIN" })
+	 @PostMapping(path = "/event/account")
+	 public ResponseEntity<?> createEventAccounts(@Valid @RequestBody WalletEventAccountDTO user) {
+		 return userAccountService.createEventAccount(user);
+	        //return userAccountService.createEventAccount(user);
+	 }
+	
+
+	
+     @ApiOperation(value = "Generate Account Statement", tags = { "ADMIN" })
+     @GetMapping(path = "/admin/account/statement/{accountNo}")
+     public ResponseEntity<?> GenerateAccountStatement(@PathVariable String accountNo) {
+              // check if the accountNo passed is same with User token
+         ApiResponse<?> res = userAccountService.fetchTransaction(accountNo);
+         if (!res.getStatus()) {
+             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+         }
+         return new ResponseEntity<>(res, HttpStatus.OK);
+     }
+
+     @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+     @ApiOperation(value = "List User wallets", tags = { "ADMIN" })
+     @GetMapping(path = "/admin/user/accounts/{user_id}")
+     public ResponseEntity<?> GetListAccount(@PathVariable long user_id) {
+         return userAccountService.ListUserAccount(user_id);
+     }
+     
+     @ApiOperation(value = "Get All Wallets - (Admin Consumption Only)", tags = { "ADMIN" })
+     @GetMapping(path = "/all-wallets")
+     public ResponseEntity<?> getAllAccounts() {
+         return userAccountService.getAllAccount();
+     }
+
+     @ApiOperation(value = "List all Commission Accounts", tags = { "ADMIN" })
+     @GetMapping(path = "/commission-wallets/all")
+     public ResponseEntity<?> GetAllCommissionAccounts() {
+         return userAccountService.getALLCommissionAccount();
+     }
+
+     	
+	@ApiOperation(value = "Get List of Commission Accounts", tags = { "ADMIN" })
+    @GetMapping(path = "/commission-wallets")
+    public ResponseEntity<?> ListAllCommissionAccounts(@RequestBody List<Integer> ids) {
+        return userAccountService.getListCommissionAccount(ids);
+    }
+	
 }

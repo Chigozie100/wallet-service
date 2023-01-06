@@ -21,6 +21,7 @@ public class GetUserDataService {
 
 	public TokenCheckResponse getUserData(String token) {
 		TokenCheckResponse res = null;
+		
 		try {
 			res = authProxy.getUserDataToken(token);
 			log.info("::::Token::::" + res.getMessage());

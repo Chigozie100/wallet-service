@@ -19,7 +19,7 @@ public interface AuthProxy {
     ApiResponse validatePin(@PathVariable("pin") String pin, @RequestHeader("Authorization") String token);
 
     @PostMapping("/auth/validate-user")
-	TokenCheckResponse getUserDataToken(@RequestHeader("authorization") String token);
+	TokenCheckResponse getUserDataToken(@RequestHeader("Authorization") String token);
 
     @PostMapping("/auth/validate-user")
     TokenCheckResponse getSignedOnUser();
@@ -29,8 +29,6 @@ public interface AuthProxy {
     
     @PostMapping("/auth/generate-otp/{emailOrPhoneNumber}")
     OTPResponse postOTPGenerate(@PathVariable("emailOrPhoneNumber") String emailOrPhoneNumber);
-
-
 
     @PostMapping("/auth/login")
     TokenCheckResponse getToken(@RequestBody HashMap request);
