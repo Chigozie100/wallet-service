@@ -1071,6 +1071,41 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return resp;
 	}
 
+
+	public WalletAccount findByEmailOrPhoneNumberOrId(String value, String userId, String accountNo){
+		try{
+			userAccountService.securityCheck(Long.valueOf(userId));
+			securityWtihAccountNo2(accountNo, Long.valueOf(userId));
+			WalletUser user = walletUserRepository.findByEmailOrPhoneNumber(value).get(); 
+			return walletAccountRepository.findByDefaultAccount(user).get();
+		 
+		}catch(CustomException ex){
+			throw new CustomException("Your Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
+		}
+	}
+	public void securityWtihAccountNo2(String accountNo, long userId){
+		try{
+			boolean check = false;
+			WalletUser xUser = walletUserRepository.findByUserId(userId); 
+			List<WalletAccount> walletAccount = walletAccountRepository.findByUser(xUser); 
+			List<String> accountNoList = new ArrayList<>();
+			for(WalletAccount data: walletAccount){
+				accountNoList.add(data.getAccountNo()); 
+			}
+
+			if(accountNoList.contains(accountNo)){
+				check = true;  
+			}else{
+				throw new CustomException("Your Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
+			}
+			log.info("securityWtihAccountNo2 :" + check);
+		
+		}catch(CustomException ex){
+			throw new CustomException("Your Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	
 	@Override
 	public ResponseEntity<?> EventCommissionPayment(HttpServletRequest request, EventPaymentDTO transfer) {
 

@@ -117,5 +117,7 @@ public interface UserAccountService {
 	ResponseEntity<?>  createDefaultWallet(MyData user);
 
 	ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount);
+	
+	void securityCheck(long userId);
 
 }
