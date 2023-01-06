@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import com.wayapaychat.temporalwallet.dto.*;
+import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import com.wayapaychat.temporalwallet.service.TransactionCountService;
@@ -111,6 +112,31 @@ public class WalletTransactionController {
 			@Valid @RequestBody TransferTransactionDTO transfer) {
 		try{
 			return coreBankingService.transfer(transfer, "WAYATRAN");
+		}catch (CustomException ex){
+			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
+		}
+
+	}
+
+	@ApiImplicitParams({
+		@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+	@ApiOperation(value = "Send Money to Contact: Email or Phone or ID ", notes = "Send Money to Contact: Email or Phone of ID", tags = { "TRANSACTION-WALLET" })
+	@PostMapping("/sendmoney/to-contact")
+	public ResponseEntity<?> sendMoneyToEmailOrPhone(HttpServletRequest request,
+			@Valid @RequestBody SendMoneyToEmailOrPhone transfer) {
+		try{
+			// get user by email or phone
+			WalletAccount account = transAccountService.findByEmailOrPhoneNumberOrId(transfer.getEmailOrPhone(), transfer.getSenderUserId(), transfer.getSenderAccountNumber());
+			TransferTransactionDTO data = new TransferTransactionDTO(transfer.getSenderAccountNumber(),
+			account.getAccountNo(),
+			transfer.getAmount(),
+			"LOCAL",
+			"NGN",
+			transfer.getDescription(),
+			transfer.getPaymentReference(),
+			"TRANSFER");
+ 
+			return coreBankingService.transfer(data, "WAYATRAN");
 		}catch (CustomException ex){
 			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}

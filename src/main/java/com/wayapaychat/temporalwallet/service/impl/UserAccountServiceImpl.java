@@ -1425,14 +1425,13 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 	}
 
-	private void securityCheck(long userId){
+	public void securityCheck(long userId){
 		MyData jwtUser = getEmailFromToken(userId);
 		WalletUser user = walletUserRepository.findByUserId(userId);
 		if(!user.getEmailAddress().equals(jwtUser.getEmail()) || user.getUserId() != userId){
 			throw new CustomException("Your Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
 		}
 	}
- 
 
 	@Override
 	public ResponseEntity<?> UserWalletLimit(long userId) {
