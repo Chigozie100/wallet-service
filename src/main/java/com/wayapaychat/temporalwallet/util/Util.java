@@ -1,7 +1,16 @@
 package com.wayapaychat.temporalwallet.util;
 
+import com.wayapaychat.temporalwallet.SpringApplicationContext;
+import com.wayapaychat.temporalwallet.dto.AuthData;
+import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.exception.CustomException;
+import com.wayapaychat.temporalwallet.pojo.MyData;
+import com.wayapaychat.temporalwallet.repository.WalletUserRepository;
+import com.wayapaychat.temporalwallet.security.JwtTokenHelper;
+
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.util.Base64Utils;
 
 import javax.crypto.Cipher;
@@ -213,6 +222,27 @@ public class Util {
 
         list.add(map);
         return list;
+    }
+
+
+
+
+    public static WalletUser checkOwner(){
+    
+       WalletUserRepository walletUserRepo = ((WalletUserRepository) SpringApplicationContext.getBean("walletUserRepository"));
+        
+       Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+       MyData jwtUser = (MyData) auth.getPrincipal();
+       
+       WalletUser user = walletUserRepo.findByEmailAddress(jwtUser.getEmail());
+
+        System.out.println("auth.getPrincipal()=> "+jwtUser.getEmail() );
+
+       // send to auth:service
+       // get user
+
+       return user;
+
     }
 
 
