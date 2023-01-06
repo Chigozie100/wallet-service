@@ -120,7 +120,7 @@ public class WalletTransactionController {
 
 	@ApiImplicitParams({
 		@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-	@ApiOperation(value = "Send Money to Contact: Email or Phone ", notes = "Send Money to Contact: Email or Phone", tags = { "TRANSACTION-WALLET" })
+	@ApiOperation(value = "Send Money to Contact: Email or Phone or ID ", notes = "Send Money to Contact: Email or Phone of ID", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/sendmoney/to-contact")
 	public ResponseEntity<?> sendMoneyToEmailOrPhone(HttpServletRequest request,
 			@Valid @RequestBody SendMoneyToEmailOrPhone transfer) {

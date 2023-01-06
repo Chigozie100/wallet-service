@@ -1073,15 +1073,23 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 
 	public WalletAccount findByEmailOrPhoneNumberOrId(String value, String userId, String accountNo){
+		userAccountService.securityCheck(Long.valueOf(userId));
 		try{
-			userAccountService.securityCheck(Long.valueOf(userId));
 			securityWtihAccountNo2(accountNo, Long.valueOf(userId));
-			WalletUser user = walletUserRepository.findByEmailOrPhoneNumber(value).get(); 
-			return walletAccountRepository.findByDefaultAccount(user).get();
-		 
 		}catch(CustomException ex){
 			throw new CustomException("Your Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
 		}
+	 
+		try{
+			Optional<WalletUser> user = walletUserRepository.findByEmailOrPhoneNumber(value);
+			if(!user.isPresent()){
+				throw new CustomException("User doesnt exist", HttpStatus.NOT_FOUND);
+			}
+			return walletAccountRepository.findByDefaultAccount(user.get()).get();
+		}catch(CustomException ex){
+			throw new CustomException("Your Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
+		}
+	
 	}
 	public void securityWtihAccountNo2(String accountNo, long userId){
 		try{
