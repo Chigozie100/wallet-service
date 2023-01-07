@@ -87,7 +87,7 @@ waya:
   card:
     cardurl: ${CONFIG_BASEURL_CARD:https://services.staging.wayabank.ng/card-service}
     service: CARD-SERVICE
-    contacturl: ${CONFIG_BASEURL_CONTACT:https://services.staging.wayabank.ng/contact-service}
+    contacturl: ${CONFIG_BASEURL_CONTACT:http://localhost:8065/contact-service}
   contact:
     service: CONTACT-SERVICE
   account:

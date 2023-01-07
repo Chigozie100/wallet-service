@@ -21,8 +21,8 @@ public class SendMoneyToEmailOrPhone {
     private String emailOrPhone;
     private String paymentReference;
     private String tranNarration;
-    private String  tranCrncy;
-	private String  tranType;
-	private String  transactionCategory;
+    private String tranCrncy;
+	private String tranType;
+	private String transactionCategory;
 			
 }
