@@ -34,7 +34,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 
 	@Autowired
 	private JdbcTemplate jdbcTemplate;
-	
+
 	@Override
 	public WalletAccount GetCommission(int cifId) {
 		StringBuilder query = new StringBuilder();
@@ -69,7 +69,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		}
 		return count;
 	}
-	
+
 	@Override
 	public String TransactionGenerate() {
 		//getSecurity();
@@ -92,8 +92,8 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 			count = jdbcTemplate.queryForObject(sql, String.class);
 			System.out.println( " count ==== "  + count);
 			Random r = new Random( System.currentTimeMillis() );
-		    int x = ((1 + r.nextInt(2)) * 100000000 + r.nextInt(100000000));
-		    count = count + x;
+			int x = ((1 + r.nextInt(2)) * 100000000 + r.nextInt(100000000));
+			count = count + x;
 			while (count.length()  > 10){
 				StringBuffer sb= new StringBuffer(count);
 				sb.deleteCharAt(sb.length()-1);
@@ -108,7 +108,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		}
 		return count;
 	}
-	
+
 	@Override
 	public String generatePIN() {
 		//getSecurity();
@@ -117,8 +117,8 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		try {
 			count = jdbcTemplate.queryForObject(sql, String.class);
 			Random r = new Random( System.currentTimeMillis() );
-		    int x = ((1 + r.nextInt(2)) * 100 + r.nextInt(100));
-		    count = count + x;
+			int x = ((1 + r.nextInt(2)) * 100 + r.nextInt(100));
+			count = count + x;
 		} catch (EmptyResultDataAccessException ex) {
 			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
 		}catch (Exception ex) {
@@ -126,7 +126,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		}
 		return count;
 	}
-	
+
 	@Override
 	public String generateRefNo() {
 		//getSecurity();
@@ -135,8 +135,8 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		try {
 			count = jdbcTemplate.queryForObject(sql, String.class);
 			Random r = new Random( System.currentTimeMillis() );
-		    int x = ((1 + r.nextInt(2)) * 10000 + r.nextInt(10000));
-		    count = count + x;
+			int x = ((1 + r.nextInt(2)) * 10000 + r.nextInt(10000));
+			count = count + x;
 		} catch (EmptyResultDataAccessException ex) {
 			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
 		}catch (Exception ex) {
@@ -193,7 +193,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 			return null;
 		}
 	}
-	
+
 	public List<AccountStatementDTO> fetchFilterTransaction(String acctNo, LocalDate fromDate, LocalDate toDate) {
 		List<AccountStatementDTO> accountList = new ArrayList<>();
 		StringBuilder query = new StringBuilder();
@@ -215,7 +215,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 			return null;
 		}
 	}
-	
+
 	public List<AccountStatementDTO> recentTransaction(String acctNo) {
 		List<AccountStatementDTO> accountList = new ArrayList<>();
 		StringBuilder query = new StringBuilder();
@@ -238,7 +238,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 			return null;
 		}
 	}
-	
+
 	public List<AccountStatementDTO> TransactionReport(String acctNo) {
 		List<AccountStatementDTO> accountList = new ArrayList<>();
 		StringBuilder query = new StringBuilder();
@@ -285,7 +285,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 			return null;
 		}
 	}
-	
+
 	public List<AccountTransChargeDTO> TransChargeReport() {
 		List<AccountTransChargeDTO> accountList = new ArrayList<>();
 		StringBuilder query = new StringBuilder();
@@ -331,7 +331,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 	}
 
 	public int PaymenttranInsert(String event, String debitAccountNo, String creditAccountNo, BigDecimal amount,
-			String paymentReference) {
+								 String paymentReference) {
 		Integer record = 0;
 		StringBuilder query = new StringBuilder();
 		Object[] params = null;
@@ -367,14 +367,14 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		return record;
 
 	}
-	
+
 	public void updateTransaction(String paymentReference, BigDecimal amount, String tranId) {
 		StringBuilder query = new StringBuilder();
 		Object[] params = null;
-			query.append("Update m_accounts_transaction set processed_flg = 'Y',tran_id = ?  ");
-			query.append("WHERE tran_date = ? AND tran_amount = ? AND payment_reference = ? ");
-			params = new Object[] { tranId.trim().toUpperCase(),LocalDate.now(),amount, paymentReference.trim().toUpperCase()
-					 };
+		query.append("Update m_accounts_transaction set processed_flg = 'Y',tran_id = ?  ");
+		query.append("WHERE tran_date = ? AND tran_amount = ? AND payment_reference = ? ");
+		params = new Object[] { tranId.trim().toUpperCase(),LocalDate.now(),amount, paymentReference.trim().toUpperCase()
+		};
 		String sql = query.toString();
 		try {
 			int x = jdbcTemplate.update(sql, params);
@@ -385,9 +385,9 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 			ex.printStackTrace();
 			log.error(ex.getMessage());
 		}
-		
+
 	}
-	
+
 	public String transactionCount(String paymentReference, String accountNo) {
 		StringBuilder query = new StringBuilder();
 		String count = "";
@@ -395,7 +395,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		query.append("AND payment_reference = ? AND credit_account_no = ? AND tran_date = ?");
 		String sql = query.toString();
 		try {
-			Object[] params = new Object[] { paymentReference.trim().toUpperCase(), 
+			Object[] params = new Object[] { paymentReference.trim().toUpperCase(),
 					accountNo.trim().toUpperCase(), LocalDate.now()};
 			count = jdbcTemplate.queryForObject(sql, String.class, params);
 			log.info("TOTAL TRANSACTION COUNT: {}", count);
@@ -455,7 +455,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		}
 		return comm;
 	}
-	
+
 	public List<TransWallet> GetTransactionType(String account) {
 		List<TransWallet> wallet = new ArrayList<>();
 		StringBuilder query = new StringBuilder();

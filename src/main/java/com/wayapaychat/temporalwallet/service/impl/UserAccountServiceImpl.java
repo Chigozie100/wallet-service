@@ -1356,7 +1356,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 
 	public ResponseEntity<?> ListUserAccount(long userId) {
-		securityCheck(userId);
+		//securityCheck(userId);
 		int uId = (int) userId;
 		UserDetailPojo ur = authService.AuthUser(uId);
 		if (ur == null) {
