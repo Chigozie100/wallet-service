@@ -1072,7 +1072,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 
-	public WalletAccount findByEmailOrPhoneNumberOrId(String value, String userId, String accountNo){
+	public WalletAccount findByEmailOrPhoneNumberOrId(boolean isAccountNumber, String value, String userId, String accountNo){
 		userAccountService.securityCheck(Long.valueOf(userId));
 		try{
 			securityWtihAccountNo2(accountNo, Long.valueOf(userId));
@@ -1081,16 +1081,19 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 	 
 		try{
+			if(isAccountNumber){
+				return walletAccountRepository.findByAccount(value).get();
+			}
 			Optional<WalletUser> user;
 			if(!StringUtils.isNumeric(value) || value.startsWith("234"))
 				user = walletUserRepository.findByEmailOrPhoneNumber(value);
 			else
 				user = walletUserRepository.findUserId(Long.parseLong(value));
-				
 
 			if(!user.isPresent()){
 				throw new CustomException("User doesnt exist", HttpStatus.NOT_FOUND);
 			}
+
 			return walletAccountRepository.findByDefaultAccount(user.get()).get();
 		}catch(CustomException ex){ 
 			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
