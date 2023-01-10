@@ -1081,16 +1081,23 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 	 
 		try{
-			Optional<WalletUser> user = walletUserRepository.findByEmailOrPhoneNumber(value);
+			Optional<WalletUser> user;
+			if(!StringUtils.isNumeric(value) || value.startsWith("234"))
+				user = walletUserRepository.findByEmailOrPhoneNumber(value);
+			else
+				user = walletUserRepository.findUserId(Long.parseLong(value));
+				
+
 			if(!user.isPresent()){
 				throw new CustomException("User doesnt exist", HttpStatus.NOT_FOUND);
 			}
 			return walletAccountRepository.findByDefaultAccount(user.get()).get();
-		}catch(CustomException ex){
-			throw new CustomException("Your Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
+		}catch(CustomException ex){ 
+			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
 		}
 	
 	}
+ 
 	public void securityWtihAccountNo2(String accountNo, long userId){
 		try{
 			boolean check = false;
@@ -1107,6 +1114,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				throw new CustomException("Your Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
 			}
 			log.info("securityWtihAccountNo2 :" + check);
+			log.info("accountNo :" + accountNo);
 		
 		}catch(CustomException ex){
 			throw new CustomException("Your Lack credentials to perform this action", HttpStatus.BAD_REQUEST);

@@ -1,7 +1,7 @@
 server:
   port: 8066
   servlet:
-    context-path: /temporal-service
+    context-path: /
 spring:
   application:
     name: temporal-service
@@ -41,7 +41,7 @@ spring:
       fail-on-empty-beans: false
   datasource:
     url: jdbc:postgresql://localhost:5432/temporal-service?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
-    username: postgres
+    username: terseer_agbe
     password: flints11
     driver-class-name: org.postgresql.Driver
   hikari:
@@ -63,14 +63,14 @@ job:
     twelam: 0 0 0 * * ? #1 am every day
 
 
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: https://services.staging.wayabank.ng/eureka
-    service-url:
-      default-zone: https://services.staging.wayabank.ng/eureka
-  instance:
-    preferIpAddress: true
+#eureka:
+#  client:
+#    serviceUrl:
+#      defaultZone: https://services.staging.wayabank.ng/eureka
+#    service-url:
+#      default-zone: https://services.staging.wayabank.ng/eureka
+#  instance:
+#    preferIpAddress: true
 
 waya:
   wallet:
@@ -87,7 +87,7 @@ waya:
   card:
     cardurl: ${CONFIG_BASEURL_CARD:https://services.staging.wayabank.ng/card-service}
     service: CARD-SERVICE
-    contacturl: ${CONFIG_BASEURL_CONTACT:https://services.staging.wayabank.ng/contact-service}
+    contacturl: ${CONFIG_BASEURL_CONTACT:http://localhost:8065/contact-service}
   contact:
     service: CONTACT-SERVICE
   account:

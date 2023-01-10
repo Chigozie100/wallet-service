@@ -13,6 +13,7 @@ import javax.validation.Valid;
 
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
+import com.wayapaychat.temporalwallet.enumm.EventCharge;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import com.wayapaychat.temporalwallet.service.TransactionCountService;
@@ -51,7 +52,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class WalletTransactionController {
 
-	private final TransAccountService transAccountService; 
+	private final TransAccountService transAccountService;
 	private final TransactionCountService transactionCountService;
 	private final CoreBankingService coreBankingService;
 
@@ -68,7 +69,7 @@ public class WalletTransactionController {
 	@ApiOperation(value = "Generate OTP for Payment", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/otp/generate/{emailOrPhoneNumber}")
 	public ResponseEntity<?> OtpGenerate(HttpServletRequest request,
-			@PathVariable("emailOrPhoneNumber") String emailOrPhoneNumber) {
+										 @PathVariable("emailOrPhoneNumber") String emailOrPhoneNumber) {
 		return transAccountService.PostOTPGenerate(request, emailOrPhoneNumber);
 	}
 
@@ -85,7 +86,7 @@ public class WalletTransactionController {
 	@ApiOperation(value = "External Wallet Payment", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/external/payment/{userId}")
 	public ResponseEntity<?> ExternalSendMoney(HttpServletRequest request, @Valid @RequestBody CardRequestPojo transfer,
-			@PathVariable("userId") Long userId) {
+											   @PathVariable("userId") Long userId) {
 		return transAccountService.PostExternalMoney(request, transfer, userId);
 	}
 
@@ -105,11 +106,11 @@ public class WalletTransactionController {
 
 	// Wallet call by other service
 	@ApiImplicitParams({
-		@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Send Money to Account to Account", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/sendmoney/account")
 	public ResponseEntity<?> sendMoneyCBA(HttpServletRequest request,
-			@Valid @RequestBody TransferTransactionDTO transfer) {
+										  @Valid @RequestBody TransferTransactionDTO transfer) {
 		try{
 			return coreBankingService.transfer(transfer, "WAYATRAN");
 		}catch (CustomException ex){
@@ -119,24 +120,23 @@ public class WalletTransactionController {
 	}
 
 	@ApiImplicitParams({
-		@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Send Money to Contact: Email or Phone or ID ", notes = "Send Money to Contact: Email or Phone of ID", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/sendmoney/to-contact")
-	public ResponseEntity<?> sendMoneyToEmailOrPhone(HttpServletRequest request,
-			@Valid @RequestBody SendMoneyToEmailOrPhone transfer) {
+	public ResponseEntity<?> sendMoneyToEmailOrPhone(@Valid @RequestBody SendMoneyToEmailOrPhone transfer) {
 		try{
 			// get user by email or phone
 			WalletAccount account = transAccountService.findByEmailOrPhoneNumberOrId(transfer.getEmailOrPhone(), transfer.getSenderUserId(), transfer.getSenderAccountNumber());
 			TransferTransactionDTO data = new TransferTransactionDTO(transfer.getSenderAccountNumber(),
-			account.getAccountNo(),
-			transfer.getAmount(),
-			"LOCAL",
-			"NGN",
-			transfer.getDescription(),
-			transfer.getPaymentReference(),
-			"TRANSFER");
- 
-			return coreBankingService.transfer(data, "WAYATRAN");
+					account.getAccountNo(),
+					transfer.getAmount(),
+					"LOCAL",
+					"NGN",
+					transfer.getTranNarration(),
+					transfer.getPaymentReference(),
+					"TRANSFER");
+
+			return coreBankingService.transfer(data, EventCharge.WAYATRAN.name());
 		}catch (CustomException ex){
 			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}
@@ -147,7 +147,7 @@ public class WalletTransactionController {
 	@ApiOperation(value = "Notify Transaction", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/notify/transaction")
 	public ResponseEntity<?> VirtuPaymentMoney(HttpServletRequest request,
-			@Valid @RequestBody DirectTransactionDTO transfer) {
+											   @Valid @RequestBody DirectTransactionDTO transfer) {
 		// implement fraud or kyc check and other || or reverse transaction
 		return transAccountService.VirtuPaymentMoney(request, transfer);
 	}
@@ -155,7 +155,7 @@ public class WalletTransactionController {
 	@ApiOperation(value = "Notify Transaction Reverse", notes = "Reverse Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/notify/transaction/reverse")
 	public ResponseEntity<?> VirtuPaymentReverse(HttpServletRequest request,
-			@RequestBody() ReversePaymentDTO reverseDto) {
+												 @RequestBody() ReversePaymentDTO reverseDto) {
 		ApiResponse<?> res;
 		try {
 			res = transAccountService.VirtuPaymentReverse(request, reverseDto);
@@ -187,7 +187,7 @@ public class WalletTransactionController {
 	@ApiOperation(value = "Send Money to Wallet with Charge", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/sendmoney/wallet/charge")
 	public ResponseEntity<?> PushsendMoney(HttpServletRequest request,
-			@Valid @RequestBody WalletTransactionChargeDTO transfer) {
+										   @Valid @RequestBody WalletTransactionChargeDTO transfer) {
 		ResponseEntity<?>  res = transAccountService.sendMoneyCharge(request, transfer);
 		if (!res.getStatusCode().is2xxSuccessful()) {
 			return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
@@ -201,7 +201,7 @@ public class WalletTransactionController {
 	@ApiOperation(value = "Send Money to Wallet", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/sendmoney/wallet/customer")
 	public ResponseEntity<?> sendMoneyCustomer(HttpServletRequest request,
-			@Valid @RequestBody WalletTransactionDTO transfer) {
+											   @Valid @RequestBody WalletTransactionDTO transfer) {
 
 		ResponseEntity<?> res = transAccountService.sendMoneyCustomer(request, transfer);
 		if (!res.getStatusCode().is2xxSuccessful()) {
@@ -218,7 +218,7 @@ public class WalletTransactionController {
 	@ApiOperation(value = "Client Send Money to Wallet", notes = "Client Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/client/sendmoney/customer")
 	public ResponseEntity<?> ClientSendMoney(HttpServletRequest request,
-			@Valid @RequestBody ClientWalletTransactionDTO transfer) {
+											 @Valid @RequestBody ClientWalletTransactionDTO transfer) {
 
 		ResponseEntity<?> res = transAccountService.ClientSendMoneyCustomer(request, transfer);
 		if (!res.getStatusCode().is2xxSuccessful()) {
@@ -245,7 +245,7 @@ public class WalletTransactionController {
 			"TRANSACTION-WALLET" })
 	@PostMapping("/fund/transfer/wallet")
 	public ResponseEntity<?> handleTransactions(HttpServletRequest request,
-			@RequestBody TransferTransactionDTO transactionPojo) {
+												@RequestBody TransferTransactionDTO transactionPojo) {
 
 		return transAccountService.makeWalletTransaction(request, "", transactionPojo);
 
@@ -258,7 +258,7 @@ public class WalletTransactionController {
 			"TRANSACTION-WALLET" })
 	@GetMapping("/find/transactions/{accountNo}")
 	public ResponseEntity<?> findTransactionAccountNo(@PathVariable("accountNo") String accountNo,
-			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+													  @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
 		ApiResponse<?> res = transAccountService.findByAccountNumber(page, size, accountNo);
 		if (!res.getStatus()) {
 			return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
@@ -272,7 +272,7 @@ public class WalletTransactionController {
 			"TRANSACTION-WALLET" })
 	@GetMapping("/get/transactions/{walletId}")
 	public ResponseEntity<?> findWalletTransaction(@PathVariable("walletId") Long walletId,
-			@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+												   @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
 		ApiResponse<?> res = transAccountService.getTransactionByWalletId(page, size, walletId);
 		if (!res.getStatus()) {
 			return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
@@ -286,7 +286,7 @@ public class WalletTransactionController {
 			"TRANSACTION-WALLET" })
 	@GetMapping("/find/all/transactions")
 	public ResponseEntity<?> findAllTransaction(@RequestParam(defaultValue = "0") int page,
-			@RequestParam(defaultValue = "10") int size) {
+												@RequestParam(defaultValue = "10") int size) {
 		ApiResponse<?> res = transAccountService.findAllTransaction(page, size);
 		if (!res.getStatus()) {
 			return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
@@ -346,7 +346,7 @@ public class WalletTransactionController {
 	@PostMapping("/event/trade/payment")
 	public ResponseEntity<?> BuySellPayment(HttpServletRequest request, @RequestBody() WayaTradeDTO walletDto) {
 
- 
+
 
 		ApiResponse<?> res = transAccountService.EventBuySellPayment(request, walletDto);
 		if (!res.getStatus()) {
@@ -477,12 +477,12 @@ public class WalletTransactionController {
 	}
 
 	@ApiImplicitParams({
-		@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
+			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Non-Waya Payment", notes = "Transfer amount from user wallet to Non-waya", tags = {
 			"TRANSACTION-WALLET" })
 	@PostMapping("/non-waya/payment/new")
 	public ResponseEntity<?> nonWayaPayment(HttpServletRequest request,
-			@Valid @RequestBody() NonWayaPaymentDTO walletDto) {
+											@Valid @RequestBody() NonWayaPaymentDTO walletDto) {
 		return transAccountService.transferToNonPayment(request, walletDto);
 	}
 
@@ -492,7 +492,7 @@ public class WalletTransactionController {
 			"TRANSACTION-WALLET" })
 	@PostMapping("/non-waya/payment/new-multiple")
 	public ResponseEntity<?> NonWayaPaymentMultiple(HttpServletRequest request,
-											@Valid @RequestBody() List<NonWayaPaymentDTO> walletDto) {
+													@Valid @RequestBody() List<NonWayaPaymentDTO> walletDto) {
 		return transAccountService.TransferNonPaymentMultiple(request, walletDto);
 	}
 
@@ -516,8 +516,8 @@ public class WalletTransactionController {
 			"TRANSACTION-WALLET" })
 	@GetMapping("/non-waya/payment/list-transactions")
 	public ResponseEntity<?> listOfNonWayaTransfers(HttpServletRequest request,
-													   @RequestParam(defaultValue = "0") int page,
-													   @RequestParam(defaultValue = "10") int size) {
+													@RequestParam(defaultValue = "0") int page,
+													@RequestParam(defaultValue = "10") int size) {
 		return transAccountService.listOfNonWayaTransfers(request, page, size);
 	}
 
@@ -528,7 +528,7 @@ public class WalletTransactionController {
 			"TRANSACTION-WALLET" })
 	@PutMapping("/non-waya/transaction/redeem/new")
 	public ResponseEntity<?> NonWayaRedeem(HttpServletRequest request,
-			@Valid @RequestBody() NonWayaRedeemDTO walletDto) {
+										   @Valid @RequestBody() NonWayaRedeemDTO walletDto) {
 		return transAccountService.NonWayaPaymentRedeem(request, walletDto);
 	}
 
@@ -539,7 +539,7 @@ public class WalletTransactionController {
 			"TRANSACTION-WALLET" })
 	@PutMapping("/non-waya/transaction/redeem/PIN")
 	public ResponseEntity<?> NonWayaRedeemPIN(HttpServletRequest request,
-			@Valid @RequestBody() NonWayaPayPIN walletDto) {
+											  @Valid @RequestBody() NonWayaPayPIN walletDto) {
 		return transAccountService.NonWayaRedeemPIN(request, walletDto);
 	}
 
@@ -550,7 +550,7 @@ public class WalletTransactionController {
 			"TRANSACTION-WALLET" })
 	@PostMapping("/qr-code/transactionpayment")
 	public ResponseEntity<?> WayaQRCodeGen(HttpServletRequest request,
-			@Valid @RequestBody() WayaPaymentQRCode walletDto) {
+										   @Valid @RequestBody() WayaPaymentQRCode walletDto) {
 		return transAccountService.WayaQRCodePayment(request, walletDto);
 	}
 
@@ -561,7 +561,7 @@ public class WalletTransactionController {
 			"TRANSACTION-WALLET" })
 	@PutMapping("/qr-code/transaction/redeem")
 	public ResponseEntity<?> WayaQRCodeRedeem(HttpServletRequest request,
-			@Valid @RequestBody() WayaRedeemQRCode walletDto) {
+											  @Valid @RequestBody() WayaRedeemQRCode walletDto) {
 		return transAccountService.WayaQRCodePaymentRedeem(request, walletDto);
 	}
 
@@ -697,9 +697,9 @@ public class WalletTransactionController {
 	@ApiOperation(value = "To Export Account Transaction ", notes = "Account Statement", tags = { "TRANSACTION-WALLET" })
 	@GetMapping("/transaction/export/pdf/{accountNo}")
 	public ResponseEntity<?> exportToPDF(HttpServletResponse response,
-							  @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
-							  @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
-							  @PathVariable String accountNo) throws IOException, com.lowagie.text.DocumentException {
+										 @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
+										 @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
+										 @PathVariable String accountNo) throws IOException, com.lowagie.text.DocumentException {
 		response.setContentType("application/pdf");
 		DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
 		String currentDateTime = dateFormatter.format(new Date());
