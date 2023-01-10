@@ -1081,7 +1081,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 	 
 		try{
-			if(isAccountNumber){
+			if(!isAccountNumber){
 				return walletAccountRepository.findByAccount(value).get();
 			}
 			Optional<WalletUser> user;
