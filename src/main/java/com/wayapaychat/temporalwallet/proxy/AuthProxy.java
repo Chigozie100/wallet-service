@@ -22,6 +22,9 @@ public interface AuthProxy {
 	TokenCheckResponse getUserDataToken(@RequestHeader("Authorization") String token);
 
     @PostMapping("/auth/validate-user")
+    TokenCheckResponse validateToken(@RequestHeader("Authorization") String token, @RequestHeader("url") String url);
+
+    @PostMapping("/auth/validate-user")
     TokenCheckResponse getSignedOnUser();
     
     @PostMapping("/auth/verify-otp/transaction")
