@@ -1,11 +1,36 @@
 package com.wayapaychat.temporalwallet.util;
 
+import com.wayapaychat.temporalwallet.SpringApplicationContext;
+import com.wayapaychat.temporalwallet.dto.AuthData;
+import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.exception.CustomException;
-import org.springframework.http.HttpStatus;
+import com.wayapaychat.temporalwallet.pojo.MyData;
+import com.wayapaychat.temporalwallet.repository.WalletUserRepository;
+import com.wayapaychat.temporalwallet.security.JwtTokenHelper;
 
-import java.util.Random;
+import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.Base64Utils;
+
+import javax.crypto.Cipher;
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
+import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.security.spec.KeySpec;
+import java.util.*;
 
 public class Util {
+
+    private final String SECRET_KEY = "PEAL33550099GOEScatriiendKETTLE001UNITED";
+    private final String SALT = "stdsxcitymanjoehhhhh!!!!waya";
+
+
     public static String generateWayaVirtualAccount(){
         Random rand = new Random();
         int num = rand.nextInt(9000000) + 1000;
@@ -24,7 +49,7 @@ public class Util {
 
             // It will generate 8 digit random Number from 0 to 99999999 And format as
             // String
-            Random rnd = new Random();
+            SecureRandom rnd = new SecureRandom();
             switch (accountType) {
                 case "ledger":
                     accountType = "9999999";
@@ -106,4 +131,119 @@ public class Util {
         return nuban;
 
     }
+
+    public String generateRandomNumber(int length) {
+
+        int randNumOrigin = generateRandomNumber(58, 34);
+        int randNumBound = generateRandomNumber(354, 104);
+
+        SecureRandom random = new SecureRandom();
+        return random.ints(randNumOrigin, randNumBound + 1)
+                .filter(Character::isDigit)
+                .limit(length)
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint,
+                        StringBuilder::append)
+                .toString();
+    }
+    public int generateRandomNumber(int max, int min) {
+        return (int) (Math.random() * (max - min + 1) + min);
+    }
+
+
+    public static String WayaEncrypt(String pText) throws Exception {
+        String authHash = Base64Utils.encodeToString(pText.getBytes(StandardCharsets.UTF_8));
+        return authHash;
+    }
+    public static String WayaDecrypt(String encryptText) throws Exception {
+        byte[] asBytes = Base64Utils.decodeFromString(encryptText);
+        String output = new String(asBytes);
+        return output;
+    }
+
+
+
+
+    public String encrypt(String strToEncrypt) {
+        try {
+            byte[] iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+            IvParameterSpec ivspec = new IvParameterSpec(iv);
+
+            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            KeySpec spec = new PBEKeySpec(SECRET_KEY.toCharArray(), SALT.getBytes(), 65536, 256);
+            SecretKey tmp = factory.generateSecret(spec);
+            SecretKeySpec secretKey = new SecretKeySpec(tmp.getEncoded(), "AES");
+
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivspec);
+            return Base64.getEncoder().encodeToString(cipher.doFinal(strToEncrypt.getBytes(StandardCharsets.UTF_8)));
+        } catch (Exception e) {
+            System.out.println("Error while encrypting: " + e.toString());
+        }
+        return null;
+    }
+
+    public String decrypt(String strToDecrypt) {
+        try {
+            byte[] iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+            IvParameterSpec ivspec = new IvParameterSpec(iv);
+
+            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            KeySpec spec = new PBEKeySpec(SECRET_KEY.toCharArray(), SALT.getBytes(), 65536, 256);
+            SecretKey tmp = factory.generateSecret(spec);
+            SecretKeySpec secretKey = new SecretKeySpec(tmp.getEncoded(), "AES");
+
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5PADDING");
+            cipher.init(Cipher.DECRYPT_MODE, secretKey, ivspec);
+            return new String(cipher.doFinal(Base64.getDecoder().decode(strToDecrypt)));
+        } catch (Exception e) {
+            System.out.println("Error while decrypting: " + e.toString());
+        }
+        return null;
+    }
+
+    public static BigDecimal computePercentage(BigDecimal amount, BigDecimal percentageValue){
+        BigDecimal per = BigDecimal.valueOf(percentageValue.doubleValue() / 100);
+        return BigDecimal.valueOf(per.doubleValue() * amount.doubleValue());
+    }
+
+    public static ArrayList<Map<String, String>> products(){
+
+        ArrayList<Map<String, String>> list = new ArrayList<>();
+
+        Map<String, String> map = new HashMap<>();
+        map.put("Virtual Account Issuance","VIRTUALACCOUNTISS");
+        map.put("Funding via card","PAYSTACK");
+        map.put("Funding via bank account","PAYSTK");
+        map.put("Funding via Bank Transfer","PAYSTK");
+        map.put("Internal Bank Transfer","WAYATRAN");
+        map.put("External Bank Transfer","BANKPMT");
+        map.put("Sms Alert","SMSCHG");
+        map.put("Bills Payment","AITCOL");
+
+        list.add(map);
+        return list;
+    }
+
+
+
+
+    public static WalletUser checkOwner(){
+    
+       WalletUserRepository walletUserRepo = ((WalletUserRepository) SpringApplicationContext.getBean("walletUserRepository"));
+        
+       Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+       MyData jwtUser = (MyData) auth.getPrincipal();
+       
+       WalletUser user = walletUserRepo.findByEmailAddress(jwtUser.getEmail());
+
+        System.out.println("auth.getPrincipal()=> "+jwtUser.getEmail() );
+
+       // send to auth:service
+       // get user
+
+       return user;
+
+    }
+
+
 }

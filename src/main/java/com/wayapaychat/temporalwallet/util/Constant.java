@@ -45,8 +45,11 @@ public class Constant {
 
     public static final String NON_WAYA_REDEEM = "Payment Request has been redeemed";
     public static final String NON_WAYA_PAYMENT_REQUEST = "None Waya Payment Request";
-
+    public static final String WAYA_PAYMENT_REQUEST = "Waya Payment Request";
     public static final String WAYA_POS_SETTLEMENT = "Waya Pos Settlement";
+
+    public static final String BILLS_PAYNENT = "BILLS-PAYMENT";
+    public static final String REFERRAL_TRANSACTION_COUNT = "referral-transaction-count";
 
     public static final String WAYA_REDEEM = "Payment Request has been redeemed";
     public static final String RETRIEVE_DATA = "Retrieve Data";
@@ -55,8 +58,18 @@ public class Constant {
     public static final String NO_RECORDS_FOUND = "NO RECORDS FOUND";
     public static final String UPDATED_SUCCESSUFLLY = "Updated Successfully";
     public static final String DAYS_ADDED = "Days Created Successfully";
-    //
-    //
+
+    public static final String ADD_PRICE = "CUSTOM PRICE CREATED";
+    public static final String UPDATE_PRICE = "CUSTOM PRICE UPDATED";
+
+    public static final String USER_PRICE_SYNC = "USER PRICING SYNC"; 
+
+    public static final String APPLY_DISCOUNT = "APPLYING DISCOUNT AMOUNT...";
+
+    public static final String APPLY_CAP = "APPLYING CAP AMOUNT ...";
+
+    public static final String APPLY_GENERAL = "APPLYING GENERAL AMOUNT ...";
 
 
+    public static final String INPROGRESS = "APPLYING PRICE ON PRODUCT ...";
 }

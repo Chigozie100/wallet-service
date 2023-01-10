@@ -32,11 +32,9 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 		List<WalletEventCharges> eventchg = walletEventRepo.findAll();
 		if (eventchg != null) {
 			for (WalletEventCharges mEvent : eventchg) {
-				System.out.println("mEvent :: " + mEvent);
 				if (!mEvent.isProcessflg()) {
-					System.out.println("mEvent :: " + mEvent);
 					WalletEventAccountDTO account = new WalletEventAccountDTO(mEvent.getPlaceholder(),
-							mEvent.getCrncyCode(), "OABAS", mEvent.getTranNarration(), "11104",mEvent.getEventId());
+							mEvent.getCrncyCode(), "OABAS", mEvent.getTranNarration(), "11104",mEvent.getEventId(), "SAVINGS", "SAVINGS ACCOUNT");
 					userAccountService.createEventAccount(account);
 				}
 			}

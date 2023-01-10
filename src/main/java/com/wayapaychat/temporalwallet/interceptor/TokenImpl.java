@@ -1,7 +1,5 @@
 package com.wayapaychat.temporalwallet.interceptor;
 
-import com.wayapaychat.temporalwallet.dto.TokenData;
-import com.wayapaychat.temporalwallet.util.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -84,7 +82,6 @@ public class TokenImpl {
 		} catch (Exception ex) {
 			throw new CustomException(ex.getMessage(), HttpStatus.NOT_FOUND);
 		}
-
 	}
 
 }

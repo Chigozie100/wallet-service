@@ -14,7 +14,7 @@ import lombok.Data;
 public class AccountLienDTO {
 	
 	@NotBlank(message = "Account must not be Null or Blank")
-	@Size(min=10, max=10, message = "Account must be 10 digit")
+	@Size(min=10, max=15, message = "Account must be 10 digit")
 	private String customerAccountNo;
 	
 //	@JsonIgnore

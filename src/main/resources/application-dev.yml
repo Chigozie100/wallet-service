@@ -17,7 +17,22 @@ spring:
         jdbc:
           time_zone: UTC
     open-in-view: false
-
+  cache:
+    type: redis
+    redis:
+      time-to-live: 2400000
+      cache-null-values: false
+      use-key-prefix: true
+      key-prefix: tokens
+  redis:
+    timeout: 10000
+    password: ${REDIS_PASSWORD:wIYretruTPWPmAyLgq6HNQMa0wjRG3q8}
+    ttl: 86400000
+    connect-timeout: 10000
+    cluster:
+      nodes:
+        - waya-redis-staging.wp2y6q.clustercfg.memorydb.eu-west-2.amazonaws.com:6379
+      max-redirects: 4
   devtools:
     livereload:
       enabled: false
@@ -29,8 +44,14 @@ spring:
     username: postgres
     password: flints11
     driver-class-name: org.postgresql.Driver
+  hikari:
+    minimumIdle: 2
+    maximumPoolSize: 16
+    idleTimeout: 120000
+    connectionTimeout: 300000
+    leakDetectionThreshold: 300000
   flyway:
-    baselineOnMigrate: true
+    baselineOnMigrate: false
     locations: classpath:db/migration
     schemas: public
     enabled: false
@@ -56,7 +77,7 @@ waya:
     auth: AUTHENTICATION-SERVICE
     authurl: ${CONFIG_BASEURL_AUTH:https://services.staging.wayabank.ng/auth-service/api/v1}
     mifos: MIFOS-WALLET-SERVICE
-    mifosurl: ${CONFIG_BASEURL_MWALLET:https://services.staging.wayabank.ng/wallet-service}
+    mifosurl: ${CONFIG_BASEURL_MWALLET:https://services.staging.wayabank.ng/middletier-service}
     productcode: ${CONFIG_PRODUCT_SAVINGS:SB601}
     commissioncode: ${CONFIG_PRODUCT_COMMISSION:SB901}
     wayaglCode: ${CONFIG_PRODUCT_SAVINGS_CODE:21200}
@@ -66,7 +87,7 @@ waya:
   card:
     cardurl: ${CONFIG_BASEURL_CARD:https://services.staging.wayabank.ng/card-service}
     service: CARD-SERVICE
-    contacturl: ${CONFIG_BASEURL_CONTACT:https://services.staging.wayabank.ng/contact-service}
+    contacturl: ${CONFIG_BASEURL_CONTACT:http://localhost:8065/contact-service}
   contact:
     service: CONTACT-SERVICE
   account:
@@ -74,16 +95,16 @@ waya:
     service: ACCOUNT-SERVICE
   logging-service:
     base-url: ${CONFIG_BASEURL_LOGAUDIT:https://services.staging.wayabank.ng/logs-service}
-  #   sms:
-  #     atalking: ${AFRICATALKING}
-  #     infobip: ${INFOBIP}
-  #     twilio: ${TWILIO}
   notification:
     service: NOTIFICATION-SERVICE
-    notificationurl: ${CONFIG_BASEURL_NOTIFICATION:http://localhost:8099/notification-service}
+    notificationurl: ${CONFIG_BASEURL_NOTIFICATION:https://services.staging.wayabank.ng/notification-service}
   receipt:
     service: RECEIPT-SERVICE
     receipturl: ${CONFIG_BASEURL_RECEIPT:https://services.staging.wayabank.ng/transaction-receipt}
+  bills-service:
+    base-url: ${BILLS-BASE:https://services.staging.wayabank.ng/billspayment-service/api/v1}
+  identity-service:
+    base-url: ${CONFIG_BASEURL_IDENTITY:https://services.staging.wayabank.ng/identity-manager-service/api/v1}
   service:
     username: admin@wayapaychat.com
     password: kKo0a9@=&?*#
@@ -100,3 +121,11 @@ ofi:
   financialInstitutionCode: 901037
 
 
+kafka:
+  bootstrapServers: http://localhost:9092
+  groupId: waya
+
+
+jwt:
+  secret: ${AUTH_JWT_SECRET:2YuUlb+t36yVzrTkYLl8xBlBJSC41CE7uNF3somMDxdYDfcACv9JYIU54z17s4Ah313uKu/4Ll+vDNKpxx6v4Q== ##BvPHGM8C0ia4uOuxxqPD5DTbWC9F9TWvPStp3pb7ARo0oK2mJ3pd3YG4lxA9i8bj6OTbadwezxgeEByY}
+  expiration: ${AUTH_JWT_EXPIRATION:31557600000}

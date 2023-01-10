@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.wayapaychat.temporalwallet.dto.AccountLookUp;
 import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
+import com.wayapaychat.temporalwallet.dto.AccountSumary;
 import com.wayapaychat.temporalwallet.dto.AccountTransChargeDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionHistoryDTO;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
@@ -53,6 +54,8 @@ public interface TemporalWalletDAO {
 	List<AccountTransChargeDTO> TransChargeReport();
 
 	AccountLookUp GetAccountLookUp(String account);
+
+	AccountSumary getAccountSumaryLookUp(String account);
 
 	List<CommissionHistoryDTO> GetCommissionHistory();
 	

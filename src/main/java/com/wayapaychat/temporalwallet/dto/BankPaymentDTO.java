@@ -5,13 +5,17 @@ import java.math.BigDecimal;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class BankPaymentDTO {
 	
 	@NotNull
-	@Size(min=3, max=20)
+	@Size(min=3, max=50)
 	private String bankName;
     
 	@NotNull
@@ -40,5 +44,9 @@ public class BankPaymentDTO {
 	private String senderName;
 
 	private String receiverName;
+
+	private String eventId;
+
+
 
 }

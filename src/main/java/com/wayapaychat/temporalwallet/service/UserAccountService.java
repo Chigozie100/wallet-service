@@ -1,20 +1,26 @@
 package com.wayapaychat.temporalwallet.service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import com.wayapaychat.temporalwallet.dto.*;
+import com.wayapaychat.temporalwallet.entity.WalletAccount;
+import com.wayapaychat.temporalwallet.pojo.MifosCreateAccount;
 import org.springframework.http.ResponseEntity;
 
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
+import com.wayapaychat.temporalwallet.pojo.MyData;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
+
+import javax.servlet.http.HttpServletRequest;
 
 public interface UserAccountService {
 	
 	ResponseEntity<?> createUser(UserDTO user);
 
-	ResponseEntity<?> createNubanAccount(WalletUserDTO user);
+	WalletAccount createNubanAccount(WalletUserDTO user);
 
 	ResponseEntity<?> createUserAccount(WalletUserDTO user);
 	
@@ -41,9 +47,11 @@ public interface UserAccountService {
 	ResponseEntity<?> getAccountInfo(String accountNo);
 	
 	ResponseEntity<?> fetchAccountDetail(String accountNo);
+
+	ResponseEntity<?> fetchVirtualAccountDetail(String accountNo);
 	
 	ResponseEntity<?> getUserAccountList(long userId);
-	
+
 	ResponseEntity<?> getAllAccount();
 	
 	ResponseEntity<?> getUserCommissionList(long userId);
@@ -55,12 +63,16 @@ public interface UserAccountService {
 	ResponseEntity<?> getALLCommissionAccount();
 	
 	ResponseEntity<?> getAccountCommission(String accountNo);
+
+	ResponseEntity<?> getAccountDetails(String accountNo) throws Exception;
 	
 	ResponseEntity<?> getAccountDefault(Long user_id);
 	
 	ResponseEntity<?> searchAccount(String search);
 	
 	ResponseEntity<?> modifyUserAccount(UserAccountDTO user);
+
+	ResponseEntity<?> createAccountOnMIFOS(MifosCreateAccount user);
 	
 	ResponseEntity<?> ToggleAccount(AccountToggleDTO user);
 	
@@ -78,7 +90,7 @@ public interface UserAccountService {
 	
 	ResponseEntity<?> AccountAccessPause(AccountFreezeDTO user);
 	
-	ResponseEntity<?> AccountAccessBlockAndUnblock(AccountBlockDTO user);
+	ResponseEntity<?> AccountAccessBlockAndUnblock(AccountBlockDTO user, HttpServletRequest request);
 
 	ResponseEntity<?> AccountAccessClosure(AccountCloseDTO user);
 
@@ -101,5 +113,11 @@ public interface UserAccountService {
 	ResponseEntity<?>  countActiveAccount();
 
 	ResponseEntity<?>  countInActiveAccount();
+
+	ResponseEntity<?>  createDefaultWallet(MyData user);
+
+	ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount);
+	
+	void securityCheck(long userId);
 
 }

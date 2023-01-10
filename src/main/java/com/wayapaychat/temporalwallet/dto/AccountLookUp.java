@@ -1,8 +1,10 @@
 package com.wayapaychat.temporalwallet.dto;
 
 import lombok.Data;
+import lombok.ToString;
 
 @Data
+@ToString
 public class AccountLookUp {
 	
 	private Long vId;

@@ -3,7 +3,7 @@ package com.wayapaychat.temporalwallet.enumm;
 public enum TransactionTypeEnum {
 	
    CARD("CARD"), MONEY("MONEY"), LOCAL("LOCAL"),TRANSFER("TRANSFER"), CASH("CASH"), 
-   BANK("BANK"), REVERSAL("REVERSAL"), CHARGES("CHARGES"), WITHDRAW("WITHDRAW");
+   BILLSPAYMENT("BILLSPAYMENT"), BANK("BANK"), REVERSAL("REVERSAL"), CHARGES("CHARGES"), WITHDRAW("WITHDRAW");
 	
 	private String value;
 	

@@ -123,6 +123,10 @@ public class WalletAccount {
 	private boolean walletDefault;
 	
 	private String lien_reason;
+
+	private String accountType;
+
+	private String description;
 	
 	@JsonIgnore
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -175,7 +179,7 @@ public class WalletAccount {
 		this.gl_code = gl_code;
 		this.product_code = product_code;
 		this.acct_ownership = acct_ownership;
-		this.acct_opn_date = LocalDate.now();;
+		this.acct_opn_date = LocalDate.now();
 		this.acct_cls_flg = false;
 		this.clr_bal_amt = 0;
 		this.un_clr_bal_amt = 0;
@@ -202,7 +206,7 @@ public class WalletAccount {
 						 String product_code,String acct_ownership,String hashed_no, boolean int_paid_flg,boolean int_coll_flg,
 						 String rcre_user_id, LocalDate rcre_time,String acct_crncy_code,String product_type,
 						 boolean chq_alwd_flg, double cash_dr_limit, double xfer_dr_limit, double cash_cr_limit,
-						 double xfer_cr_limit, boolean walletDefault) {
+						 double xfer_cr_limit, boolean walletDefault, String accountType, String description) {
 		super();
 		this.del_flg = false;
 		this.entity_cre_flg = true;
@@ -214,7 +218,7 @@ public class WalletAccount {
 		this.gl_code = gl_code;
 		this.product_code = product_code;
 		this.acct_ownership = acct_ownership;
-		this.acct_opn_date = LocalDate.now();;
+		this.acct_opn_date = LocalDate.now();
 		this.acct_cls_flg = false;
 		this.clr_bal_amt = 0;
 		this.un_clr_bal_amt = 0;
@@ -235,6 +239,8 @@ public class WalletAccount {
 		this.xfer_cr_limit = xfer_cr_limit;
 		this.user = user;
 		this.walletDefault = walletDefault;
+		this.accountType = accountType;
+		this.description = description;
 	}
 
 

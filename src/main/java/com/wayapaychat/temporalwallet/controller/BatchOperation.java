@@ -1,7 +1,6 @@
 package com.wayapaychat.temporalwallet.controller;
 
 import com.wayapaychat.temporalwallet.dto.OfficeUserTransferDTO;
-import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -11,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,10 +40,11 @@ public class BatchOperation {
     @ApiOperation(value = "To transfer money from one waya official account to simulated user wallet", notes = "Post Money", tags = {
             "BATCH-OPERATIONS" })
     @PostMapping("/official/simulated-user/transfer")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER')")
     public ResponseEntity<?> OfficialUserMoney(HttpServletRequest request,
                                                @Valid @RequestBody List<OfficeUserTransferDTO> transfer) {
-        ApiResponse<?> res = transAccountService.OfficialUserTransfer(request, transfer);
-        if (!res.getStatus()) {
+        ResponseEntity<?> res = transAccountService.OfficialUserTransferMultiple(request, transfer);
+        if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
         log.info("Send Money: {}", transfer);

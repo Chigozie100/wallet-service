@@ -3,6 +3,7 @@ package com.wayapaychat.temporalwallet.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,13 +22,11 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-//import lombok.extern.slf4j.Slf4j;
 
 @RestController
 @RequestMapping("/api/v1/switch")
 @Tag(name = "SWITCH-WALLET", description = "Switch Wallet Service API")
 @Validated
-//@Slf4j
 public class SwitchAccountController {
 
 	@Autowired
@@ -37,6 +36,7 @@ public class SwitchAccountController {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
 	@PostMapping("/wallet")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
 	public ResponseEntity<?> switchOperator(@RequestBody CreateSwitchDTO switchWallet) {
 		return switchWalletService.CreateWalletOperator(switchWallet);
 	}
@@ -45,24 +45,28 @@ public class SwitchAccountController {
 			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Toggle Switch", notes = "Toggle Off/No", tags = { "SWITCH-WALLET" })
 	@PutMapping("/wallet/toggle")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
 	public ResponseEntity<?> switchToggle(@RequestBody ToggleSwitchDTO switchWallet) {
 		return switchWalletService.UpdateSwitche(switchWallet);
 	}
 
 	@ApiOperation(value = "List Switches", notes = "Toggle Off/No", tags = { "SWITCH-WALLET" })
 	@GetMapping("/wallet")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
 	public ResponseEntity<?> ListSwitchOperator() {
 		return switchWalletService.ListAllSwitches();
 	}
 	
 	@ApiOperation(value = "List Switches", notes = "Toggle Off/No", tags = { "SWITCH-WALLET" })
 	@GetMapping("/wallet/{identity}")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
 	public ResponseEntity<?> GetSwitchOperator(@PathVariable("identity") String identity) {
 		return switchWalletService.GetSwitch(identity);
 	}
 	
 	@ApiOperation(value = "List Switches", notes = "Toggle Off/No", tags = { "SWITCH-WALLET" })
 	@DeleteMapping("/wallet/{id}")
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
 	public ResponseEntity<?> DeleteSwitchOperator(@PathVariable("id") Long id) {
 		return switchWalletService.DeleteSwitches(id);
 
@@ -73,6 +77,7 @@ public class SwitchAccountController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
 	@ApiOperation(value = "Get Providers", notes = "Get providers", tags = { "SWITCH-WALLET" })
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
 	public ResponseEntity<?> getProviders() {
 		return switchWalletService.getProvider();
 	}
@@ -82,6 +87,7 @@ public class SwitchAccountController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     @ApiOperation(value = "Enable Provider", notes = "Enable a provider", tags = { "SWITCH-WALLET" })
+	@PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
 	public ResponseEntity<?> enableProvider(@PathVariable("providerId") Long providerId) {
 		return switchWalletService.enableProvider(providerId);
 	}

@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.util;
 
 import com.wayapaychat.temporalwallet.dto.OfficeUserTransferDTO;
 import com.wayapaychat.temporalwallet.entity.*;
+import com.wayapaychat.temporalwallet.enumm.PaymentRequestStatus;
 import com.wayapaychat.temporalwallet.enumm.PaymentStatus;
 import com.wayapaychat.temporalwallet.enumm.TransactionTypeEnum;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
@@ -11,6 +12,7 @@ import com.wayapaychat.temporalwallet.service.TransAccountService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 
@@ -34,11 +36,11 @@ public class ScheduleJob {
     private final ReversalSetupRepository reversalSetupRepository;
     private final WalletTransactionRepository walletTransactionRepository;
     private final TokenImpl tokenImpl;
-    private final WalletUserRepository walletUserRepository;
+    private final WalletPaymentRequestRepository walletPaymentRequestRepository;
 
 
     @Autowired
-    public ScheduleJob(WalletNonWayaPaymentRepository walletNonWayaPaymentRepo, WalletAccountRepository walletAccountRepository, RecurrentConfigRepository recurrentConfigRepository, TransAccountService transAccountService, ReversalSetupRepository reversalSetupRepository, WalletTransactionRepository walletTransactionRepository, TokenImpl tokenImpl, WalletUserRepository walletUserRepository) {
+    public ScheduleJob(WalletNonWayaPaymentRepository walletNonWayaPaymentRepo, WalletAccountRepository walletAccountRepository, RecurrentConfigRepository recurrentConfigRepository, TransAccountService transAccountService, ReversalSetupRepository reversalSetupRepository, WalletTransactionRepository walletTransactionRepository, TokenImpl tokenImpl, WalletPaymentRequestRepository walletPaymentRequestRepository) {
         this.walletNonWayaPaymentRepo = walletNonWayaPaymentRepo;
         this.walletAccountRepository = walletAccountRepository;
         this.recurrentConfigRepository = recurrentConfigRepository;
@@ -46,13 +48,13 @@ public class ScheduleJob {
         this.reversalSetupRepository = reversalSetupRepository;
         this.walletTransactionRepository = walletTransactionRepository;
         this.tokenImpl = tokenImpl;
-        this.walletUserRepository = walletUserRepository;
+        this.walletPaymentRequestRepository = walletPaymentRequestRepository;
     }
 
 
     private Integer getReversalDays(){
         Optional<ReversalSetup> reversalSetup = reversalSetupRepository.findByActive();
-        if(!reversalSetup.isPresent()){
+        if(reversalSetup.isEmpty()){
             return 0;
         }
         return reversalSetup.get().getDays();
@@ -66,7 +68,7 @@ public class ScheduleJob {
         log.info("-----####### START ###### -------");
         List<WalletNonWayaPayment> walletNonWayaPaymentList = walletNonWayaPaymentRepo.findByAllByStatus(PaymentStatus.PENDING);
 
-        log.info("OUTPUT :: {} " + walletNonWayaPaymentList);
+        log.info("OUTPUT :: " + walletNonWayaPaymentList);
         if(!walletNonWayaPaymentList.isEmpty()){
             String token = tokenImpl.getToken();
 
@@ -75,9 +77,11 @@ public class ScheduleJob {
 
             SimpleDateFormat myFormat = new SimpleDateFormat("MM/dd/yyyy");
 
-            LocalDateTime localDateTime = payment.getCreatedAt();
-            Instant instant = localDateTime.atZone(ZoneId.systemDefault()).toInstant();
-            Date date2 = Date.from(instant);
+            LocalDateTime localDateTime = Objects.requireNonNull(payment).getCreatedAt();
+            Instant instant = instant(localDateTime);
+
+            Date date2 = getDate(instant);
+
             String dateString2 = myFormat.format(date2);
 
 
@@ -96,10 +100,7 @@ public class ScheduleJob {
                 payment.setStatus(PaymentStatus.EXPIRED);
                 walletNonWayaPaymentRepo.save(payment);
                 log.info( "-----####### END: record Updated ###### -------" + payment.getTranId());
-
-
                 CompletableFuture.runAsync(() -> reverseNoneWayaPayment(payment.getEmailOrPhone(),token,payment.getTranId()));
-
             }else{
                 log.info("-----####### END: NOT FOUND ###### -------");
             }
@@ -109,6 +110,17 @@ public class ScheduleJob {
 
     }
 
+
+    private Instant instant(LocalDateTime localDateTime){
+        return localDateTime.atZone(ZoneId.systemDefault()).toInstant();
+    }
+
+    private Date getDate(Instant instant){
+      return Date.from(instant);
+    }
+
+
+
     private Map<String, Object> noneWayaPaymentReversal(String tranId){
         String debitAccount = "";
         String creditAccount = "";
@@ -116,14 +128,14 @@ public class ScheduleJob {
         BigDecimal tranAmount = BigDecimal.ZERO;
         List<WalletTransaction> transactionList = walletTransactionRepository.findByTransaction(tranId);
 
-        for (int i = 0; i < transactionList.size(); i++) {
-            if (transactionList.get(i).getPartTranType().equals("C")){
-                creditAccount = transactionList.get(i).getAcctNum();
-                tranAmount = transactionList.get(i).getTranAmount();
+        for (WalletTransaction walletTransaction : transactionList) {
+            if (walletTransaction.getPartTranType().equals("C")) {
+                creditAccount = walletTransaction.getAcctNum();
+                tranAmount = walletTransaction.getTranAmount();
             }
-            if (transactionList.get(i).getPartTranType().equals("D")){
-                debitAccount = transactionList.get(i).getAcctNum();
-                email = transactionList.get(i).getCreatedBy();
+            if (walletTransaction.getPartTranType().equals("D")) {
+                debitAccount = walletTransaction.getAcctNum();
+                email = walletTransaction.getCreatedBy();
             }
         }
         Map<String, Object> map = new HashMap<>();
@@ -136,6 +148,7 @@ public class ScheduleJob {
 
     private void reverseNoneWayaPayment(String receiverEmailOrPhone, String token,String tranId){
 
+        log.info(receiverEmailOrPhone);
         Map<String, Object> map = noneWayaPaymentReversal(tranId);
         String creditAccount = (String) map.get("creditAccount");
         String debitAccount = (String) map.get("debitAccount");
@@ -156,15 +169,68 @@ public class ScheduleJob {
         mapp.put("receiverEmail", email);
 
 
-        ApiResponse<?> response = transAccountService.OfficialUserTransferSystem(mapp, token,null, officeUserTransferDTO);
-        log.info(String.valueOf(response.getData()));
+        ResponseEntity<?> response = transAccountService.OfficialUserTransferSystemSwitch(mapp, token,null, officeUserTransferDTO);
+        log.info(String.valueOf(response.getBody()));
+    }
+
+    @Scheduled(cron = "${job.cron.twelam}")
+    public void processPendingPaymentRequest() throws ParseException {
+
+        long checkDays = getReversalDays();
+        log.info("-----####### START ###### -------");
+        List<WalletPaymentRequest> walletPaymentRequestList = walletPaymentRequestRepository.findByAllByStatus(PaymentRequestStatus.PENDING);
+
+        log.info("OUTPUT ::" + walletPaymentRequestList);
+        if(!walletPaymentRequestList.isEmpty()){
+           // String token = tokenImpl.getToken();
+
+
+            for (WalletPaymentRequest data: walletPaymentRequestList){
+                // WalletNonWayaPayment payment = walletNonWayaPaymentRepo.findById(data.getId()).orElse(null);
+
+                SimpleDateFormat myFormat = new SimpleDateFormat("MM/dd/yyyy");
+
+                LocalDateTime localDateTime = data.getCreatedAt();
+                Instant instant = localDateTime.atZone(ZoneId.systemDefault()).toInstant();
+                Date date2 = Date.from(instant);
+                String dateString2 = myFormat.format(date2);
+
+                Date createdDate = myFormat.parse(dateString2);
+
+                String dateString = myFormat.format(new Date());
+                Date today = myFormat.parse(dateString);
+
+                long difference = today.getTime() - createdDate.getTime();
+                long daysBetween = (difference / (1000*60*60*24));
+                log.info(checkDays + " ####### check Transaction upto 30 days ###### " + daysBetween);
+
+                if(daysBetween > checkDays || daysBetween == checkDays && data.getStatus().equals(PaymentRequestStatus.PENDING)){
+                    log.info("-----####### inside Transaction upto 30 days ###### -------");
+
+                    updatePaymentRequestStatus(data.getReference());
+                    log.info( "-----####### END: record Updated ###### -------" );
+
+                }else{
+                    log.info("-----####### END: NOT FOUND ###### -------");
+                }
+
+            }
+        }
     }
 
 
+    private void updatePaymentRequestStatus(String reference){
+
+        Optional<WalletPaymentRequest> walletPaymentRequest = walletPaymentRequestRepository.findByReferenceAndStatus(reference, PaymentRequestStatus.PENDING);
+        if (walletPaymentRequest.isPresent()) {
+            WalletPaymentRequest walletPaymentRequest1 = walletPaymentRequest.get();
+            walletPaymentRequest1.setStatus(PaymentRequestStatus.EXPIRED);
+            walletPaymentRequestRepository.save(walletPaymentRequest1);
+        }
+    }
 
     @Scheduled(cron = "${job.cron.twelam}")
-    public void massDebitAndCredit() throws ParseException {
-        ApiResponse<?> response = null;
+    public void massDebitAndCredit() {
         ArrayList<Object> objectArrayList = new ArrayList<>();
         RecurrentConfig recurrentConfig = recurrentConfigRepository.findByActive().orElse(null);
 
@@ -173,11 +239,11 @@ public class ScheduleJob {
             if(recurrentConfig.isRecurring()){
                 if(recurrentConfig.getPayDate().compareTo(new Date()) == 0 && recurrentConfig.getDuration().equals(RecurrentConfig.Duration.MONTH)){
                     /// run and update the next date
-                    processPayment(response, objectArrayList,recurrentConfig);
+                    processPayment(objectArrayList,recurrentConfig);
 
                     recurrentConfig.setPayDate(getNextMonth(recurrentConfig.getPayDate()));
                 }else if (recurrentConfig.getPayDate().compareTo(new Date()) == 0 && recurrentConfig.getDuration().equals(RecurrentConfig.Duration.YEAR)){
-                    processPayment(response, objectArrayList,recurrentConfig);
+                    processPayment(objectArrayList,recurrentConfig);
                     recurrentConfig.setPayDate(getNextYear(recurrentConfig.getPayDate()));
                 }
             }
@@ -186,28 +252,15 @@ public class ScheduleJob {
 
         }
 
-
-        /**
-         *get the date
-         * check the getDuration
-         * update new date based on duration
-         */
-        /*
-        1. Get all simulated users
-        2. Get Offical Account
-        3. Build the request object
-        4. Perform Credit of Debit
-         */
-
     }
 
 
-    private void processPayment(ApiResponse<?> response, ArrayList<Object> objectArrayList, RecurrentConfig recurrentConfig){
+    private void processPayment(ArrayList<Object> objectArrayList, RecurrentConfig recurrentConfig){
         List<WalletAccount> userAccount = walletAccountRepository.findBySimulatedAccount();
         String token = tokenImpl.getToken();
         for(WalletAccount data: userAccount){
-            OfficeUserTransferDTO transfer = getOfficeUserTransferDTO(data, recurrentConfig, "");
-            response = transAccountService.OfficialUserTransferSystem(null,token,null, transfer);
+            OfficeUserTransferDTO transfer = getOfficeUserTransferDTO(data, recurrentConfig);
+            ResponseEntity<?> response = transAccountService.OfficialUserTransferSystemSwitch(null, token, null, transfer);
             objectArrayList.add(response);
         }
 
@@ -242,7 +295,7 @@ public class ScheduleJob {
 
 
 
-    private OfficeUserTransferDTO getOfficeUserTransferDTO(WalletAccount userAccount, RecurrentConfig recurrentConfig, String transCat){
+    private OfficeUserTransferDTO getOfficeUserTransferDTO(WalletAccount userAccount, RecurrentConfig recurrentConfig){
 
         OfficeUserTransferDTO officeUserTransferDTO = new OfficeUserTransferDTO();
         officeUserTransferDTO.setAmount(recurrentConfig.getAmount());
@@ -250,7 +303,7 @@ public class ScheduleJob {
         officeUserTransferDTO.setOfficeDebitAccount(recurrentConfig.getOfficialAccountNumber());
         officeUserTransferDTO.setPaymentReference(generatePaymentTransactionId());
         officeUserTransferDTO.setTranCrncy("NGN");
-        officeUserTransferDTO.setTranNarration(transCat+ " SIMULATED TRANSACTION");
+        officeUserTransferDTO.setTranNarration("" + " SIMULATED TRANSACTION");
         officeUserTransferDTO.setTranType("LOCAL");
 
         return officeUserTransferDTO;

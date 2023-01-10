@@ -8,18 +8,20 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
 import lombok.Data;
+import lombok.ToString;
 
 @Data
+@ToString
 public class TransferTransactionDTO {
 	
 	//@NotNull
 	@NotBlank(message = "Account must not Null or Blank")
-	@Size(min=10, max=10, message = "Account must be 10 digit")
+	@Size(min=10, max=15, message = "Account must be 10 digit")
 	private String debitAccountNumber;
     
 	//@NotNull(message = "Account must be 10 digit")
 	@NotBlank(message = "Account must not Null or Blank")
-	@Size(min=10, max=10, message = "Account must be 10 digit")
+	@Size(min=10, max=15, message = "Account must be 10 digit")
     private String benefAccountNumber;
    
 	@NotNull
@@ -67,6 +69,10 @@ public class TransferTransactionDTO {
 		this.tranNarration = tranNarration;
 		this.paymentReference = paymentReference;
 		this.transactionCategory = transactionCategory;
-	}	
+	}
+
+	public TransferTransactionDTO(){
+
+	}
 
 }

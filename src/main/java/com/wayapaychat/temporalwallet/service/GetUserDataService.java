@@ -1,6 +1,7 @@
 package com.wayapaychat.temporalwallet.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import com.wayapaychat.temporalwallet.pojo.TokenCheckResponse;
@@ -16,12 +17,15 @@ public class GetUserDataService {
 	@Autowired
 	private AuthProxy authProxy;
 
+
+
 	public TokenCheckResponse getUserData(String token) {
 		TokenCheckResponse res = null;
+		
 		try {
 			res = authProxy.getUserDataToken(token);
-			System.out.println("::::Token::::" + res.getMessage());
-			System.out.println("::::Token::::" + res.getData().getEmail());
+			log.info("::::Token::::" + res.getMessage());
+			log.info("::::Token::::" + res.getData().getEmail());
 		} catch (Exception ex) {
 			if (ex instanceof FeignException) {
 				String httpStatus = Integer.toString(((FeignException) ex).status());

@@ -45,9 +45,15 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 	
 	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.acctNum) = UPPER(:account) " + " AND u.del_flg = false" + " AND u.tranDate BETWEEN  (:fromtranDate)" + " AND (:totranDate)")
 	List<WalletTransaction> findByStatement(LocalDate fromtranDate, LocalDate totranDate, String account);
+
+	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.acctNum) = UPPER(:account) " + " AND u.del_flg = false" + " AND u.tranDate BETWEEN  (:fromtranDate)" + " AND (:totranDate)")
+	List<WalletTransaction> findByVirtualStatement(LocalDate fromtranDate, LocalDate totranDate, String account);
 	
 	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.paymentReference) = UPPER(:ref) " + " AND u.del_flg = false" + " AND u.tranCrncyCode = UPPER(:tranCrncy)" + " AND u.tranDate = (:tranDate)")
 	List<WalletTransaction> findByReference(String ref, LocalDate tranDate, String tranCrncy);
+	
+	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.paymentReference) = UPPER(:ref) " + " AND u.del_flg = false")
+	Optional<List<WalletTransaction>> findByReference(String ref);
 	
 	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.acctNum) = UPPER(:account) " + "AND UPPER(u.tranType) = UPPER('REVERSAL') " + " AND u.del_flg = false" + " AND u.tranDate BETWEEN  (:fromtranDate)" + " AND (:totranDate)")
 	List<WalletTransaction> findByAccountReverse(LocalDate fromtranDate, LocalDate totranDate, String account);
@@ -64,12 +70,24 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.acctNum) LIKE UPPER('NGN%') AND u.del_flg = false AND u.partTranType = UPPER(:partTranType)" + " order by u.createdAt DESC ")
 	Page<WalletTransaction> findByAccountOfficial3(Pageable pageable, @Param("partTranType") String partTranType);
 
+	@Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND UPPER(u.acctNum) = UPPER(:account) AND u.tranDate = (:todayDate) AND u.del_flg = false")
+	BigDecimal totalTransactionAmountToday(String account, LocalDate todayDate);
+
+	@Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = (:partTranType) AND UPPER(u.acctNum) = UPPER(:account) AND u.del_flg = false")
+	BigDecimal totalTransactionAmount(String account, String partTranType);
 
 	@Query("SELECT sum(u.tranAmount) FROM WalletTransaction u " + "WHERE u.partTranType = 'D'" + " AND u.del_flg = false")
 	BigDecimal findByAllDTransaction();
 
 	@Query("SELECT sum(u.tranAmount) FROM WalletTransaction u " + "WHERE u.partTranType = 'C'" + " AND u.del_flg = false")
 	BigDecimal findByAllCTransaction();
+
+
+	@Query("SELECT sum(u.tranAmount) FROM WalletTransaction u " + "WHERE UPPER(u.acctNum) LIKE UPPER('NGN%') " + "AND u.partTranType = 'D'" + " AND u.del_flg = false")
+	BigDecimal findByAllDTransactionOfficial();
+
+	@Query("SELECT sum(u.tranAmount) FROM WalletTransaction u " + "WHERE UPPER(u.acctNum) LIKE UPPER('NGN%') " + "AND u.partTranType = 'C'" + " AND u.del_flg = false")
+	BigDecimal findByAllCTransactionOfficial();
 
 
 	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.tranCategory) = UPPER(:categoryType) " + " AND u.del_flg = false" + " AND u.tranDate BETWEEN  (:fromtranDate)" + " AND (:totranDate)")
