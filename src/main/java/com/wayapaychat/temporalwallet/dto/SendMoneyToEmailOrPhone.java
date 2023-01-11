@@ -13,7 +13,6 @@ import lombok.ToString;
 public class SendMoneyToEmailOrPhone {
  
     private BigDecimal amount;
-    private String description;
     @NotBlank(message = "Account must not Null or Blank")
 	@Size(min=10, max=15, message = "Account must be 10 digit")
 	private String senderAccountNumber;
@@ -24,5 +23,6 @@ public class SendMoneyToEmailOrPhone {
     private String tranCrncy;
 	private String tranType;
 	private String transactionCategory;
+    private Boolean isAccountNumber;
 			
 }

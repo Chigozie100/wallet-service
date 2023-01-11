@@ -202,5 +202,5 @@ public interface TransAccountService {
 
 	ResponseEntity<?>  getSingleAccountByEventID(String eventId);
 
-	WalletAccount findByEmailOrPhoneNumberOrId(String value,String userId, String accountNo);
+	WalletAccount findByEmailOrPhoneNumberOrId(Boolean isAccountNumber, String value,String userId, String accountNo);
 }

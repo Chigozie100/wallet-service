@@ -64,13 +64,13 @@ job:
 
 
 eureka:
-  client:
-    serviceUrl:
-      defaultZone: https://services.staging.wayabank.ng/eureka
-    service-url:
-      default-zone: https://services.staging.wayabank.ng/eureka
-  instance:
-    preferIpAddress: true
+ client:
+   serviceUrl:
+     defaultZone: https://services.staging.wayabank.ng/eureka
+   service-url:
+     default-zone: https://services.staging.wayabank.ng/eureka
+ instance:
+   preferIpAddress: true
 
 waya:
   wallet:
