@@ -129,15 +129,17 @@ public class WalletTransactionController {
 			WalletAccount account = transAccountService.findByEmailOrPhoneNumberOrId(transfer.getEmailOrPhone(), transfer.getSenderUserId(), transfer.getSenderAccountNumber());
 			System.out.println("account 1:: " + account);	
 			
-			TransferTransactionDTO data = new TransferTransactionDTO(transfer.getSenderAccountNumber(),
+			TransferTransactionDTO data = new TransferTransactionDTO(
+				transfer.getSenderAccountNumber(),
 			account.getAccountNo(),
 			transfer.getAmount(),
 			"LOCAL",
 			"NGN",
-			transfer.getDescription(),
+			transfer.getTranNarration(),
 			transfer.getPaymentReference(),
 			"TRANSFER");
 
+			System.out.println("TransferTransactionDTO:: " + data);	
 			System.out.println("account 2:: " + account);	
 			return coreBankingService.transfer(data, "WAYATRAN");
 		}catch (CustomException ex){
