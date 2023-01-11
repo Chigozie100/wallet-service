@@ -1072,7 +1072,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 
-	public WalletAccount findByEmailOrPhoneNumberOrId(boolean isAccountNumber, String value, String userId, String accountNo){
+	public WalletAccount findByEmailOrPhoneNumberOrId(Boolean isAccountNumber, String value, String userId, String accountNo){
+	 
 		userAccountService.securityCheck(Long.valueOf(userId));
 		try{
 			securityWtihAccountNo2(accountNo, Long.valueOf(userId));
@@ -1081,7 +1082,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		}
 	 
 		try{
-			if(!isAccountNumber){
+			if(!isAccountNumber){ 
 				return walletAccountRepository.findByAccount(value).get();
 			}
 			Optional<WalletUser> user;
