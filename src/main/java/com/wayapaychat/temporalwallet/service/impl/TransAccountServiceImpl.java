@@ -1085,7 +1085,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				return walletAccountRepository.findByAccount(value).get();
 			}
 			Optional<WalletUser> user;
-			if(!StringUtils.isNumeric(value) || value.startsWith("234") || value.contains("@"))
+			if(value.startsWith("234") || value.contains("@"))
 				user = walletUserRepository.findByEmailOrPhoneNumber(value);
 			else
 				user = walletUserRepository.findUserId(Long.parseLong(value));
