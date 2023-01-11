@@ -126,8 +126,9 @@ public class WalletTransactionController {
 	@PostMapping("/sendmoney/to-contact")
 	public ResponseEntity<?> sendMoneyToEmailOrPhone(@Valid @RequestBody SendMoneyToEmailOrPhone transfer) {
 		try{
+	 	 
 			// get user by email or phone
-			WalletAccount account = transAccountService.findByEmailOrPhoneNumberOrId(transfer.isAccountNumber(), transfer.getEmailOrPhone(), transfer.getSenderUserId(), transfer.getSenderAccountNumber());
+			WalletAccount account = transAccountService.findByEmailOrPhoneNumberOrId(transfer.getIsAccountNumber(), transfer.getEmailOrPhone(), transfer.getSenderUserId(), transfer.getSenderAccountNumber());
 			TransferTransactionDTO data = new TransferTransactionDTO(transfer.getSenderAccountNumber(),
 					account.getAccountNo(),
 					transfer.getAmount(),
