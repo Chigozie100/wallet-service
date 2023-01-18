@@ -205,6 +205,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     @Override
     public ResponseEntity<?>  processCBATransactionDoubleEntry(MyData userToken, String paymentReference,  String fromAccount, String toAccount, String narration, CategoryType category, BigDecimal amount, Provider provider){
 
+        log.info("processCBATransactionDoubleEntry amount:{} from:{} to:{}", amount, fromAccount, toAccount);
         if(amount.doubleValue() <= 0){ 
             log.error("Invalid transaction amount:{} from:{} to:{}", amount, fromAccount, toAccount);
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_AMOUNT.getValue()), HttpStatus.BAD_REQUEST);
@@ -252,6 +253,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     public ResponseEntity<?> processExternalCBATransactionDoubleEntry(String paymentReference, String fromAccount, String toAccount,
             String narration, CategoryType category, BigDecimal amount, Provider provider) {
 
+        log.info("processExternalCBATransactionDoubleEntry amount:{} from:{} to:{}", amount, fromAccount, toAccount);
         ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()), HttpStatus.BAD_REQUEST);
         WalletAccount accountDebit = walletAccountRepository.findByAccountNo(fromAccount);
         WalletAccount accountCredit = walletAccountRepository.findByAccountNo(toAccount);
