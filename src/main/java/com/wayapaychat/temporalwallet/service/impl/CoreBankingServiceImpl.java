@@ -206,6 +206,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     public ResponseEntity<?>  processCBATransactionDoubleEntry(MyData userToken, String paymentReference,  String fromAccount, String toAccount, String narration, CategoryType category, BigDecimal amount, Provider provider){
 
         if(amount.doubleValue() <= 0){ 
+            log.error("Invalid transaction amount:{} from:{} to:{}", amount, fromAccount, toAccount);
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_AMOUNT.getValue()), HttpStatus.BAD_REQUEST);
         }
 
@@ -213,6 +214,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         TransactionTypeEnum tranType = TransactionTypeEnum.BANK;
         ResponseEntity<?> response = processExternalCBATransactionDoubleEntry(paymentReference, fromAccount, toAccount, narration, category, amount, provider);
         if (!provider.getName().equals(ProviderType.TEMPORAL) && !response.getStatusCode().is2xxSuccessful()) {
+            log.error("External CBA failed to process transaction amount:{} from:{} to:{}", amount, fromAccount, toAccount);
             return response;
         }
 
@@ -236,6 +238,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         //Reverse debit if credit failed
         if (!response.getStatusCode().is2xxSuccessful()) {
+            log.error("Reecersing transaction amount:{} from:{} to:{}", amount, fromAccount, toAccount);
             String reversalNarration = "Reversal ".concat(narration);
             processExternalCBATransactionDoubleEntry(paymentReference, toAccount, fromAccount, reversalNarration, category, amount, provider);
             creditAccount(new CBAEntryTransaction(userToken, tranId, paymentReference, category, fromAccount, reversalNarration, amount,  2, tranType, ""));
@@ -270,14 +273,19 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         mifosTransfer.setSourceCurrency(accountDebit.getAcct_crncy_code());
 
         ExternalCBAResponse externalResponse = null;
-        if(ProviderType.MIFOS.equalsIgnoreCase(provider.getName()))
-        {
-            externalResponse = mifosWalletProxy.transferMoney(mifosTransfer);
-        }
-        else{
-            externalResponse = new ExternalCBAResponse(ExternalCBAResponseCodes.R_00);
-        }
 
+        try {
+            if(ProviderType.MIFOS.equalsIgnoreCase(provider.getName()))
+            {
+                externalResponse = mifosWalletProxy.transferMoney(mifosTransfer);
+            }
+            else{
+                externalResponse = new ExternalCBAResponse(ExternalCBAResponseCodes.R_00);
+            }     
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
         if(externalResponse == null){
             return response;
         }
@@ -400,7 +408,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         //add vat to fee
         BigDecimal vatAmount = computeVatFee(priceAmount, eventId);
         priceAmount = BigDecimal.valueOf(Precision.round(priceAmount.doubleValue() + vatAmount.doubleValue(), 2));
-        log.info(" Transaction Fee {}", priceAmount.doubleValue());
+        log.info(" Transaction Total Fee {}", priceAmount.doubleValue());
         
         return priceAmount;
     }
