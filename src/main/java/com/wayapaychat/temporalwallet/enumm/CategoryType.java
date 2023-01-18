@@ -14,7 +14,8 @@ public enum CategoryType {
 	CABLE("CABLE"),
 	UTILITY("UTILITY"), 
 	BETTING("BETTING"), 
-	REVERSAL("REVERSAL");
+	REVERSAL("REVERSAL"),
+	LOCAL("LOCAL");
 
 	private String value;
 
