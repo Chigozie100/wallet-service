@@ -35,7 +35,7 @@ public interface CoreBankingService {
 
     String getEventAccountNumber(String channelEventId);
 
-    void applyCharge(MyData userData, String transitAccount, String debitAccountNumber, String tranNarration, String transactionCategory, String transactionType, BigDecimal doubleValue, Provider provider, String channelEventId);
+    void applyCharges(MyData userData, String transitAccount, String debitAccountNumber, String tranNarration, String transactionCategory, String transactionType, BigDecimal doubleValue, Provider provider, String channelEventId);
 
     Long logTransaction(String fromAccountNumber, String toAccountNumber, BigDecimal amount, String transCategory,String tranCrncy, WalletTransStatus status);
     
@@ -46,6 +46,8 @@ public interface CoreBankingService {
     void logNotification(CBAEntryTransaction transactionPojo);
 
     ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount);
+
+    BigDecimal computeTotalTransactionFee(String accountNumber, BigDecimal amount,  String eventId);
 
     BigDecimal computeTransactionFee(String accountNumber, BigDecimal amount,  String eventId);
 

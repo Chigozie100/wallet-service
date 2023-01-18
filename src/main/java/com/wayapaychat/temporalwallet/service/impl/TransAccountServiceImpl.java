@@ -4031,7 +4031,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	}
 
 	public BigDecimal computeTransFee(String accountDebit, BigDecimal amount,  String eventId){ 
-		return coreBankingService.computeTransactionFee(accountDebit, amount, eventId);
+		return coreBankingService.computeTotalTransactionFee(accountDebit, amount, eventId);
 	}
 
 	public BigDecimal getChargesAmount(UserPricing userPricingOptional, BigDecimal amount){

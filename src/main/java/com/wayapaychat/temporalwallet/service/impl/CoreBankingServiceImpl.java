@@ -352,7 +352,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         if(transitAccount !=null){
             final String finalTransitAccount = transitAccount;
             CompletableFuture.runAsync(() -> 
-            applyCharge(userData, finalTransitAccount, transferTransactionRequestData.getDebitAccountNumber(), transferTransactionRequestData.getTranNarration(), 
+            applyCharges(userData, finalTransitAccount, transferTransactionRequestData.getDebitAccountNumber(), transferTransactionRequestData.getTranNarration(), 
                 transferTransactionRequestData.getTranType(), transferTransactionRequestData.getTransactionCategory(),  transferTransactionRequestData.getAmount(), provider, channelEventId));
         }
 
@@ -393,6 +393,19 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
 
     @Override
+    public BigDecimal computeTotalTransactionFee(String accountNumber, BigDecimal amount,  String eventId){
+        BigDecimal priceAmount = computeTransactionFee(accountNumber, amount, eventId);
+        if(priceAmount.doubleValue() <= 0){ return priceAmount; }
+
+        //add vat to fee
+        BigDecimal vatAmount = computeVatFee(priceAmount, eventId);
+        priceAmount = BigDecimal.valueOf(Precision.round(priceAmount.doubleValue() + vatAmount.doubleValue(), 2));
+        log.info(" Transaction Fee {}", priceAmount.doubleValue());
+        
+        return priceAmount;
+    }
+
+    @Override
     public BigDecimal computeTransactionFee(String accountNumber, BigDecimal amount,  String eventId){
         BigDecimal priceAmount = new BigDecimal(0);
 
@@ -418,9 +431,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         if(priceAmount.doubleValue() > userPricingOptional.getCapPrice().doubleValue()){ 
             priceAmount = userPricingOptional.getCapPrice();
         }
-        
-        //add vat to fee
-        priceAmount = BigDecimal.valueOf(Precision.round(priceAmount.doubleValue() + computeVatFee(priceAmount, eventId).doubleValue(), 2) );
+
         log.info(" Transaction Fee {}", priceAmount.doubleValue());
         return priceAmount;
     }
@@ -432,7 +443,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
         if (!eventInfo.isPresent()) { return vatAmount; }
 
-       
         if(eventInfo.get().getTaxAmt().doubleValue() > 0){
             vatAmount = BigDecimal.valueOf(Precision.round(fee.doubleValue() * eventInfo.get().getTaxAmt().doubleValue()/100,2));
         } 
@@ -442,40 +452,26 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
 
     @Override
-    public void applyCharge(MyData userData, String transitAccount, String debitAccountNumber, String tranNarration,
+    public void applyCharges(MyData userData, String transitAccount, String debitAccountNumber, String tranNarration,
             String transactionCategory, String transactionType, @NotNull BigDecimal amount, Provider provider, String channelEventId) {
+        
         log.info("applying charge for transaction on {}", debitAccountNumber);
-
         String chargeCollectionAccount = getEventAccountNumber("INCOME_".concat(channelEventId));
         if(chargeCollectionAccount == null){ return; }
 
         BigDecimal priceAmount = this.computeTransactionFee(debitAccountNumber, amount, channelEventId);
-        String tranId = tempwallet.TransactionGenerate();
-
-        //get vat and deduct from charge to get income amount
-        BigDecimal vatAmount = this.computeVatFee(priceAmount, channelEventId); 
-        priceAmount = BigDecimal.valueOf(Precision.round(priceAmount.doubleValue() - vatAmount.doubleValue(),2));
-        
+        if(priceAmount.doubleValue() <= 0){ return; }
 
         log.info("applying income charge {}", priceAmount.doubleValue());
-        processCBATransactionDoubleEntryWithTransit(userData, tranId, transitAccount, debitAccountNumber,  chargeCollectionAccount, tranNarration, transactionCategory, priceAmount, provider);
+        processCBATransactionDoubleEntryWithTransit(userData, tempwallet.TransactionGenerate(), transitAccount, debitAccountNumber,  chargeCollectionAccount, "FEE: ".concat(tranNarration), transactionCategory, priceAmount, provider);
         
-        processVAT(userData, transitAccount, debitAccountNumber,  chargeCollectionAccount, vatAmount, tranNarration, transactionCategory, transactionType, provider, channelEventId);
-
-    }
-
-    public void processVAT(MyData userData, String transitAccount, String customerDebitAccountNumber, String chargeCollectionAccount, BigDecimal vatAmount, String tranNarration,
-                                    String transactionCategory, String transactionType, Provider provider, String channelEventId){
-        log.info("applying VAT for transaction on {}", customerDebitAccountNumber);
-        if(vatAmount.doubleValue() <= 0){ return;}
-
+        log.info("applying VAT for transaction on {}", debitAccountNumber);
         String vatCollectionAccount = getEventAccountNumber("VAT_".concat(channelEventId));
         if(vatCollectionAccount == null){ return; }
-        
 
-        tranNarration = "VAT: ".concat(tranNarration);
-        processCBATransactionDoubleEntryWithTransit(userData, tempwallet.TransactionGenerate(), transitAccount, customerDebitAccountNumber,  vatCollectionAccount, tranNarration, transactionCategory, vatAmount, provider);
-        
+        BigDecimal vatAmount = this.computeVatFee(priceAmount, channelEventId);
+        log.info("applying vat charge {}", vatAmount.doubleValue());
+        processCBATransactionDoubleEntryWithTransit(userData, tempwallet.TransactionGenerate(), transitAccount, debitAccountNumber,  vatCollectionAccount, "VAT: ".concat(tranNarration), transactionCategory, vatAmount, provider);
 
     }
 
