@@ -361,10 +361,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         if(transitAccount !=null){
             final String finalTransitAccount = transitAccount;
-            CompletableFuture.runAsync(() -> 
+            //CompletableFuture.runAsync(() -> 
             applyCharges(userData, finalTransitAccount, transferTransactionRequestData.getDebitAccountNumber(), transferTransactionRequestData.getTranNarration(), 
-                transferTransactionRequestData.getTranType(), transferTransactionRequestData.getTransactionCategory(),  transferTransactionRequestData.getAmount(), provider, channelEventId)
-            );
+                transferTransactionRequestData.getTranType(), transferTransactionRequestData.getTransactionCategory(),  transferTransactionRequestData.getAmount(), provider, channelEventId);
+            //);
         }
 
         updateTransactionLog(tranId, WalletTransStatus.SUCCESSFUL);
