@@ -35,7 +35,7 @@ public interface CoreBankingService {
 
     String getEventAccountNumber(String channelEventId);
 
-    void applyCharges(MyData userData, String transitAccount, String debitAccountNumber, String tranNarration, String transactionCategory, String transactionType, BigDecimal doubleValue, Provider provider, String channelEventId);
+    void applyCharges(MyData userData, String transitAccount, String debitAccountNumber, String tranNarration, String transactionType, String transactionCategory, BigDecimal doubleValue, Provider provider, String channelEventId);
 
     Long logTransaction(String fromAccountNumber, String toAccountNumber, BigDecimal amount, String transCategory,String tranCrncy, WalletTransStatus status);
     

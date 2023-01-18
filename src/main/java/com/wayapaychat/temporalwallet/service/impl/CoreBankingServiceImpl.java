@@ -361,10 +361,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         if(transitAccount !=null){
             final String finalTransitAccount = transitAccount;
-            //CompletableFuture.runAsync(() -> 
+            CompletableFuture.runAsync(() -> 
             applyCharges(userData, finalTransitAccount, transferTransactionRequestData.getDebitAccountNumber(), transferTransactionRequestData.getTranNarration(), 
-                transferTransactionRequestData.getTranType(), transferTransactionRequestData.getTransactionCategory(),  transferTransactionRequestData.getAmount(), provider, channelEventId);
-            //);
+                transferTransactionRequestData.getTranType(), transferTransactionRequestData.getTransactionCategory(),  transferTransactionRequestData.getAmount(), provider, channelEventId)
+            );
         }
 
         updateTransactionLog(tranId, WalletTransStatus.SUCCESSFUL);
@@ -464,7 +464,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     @Override
     public void applyCharges(MyData userData, String transitAccount, String debitAccountNumber, String tranNarration,
-            String transactionCategory, String transactionType, @NotNull BigDecimal amount, Provider provider, String channelEventId) {
+            String transactionType, String transactionCategory, @NotNull BigDecimal amount, Provider provider, String channelEventId) {
         
         log.info("applying charge for transaction on {}", debitAccountNumber);
         String chargeCollectionAccount = getEventAccountNumber("INCOME_".concat(channelEventId));
