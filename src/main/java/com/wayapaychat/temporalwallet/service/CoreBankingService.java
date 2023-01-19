@@ -45,6 +45,8 @@ public interface CoreBankingService {
 
     void logNotification(CBAEntryTransaction transactionPojo);
 
+    ResponseEntity<?> securityCheckOwner(String accountNumber);
+
     ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount);
 
     BigDecimal computeTotalTransactionFee(String accountNumber, BigDecimal amount,  String eventId);
