@@ -222,7 +222,7 @@ public ResponseEntity<?> createNubbanAccountAuto() {
     @ApiOperation(value = "Get Wallet Account Info By Account Number", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/user-account/{accountNo}")
     public ResponseEntity<?> getAccountDetails(@PathVariable String accountNo) throws Exception {
-        return userAccountService.getAccountDetails(accountNo);
+        return userAccountService.getAccountDetails(accountNo,false);
     }
 
     @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
