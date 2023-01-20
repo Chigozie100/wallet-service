@@ -1351,8 +1351,7 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 
 	@Override
 	public ResponseEntity<?> getUserAccountList(long userId){  
-		securityCheck(userId);
-		MyData tokenData = tokenService.getUserInformation();
+        MyData tokenData = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if(tokenData == null){
 			return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
 		}

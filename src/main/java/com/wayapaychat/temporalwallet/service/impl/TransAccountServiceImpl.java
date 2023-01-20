@@ -1184,13 +1184,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		MyData userToken = (MyData)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-		String wayaDisbursementAccount = coreBankingService.getEventAccountNumber(EventCharge.BANKPMT.name());
+		String wayaDisbursementAccount = coreBankingService.getEventAccountNumber(transfer.getEventId());
 
 		log.info("BankTransferPayment :: wayaDisbursementAccount " + wayaDisbursementAccount);
 
 		ResponseEntity<?> debitResponse = coreBankingService.transfer( new TransferTransactionDTO( transfer.getCustomerAccountNumber(),  wayaDisbursementAccount, transfer.getAmount(),
 				TransactionTypeEnum.TRANSFER.getValue(), "NGN",  transfer.getTranNarration(),
-				transfer.getPaymentReference(), CategoryType.TRANSFER.getValue()),  "BANKPMT");
+				transfer.getPaymentReference(), transfer.getTransactionCategory()),  transfer.getEventId());
 
 		if(!debitResponse.getStatusCode().is2xxSuccessful()){
 			return debitResponse;
@@ -4031,7 +4031,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	}
 
 	public BigDecimal computeTransFee(String accountDebit, BigDecimal amount,  String eventId){ 
-		return coreBankingService.computeTransactionFee(accountDebit, amount, eventId);
+		return coreBankingService.computeTotalTransactionFee(accountDebit, amount, eventId);
 	}
 
 	public BigDecimal getChargesAmount(UserPricing userPricingOptional, BigDecimal amount){
