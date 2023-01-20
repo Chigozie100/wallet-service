@@ -45,8 +45,8 @@ public interface UserAccountService {
 	ResponseEntity<?> getListWayaAccount();
 	
 	ResponseEntity<?> getAccountInfo(String accountNo);
-	
-	ResponseEntity<?> fetchAccountDetail(String accountNo);
+
+	ResponseEntity<?> fetchAccountDetail(String accountNo, Boolean isAdmin);
 
 	ResponseEntity<?> fetchVirtualAccountDetail(String accountNo);
 	
@@ -73,6 +73,8 @@ public interface UserAccountService {
 	ResponseEntity<?> modifyUserAccount(UserAccountDTO user);
 
 	ResponseEntity<?> createAccountOnMIFOS(MifosCreateAccount user);
+	
+	ResponseEntity<?> createNubbanAccountAuto();
 	
 	ResponseEntity<?> ToggleAccount(AccountToggleDTO user);
 	

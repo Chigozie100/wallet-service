@@ -696,5 +696,12 @@ public class AdminController {
     public ResponseEntity<?> ListAllCommissionAccounts(@RequestBody List<Integer> ids) {
         return userAccountService.getListCommissionAccount(ids);
     }
+
+    @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Get Wallet Selected Account Detail", tags = { "ADMIN" })
+    @GetMapping(path = "admin/account/{accountNo}")
+    public ResponseEntity<?> GetAcctDetail(@PathVariable String accountNo) {
+        return userAccountService.fetchAccountDetail(accountNo,true);
+    }
 	
 }
