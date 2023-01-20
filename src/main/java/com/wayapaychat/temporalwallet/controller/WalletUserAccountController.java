@@ -83,6 +83,16 @@ public class WalletUserAccountController {
         return userAccountService.createAccountOnMIFOS(user);
     }
 
+@ApiImplicitParams({
+        @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+@ApiOperation(value = "createAccountOnMIFOSAuto", tags = { "USER-ACCOUNT-WALLET" })
+@PostMapping(path = "/user/mifos-account/auto")
+public ResponseEntity<?> createNubbanAccountAuto() { 
+    return userAccountService.createNubbanAccountAuto();
+}
+
+    //ResponseEntity<?> createNubbanAccountAuto()
+
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Account Toggle",  tags = { "USER-ACCOUNT-WALLET" })
@@ -151,7 +161,7 @@ public class WalletUserAccountController {
     @ApiOperation(value = "Get Wallet Selected Account Detail", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/account/{accountNo}")
     public ResponseEntity<?> GetAcctDetail(@PathVariable String accountNo) {
-        return userAccountService.fetchAccountDetail(accountNo);
+        return userAccountService.fetchAccountDetail(accountNo, false);
     }
 
 

@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.proxy;
 
+import com.wayapaychat.temporalwallet.dto.ExternalCBAAccountDetailsResponse;
 import com.wayapaychat.temporalwallet.dto.ExternalCBAResponse;
 import com.wayapaychat.temporalwallet.dto.MifosTransfer;
 import com.wayapaychat.temporalwallet.pojo.MifosBlockAccount;
@@ -53,14 +54,14 @@ public interface MifosWalletProxy {
 	@PostMapping("/wallet/create/user")
 	MifosAccountCreationResponse createAccount(@RequestBody MifosCreateAccount reAccount);
 
-
 	@DeleteMapping("/wallet/account/block")
 	ApiResponse<?> blockAccount(@RequestHeader("authorization") String token, @RequestBody MifosBlockAccount reAccount);
 
 	@PutMapping("/wallet/account/unblock")
 	ApiResponse<?> unblockAccount(@RequestHeader("authorization") String token, @RequestBody MifosBlockAccount reAccount);
 
-	// Transfer MifosTransfer
+	@GetMapping("/wallet/inquiry/balance/{accountNumber}")
+	ExternalCBAAccountDetailsResponse fetchBalance(@PathVariable("accountNumber") String accountNumber);
 
 	@PostMapping("/wallet/transfer")
 	ExternalCBAResponse transferMoney(@RequestBody MifosTransfer transfer);

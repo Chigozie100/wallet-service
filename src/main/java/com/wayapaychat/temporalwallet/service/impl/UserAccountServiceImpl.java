@@ -686,6 +686,39 @@ public class UserAccountServiceImpl implements UserAccountService {
 				HttpStatus.OK);
 }
 
+public ResponseEntity<?> createNubbanAccountAuto() {
+	try{
+		List<WalletAccount> accountList = walletAccountRepository.findByAllNonNubanAccount();
+		System.out.println("mifosWalletProxy :: " + mifosWalletProxy);
+		for(WalletAccount data: accountList){
+			String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, "savings");
+			MifosCreateAccount account = new MifosCreateAccount();
+ 
+				if(data.getUser() !=null){
+					WalletUser userx = walletUserRepository.findByAccount(data);
+					account.setFirstName(userx.getFirstName());
+					account.setLastName(userx.getFirstName());
+					account.setMobileNumber(userx.getFirstName());
+					account.setEmail(userx.getEmailAddress());
+			
+				account.setAccountNumber(nubanAccountNumber);
+				data.setNubanAccountNo(nubanAccountNumber);
+				WalletAccount wAcc = walletAccountRepository.save(data);
+
+				System.out.println("mifosWalletProxy :: " + wAcc);
+				MifosAccountCreationResponse response = mifosWalletProxy.createAccount(account);
+				log.info("RESPONSE FROM MIFOS::: " + response);
+			} 
+		}
+
+	}catch (Exception ex){
+		log.info("RESPONSE FROM MIFOS::: " + ex);
+		throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+	}
+	return new ResponseEntity<>(new SuccessResponse("Successfully createAccountOnMIFOS"),
+			HttpStatus.OK);
+}
+
 	public ResponseEntity<?> modifyUserAccount(UserAccountDTO user) {
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
 		if (existingUser == null) {
@@ -1289,8 +1322,11 @@ public class UserAccountServiceImpl implements UserAccountService {
 		return new ResponseEntity<>(new SuccessResponse("Success", account), HttpStatus.OK);
 	}
 
-	public ResponseEntity<?> fetchAccountDetail(String accountNo) {
-		securityWtihAccountNo(accountNo);
+	public ResponseEntity<?> fetchAccountDetail(String accountNo, Boolean isAdmin) {
+		 if(!isAdmin){
+			securityWtihAccountNo(accountNo);
+		 }
+	
 		WalletAccount acct = walletAccountRepository.findByAccountNo(accountNo);
 		if (acct == null) {
 			return new ResponseEntity<>(new ErrorResponse("Invalid Account"), HttpStatus.NOT_FOUND);
@@ -1315,8 +1351,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public ResponseEntity<?> getUserAccountList(long userId){  
-		securityCheck(userId);
-		MyData tokenData = tokenService.getUserInformation();
+        MyData tokenData = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 		if(tokenData == null){
 			return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
 		}
@@ -1994,5 +2029,5 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 
 	}
-
+ 
 }
