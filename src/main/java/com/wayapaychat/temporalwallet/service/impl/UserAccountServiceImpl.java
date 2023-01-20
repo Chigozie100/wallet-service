@@ -1500,8 +1500,11 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 		return new ResponseEntity<>(new SuccessResponse("Wallet Commissions", account), HttpStatus.OK);
 	}
 
-	public ResponseEntity<?> getAccountDetails(String accountNo) throws Exception {
-		securityWtihAccountNo(accountNo);
+	public ResponseEntity<?> getAccountDetails(String accountNo, Boolean isAdmin) throws Exception {
+		if(!isAdmin){
+			securityWtihAccountNo(accountNo);
+		}
+
 		try{
 			Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
 			if (!account.isPresent()) {
@@ -2015,7 +2018,7 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 
 	public ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount){
 		System.out.println("updateCustomerDebitLimit :: " + amount);
-		System.out.println("updateCustomerDebitLimit userId :: " + userId);
+		log.info("updateCustomerDebitLimit userId :: " + userId);
 		try{
 			Optional<WalletUser> walletUser = walletUserRepository.findUserId(Long.parseLong(userId));
 			if(walletUser.isPresent()){
