@@ -703,5 +703,13 @@ public class AdminController {
     public ResponseEntity<?> GetAcctDetail(@PathVariable String accountNo) {
         return userAccountService.fetchAccountDetail(accountNo,true);
     }
+
+
+    @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Get Wallet Account Info By Account Number", tags = { "ADMIN" })
+    @GetMapping(path = "admin/user-account/{accountNo}")
+    public ResponseEntity<?> getAccountDetails(@PathVariable String accountNo) throws Exception {
+        return userAccountService.getAccountDetails(accountNo, true);
+    }
 	
 }
