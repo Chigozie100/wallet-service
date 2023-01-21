@@ -45,8 +45,8 @@ public interface UserAccountService {
 	ResponseEntity<?> getListWayaAccount();
 	
 	ResponseEntity<?> getAccountInfo(String accountNo);
-	
-	ResponseEntity<?> fetchAccountDetail(String accountNo);
+
+	ResponseEntity<?> fetchAccountDetail(String accountNo, Boolean isAdmin);
 
 	ResponseEntity<?> fetchVirtualAccountDetail(String accountNo);
 	
@@ -64,7 +64,7 @@ public interface UserAccountService {
 	
 	ResponseEntity<?> getAccountCommission(String accountNo);
 
-	ResponseEntity<?> getAccountDetails(String accountNo) throws Exception;
+	ResponseEntity<?> getAccountDetails(String accountNo, Boolean isAdmin) throws Exception;
 	
 	ResponseEntity<?> getAccountDefault(Long user_id);
 	
@@ -73,6 +73,8 @@ public interface UserAccountService {
 	ResponseEntity<?> modifyUserAccount(UserAccountDTO user);
 
 	ResponseEntity<?> createAccountOnMIFOS(MifosCreateAccount user);
+	
+	ResponseEntity<?> createNubbanAccountAuto();
 	
 	ResponseEntity<?> ToggleAccount(AccountToggleDTO user);
 	
@@ -117,5 +119,7 @@ public interface UserAccountService {
 	ResponseEntity<?>  createDefaultWallet(MyData user);
 
 	ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount);
+	
+	void securityCheck(long userId);
 
 }

@@ -15,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.entity.WalletTransaction;
 import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
 import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
@@ -200,4 +201,6 @@ public interface TransAccountService {
 
 
 	ResponseEntity<?>  getSingleAccountByEventID(String eventId);
+
+	WalletAccount findByEmailOrPhoneNumberOrId(Boolean isAccountNumber, String value,String userId, String accountNo);
 }

@@ -4,6 +4,8 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.impl.crypto.MacProvider;
 
 import java.security.Key;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 
 public class SecurityConstants {
@@ -21,5 +23,10 @@ public class SecurityConstants {
 
     public static String getSecret() {
         return base64SecretBytes;
+    }
+
+    public static String generateRequestId() {
+        long randomNum = (long) Math.floor(Math.random() * 9_000_000_000_00L) + 1_000_000_000_00L;
+        return  LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyMMddHHmmss")) + Long.toString(randomNum);
     }
 }

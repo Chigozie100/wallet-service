@@ -64,18 +64,18 @@ job:
 
 
 eureka:
-  client:
-    serviceUrl:
-      defaultZone: http://localhost/eureka
-    service-url:
-      default-zone: http://localhost/eureka
-  instance:
-    preferIpAddress: true
+ client:
+   serviceUrl:
+     defaultZone: https://services.staging.wayabank.ng/eureka
+   service-url:
+     default-zone: https://services.staging.wayabank.ng/eureka
+ instance:
+   preferIpAddress: true
 
 waya:
   wallet:
     auth: AUTHENTICATION-SERVICE
-    authurl: ${CONFIG_BASEURL_AUTH:http://localhost:8012/api/v1}
+    authurl: ${CONFIG_BASEURL_AUTH:https://services.staging.wayabank.ng/auth-service/api/v1}
     mifos: MIFOS-WALLET-SERVICE
     mifosurl: ${CONFIG_BASEURL_MWALLET:https://services.staging.wayabank.ng/middletier-service}
     productcode: ${CONFIG_PRODUCT_SAVINGS:SB601}
@@ -87,7 +87,7 @@ waya:
   card:
     cardurl: ${CONFIG_BASEURL_CARD:https://services.staging.wayabank.ng/card-service}
     service: CARD-SERVICE
-    contacturl: ${CONFIG_BASEURL_CONTACT:https://services.staging.wayabank.ng/contact-service}
+    contacturl: ${CONFIG_BASEURL_CONTACT:http://localhost:8065/contact-service}
   contact:
     service: CONTACT-SERVICE
   account:

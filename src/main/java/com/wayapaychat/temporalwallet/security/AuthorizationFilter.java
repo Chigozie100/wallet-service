@@ -66,7 +66,7 @@ public class AuthorizationFilter extends BasicAuthenticationFilter {
         GetUserDataService authProxy = (GetUserDataService) SpringApplicationContext.getBean("getUserDataService");
 
         //String username = jwtTokenHelper.getUsernameFromToken(request);
-
+    
         TokenCheckResponse tokenResponse = authProxy.getUserData(request);
         
         if(!tokenResponse.isStatus()) {

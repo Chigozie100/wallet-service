@@ -1071,6 +1071,61 @@ public class TransAccountServiceImpl implements TransAccountService {
 		return resp;
 	}
 
+
+	public WalletAccount findByEmailOrPhoneNumberOrId(Boolean isAccountNumber, String value, String userId, String accountNo){
+	 
+		userAccountService.securityCheck(Long.valueOf(userId));
+		try{
+			securityWtihAccountNo2(accountNo, Long.valueOf(userId));
+		}catch(CustomException ex){
+			throw new CustomException("Your Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
+		}
+	 
+		try{
+			if(!isAccountNumber){ 
+				return walletAccountRepository.findByAccount(value).get();
+			}
+			Optional<WalletUser> user;
+			if(value.startsWith("234") || value.contains("@"))
+				user = walletUserRepository.findByEmailOrPhoneNumber(value);
+			else
+				user = walletUserRepository.findUserId(Long.parseLong(value));
+
+			if(!user.isPresent()){
+				throw new CustomException("User doesnt exist", HttpStatus.NOT_FOUND);
+			}
+
+			return walletAccountRepository.findByDefaultAccount(user.get()).get();
+		}catch(CustomException ex){ 
+			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
+		}
+	
+	}
+ 
+	public void securityWtihAccountNo2(String accountNo, long userId){
+		try{
+			boolean check = false;
+			WalletUser xUser = walletUserRepository.findByUserId(userId); 
+			List<WalletAccount> walletAccount = walletAccountRepository.findByUser(xUser); 
+			List<String> accountNoList = new ArrayList<>();
+			for(WalletAccount data: walletAccount){
+				accountNoList.add(data.getAccountNo()); 
+			}
+
+			if(accountNoList.contains(accountNo)){
+				check = true;  
+			}else{
+				throw new CustomException("Your Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
+			}
+			log.info("securityWtihAccountNo2 :" + check);
+			log.info("accountNo :" + accountNo);
+		
+		}catch(CustomException ex){
+			throw new CustomException("Your Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
+		}
+	}
+
+	
 	@Override
 	public ResponseEntity<?> EventCommissionPayment(HttpServletRequest request, EventPaymentDTO transfer) {
 
@@ -1129,13 +1184,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		MyData userToken = (MyData)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-		String wayaDisbursementAccount = coreBankingService.getEventAccountNumber(EventCharge.BANKPMT.name());
+		String wayaDisbursementAccount = coreBankingService.getEventAccountNumber(transfer.getEventId());
 
 		log.info("BankTransferPayment :: wayaDisbursementAccount " + wayaDisbursementAccount);
 
 		ResponseEntity<?> debitResponse = coreBankingService.transfer( new TransferTransactionDTO( transfer.getCustomerAccountNumber(),  wayaDisbursementAccount, transfer.getAmount(),
 				TransactionTypeEnum.TRANSFER.getValue(), "NGN",  transfer.getTranNarration(),
-				transfer.getPaymentReference(), CategoryType.TRANSFER.getValue()),  "BANKPMT");
+				transfer.getPaymentReference(), transfer.getTransactionCategory()),  transfer.getEventId());
 
 		if(!debitResponse.getStatusCode().is2xxSuccessful()){
 			return debitResponse;
@@ -3976,7 +4031,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	}
 
 	public BigDecimal computeTransFee(String accountDebit, BigDecimal amount,  String eventId){ 
-		return coreBankingService.computeTransactionFee(accountDebit, amount, eventId);
+		return coreBankingService.computeTotalTransactionFee(accountDebit, amount, eventId);
 	}
 
 	public BigDecimal getChargesAmount(UserPricing userPricingOptional, BigDecimal amount){

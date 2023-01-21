@@ -80,7 +80,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
 	}
 
 	private void log(HttpServletRequest request, HttpServletResponse response, HandlerExecutionChain handler,
-			long timeTaken) {
+					 long timeTaken) {
 
 		final String path = request.getRequestURI();
 		if(path.startsWith("/swagger") || path.startsWith("/v2/api-docs")
@@ -146,17 +146,17 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
 	}
 
 
-    private String getRequestData(final HttpServletRequest request) throws UnsupportedEncodingException {
-        String payload = null;
-        ContentCachingRequestWrapper wrapper = WebUtils.getNativeRequest(request, ContentCachingRequestWrapper.class);
-        if (wrapper != null) {
-            byte[] buf = wrapper.getContentAsByteArray();
-            if (buf.length > 0) {
-                payload = new String(buf, 0, buf.length, wrapper.getCharacterEncoding());
-            }
-        }
-        return payload;
-    }
+	private String getRequestData(final HttpServletRequest request) throws UnsupportedEncodingException {
+		String payload = null;
+		ContentCachingRequestWrapper wrapper = WebUtils.getNativeRequest(request, ContentCachingRequestWrapper.class);
+		if (wrapper != null) {
+			byte[] buf = wrapper.getContentAsByteArray();
+			if (buf.length > 0) {
+				payload = new String(buf, 0, buf.length, wrapper.getCharacterEncoding());
+			}
+		}
+		return payload;
+	}
 
 	private void updateResponse(HttpServletResponse response) throws IOException {
 		response.getHeader("PDF");
@@ -180,10 +180,10 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
 			default:
 				action = "CREATE";
 		}
-		
+
 		TokenImpl tokenImpl = ((TokenImpl) SpringApplicationContext.getBean("tokenImpl"));
-        String systemToken = tokenImpl.getToken();
-		
+		String systemToken = tokenImpl.getToken();
+
 		LogService userService = ((LogService) SpringApplicationContext.getBean("logServiceImpl"));
 		LogRequest pojo = new LogRequest();
 		pojo.setAction(action);
