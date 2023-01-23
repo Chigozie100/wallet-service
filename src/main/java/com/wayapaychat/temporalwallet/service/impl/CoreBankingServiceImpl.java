@@ -656,7 +656,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             StringBuilder _sms_message = new StringBuilder();
             _sms_message.append(String.format("Acct: %s", transactionPojo.getAccountNo()));
             _sms_message.append("\n");
-            _sms_message.append(String.format("Amt: %s %sR", Precision.round(transactionPojo.getAmount().doubleValue(),2), tranType));
+            _sms_message.append(String.format("Amt: %s %s", Precision.round(transactionPojo.getAmount().doubleValue(),2), tranType));
             _sms_message.append("\n");
             _sms_message.append(String.format("Desc: %s", transactionPojo.getTranNarration()));
             _sms_message.append("\n");
