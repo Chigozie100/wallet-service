@@ -18,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import com.wayapaychat.temporalwallet.SpringApplicationContext;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.AccountSumary;
 import com.wayapaychat.temporalwallet.dto.ExternalCBAAccountDetailsResponse;
@@ -56,14 +58,12 @@ import com.wayapaychat.temporalwallet.enumm.ResponseCodes;
 import com.wayapaychat.temporalwallet.enumm.TransactionTypeEnum;
 import com.wayapaychat.temporalwallet.enumm.WalletTransStatus;
 import com.wayapaychat.temporalwallet.exception.CustomException;
+import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.notification.CustomNotification;
 
 @Service
 @Slf4j
 public class CoreBankingServiceImpl implements CoreBankingService {
-
-    @Value("${jwt.secret:2YuUlb+t36yVzrTkYLl8xBlBJSC41CE7uNF3somMDxdYDfcACv9JYIU54z17s4Ah313uKu/4Ll+vDNKpxx6v4Q==")
-    private String appToken;
 
     private final SwitchWalletService switchWalletService;
     private final WalletTransAccountRepository walletTransAccountRepository;
@@ -631,6 +631,15 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         AccountSumary account = tempwallet.getAccountSumaryLookUp(transactionPojo.getAccountNo());
         if (account == null) { return; }
 
+        String systemToken = null;
+
+        try {
+            TokenImpl tokenImpl = ((TokenImpl) SpringApplicationContext.getBean("tokenImpl"));
+    		systemToken = tokenImpl.getToken();
+        } catch (Exception e) {
+			log.error("Unable to get system token :: {}", e);
+        }
+        
         if(!ObjectUtils.isEmpty(account.getEmail())) { 
             StringBuilder _email_message = new StringBuilder();
             _email_message.append(String.format("A %s transaction has occurred with reference: %s ", tranType, transactionPojo.getTranId()));
@@ -640,7 +649,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             _email_message.append(String.format("Date: %s", tranDate));
             _email_message.append("\n");
             _email_message.append(String.format("Narration :%s ", transactionPojo.getTranNarration()));
-            customNotification.pushEMAIL(this.appToken, account.getCustName(), account.getEmail(), _email_message.toString(), account.getUId());
+            customNotification.pushEMAIL(systemToken, account.getCustName(), account.getEmail(), _email_message.toString(), account.getUId());
         }
         
         if (!ObjectUtils.isEmpty(account.getPhone())) { 
@@ -654,7 +663,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             _sms_message.append(String.format("Avail Bal: %s", Precision.round(currentBalance,2)));
             _sms_message.append("\n");
             _sms_message.append(String.format("Date: %s", tranDate));
-            customNotification.pushSMS(this.appToken, account.getCustName(), account.getPhone(), _sms_message.toString(), account.getUId());
+            customNotification.pushSMS(systemToken, account.getCustName(), account.getPhone(), _sms_message.toString(), account.getUId());
         }
     }
 
