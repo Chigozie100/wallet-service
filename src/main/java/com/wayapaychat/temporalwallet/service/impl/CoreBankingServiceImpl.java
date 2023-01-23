@@ -10,6 +10,7 @@ import java.util.concurrent.CompletableFuture;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.math3.util.Precision;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -630,30 +631,31 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         AccountSumary account = tempwallet.getAccountSumaryLookUp(transactionPojo.getAccountNo());
         if (account == null) { return; }
 
-        if (account.getEmail() == null) { return; }
-        StringBuilder _email_message = new StringBuilder();
-        _email_message.append(String.format("A %s transaction has occurred with reference: %s ", tranType, transactionPojo.getTranId()));
-        _email_message.append("on your account see details below. \n");
-        _email_message.append(String.format("Amount: %s", Precision.round(transactionPojo.getAmount().doubleValue(),2)));
-        _email_message.append("\n");
-        _email_message.append(String.format("Date: %s", tranDate));
-        _email_message.append("\n");
-        _email_message.append(String.format("Narration :%s ", transactionPojo.getTranNarration()));
-        customNotification.pushEMAIL(this.appToken, account.getCustName(), account.getEmail(), _email_message.toString(), account.getUId());
-            
+        if(!ObjectUtils.isEmpty(account.getEmail())) { 
+            StringBuilder _email_message = new StringBuilder();
+            _email_message.append(String.format("A %s transaction has occurred with reference: %s ", tranType, transactionPojo.getTranId()));
+            _email_message.append("on your account see details below. \n");
+            _email_message.append(String.format("Amount: %s", Precision.round(transactionPojo.getAmount().doubleValue(),2)));
+            _email_message.append("\n");
+            _email_message.append(String.format("Date: %s", tranDate));
+            _email_message.append("\n");
+            _email_message.append(String.format("Narration :%s ", transactionPojo.getTranNarration()));
+            customNotification.pushEMAIL(this.appToken, account.getCustName(), account.getEmail(), _email_message.toString(), account.getUId());
+        }
         
-        if (account.getPhone() == null) { return; }
-        StringBuilder _sms_message = new StringBuilder();
-        _sms_message.append(String.format("Acct: %s", transactionPojo.getAccountNo()));
-        _email_message.append("\n");
-        _sms_message.append(String.format("Amt: %s %sR", Precision.round(transactionPojo.getAmount().doubleValue(),2), tranType));
-        _email_message.append("\n");
-        _sms_message.append(String.format("Desc: %s", transactionPojo.getTranNarration()));
-        _email_message.append("\n");
-        _sms_message.append(String.format("Avail Bal: %s", Precision.round(currentBalance,2)));
-        _email_message.append("\n");
-        _sms_message.append(String.format("Date: %s", tranDate));
-        customNotification.pushSMS(this.appToken, account.getCustName(), account.getPhone(), _sms_message.toString(), account.getUId());
+        if (!ObjectUtils.isEmpty(account.getPhone())) { 
+            StringBuilder _sms_message = new StringBuilder();
+            _sms_message.append(String.format("Acct: %s", transactionPojo.getAccountNo()));
+            _sms_message.append("\n");
+            _sms_message.append(String.format("Amt: %s %sR", Precision.round(transactionPojo.getAmount().doubleValue(),2), tranType));
+            _sms_message.append("\n");
+            _sms_message.append(String.format("Desc: %s", transactionPojo.getTranNarration()));
+            _sms_message.append("\n");
+            _sms_message.append(String.format("Avail Bal: %s", Precision.round(currentBalance,2)));
+            _sms_message.append("\n");
+            _sms_message.append(String.format("Date: %s", tranDate));
+            customNotification.pushSMS(this.appToken, account.getCustName(), account.getPhone(), _sms_message.toString(), account.getUId());
+        }
     }
 
     @Override
