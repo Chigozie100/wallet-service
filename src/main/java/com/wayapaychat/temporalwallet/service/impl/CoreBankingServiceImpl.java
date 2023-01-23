@@ -696,11 +696,13 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         log.info("securityCheck to debit account{} amount{}", accountNumber, amount);
         MyData userToken = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (userToken == null) {
+            log.error("token validation failed for debiting account{} with amount{}", accountNumber, amount);
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_TOKEN.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
 
         if (amount.doubleValue() <= 0) {
+            log.error("amount is less than zero for debiting account{} with amount{}",  accountNumber, amount);
             return new ResponseEntity<>(
                     new ErrorResponse(String.format("%s : %s", ResponseCodes.INVALID_AMOUNT.getValue(), amount)),
                     HttpStatus.BAD_REQUEST);
