@@ -43,7 +43,7 @@ public interface CoreBankingService {
 
     void addLien(WalletAccount account, BigDecimal amount); 
 
-    void logNotification(CBAEntryTransaction transactionPojo);
+    void logNotification(CBAEntryTransaction transactionPojo, double currentBalance, String tranType);
 
     ResponseEntity<?> securityCheckOwner(String accountNumber);
 

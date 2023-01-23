@@ -175,7 +175,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
             walletAccountRepository.saveAndFlush(accountCredit);
 
-            CompletableFuture.runAsync(() -> logNotification(transactionPojo));
+            CompletableFuture.runAsync(() -> logNotification(transactionPojo, accountCredit.getClr_bal_amt(), "CR"));
 
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.SUCCESSFUL_CREDIT.getValue()),
                     HttpStatus.ACCEPTED);
@@ -222,7 +222,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
             walletAccountRepository.saveAndFlush(accountDebit);
 
-            CompletableFuture.runAsync(() -> logNotification(transactionPojo));
+            CompletableFuture.runAsync(() -> logNotification(transactionPojo, accountDebit.getClr_bal_amt(), "DR"));
 
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.SUCCESSFUL_DEBIT.getValue()),
                     HttpStatus.ACCEPTED);
@@ -421,13 +421,13 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         // Async or schedule
         if (transitAccount != null) {
             final String finalTransitAccount = transitAccount;
-            // CompletableFuture.runAsync(() ->
+            CompletableFuture.runAsync(() ->
             applyCharges(userData, finalTransitAccount, transferTransactionRequestData.getDebitAccountNumber(),
                     transferTransactionRequestData.getTranNarration(),
                     transferTransactionRequestData.getTranType(),
                     transferTransactionRequestData.getTransactionCategory(), transferTransactionRequestData.getAmount(),
-                    provider, channelEventId);
-            // );
+                    provider, channelEventId)
+             );
         }
 
         updateTransactionLog(tranId, WalletTransStatus.SUCCESSFUL);
@@ -624,31 +624,36 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public void logNotification(CBAEntryTransaction transactionPojo) {
+    public void logNotification(CBAEntryTransaction transactionPojo, double currentBalance, String tranType) {
         String tranDate = LocalDate.now().toString();
 
         AccountSumary account = tempwallet.getAccountSumaryLookUp(transactionPojo.getAccountNo());
-        if (account == null) {
-            return;
-        }
+        if (account == null) { return; }
 
-        if (account.getEmail() == null) {
-            return;
-        }
-
-        StringBuilder message = new StringBuilder();
-        message.append(
-                String.format("A transaction has occurred with reference: %s on your account see details below. \n",
-                        transactionPojo.getTranId()));
-        message.append(String.format("Amount :%s \n", transactionPojo.getAmount()));
-        message.append(String.format("Date :%s \n", tranDate));
-        // message.append(String.format("Currency :%s \n",
-        // transactionPojo.getTranCrncy()));
-        message.append(String.format("Narration :%s ", transactionPojo.getTranNarration()));
-
-        customNotification.pushEMAIL(this.appToken, account.getCustName(), account.getEmail(), message.toString(),
-                account.getUId());
-
+        if (account.getEmail() == null) { return; }
+        StringBuilder _email_message = new StringBuilder();
+        _email_message.append(String.format("A %s transaction has occurred with reference: %s ", tranType, transactionPojo.getTranId()));
+        _email_message.append("on your account see details below. \n");
+        _email_message.append(String.format("Amount: %s", Precision.round(transactionPojo.getAmount().doubleValue(),2)));
+        _email_message.append("\n");
+        _email_message.append(String.format("Date: %s", tranDate));
+        _email_message.append("\n");
+        _email_message.append(String.format("Narration :%s ", transactionPojo.getTranNarration()));
+        customNotification.pushEMAIL(this.appToken, account.getCustName(), account.getEmail(), _email_message.toString(), account.getUId());
+            
+        
+        if (account.getPhone() == null) { return; }
+        StringBuilder _sms_message = new StringBuilder();
+        _sms_message.append(String.format("Acct: %s", transactionPojo.getAccountNo()));
+        _email_message.append("\n");
+        _sms_message.append(String.format("Amt: %s %sR", Precision.round(transactionPojo.getAmount().doubleValue(),2), tranType));
+        _email_message.append("\n");
+        _sms_message.append(String.format("Desc: %s", transactionPojo.getTranNarration()));
+        _email_message.append("\n");
+        _sms_message.append(String.format("Avail Bal: %s", Precision.round(currentBalance,2)));
+        _email_message.append("\n");
+        _sms_message.append(String.format("Date: %s", tranDate));
+        customNotification.pushSMS(this.appToken, account.getCustName(), account.getPhone(), _sms_message.toString(), account.getUId());
     }
 
     @Override
@@ -686,7 +691,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     @Override
     public ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount) {
-        log.info("securityCheck :: " + accountNumber);
+        log.info("securityCheck to debit account{} amount{}", accountNumber, amount);
         MyData userToken = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (userToken == null) {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_TOKEN.getValue()),
@@ -695,41 +700,40 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         if (amount.doubleValue() <= 0) {
             return new ResponseEntity<>(
-                    new ErrorResponse(String.format("%ss %s", ResponseCodes.INVALID_AMOUNT.getValue(), amount)),
+                    new ErrorResponse(String.format("%s : %s", ResponseCodes.INVALID_AMOUNT.getValue(), amount)),
                     HttpStatus.BAD_REQUEST);
         }
 
         Optional<WalletAccount> ownerAccount = walletAccountRepository.findByAccount(accountNumber);
-        log.info("ownerAccount :: " + ownerAccount);
         if (!ownerAccount.isPresent()) {
+            log.error("ownerAccount not found:: {}", accountNumber);
             return new ResponseEntity<>(
                     new ErrorResponse(
                             String.format("%s %s", ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accountNumber)),
                     HttpStatus.BAD_REQUEST);
         }
-        log.info(" ###################### AFTER findByAccount :: #################### ");
 
         AccountSumary account = tempwallet.getAccountSumaryLookUp(accountNumber);
-        log.info("AccountSumary :: " + account);
+        log.debug("AccountSumary :: {}", account);
         if (account == null) {
+            log.error("unable to get AccountSumary :: {}", account);
             return new ResponseEntity<>(
                     new ErrorResponse(
                             String.format("%s %s", ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accountNumber)),
                     HttpStatus.BAD_REQUEST);
         }
-
-        log.info(" ###################### AFTER getAccountSumaryLookUp :: #################### ");
 
         double sufficientFunds = ownerAccount.get().getCum_cr_amt() - ownerAccount.get().getCum_dr_amt()
                 - ownerAccount.get().getLien_amt() - amount.doubleValue();
 
-        log.info(" sufficientFunds :: " + sufficientFunds);
         if (sufficientFunds < 0 && ownerAccount.get().getAcct_ownership().equals("C")) {
+            log.error("insufficientFunds :: {}", sufficientFunds);
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INSUFFICIENT_FUNDS.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
 
         if (amount.doubleValue() > Double.parseDouble(account.getDebitLimit())) {
+            log.error("Debit limit reached :: {}", account.getDebitLimit());
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.DEBIT_LIMIT_REACHED.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
@@ -739,6 +743,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         log.info("totalTransactionToday {}", totalTransactionToday);
         totalTransactionToday = totalTransactionToday == null ? new BigDecimal(0) : totalTransactionToday;
         if (totalTransactionToday.doubleValue() >= Double.parseDouble(account.getDebitLimit())) {
+            log.error("Debit limit reached :: {}", account.getDebitLimit());
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.DEBIT_LIMIT_REACHED.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
