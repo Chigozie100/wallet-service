@@ -127,6 +127,35 @@ public class CustomNotification {
 
 	}
 
+	public void pushWayaSMS(String token, String name, String phone, String message, Long userId,  String email) {
+
+		SmsEvent smsEvent = new SmsEvent();
+		SmsPayload data = new SmsPayload();
+		data.setMessage(message);
+
+		data.setSmsEventStatus(SMSEventStatus.TRANSACTION);
+
+		SmsRecipient smsRecipient = new SmsRecipient();
+		smsRecipient.setEmail(email);
+		smsRecipient.setTelephone(phone);
+		List<SmsRecipient> addList = new ArrayList<>();
+		addList.add(smsRecipient);
+
+		data.setRecipients(addList);
+		smsEvent.setData(data);
+
+		smsEvent.setEventType("SMS");
+		smsEvent.setInitiator(userId.toString());
+		log.debug("REQUEST SMS: " +name +" -"  +smsEvent.toString());
+
+		try {
+			boolean check = smsNotification(smsEvent, token);
+			log.debug("response"+check);
+		} catch (Exception ex) {
+			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+		}
+	}
+
 	public void pushSMS(String token, String name, String phone, String message, Long userId) {
 
 		SmsEvent smsEvent = new SmsEvent();

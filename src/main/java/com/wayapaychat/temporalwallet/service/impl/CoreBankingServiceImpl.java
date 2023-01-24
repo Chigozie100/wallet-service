@@ -663,7 +663,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             _sms_message.append(String.format("Avail Bal: %s", Precision.round(currentBalance,2)));
             _sms_message.append("\n");
             _sms_message.append(String.format("Date: %s", tranDate));
-            customNotification.pushSMS(systemToken, account.getCustName(), account.getPhone(), _sms_message.toString(), account.getUId());
+            customNotification.pushWayaSMS(systemToken, account.getCustName(), account.getPhone(), _sms_message.toString(), account.getUId(), account.getEmail());
         }
     }
 
