@@ -45,7 +45,7 @@ public class CustomNotification {
 
 		emailEvent.setData(data);
 		emailEvent.setInitiator(userId.toString());
-		log.info("REQUEST EMAIL WAYABANK: " + emailEvent.toString());
+		log.debug("REQUEST EMAIL WAYABANK: " + emailEvent.toString());
 
 		try {
 			sendEmailNotification(emailEvent, token);
@@ -127,16 +127,16 @@ public class CustomNotification {
 
 	}
 
-	public void pushSMS(String token, String name, String phone, String message, Long userId) {
+	public void pushWayaSMS(String token, String name, String phone, String message, Long userId,  String email) {
 
 		SmsEvent smsEvent = new SmsEvent();
 		SmsPayload data = new SmsPayload();
 		data.setMessage(message);
 
-		data.setSmsEventStatus(SMSEventStatus.NONWAYA);
+		data.setSmsEventStatus(SMSEventStatus.TRANSACTION);
 
 		SmsRecipient smsRecipient = new SmsRecipient();
-		smsRecipient.setEmail("emmanuel.njoku@wayapaychat.com");
+		smsRecipient.setEmail(email);
 		smsRecipient.setTelephone(phone);
 		List<SmsRecipient> addList = new ArrayList<>();
 		addList.add(smsRecipient);
@@ -146,11 +146,40 @@ public class CustomNotification {
 
 		smsEvent.setEventType("SMS");
 		smsEvent.setInitiator(userId.toString());
-		log.info("REQUEST SMS: " +name +" -"  +smsEvent.toString());
+		log.debug("REQUEST SMS: " +name +" -"  +smsEvent.toString());
 
 		try {
 			boolean check = smsNotification(smsEvent, token);
-			log.info("response"+check);
+			log.debug("response"+check);
+		} catch (Exception ex) {
+			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+		}
+	}
+
+	public void pushSMS(String token, String name, String phone, String message, Long userId) {
+
+		SmsEvent smsEvent = new SmsEvent();
+		SmsPayload data = new SmsPayload();
+		data.setMessage(message);
+
+		data.setSmsEventStatus(SMSEventStatus.NONWAYA);
+
+		SmsRecipient smsRecipient = new SmsRecipient();
+		smsRecipient.setEmail("admin@wayapaychat.com");
+		smsRecipient.setTelephone(phone);
+		List<SmsRecipient> addList = new ArrayList<>();
+		addList.add(smsRecipient);
+
+		data.setRecipients(addList);
+		smsEvent.setData(data);
+
+		smsEvent.setEventType("SMS");
+		smsEvent.setInitiator(userId.toString());
+		log.debug("REQUEST SMS: " +name +" -"  +smsEvent.toString());
+
+		try {
+			boolean check = smsNotification(smsEvent, token);
+			log.debug("response"+check);
 		} catch (Exception ex) {
 			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
 		}
@@ -232,7 +261,7 @@ public class CustomNotification {
 		try {
 			ResponseEntity<ResponseObj<?>> responseEntity = notificationFeignClient.smsNotifyUser(smsEvent, token);
 			ResponseObj<?> infoResponse = responseEntity.getBody();
-			log.info("user response sms sent status :: " + Objects.requireNonNull(infoResponse).status);
+			log.debug("user response sms sent status :: " + Objects.requireNonNull(infoResponse).status);
 			return infoResponse.status;
 		} catch (Exception e) {
 			log.error("Unable to send SMS: " + e.getLocalizedMessage());

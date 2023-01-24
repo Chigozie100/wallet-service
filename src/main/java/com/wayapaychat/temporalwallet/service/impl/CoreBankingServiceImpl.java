@@ -10,6 +10,7 @@ import java.util.concurrent.CompletableFuture;
 
 import javax.validation.constraints.NotNull;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.math3.util.Precision;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+
+import com.wayapaychat.temporalwallet.SpringApplicationContext;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.AccountSumary;
 import com.wayapaychat.temporalwallet.dto.ExternalCBAAccountDetailsResponse;
@@ -55,14 +58,12 @@ import com.wayapaychat.temporalwallet.enumm.ResponseCodes;
 import com.wayapaychat.temporalwallet.enumm.TransactionTypeEnum;
 import com.wayapaychat.temporalwallet.enumm.WalletTransStatus;
 import com.wayapaychat.temporalwallet.exception.CustomException;
+import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.notification.CustomNotification;
 
 @Service
 @Slf4j
 public class CoreBankingServiceImpl implements CoreBankingService {
-
-    @Value("${jwt.secret:2YuUlb+t36yVzrTkYLl8xBlBJSC41CE7uNF3somMDxdYDfcACv9JYIU54z17s4Ah313uKu/4Ll+vDNKpxx6v4Q==")
-    private String appToken;
 
     private final SwitchWalletService switchWalletService;
     private final WalletTransAccountRepository walletTransAccountRepository;
@@ -175,7 +176,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
             walletAccountRepository.saveAndFlush(accountCredit);
 
-            CompletableFuture.runAsync(() -> logNotification(transactionPojo));
+            CompletableFuture.runAsync(() -> logNotification(transactionPojo, accountCredit.getClr_bal_amt(), "CR"));
 
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.SUCCESSFUL_CREDIT.getValue()),
                     HttpStatus.ACCEPTED);
@@ -222,7 +223,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
             walletAccountRepository.saveAndFlush(accountDebit);
 
-            CompletableFuture.runAsync(() -> logNotification(transactionPojo));
+            CompletableFuture.runAsync(() -> logNotification(transactionPojo, accountDebit.getClr_bal_amt(), "DR"));
 
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.SUCCESSFUL_DEBIT.getValue()),
                     HttpStatus.ACCEPTED);
@@ -421,13 +422,13 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         // Async or schedule
         if (transitAccount != null) {
             final String finalTransitAccount = transitAccount;
-            // CompletableFuture.runAsync(() ->
+            CompletableFuture.runAsync(() ->
             applyCharges(userData, finalTransitAccount, transferTransactionRequestData.getDebitAccountNumber(),
                     transferTransactionRequestData.getTranNarration(),
                     transferTransactionRequestData.getTranType(),
                     transferTransactionRequestData.getTransactionCategory(), transferTransactionRequestData.getAmount(),
-                    provider, channelEventId);
-            // );
+                    provider, channelEventId)
+             );
         }
 
         updateTransactionLog(tranId, WalletTransStatus.SUCCESSFUL);
@@ -624,31 +625,46 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public void logNotification(CBAEntryTransaction transactionPojo) {
+    public void logNotification(CBAEntryTransaction transactionPojo, double currentBalance, String tranType) {
         String tranDate = LocalDate.now().toString();
 
         AccountSumary account = tempwallet.getAccountSumaryLookUp(transactionPojo.getAccountNo());
-        if (account == null) {
-            return;
+        if (account == null) { return; }
+
+        String systemToken = null;
+
+        try {
+            TokenImpl tokenImpl = ((TokenImpl) SpringApplicationContext.getBean("tokenImpl"));
+    		systemToken = tokenImpl.getToken();
+        } catch (Exception e) {
+			log.error("Unable to get system token :: {}", e);
         }
-
-        if (account.getEmail() == null) {
-            return;
+        
+        if(!ObjectUtils.isEmpty(account.getEmail())) { 
+            StringBuilder _email_message = new StringBuilder();
+            _email_message.append(String.format("A %s transaction has occurred with reference: %s ", tranType, transactionPojo.getTranId()));
+            _email_message.append("on your account see details below. \n");
+            _email_message.append(String.format("Amount: %s", Precision.round(transactionPojo.getAmount().doubleValue(),2)));
+            _email_message.append("\n");
+            _email_message.append(String.format("Date: %s", tranDate));
+            _email_message.append("\n");
+            _email_message.append(String.format("Narration :%s ", transactionPojo.getTranNarration()));
+            customNotification.pushEMAIL(systemToken, account.getCustName(), account.getEmail(), _email_message.toString(), account.getUId());
         }
-
-        StringBuilder message = new StringBuilder();
-        message.append(
-                String.format("A transaction has occurred with reference: %s on your account see details below. \n",
-                        transactionPojo.getTranId()));
-        message.append(String.format("Amount :%s \n", transactionPojo.getAmount()));
-        message.append(String.format("Date :%s \n", tranDate));
-        // message.append(String.format("Currency :%s \n",
-        // transactionPojo.getTranCrncy()));
-        message.append(String.format("Narration :%s ", transactionPojo.getTranNarration()));
-
-        customNotification.pushEMAIL(this.appToken, account.getCustName(), account.getEmail(), message.toString(),
-                account.getUId());
-
+        
+        if (!ObjectUtils.isEmpty(account.getPhone())) { 
+            StringBuilder _sms_message = new StringBuilder();
+            _sms_message.append(String.format("Acct: %s", transactionPojo.getAccountNo()));
+            _sms_message.append("\n");
+            _sms_message.append(String.format("Amt: %s %s", Precision.round(transactionPojo.getAmount().doubleValue(),2), tranType));
+            _sms_message.append("\n");
+            _sms_message.append(String.format("Desc: %s", transactionPojo.getTranNarration()));
+            _sms_message.append("\n");
+            _sms_message.append(String.format("Avail Bal: %s", Precision.round(currentBalance,2)));
+            _sms_message.append("\n");
+            _sms_message.append(String.format("Date: %s", tranDate));
+            customNotification.pushWayaSMS(systemToken, account.getCustName(), account.getPhone(), _sms_message.toString(), account.getUId(), account.getEmail());
+        }
     }
 
     @Override
@@ -686,50 +702,51 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     @Override
     public ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount) {
-        log.info("securityCheck :: " + accountNumber);
+        log.info("securityCheck to debit account{} amount{}", accountNumber, amount);
         MyData userToken = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (userToken == null) {
+            log.error("token validation failed for debiting account{} with amount{}", accountNumber, amount);
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_TOKEN.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
 
         if (amount.doubleValue() <= 0) {
+            log.error("amount is less than zero for debiting account{} with amount{}",  accountNumber, amount);
             return new ResponseEntity<>(
-                    new ErrorResponse(String.format("%ss %s", ResponseCodes.INVALID_AMOUNT.getValue(), amount)),
+                    new ErrorResponse(String.format("%s : %s", ResponseCodes.INVALID_AMOUNT.getValue(), amount)),
                     HttpStatus.BAD_REQUEST);
         }
 
         Optional<WalletAccount> ownerAccount = walletAccountRepository.findByAccount(accountNumber);
-        log.info("ownerAccount :: " + ownerAccount);
         if (!ownerAccount.isPresent()) {
+            log.error("ownerAccount not found:: {}", accountNumber);
             return new ResponseEntity<>(
                     new ErrorResponse(
                             String.format("%s %s", ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accountNumber)),
                     HttpStatus.BAD_REQUEST);
         }
-        log.info(" ###################### AFTER findByAccount :: #################### ");
 
         AccountSumary account = tempwallet.getAccountSumaryLookUp(accountNumber);
-        log.info("AccountSumary :: " + account);
+        log.debug("AccountSumary :: {}", account);
         if (account == null) {
+            log.error("unable to get AccountSumary :: {}", account);
             return new ResponseEntity<>(
                     new ErrorResponse(
                             String.format("%s %s", ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accountNumber)),
                     HttpStatus.BAD_REQUEST);
         }
-
-        log.info(" ###################### AFTER getAccountSumaryLookUp :: #################### ");
 
         double sufficientFunds = ownerAccount.get().getCum_cr_amt() - ownerAccount.get().getCum_dr_amt()
                 - ownerAccount.get().getLien_amt() - amount.doubleValue();
 
-        log.info(" sufficientFunds :: " + sufficientFunds);
         if (sufficientFunds < 0 && ownerAccount.get().getAcct_ownership().equals("C")) {
+            log.error("insufficientFunds :: {}", sufficientFunds);
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INSUFFICIENT_FUNDS.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
 
         if (amount.doubleValue() > Double.parseDouble(account.getDebitLimit())) {
+            log.error("Debit limit reached :: {}", account.getDebitLimit());
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.DEBIT_LIMIT_REACHED.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
@@ -739,6 +756,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         log.info("totalTransactionToday {}", totalTransactionToday);
         totalTransactionToday = totalTransactionToday == null ? new BigDecimal(0) : totalTransactionToday;
         if (totalTransactionToday.doubleValue() >= Double.parseDouble(account.getDebitLimit())) {
+            log.error("Debit limit reached :: {}", account.getDebitLimit());
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.DEBIT_LIMIT_REACHED.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
