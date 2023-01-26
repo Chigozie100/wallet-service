@@ -712,4 +712,10 @@ public class AdminController {
         return userAccountService.getAccountDetails(accountNo, true);
     }
 	
+        
+    @ApiOperation(value = "Admin Get User Wallet Commission Account", tags = { "ADMIN" })
+    @GetMapping(path = "/admin/commission-accounts/{user_id}")
+    public ResponseEntity<?> getCommissionAccounts(@PathVariable long user_id) {
+        return userAccountService.getUserCommissionList(user_id, true);
+    }
 }

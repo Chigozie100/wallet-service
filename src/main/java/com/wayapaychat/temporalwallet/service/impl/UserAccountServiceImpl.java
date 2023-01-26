@@ -1370,9 +1370,23 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 		}
 
 		List<WalletAccount> accounts = walletAccountRepository.findByUser(walletUser.get());
+
+		CompletableFuture.runAsync(() -> updateTractionLimit(walletUser.get(), tokenData.getTransactionLimit()));
+
 		return new ResponseEntity<>(new SuccessResponse("SUCCESS", accounts), HttpStatus.OK);
 
 	}
+
+	private void updateTractionLimit(WalletUser walletUser, String transactionLimit) {
+		
+		if(ObjectUtils.isEmpty(walletUser)){  return; }
+
+		walletUser.setCust_debit_limit(Double.parseDouble(transactionLimit));
+		walletUserRepository.save(walletUser);
+
+	}
+
+
 
 	private boolean isAllowed(MyData tokenData, long userId){
 
@@ -1422,8 +1436,11 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 	}
 
 	@Override
-	public ResponseEntity<?> getUserCommissionList(long userId) {
-		securityCheck(userId);
+	public ResponseEntity<?> getUserCommissionList(long userId, Boolean isAdmin) {
+		if(!isAdmin){
+			securityCheck(userId);
+		}
+
 		WalletUser userx = walletUserRepository.findByUserId(userId);
 		if (userx == null) {
 			return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);

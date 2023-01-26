@@ -80,6 +80,7 @@ public class TokenImpl {
 			return tokenData.getData().getToken();
 
 		} catch (Exception ex) {
+			log.error("Unable to get system token :: {}", ex);
 			throw new CustomException(ex.getMessage(), HttpStatus.NOT_FOUND);
 		}
 	}
