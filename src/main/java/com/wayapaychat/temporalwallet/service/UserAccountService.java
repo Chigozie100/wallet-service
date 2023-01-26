@@ -54,7 +54,7 @@ public interface UserAccountService {
 
 	ResponseEntity<?> getAllAccount();
 	
-	ResponseEntity<?> getUserCommissionList(long userId);
+	ResponseEntity<?> getUserCommissionList(long userId, Boolean isAdmin);
 	
 	ResponseEntity<?> makeDefaultWallet(String accountNo);
 	

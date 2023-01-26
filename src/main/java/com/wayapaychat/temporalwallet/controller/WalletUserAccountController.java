@@ -182,7 +182,7 @@ public ResponseEntity<?> createNubbanAccountAuto() {
     @ApiOperation(value = "Get User Wallet Commission Account", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/commission-accounts/{user_id}")
     public ResponseEntity<?> getCommissionAccounts(@PathVariable long user_id) {
-        return userAccountService.getUserCommissionList(user_id);
+        return userAccountService.getUserCommissionList(user_id, false);
     }
 
     @ApiOperation(value = "Get User Wallet Commission Detail", tags = { "USER-ACCOUNT-WALLET" })
