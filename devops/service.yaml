@@ -54,7 +54,7 @@ spec:
               - key: node.kubernetes.io/description
                 operator: In
                 values:
-                - cfgprofile
+                - corebanking-cfgprofile
                 - wayabank-cfgprofile   
       volumes:
         - name: config-file
