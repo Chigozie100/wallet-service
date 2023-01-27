@@ -46,8 +46,16 @@ spec:
           subPath: application.yml
         - name: tz-lagos
           mountPath: /etc/localtime
-      nodeSelector:
-        node.kubernetes.io/description: cfgprofile    
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+            - matchExpressions:
+              - key: node.kubernetes.io/description
+                operator: In
+                values:
+                - cfgprofile
+                - wayabank-cfgprofile   
       volumes:
         - name: config-file
           secret:
