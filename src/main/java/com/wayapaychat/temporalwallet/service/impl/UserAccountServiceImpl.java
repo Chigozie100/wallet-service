@@ -1436,8 +1436,11 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 	}
 
 	@Override
-	public ResponseEntity<?> getUserCommissionList(long userId) {
-		securityCheck(userId);
+	public ResponseEntity<?> getUserCommissionList(long userId, Boolean isAdmin) {
+		if(!isAdmin){
+			securityCheck(userId);
+		}
+
 		WalletUser userx = walletUserRepository.findByUserId(userId);
 		if (userx == null) {
 			return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
