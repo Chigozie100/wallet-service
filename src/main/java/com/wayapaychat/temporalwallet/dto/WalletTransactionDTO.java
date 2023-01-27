@@ -23,7 +23,7 @@ public class WalletTransactionDTO {
     private String emailOrPhoneNumber;
    
 	@NotNull
-	@Min(value = 1, message ="Amount must be greater than zero")
+	@Min(value = (long) 0.01, message ="Amount must be greater than zero")
     private BigDecimal amount;
     
 	//@NotNull
