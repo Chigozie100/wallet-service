@@ -36,6 +36,7 @@ import com.wayapaychat.temporalwallet.repository.WalletEventRepository;
 import com.wayapaychat.temporalwallet.repository.WalletTransAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletTransactionRepository;
 import com.wayapaychat.temporalwallet.service.CoreBankingService;
+import com.wayapaychat.temporalwallet.service.TransactionCountService;
 import com.wayapaychat.temporalwallet.service.SwitchWalletService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.SuccessResponse;
@@ -74,13 +75,14 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     private final TemporalWalletDAO tempwallet;
     private final CustomNotification customNotification;
     private final UserPricingRepository userPricingRepository;
-
+    private final TransactionCountService transactionCountService;
+ 
     @Autowired
     public CoreBankingServiceImpl(SwitchWalletService switchWalletService,
             WalletTransAccountRepository walletTransAccountRepository, WalletAccountRepository walletAccountRepository,
             WalletEventRepository walletEventRepository, WalletTransactionRepository walletTransactionRepository,
             MifosWalletProxy mifosWalletProxy, TemporalWalletDAO tempwallet, CustomNotification customNotification,
-            UserPricingRepository userPricingRepository) {
+            UserPricingRepository userPricingRepository, TransactionCountService transactionCountService) {
         this.switchWalletService = switchWalletService;
         this.walletTransAccountRepository = walletTransAccountRepository;
         this.walletAccountRepository = walletAccountRepository;
@@ -90,6 +92,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         this.tempwallet = tempwallet;
         this.customNotification = customNotification;
         this.userPricingRepository = userPricingRepository;
+        this.transactionCountService = transactionCountService;
     }
 
     @Override
@@ -224,7 +227,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             walletAccountRepository.saveAndFlush(accountDebit);
 
             CompletableFuture.runAsync(() -> logNotification(transactionPojo, accountDebit.getClr_bal_amt(), "DR"));
-
+    
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.SUCCESSFUL_DEBIT.getValue()),
                     HttpStatus.ACCEPTED);
         } catch (Exception e) {
@@ -634,8 +637,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         String systemToken = null;
 
         try {
+
             TokenImpl tokenImpl = ((TokenImpl) SpringApplicationContext.getBean("tokenImpl"));
     		systemToken = tokenImpl.getToken();
+            transactionCountService.makeCount(account.getUId().toString(), transactionPojo.getPaymentReference());
         } catch (Exception e) {
 			log.error("Unable to get system token :: {}", e);
         }
@@ -665,6 +670,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             _sms_message.append(String.format("Date: %s", tranDate));
             customNotification.pushWayaSMS(systemToken, account.getCustName(), account.getPhone(), _sms_message.toString(), account.getUId(), account.getEmail());
         }
+
+      
     }
 
     @Override

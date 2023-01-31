@@ -76,7 +76,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 	private final WalletPaymentRequestRepository walletPaymentRequestRepo;
 	private final ExternalServiceProxyImpl externalServiceProxy;
 	private final AuthProxy authProxy;
-	private final TransactionCountService transactionCountService;
 	private final UserAccountService userAccountService;
 	private final UserPricingRepository userPricingRepository;
 	private final MifosWalletProxy mifosWalletProxy;
@@ -85,7 +84,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 
 	@Autowired
-	public TransAccountServiceImpl(WalletUserRepository walletUserRepository, WalletAccountRepository walletAccountRepository, WalletAcountVirtualRepository walletAcountVirtualRepository, ReqIPUtils reqIPUtils, TemporalWalletDAO tempwallet, WalletTransactionRepository walletTransactionRepository, ParamDefaultValidation paramValidation, WalletEventRepository walletEventRepository, SwitchWalletService switchWalletService, TokenImpl tokenService, ExternalServiceProxyImpl userDataService, WalletNonWayaPaymentRepository walletNonWayaPaymentRepo, CustomNotification customNotification, WalletQRCodePaymentRepository walletQRCodePaymentRepo, WalletPaymentRequestRepository walletPaymentRequestRepo, ExternalServiceProxyImpl externalServiceProxy, AuthProxy authProxy, TransactionCountService transactionCountService, UserAccountService userAccountService, UserPricingRepository userPricingRepository, MifosWalletProxy mifosWalletProxy, CoreBankingService coreBankingService, ModelMapper modelMapper) {
+	public TransAccountServiceImpl(WalletUserRepository walletUserRepository, WalletAccountRepository walletAccountRepository, WalletAcountVirtualRepository walletAcountVirtualRepository, ReqIPUtils reqIPUtils, TemporalWalletDAO tempwallet, WalletTransactionRepository walletTransactionRepository, ParamDefaultValidation paramValidation, WalletEventRepository walletEventRepository, SwitchWalletService switchWalletService, TokenImpl tokenService, ExternalServiceProxyImpl userDataService, WalletNonWayaPaymentRepository walletNonWayaPaymentRepo, CustomNotification customNotification, WalletQRCodePaymentRepository walletQRCodePaymentRepo, WalletPaymentRequestRepository walletPaymentRequestRepo, ExternalServiceProxyImpl externalServiceProxy, AuthProxy authProxy, UserAccountService userAccountService, UserPricingRepository userPricingRepository, MifosWalletProxy mifosWalletProxy, CoreBankingService coreBankingService, ModelMapper modelMapper) {
 		this.walletUserRepository = walletUserRepository;
 		this.walletAccountRepository = walletAccountRepository;
 		this.walletAcountVirtualRepository = walletAcountVirtualRepository;
@@ -103,7 +102,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 		this.walletPaymentRequestRepo = walletPaymentRequestRepo;
 		this.externalServiceProxy = externalServiceProxy;
 		this.authProxy = authProxy;
-		this.transactionCountService = transactionCountService;
 		this.userAccountService = userAccountService;
 		this.userPricingRepository = userPricingRepository;
 		this.coreBankingService = coreBankingService;
@@ -2405,11 +2403,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
 					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
 
-			WalletUser xUser = walletUserRepository.findByAccount(accountDebit);
-			if(xUser !=null){
+			// WalletUser xUser = walletUserRepository.findByAccount(accountDebit);
+			// if(xUser !=null){
 
-				CompletableFuture.runAsync(() -> transactionCountService.makeCount(xUser.getUserId().toString(), paymentRef));
-			}
+			// 	CompletableFuture.runAsync(() -> transactionCountService.makeCount(xUser.getUserId().toString(), paymentRef));
+			// }
 
 			return tranId;
 		} catch (Exception e) {
@@ -2769,10 +2767,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
 
 			WalletUser xUser = walletUserRepository.findByAccount(accountDebit);
-			if(xUser !=null){
+			// if(xUser !=null){
 
-				CompletableFuture.runAsync(() -> transactionCountService.makeCount(xUser.getUserId().toString(), paymentRef));
-			}
+			// 	CompletableFuture.runAsync(() -> transactionCountService.makeCount(xUser.getUserId().toString(), paymentRef));
+			// }
 
 			if(!eventId.equals("WAYAOFFTOCUS")){
 				WalletAccount finalAccountCredit = accountCredit;
@@ -3027,9 +3025,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
 
 			WalletUser xUser3 = walletUserRepository.findByAccount(accountDebit);
-			if(xUser3 !=null){
-				CompletableFuture.runAsync(() -> transactionCountService.makeCount(xUser3.getUserId().toString(), paymentRef));
-			}
+			// if(xUser3 !=null){
+			// 	CompletableFuture.runAsync(() -> transactionCountService.makeCount(xUser3.getUserId().toString(), paymentRef));
+			// }
 
 
 
@@ -3264,7 +3262,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 
 
-			CompletableFuture.runAsync(() -> transactionCountService.makeCount(userId, paymentRef));
+			// CompletableFuture.runAsync(() -> transactionCountService.makeCount(userId, paymentRef));
 
 			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
 					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
@@ -3487,7 +3485,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 
 			// get the userID of the sender
-			CompletableFuture.runAsync(() -> transactionCountService.makeCount(userId, paymentRef));
+			// CompletableFuture.runAsync(() -> transactionCountService.makeCount(userId, paymentRef));
 
 
 			return tranId;
