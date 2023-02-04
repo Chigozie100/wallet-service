@@ -1322,6 +1322,20 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 		return new ResponseEntity<>(new SuccessResponse("Success", account), HttpStatus.OK);
 	}
 
+	@Override
+	public ResponseEntity<?> nameEnquiry(String accountNo) {
+		WalletAccount acct = walletAccountRepository.findByAccountNo(accountNo);
+		if (acct == null) {
+			return new ResponseEntity<>(new ErrorResponse("Invalid Account"), HttpStatus.NOT_FOUND);
+		}
+		
+		AccountDetailDTO account = new AccountDetailDTO(acct.getId(), acct.getSol_id(), acct.getAccountNo(),
+				acct.getAcct_name(), acct.getProduct_code(), BigDecimal.valueOf(0.0),
+				acct.getAcct_crncy_code(), acct.isWalletDefault());
+
+		return new ResponseEntity<>(new SuccessResponse("Success", account), HttpStatus.OK);
+	}
+
 	public ResponseEntity<?> fetchAccountDetail(String accountNo, Boolean isAdmin) {
 		 if(!isAdmin){
 			securityWtihAccountNo(accountNo);

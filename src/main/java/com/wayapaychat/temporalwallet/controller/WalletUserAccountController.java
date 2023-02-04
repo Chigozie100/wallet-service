@@ -164,6 +164,13 @@ public ResponseEntity<?> createNubbanAccountAuto() {
         return userAccountService.fetchAccountDetail(accountNo, false);
     }
 
+    @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Do Name Enquiry", tags = { "USER-ACCOUNT-WALLET" })
+    @GetMapping(path = "/name-enquiry/{accountNo}")
+    public ResponseEntity<?> nameEquiry(@PathVariable String accountNo) {
+        return userAccountService.fetchAccountDetail(accountNo, false);
+    }
+
 
     @ApiOperation(value = "Get Virtual Account Detail", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/account/virtual/{accountNo}")

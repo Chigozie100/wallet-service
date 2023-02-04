@@ -65,6 +65,8 @@ public interface UserAccountService {
 	ResponseEntity<?> getAccountCommission(String accountNo);
 
 	ResponseEntity<?> getAccountDetails(String accountNo, Boolean isAdmin) throws Exception;
+
+	ResponseEntity<?> nameEnquiry(String accountNo);
 	
 	ResponseEntity<?> getAccountDefault(Long user_id);
 	
