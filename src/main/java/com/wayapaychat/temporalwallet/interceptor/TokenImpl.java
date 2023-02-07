@@ -9,6 +9,7 @@ import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.pojo.MyData;
 import com.wayapaychat.temporalwallet.pojo.TokenCheckResponse;
 import com.wayapaychat.temporalwallet.proxy.AuthProxy;
+import com.wayapaychat.temporalwallet.util.ApiResponse;
 
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
@@ -84,5 +85,17 @@ public class TokenImpl {
 			throw new CustomException(ex.getMessage(), HttpStatus.NOT_FOUND);
 		}
 	}
+
+    public boolean validatePIN(String token, String pin) {
+		try {
+			HashMap<String, String> map = new HashMap();
+			map.put("pin", pin);
+			ApiResponse validaResponse = authProxy.validatePostPin(map, token);
+			return validaResponse.getStatus();
+		} catch (Exception ex) {
+			log.error("Unable to validate pin :: {}", ex);
+		}
+        return false;
+    }
 
 }

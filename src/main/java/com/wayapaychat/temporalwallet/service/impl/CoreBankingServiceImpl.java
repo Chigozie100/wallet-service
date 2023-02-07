@@ -76,13 +76,14 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     private final CustomNotification customNotification;
     private final UserPricingRepository userPricingRepository;
     private final TransactionCountService transactionCountService;
+    private final TokenImpl tokenImpl;
  
     @Autowired
     public CoreBankingServiceImpl(SwitchWalletService switchWalletService,
             WalletTransAccountRepository walletTransAccountRepository, WalletAccountRepository walletAccountRepository,
             WalletEventRepository walletEventRepository, WalletTransactionRepository walletTransactionRepository,
             MifosWalletProxy mifosWalletProxy, TemporalWalletDAO tempwallet, CustomNotification customNotification,
-            UserPricingRepository userPricingRepository, TransactionCountService transactionCountService) {
+            UserPricingRepository userPricingRepository, TransactionCountService transactionCountService, TokenImpl tokenImpl) {
         this.switchWalletService = switchWalletService;
         this.walletTransAccountRepository = walletTransAccountRepository;
         this.walletAccountRepository = walletAccountRepository;
@@ -93,6 +94,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         this.customNotification = customNotification;
         this.userPricingRepository = userPricingRepository;
         this.transactionCountService = transactionCountService;
+        this.tokenImpl = tokenImpl;
     }
 
     @Override
@@ -637,8 +639,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         String systemToken = null;
 
         try {
-
-            TokenImpl tokenImpl = ((TokenImpl) SpringApplicationContext.getBean("tokenImpl"));
     		systemToken = tokenImpl.getToken();
             transactionCountService.makeCount(account.getUId().toString(), transactionPojo.getPaymentReference());
         } catch (Exception e) {
@@ -716,6 +716,12 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_TOKEN.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
+
+        // if(tokenImpl.validatePIN(null, null)){
+        //     log.error("pin validation failed for debiting account{} with amount{}", accountNumber, amount);
+        //     return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_PIN.getValue()),
+        //             HttpStatus.BAD_REQUEST);
+        // }
 
         if (amount.doubleValue() <= 0) {
             log.error("amount is less than zero for debiting account{} with amount{}",  accountNumber, amount);
