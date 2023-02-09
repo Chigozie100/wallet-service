@@ -5170,6 +5170,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 	public ResponseEntity<?> getSingleAccountByEventID(String eventId){
 		String nonWayaDisbursementAccount = coreBankingService.getEventAccountNumber(eventId);
+		
 		return new ResponseEntity<>(new SuccessResponse("SUCCESS", nonWayaDisbursementAccount), HttpStatus.OK);
 	}
 
