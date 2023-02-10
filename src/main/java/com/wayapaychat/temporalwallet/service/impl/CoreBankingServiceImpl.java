@@ -273,7 +273,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transferTransactionRequestData.getTransactionCategory(),
                             transferTransactionRequestData.getTranType(),
                             transferTransactionRequestData.getAmount(), 
-                            chargeAmount, vatAmount, provider, channelEventId, CBAAction.DEPOSIT));
+                            BigDecimal.valueOf(0), BigDecimal.valueOf(0), provider, channelEventId, CBAAction.DEPOSIT));
         } else if (transferTransactionRequestData.getDebitAccountNumber().length() == 10
                 && transferTransactionRequestData.getBenefAccountNumber().length() > 10) {
             
@@ -962,6 +962,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         cbaTransaction.setAction(CBAAction.DEPOSIT);
         cbaTransaction.setCustomerAccount(creditAccoount);
+        cbaTransaction.setCharge(BigDecimal.valueOf(0));
+        cbaTransaction.setVat(BigDecimal.valueOf(0));
         response = processCBACustomerDepositTransactionWithDoubleEntryTransit(cbaTransaction);
 
         return response;
