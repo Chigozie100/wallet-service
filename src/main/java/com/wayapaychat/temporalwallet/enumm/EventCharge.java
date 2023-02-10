@@ -13,7 +13,6 @@ public enum EventCharge {
     COLLECTION_,
     _PAYOUT,
     _FUNDING,
-    CUSTOMER_DEPOSIT,
     WAYATRAN,
     PAYSTACK;
     public static Optional<EventCharge> find(String value){

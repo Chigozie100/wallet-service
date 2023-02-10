@@ -242,7 +242,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         MyData userData = (MyData) response.getBody();
         String transitAccount = getEventAccountNumber(channelEventId);
-        String customerDepositGL = getEventAccountNumber(EventCharge.CUSTOMER_DEPOSIT.name());
+        String customerDepositGL = getEventAccountNumber(EventCharge.WAYATRAN.name());
         if (transitAccount == null || customerDepositGL == null) {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
                     HttpStatus.BAD_REQUEST);
