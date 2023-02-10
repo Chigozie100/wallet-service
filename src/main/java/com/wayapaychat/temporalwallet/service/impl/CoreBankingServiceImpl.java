@@ -267,8 +267,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                 && transferTransactionRequestData.getBenefAccountNumber().length() == 10) {
             response = processCBACustomerDepositTransactionWithDoubleEntryTransit(
                     new CBATransaction(userData, transferTransactionRequestData.getPaymentReference(), transitAccount,
-                            customerDepositGL, transferTransactionRequestData.getBenefAccountNumber(),
-                            transferTransactionRequestData.getDebitAccountNumber(),
+                            customerDepositGL, transferTransactionRequestData.getDebitAccountNumber(),
+                            transferTransactionRequestData.getBenefAccountNumber(),
                             transferTransactionRequestData.getTranNarration(),
                             transferTransactionRequestData.getTransactionCategory(),
                             transferTransactionRequestData.getTranType(),
@@ -289,13 +289,13 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         } else {
             response = processCBACustomerTransferTransactionWithDoubleEntryTransit(
                     new CBATransaction(userData, transferTransactionRequestData.getPaymentReference(), transitAccount,
-                            transferTransactionRequestData.getBenefAccountNumber(), customerDepositGL,
-                            transferTransactionRequestData.getDebitAccountNumber(),
+                            transferTransactionRequestData.getBenefAccountNumber(), transferTransactionRequestData.getDebitAccountNumber(),
+                            customerDepositGL,
                             transferTransactionRequestData.getTranNarration(),
                             transferTransactionRequestData.getTransactionCategory(),
                             transferTransactionRequestData.getTranType(),
                             transferTransactionRequestData.getAmount(), 
-                            chargeAmount, vatAmount, provider, channelEventId, CBAAction.MOVE_CUSTOMER_TO_CUSTOMER), customerDepositGL);
+                            chargeAmount, vatAmount, provider, channelEventId, CBAAction.MOVE_CUSTOMER_TO_CUSTOMER));
         }
 
         return response;
@@ -894,7 +894,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     @Override
     public ResponseEntity<?> processCBACustomerWithdrawTransactionWithDoubleEntryTransit(
             CBATransaction cbaTransaction) {
-        log.info("Processing CBA customer deposit entry transaction customer:{} from:{} to:{} using transit:{}",
+        log.info("Processing CBA customer withdraw entry transaction customer:{} from:{} to:{} using transit:{}",
                 cbaTransaction.getCustomerAccount(),
                 cbaTransaction.getDebitGLAccount(), cbaTransaction.getCreditGLAccount(),
                 cbaTransaction.getTransitGLAccount());
@@ -941,13 +941,16 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public ResponseEntity<?> processCBACustomerTransferTransactionWithDoubleEntryTransit( CBATransaction cbaTransaction, String savingsDepositGL) {
-
+    public ResponseEntity<?> processCBACustomerTransferTransactionWithDoubleEntryTransit( CBATransaction cbaTransaction) {
+        log.info("Processing CBA customer transfer entry transaction depositGL:{} from:{} to:{} using transit:{}",
+                cbaTransaction.getCustomerAccount(),
+                cbaTransaction.getDebitGLAccount(), cbaTransaction.getCreditGLAccount(),
+                cbaTransaction.getTransitGLAccount());
         String debitAccoount = cbaTransaction.getDebitGLAccount();
         String creditAccoount = cbaTransaction.getCreditGLAccount();
 
-        cbaTransaction.setDebitGLAccount(savingsDepositGL);
-        cbaTransaction.setCreditGLAccount(savingsDepositGL);
+        cbaTransaction.setDebitGLAccount(cbaTransaction.getCustomerAccount());
+        cbaTransaction.setCreditGLAccount(cbaTransaction.getCustomerAccount());
 
         cbaTransaction.setAction(CBAAction.DEBIT_CUSTOMER);
         cbaTransaction.setCustomerAccount(debitAccoount);

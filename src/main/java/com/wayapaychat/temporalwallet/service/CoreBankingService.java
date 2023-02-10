@@ -37,7 +37,7 @@ public interface CoreBankingService {
 
     ResponseEntity<?> processCBACustomerWithdrawTransactionWithDoubleEntryTransit(CBATransaction cbaTransaction);
 
-    ResponseEntity<?> processCBACustomerTransferTransactionWithDoubleEntryTransit(CBATransaction cbaTransaction, String savingsDepositGL);
+    ResponseEntity<?> processCBACustomerTransferTransactionWithDoubleEntryTransit(CBATransaction cbaTransaction);
 
     ResponseEntity<?> processTransaction(TransferTransactionDTO transferTransactionDTO, String channelEventId);
 
