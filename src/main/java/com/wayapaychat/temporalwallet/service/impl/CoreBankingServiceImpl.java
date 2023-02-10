@@ -841,13 +841,13 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         BigDecimal totalAmount = BigDecimal.valueOf(Precision.round(cbaTransaction.getAmount().doubleValue() + cbaTransaction.getCharge().doubleValue(), 2));
         try {
-            if (cbaTransaction.getAction().equals(CBAAction.WITHDRAWAL)) {
+            if (cbaTransaction.getAction().equals(CBAAction.DEPOSIT)) {
                 creditAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(), tranId,
-                        cbaTransaction.getPaymentReference(), tranCategory, getDebitAccountNumber(cbaTransaction),
+                        cbaTransaction.getPaymentReference(), tranCategory, cbaTransaction.getCustomerAccount(),
                         cbaTransaction.getNarration(), totalAmount, 1, tranType, ""));
             } else {
-                response = creditAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(), tranId,
-                        cbaTransaction.getPaymentReference(), tranCategory, getDebitAccountNumber(cbaTransaction),
+                response = debitAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(), tranId,
+                        cbaTransaction.getPaymentReference(), tranCategory, cbaTransaction.getCustomerAccount(),
                         cbaTransaction.getNarration(), totalAmount, 1, tranType, ""));
             }
         } catch (Exception e) {
