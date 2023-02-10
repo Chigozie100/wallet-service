@@ -841,7 +841,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         BigDecimal totalAmount = BigDecimal.valueOf(Precision.round(cbaTransaction.getAmount().doubleValue() + cbaTransaction.getCharge().doubleValue(), 2));
         try {
-            if (cbaTransaction.getAction().equals(CBAAction.DEBIT_CUSTOMER)) {
+            if (cbaTransaction.getAction().equals(CBAAction.WITHDRAWAL)) {
                 creditAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(), tranId,
                         cbaTransaction.getPaymentReference(), tranCategory, getDebitAccountNumber(cbaTransaction),
                         cbaTransaction.getNarration(), totalAmount, 1, tranType, ""));
@@ -952,7 +952,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         cbaTransaction.setDebitGLAccount(cbaTransaction.getCustomerAccount());
         cbaTransaction.setCreditGLAccount(cbaTransaction.getCustomerAccount());
 
-        cbaTransaction.setAction(CBAAction.DEBIT_CUSTOMER);
+        cbaTransaction.setAction(CBAAction.WITHDRAWAL);
         cbaTransaction.setCustomerAccount(debitAccoount);
         ResponseEntity<?> response = processCBACustomerWithdrawTransactionWithDoubleEntryTransit(cbaTransaction);
 
@@ -960,7 +960,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return response;
         }
 
-        cbaTransaction.setAction(CBAAction.CREDIT_CUSTOMER);
+        cbaTransaction.setAction(CBAAction.DEPOSIT);
         cbaTransaction.setCustomerAccount(creditAccoount);
         response = processCBACustomerDepositTransactionWithDoubleEntryTransit(cbaTransaction);
 
