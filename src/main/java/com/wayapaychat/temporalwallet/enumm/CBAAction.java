@@ -8,11 +8,11 @@ public enum CBAAction {
     MOVE_FROM_TRANSIT,
     MOVE_GL_TO_GL,
     MOVE_CUSTOMER_TO_CUSTOMER,
-    CREDIT_CUSTOMER,
-    DEBIT_CUSTOMER, 
     MOVE_GL_TO_CUSTOMER, 
     MOVE_CUSTOMER_TO_GL, 
-    REVERSE_FROM_TRANSIT;
+    REVERSE_FROM_TRANSIT,
+    DEPOSIT, 
+    WITHDRAWAL;
 
     public static Optional<CBAAction> find(String value) {
         if (isEmpty(value)) {

@@ -273,7 +273,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transferTransactionRequestData.getTransactionCategory(),
                             transferTransactionRequestData.getTranType(),
                             transferTransactionRequestData.getAmount(), 
-                            chargeAmount, vatAmount, provider, channelEventId, CBAAction.CREDIT_CUSTOMER));
+                            chargeAmount, vatAmount, provider, channelEventId, CBAAction.DEPOSIT));
         } else if (transferTransactionRequestData.getDebitAccountNumber().length() == 10
                 && transferTransactionRequestData.getBenefAccountNumber().length() > 10) {
             
@@ -285,7 +285,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transferTransactionRequestData.getTransactionCategory(),
                             transferTransactionRequestData.getTranType(),
                             transferTransactionRequestData.getAmount(), 
-                            chargeAmount, vatAmount, provider, channelEventId, CBAAction.DEBIT_CUSTOMER));
+                            chargeAmount, vatAmount, provider, channelEventId, CBAAction.WITHDRAWAL));
         } else {
             response = processCBACustomerTransferTransactionWithDoubleEntryTransit(
                     new CBATransaction(userData, transferTransactionRequestData.getPaymentReference(), transitAccount,
@@ -859,8 +859,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         if (!response.getStatusCode().is2xxSuccessful()) {
             log.error("Reecersing transaction amount:{} from:{} to:{}", cbaTransaction.getAmount());
             cbaTransaction.setNarration("Revesal: ".concat(cbaTransaction.getNarration()));
-            cbaTransaction.setAction(cbaTransaction.getAction().equals(CBAAction.DEBIT_CUSTOMER) ? CBAAction.CREDIT_CUSTOMER
-                            : CBAAction.DEBIT_CUSTOMER);
+            cbaTransaction.setAction(cbaTransaction.getAction().equals(CBAAction.WITHDRAWAL) ? CBAAction.DEPOSIT
+                            : CBAAction.WITHDRAWAL);
             processExternalCBATransactionCustomerEntry(cbaTransaction);
             return response;
         }
