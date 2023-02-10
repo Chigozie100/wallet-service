@@ -793,7 +793,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         mifosTransfer.setAccountNumber(customer.getNubanAccountNo());
         mifosTransfer.setCurrency(customer.getAcct_crncy_code());
         mifosTransfer.setAccountType("SAVINGS");
-        mifosTransfer.setAmount(BigDecimal.valueOf(Precision.round(cbaTransaction.getAmount().doubleValue() + cbaTransaction.getCharge().doubleValue(), 2)));
+        mifosTransfer.setAmount(BigDecimal.valueOf(Precision.round(cbaTransaction.getAmount().doubleValue() + cbaTransaction.getCharge().doubleValue() + cbaTransaction.getVat().doubleValue(), 2)));
         mifosTransfer.setNarration(cbaTransaction.getNarration());
         mifosTransfer.setTransactionType(cbaTransaction.getAction().name());
 
@@ -839,7 +839,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return response;
         }
 
-        BigDecimal totalAmount = BigDecimal.valueOf(Precision.round(cbaTransaction.getAmount().doubleValue() + cbaTransaction.getCharge().doubleValue(), 2));
+        BigDecimal totalAmount = BigDecimal.valueOf(Precision.round(cbaTransaction.getAmount().doubleValue() + cbaTransaction.getCharge().doubleValue() + cbaTransaction.getVat().doubleValue(), 2));
         try {
             if (cbaTransaction.getAction().equals(CBAAction.DEPOSIT)) {
                 creditAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(), tranId,
