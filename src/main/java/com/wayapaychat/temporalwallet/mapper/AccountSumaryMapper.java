@@ -17,9 +17,11 @@ public class AccountSumaryMapper implements RowMapper<AccountSumary> {
 		String accountNo = rs.getString("account_no"); 
 		String debitLimit = rs.getString("cust_debit_limit"); 
 		String email = rs.getString("email_address"); 
+		String notifyEmail = rs.getString("notify_email");
 		String phone = rs.getString("mobile_no");
+		
 
-		return new AccountSumary(uId, custName, accountNo, debitLimit, email, phone);
+		return new AccountSumary(uId, custName, accountNo, debitLimit, email, notifyEmail, phone);
 	}
 
 }

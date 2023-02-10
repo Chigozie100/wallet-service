@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.proxy;
 
 import com.wayapaychat.temporalwallet.dto.ExternalCBAAccountDetailsResponse;
 import com.wayapaychat.temporalwallet.dto.ExternalCBAResponse;
+import com.wayapaychat.temporalwallet.dto.MifosTransaction;
 import com.wayapaychat.temporalwallet.dto.MifosTransfer;
 import com.wayapaychat.temporalwallet.pojo.MifosBlockAccount;
 import com.wayapaychat.temporalwallet.pojo.MifosCreateAccount;
@@ -65,5 +66,11 @@ public interface MifosWalletProxy {
 
 	@PostMapping("/wallet/transfer")
 	ExternalCBAResponse transferMoney(@RequestBody MifosTransfer transfer);
+
+	@PostMapping("/wallet/glEntry")
+    ExternalCBAResponse applyGLEntry(MifosTransfer mifosTransfer);
+
+	@PostMapping("/wallet/transaction")
+    ExternalCBAResponse processTransaction(MifosTransaction mifosTransfer);
 
 }

@@ -127,6 +127,8 @@ public class WalletAccount {
 	private String accountType;
 
 	private String description;
+
+	private String notify_email;
 	
 	@JsonIgnore
 	@ManyToOne(fetch = FetchType.LAZY)

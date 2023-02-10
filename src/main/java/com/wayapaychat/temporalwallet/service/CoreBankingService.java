@@ -2,12 +2,10 @@ package com.wayapaychat.temporalwallet.service;
 
 
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
-import com.wayapaychat.temporalwallet.entity.Provider;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
-import com.wayapaychat.temporalwallet.enumm.CategoryType;
 import com.wayapaychat.temporalwallet.enumm.WalletTransStatus;
 import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
-import com.wayapaychat.temporalwallet.pojo.MyData;
+import com.wayapaychat.temporalwallet.pojo.CBATransaction;
 import com.wayapaychat.temporalwallet.pojo.TransactionPojo;
 
 import java.math.BigDecimal;
@@ -25,17 +23,25 @@ public interface CoreBankingService {
 
     ResponseEntity<?> debitAccount(CBAEntryTransaction transactionPojo);
 
-    ResponseEntity<?> processCBATransactionDoubleEntry(MyData userToken, String paymentReference, String fromAccount, String toAccount, String narration, CategoryType category, BigDecimal amount, Provider provider);
+    ResponseEntity<?> processExternalCBATransactionGLDoubleEntry(CBATransaction cbaTransaction, boolean reversal);
 
-    ResponseEntity<?> processExternalCBATransactionDoubleEntry(String paymentReference, String fromAccount, String toAccount, String narration, CategoryType category, BigDecimal amount, Provider provider);
+    ResponseEntity<?> processCBATransactionGLDoubleEntry(CBATransaction cbaTransaction);  
 
-    ResponseEntity<?> processCBATransactionDoubleEntryWithTransit(MyData userToken, String paymentReference, String transitAccount, String fromAccount, String toAccount, String narration, String category, BigDecimal amount, Provider provider);
+    ResponseEntity<?> processCBATransactionGLDoubleEntryWithTransit(CBATransaction cbaTransaction);
 
-    ResponseEntity<?> transfer(TransferTransactionDTO transferTransactionDTO, String channelEventId);
+    ResponseEntity<?> processExternalCBATransactionCustomerEntry(CBATransaction cbaTransaction);
+
+    ResponseEntity<?> processCBATransactionCustomerEntry(CBATransaction cbaTransaction);
+
+    ResponseEntity<?> processCBACustomerDepositTransactionWithDoubleEntryTransit(CBATransaction cbaTransaction);
+
+    ResponseEntity<?> processCBACustomerWithdrawTransactionWithDoubleEntryTransit(CBATransaction cbaTransaction);
+
+    ResponseEntity<?> processCBACustomerTransferTransactionWithDoubleEntryTransit(CBATransaction cbaTransaction, String savingsDepositGL);
+
+    ResponseEntity<?> processTransaction(TransferTransactionDTO transferTransactionDTO, String channelEventId);
 
     String getEventAccountNumber(String channelEventId);
-
-    void applyCharges(MyData userData, String transitAccount, String debitAccountNumber, String tranNarration, String transactionType, String transactionCategory, BigDecimal doubleValue, Provider provider, String channelEventId);
 
     Long logTransaction(String fromAccountNumber, String toAccountNumber, BigDecimal amount, String transCategory,String tranCrncy, WalletTransStatus status);
     

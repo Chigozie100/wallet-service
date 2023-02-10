@@ -125,7 +125,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference(), CategoryType.TRANSFER.getValue());
 		}
 
-		return coreBankingService.transfer( transferTransactionDTO,  "WAYATRAN");
+		return coreBankingService.processTransaction( transferTransactionDTO,  "WAYATRAN");
 
 	}
 
@@ -160,7 +160,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference(), CategoryType.TRANSFER.getValue());
 		}
 
-		return coreBankingService.transfer( transferTransactionDTO,  "WAYATRAN");
+		return coreBankingService.processTransaction( transferTransactionDTO,  "WAYATRAN");
 	}
 
 	@Override
@@ -190,7 +190,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		
 		}
 		
-		return coreBankingService.transfer( transferTransactionDTO, transfer.getEventId());
+		return coreBankingService.processTransaction( transferTransactionDTO, transfer.getEventId());
 
 	}
 
@@ -316,7 +316,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				tranType.getValue(), "NGN",  transfer.getTranNarration(),
 					transfer.getPaymentReference(), tranCategory.getValue());
 
-		return coreBankingService.transfer( transferTransactionDTO,  "WAYATRAN");
+		return coreBankingService.processTransaction( transferTransactionDTO,  "WAYATRAN");
 
 	}
 
@@ -344,7 +344,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					TransactionTypeEnum.TRANSFER.getValue(), "NGN",  transfer.getTranNarration(),
 					transfer.getPaymentReference(), tranCategory.getValue());
 
-		return coreBankingService.transfer( transferTransactionDTO,  "WAYATRAN");
+		return coreBankingService.processTransaction( transferTransactionDTO,  "WAYATRAN");
 
 	}
 
@@ -385,7 +385,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 					transfer.getPaymentReference(), CategoryType.TRANSFER.getValue());
 		}
 
-		return coreBankingService.transfer( transferTransactionDTO,  "WAYATRAN");
+		return coreBankingService.processTransaction( transferTransactionDTO,  "WAYATRAN");
 
 	}
 
@@ -405,7 +405,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	 	String noneWayaAccount = coreBankingService.getEventAccountNumber("DISBURSE_NONWAYAPT");
 
-		ResponseEntity<?> debitResponse = coreBankingService.transfer( new TransferTransactionDTO( noneWayaAccount, toAccountNumber, transfer.getAmount(),
+		ResponseEntity<?> debitResponse = coreBankingService.processTransaction( new TransferTransactionDTO( noneWayaAccount, toAccountNumber, transfer.getAmount(),
 				TransactionTypeEnum.CARD.getValue(), "NGN",  transfer.getTranNarration(),
 				transfer.getPaymentReference(), CategoryType.TRANSFER.getValue()),  "NONWAYAPT");
 
@@ -605,7 +605,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		MyData userToken = (MyData)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
 		String nonWayaDisbursementAccount = coreBankingService.getEventAccountNumber("DISBURSE_NONWAYAPT");
-		ResponseEntity<?> debitResponse = coreBankingService.transfer( new TransferTransactionDTO( transfer.getCustomerDebitAccountNo(),  nonWayaDisbursementAccount, transfer.getAmount(), 
+		ResponseEntity<?> debitResponse = coreBankingService.processTransaction( new TransferTransactionDTO( transfer.getCustomerDebitAccountNo(),  nonWayaDisbursementAccount, transfer.getAmount(), 
 												TransactionTypeEnum.TRANSFER.getValue(), "NGN",  transfer.getTranNarration(), 
 																transfer.getPaymentReference(), CategoryType.TRANSFER.getValue()),  "NONWAYAPT");
 
@@ -683,7 +683,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 
 		String nonWayaDisbursementAccount = coreBankingService.getEventAccountNumber("DISBURSE_NONWAYAPT");
-		ResponseEntity<?> debitResponse = coreBankingService.transfer( new TransferTransactionDTO( debitAccountNumber,  nonWayaDisbursementAccount, transfer.getAmount(),
+		ResponseEntity<?> debitResponse = coreBankingService.processTransaction( new TransferTransactionDTO( debitAccountNumber,  nonWayaDisbursementAccount, transfer.getAmount(),
 				TransactionTypeEnum.TRANSFER.getValue(), "NGN",  transfer.getTranNarration(),
 				transfer.getPaymentReference(), CategoryType.TRANSFER.getValue()),  "NONWAYAPT");
 
@@ -814,7 +814,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		String noneWayaAccount = coreBankingService.getEventAccountNumber("DISBURSE_NONWAYAPT");
 
-		ResponseEntity<?> debitResponse = coreBankingService.transfer( new TransferTransactionDTO( noneWayaAccount, beneAccount, transfer.getAmount(),
+		ResponseEntity<?> debitResponse = coreBankingService.processTransaction( new TransferTransactionDTO( noneWayaAccount, beneAccount, transfer.getAmount(),
 				TransactionTypeEnum.TRANSFER.getValue(), "NGN",  transfer.getTranNarration(),
 				transfer.getPaymentReference(), CategoryType.TRANSFER.getValue()),  "NONWAYAPT");
 
@@ -857,7 +857,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		String noneWayaAccount = coreBankingService.getEventAccountNumber("DISBURSE_NONWAYAPT");
 
-		ResponseEntity<?> debitResponse = coreBankingService.transfer( new TransferTransactionDTO( noneWayaAccount, beneAccount, amount,
+		ResponseEntity<?> debitResponse = coreBankingService.processTransaction( new TransferTransactionDTO( noneWayaAccount, beneAccount, amount,
 				TransactionTypeEnum.TRANSFER.getValue(), "NGN", "TransferNonReject",
 				paymentReference, CategoryType.TRANSFER.getValue()),  "NONWAYAPT");
 
@@ -1137,7 +1137,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		// take money from commission wallet to user commission wallet
 		String officialCommissionAccount = coreBankingService.getEventAccountNumber(transfer.getEventId());
 
-		return coreBankingService.transfer( new TransferTransactionDTO( officialCommissionAccount, toAccountNumber, transfer.getAmount(),
+		return coreBankingService.processTransaction( new TransferTransactionDTO( officialCommissionAccount, toAccountNumber, transfer.getAmount(),
 				TransactionTypeEnum.CARD.getValue(), "NGN",  transfer.getTranNarration(),
 				transfer.getPaymentReference(), CategoryType.COMMISSION.getValue()),  "COMMPMT");
 	}
@@ -1186,7 +1186,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		log.info("BankTransferPayment :: wayaDisbursementAccount " + wayaDisbursementAccount);
 
-		ResponseEntity<?> debitResponse = coreBankingService.transfer( new TransferTransactionDTO( transfer.getCustomerAccountNumber(),  wayaDisbursementAccount, transfer.getAmount(),
+		ResponseEntity<?> debitResponse = coreBankingService.processTransaction( new TransferTransactionDTO( transfer.getCustomerAccountNumber(),  wayaDisbursementAccount, transfer.getAmount(),
 				TransactionTypeEnum.TRANSFER.getValue(), "NGN",  transfer.getTranNarration(),
 				transfer.getPaymentReference(), transfer.getTransactionCategory()),  transfer.getEventId());
 
@@ -1306,7 +1306,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		transactionDTO.setBenefAccountNumber(toAccountNumber);
 		transactionDTO.setAmount(transfer.getAmount());
 
-		ResponseEntity<?> debitResponse = coreBankingService.transfer(transactionDTO, "WAYATRAN");
+		ResponseEntity<?> debitResponse = coreBankingService.processTransaction(transactionDTO, "WAYATRAN");
 
 		if(!debitResponse.getStatusCode().is2xxSuccessful()){
 			return debitResponse;
@@ -1348,7 +1348,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		transactionDTO.setBenefAccountNumber(toAccountNumber);
 		transactionDTO.setAmount(transfer.getAmount());
 
-		ResponseEntity<?> debitResponse = coreBankingService.transfer(transactionDTO, "WAYATRAN");
+		ResponseEntity<?> debitResponse = coreBankingService.processTransaction(transactionDTO, "WAYATRAN");
 
 		if(!debitResponse.getStatusCode().is2xxSuccessful()){
 			return debitResponse;
@@ -1377,7 +1377,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	public ResponseEntity<?> MoneyTransferSimulation(TransferSimulationDTO transfer) {
 		
-		return coreBankingService.transfer(
+		return coreBankingService.processTransaction(
 			new TransferTransactionDTO(
 				transfer.getDebitAccountNumber(),  transfer.getBenefAccountNumber(), transfer.getAmount(), 
 				transfer.getTranType(), transfer.getTranCrncy(),  transfer.getTranNarration(), 
@@ -1415,7 +1415,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		WalletAccount mAccount = account.get();
 		String toAccountNumber = mAccount.getAccountNo();
 
-		ResponseEntity<?> debitResponse = coreBankingService.transfer( new TransferTransactionDTO( wayaDisbursementAccount,  toAccountNumber, transfer.getAmount(),
+		ResponseEntity<?> debitResponse = coreBankingService.processTransaction( new TransferTransactionDTO( wayaDisbursementAccount,  toAccountNumber, transfer.getAmount(),
 				TransactionTypeEnum.BANK.getValue(), "NGN",  transfer.getTranNarration(),
 				transfer.getPaymentReference(), CategoryType.TRANSFER.getValue()),  "WAYATRAN");
 
@@ -1459,7 +1459,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		CategoryType tranCategory = CategoryType.valueOf("TRANSFER");
 
-		ResponseEntity<?> debitResponse = coreBankingService.transfer( new TransferTransactionDTO( fromAccountNumber,  toAccountNumber, transfer.getAmount(),
+		ResponseEntity<?> debitResponse = coreBankingService.processTransaction( new TransferTransactionDTO( fromAccountNumber,  toAccountNumber, transfer.getAmount(),
 				tranType.getValue(), "NGN",  transfer.getTranNarration(),
 				transfer.getPaymentReference(), tranCategory.name()),  "WAYATRAN");
 
@@ -1471,7 +1471,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	public ResponseEntity<?> doOfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer) {
 
-		return coreBankingService.transfer(
+		return coreBankingService.processTransaction(
 											new TransferTransactionDTO(
 												transfer.getOfficeDebitAccount(),  transfer.getCustomerCreditAccount(), transfer.getAmount(), 
 												transfer.getTranType(), transfer.getTranCrncy(),  transfer.getTranNarration(), 
@@ -1512,7 +1512,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			}
 		}
 
-		ResponseEntity<?> debitResponse = coreBankingService.transfer( new TransferTransactionDTO( fromAccountNumber,  toAccountNumber, transfer.getAmount(),
+		ResponseEntity<?> debitResponse = coreBankingService.processTransaction( new TransferTransactionDTO( fromAccountNumber,  toAccountNumber, transfer.getAmount(),
 				tranType.getValue(), "NGN",  transfer.getTranNarration(),
 				transfer.getPaymentReference(), tranCategory.name()),  "WAYATRAN");
 
@@ -1570,7 +1570,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		CategoryType tranCategory = CategoryType.valueOf("TRANSFER");
 
-		ResponseEntity<?> debitResponse = coreBankingService.transfer( new TransferTransactionDTO( transfer.getDebitAccountNumber(),  transfer.getBenefAccountNumber(), transfer.getAmount(),
+		ResponseEntity<?> debitResponse = coreBankingService.processTransaction( new TransferTransactionDTO( transfer.getDebitAccountNumber(),  transfer.getBenefAccountNumber(), transfer.getAmount(),
 				tranType.getValue(), "NGN",  transfer.getTranNarration(),
 				transfer.getPaymentReference(), tranCategory.name()),  "WAYATRAN");
 
@@ -1610,7 +1610,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		TransactionTypeEnum tranType = TransactionTypeEnum.valueOf(transfer.getTranType());
 		CategoryType tranCategory = CategoryType.valueOf("TRANSFER");
 
-		ResponseEntity<?> debitResponse = coreBankingService.transfer( new TransferTransactionDTO( transfer.getDebitAccountNumber(),  transfer.getBenefAccountNumber(), transfer.getAmount(),
+		ResponseEntity<?> debitResponse = coreBankingService.processTransaction( new TransferTransactionDTO( transfer.getDebitAccountNumber(),  transfer.getBenefAccountNumber(), transfer.getAmount(),
 				tranType.getValue(), "NGN",  transfer.getTranNarration(),
 				transfer.getPaymentReference(), tranCategory.name()),  "WAYATRAN");
 
@@ -1633,7 +1633,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		transactionDTO.setBenefAccountNumber(transfer.getBenefAccountNumber());
 		transactionDTO.setAmount(transfer.getAmount());
 
-		ResponseEntity<?> debitResponse = coreBankingService.transfer(transactionDTO, "WAYATRAN");
+		ResponseEntity<?> debitResponse = coreBankingService.processTransaction(transactionDTO, "WAYATRAN");
 
 		if(!debitResponse.getStatusCode().is2xxSuccessful()){
 			return debitResponse;
@@ -1681,7 +1681,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		transactionDTO.setBenefAccountNumber(toAccountNumber);
 		transactionDTO.setAmount(transfer.getAmount());
 
-		ResponseEntity<?> debitResponse = coreBankingService.transfer(transactionDTO, "WAYATRAN");
+		ResponseEntity<?> debitResponse = coreBankingService.processTransaction(transactionDTO, "WAYATRAN");
 
 		if(!debitResponse.getStatusCode().is2xxSuccessful()){
 			return debitResponse;
@@ -1765,7 +1765,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 		transactionDTO.setBenefAccountNumber(toAccountNumber);
 		transactionDTO.setAmount(transfer.getAmount());
 
-		ResponseEntity<?> debitResponse = coreBankingService.transfer(transactionDTO, "WAYATRAN");
+		ResponseEntity<?> debitResponse = coreBankingService.processTransaction(transactionDTO, "WAYATRAN");
 
 		if(!debitResponse.getStatusCode().is2xxSuccessful()){
 			return debitResponse;
@@ -4552,7 +4552,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 			for (UserTransactionDTO mUser : usersList) {
 
-				debitResponse = coreBankingService.transfer(new TransferTransactionDTO(debitAcctNo, mUser.getCustomerAccountNo(), mUser.getAmount(),
+				debitResponse = coreBankingService.processTransaction(new TransferTransactionDTO(debitAcctNo, mUser.getCustomerAccountNo(), mUser.getAmount(),
 						TransactionTypeEnum.TRANSFER.getValue(), "NGN", "Builk Account Creation",
 						reference, CategoryType.TRANSFER.getValue()), "WAYATRAN");
 
@@ -4572,7 +4572,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 			for (ExcelTransactionCreationDTO mUser : transList) {
 				log.info("Process Transaction: {}", mUser.toString());
 
-				 debitResponse = coreBankingService.transfer( new TransferTransactionDTO( mUser.getOfficeAccountNo(),  mUser.getCustomerAccountNo(), mUser.getAmount(),
+				 debitResponse = coreBankingService.processTransaction( new TransferTransactionDTO( mUser.getOfficeAccountNo(),  mUser.getCustomerAccountNo(), mUser.getAmount(),
 						TransactionTypeEnum.TRANSFER.getValue(), "NGN",  mUser.getTranNarration(),
 						mUser.getPaymentReference(), CategoryType.TRANSFER.getValue()),  "WAYATRAN");
 

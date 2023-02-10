@@ -99,7 +99,7 @@ public class WalletTransactionController {
 	public ResponseEntity<?> sendMoney(@Valid @RequestBody TransferTransactionDTO transfer) {
 
 		try{
-			return coreBankingService.transfer(transfer, "WAYATRAN");
+			return coreBankingService.processTransaction(transfer, "WAYATRAN");
 		}catch (CustomException ex){
 			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}
@@ -113,7 +113,7 @@ public class WalletTransactionController {
 	public ResponseEntity<?> sendMoneyCBA(HttpServletRequest request,
 										  @Valid @RequestBody TransferTransactionDTO transfer) {
 		try{
-			return coreBankingService.transfer(transfer, "WAYATRAN");
+			return coreBankingService.processTransaction(transfer, "WAYATRAN");
 		}catch (CustomException ex){
 			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}
@@ -138,7 +138,7 @@ public class WalletTransactionController {
 					transfer.getPaymentReference(),
 					"TRANSFER");
 
-			return coreBankingService.transfer(data, EventCharge.WAYATRAN.name());
+			return coreBankingService.processTransaction(data, EventCharge.WAYATRAN.name());
 		}catch (CustomException ex){
 			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}
