@@ -157,6 +157,12 @@ public ResponseEntity<?> createNubbanAccountAuto() {
         return userAccountService.getAccountInfo(accountNo);
     }
 
+    @ApiOperation(value = "This method returns the User Object", tags = { "USER-ACCOUNT-WALLET" })
+    @GetMapping(path = "/info/user-details/{accountNo}")
+    public ResponseEntity<?> getAcctInfoWithUserInfo(@PathVariable String accountNo) {
+        return userAccountService.getAccountInfoWithUserInfo(accountNo);
+    }
+
     @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Get Wallet Selected Account Detail", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/account/{accountNo}")
