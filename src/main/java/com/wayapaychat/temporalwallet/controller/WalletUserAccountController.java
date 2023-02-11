@@ -157,10 +157,23 @@ public ResponseEntity<?> createNubbanAccountAuto() {
         return userAccountService.getAccountInfo(accountNo);
     }
 
+    @ApiOperation(value = "This method returns the User Object", tags = { "USER-ACCOUNT-WALLET" })
+    @GetMapping(path = "/info/user-details/{accountNo}")
+    public ResponseEntity<?> getAcctInfoWithUserInfo(@PathVariable String accountNo) {
+        return userAccountService.getAccountInfoWithUserInfo(accountNo);
+    }
+
     @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Get Wallet Selected Account Detail", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/account/{accountNo}")
     public ResponseEntity<?> GetAcctDetail(@PathVariable String accountNo) {
+        return userAccountService.fetchAccountDetail(accountNo, false);
+    }
+
+    @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Do Name Enquiry", tags = { "USER-ACCOUNT-WALLET" })
+    @GetMapping(path = "/name-enquiry/{accountNo}")
+    public ResponseEntity<?> nameEquiry(@PathVariable String accountNo) {
         return userAccountService.fetchAccountDetail(accountNo, false);
     }
 

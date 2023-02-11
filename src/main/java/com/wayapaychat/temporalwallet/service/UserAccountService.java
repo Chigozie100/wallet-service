@@ -46,6 +46,8 @@ public interface UserAccountService {
 	
 	ResponseEntity<?> getAccountInfo(String accountNo);
 
+	ResponseEntity<?> getAccountInfoWithUserInfo(String accountNo);
+
 	ResponseEntity<?> fetchAccountDetail(String accountNo, Boolean isAdmin);
 
 	ResponseEntity<?> fetchVirtualAccountDetail(String accountNo);
@@ -65,6 +67,8 @@ public interface UserAccountService {
 	ResponseEntity<?> getAccountCommission(String accountNo);
 
 	ResponseEntity<?> getAccountDetails(String accountNo, Boolean isAdmin) throws Exception;
+
+	ResponseEntity<?> nameEnquiry(String accountNo);
 	
 	ResponseEntity<?> getAccountDefault(Long user_id);
 	
