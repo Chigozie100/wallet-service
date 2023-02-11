@@ -1323,6 +1323,18 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 	}
 
 	@Override
+	public ResponseEntity<?> getAccountInfoWithUserInfo(String accountNo) {
+		// securityWtihAccountNo(accountNo);
+		WalletAccount account = walletAccountRepository.findByAccountNo(accountNo);
+		if (account == null) {
+			return new ResponseEntity<>(new ErrorResponse("Invalid Account"), HttpStatus.BAD_REQUEST);
+		}
+		WalletUser user = walletUserRepository.findByAccount(account);
+		return new ResponseEntity<>(new SuccessResponse("Success", user), HttpStatus.OK);
+	}
+
+	//
+	@Override
 	public ResponseEntity<?> nameEnquiry(String accountNo) {
 		WalletAccount acct = walletAccountRepository.findByAccountNo(accountNo);
 		if (acct == null) {
