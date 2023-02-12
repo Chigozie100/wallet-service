@@ -73,7 +73,7 @@ public class AdminController {
     @ApiOperation(value = "To transfer money from one waya official account to another", notes = "Post Money", tags = {
             "ADMIN" })
     @PostMapping("/official/transfer")
-    public ResponseEntity<?> OfficialSendMoney(@Valid @RequestBody OfficeTransferDTO transfer) {
+    public ResponseEntity<?> OfficialSendMoney(HttpServletRequest request, @Valid @RequestBody OfficeTransferDTO transfer) {
 
         TransferTransactionDTO transactionDTO = new TransferTransactionDTO();
         BeanUtils.copyProperties(transfer, transactionDTO);
@@ -83,7 +83,7 @@ public class AdminController {
 
         try{
             log.info("Send Money: {}", transfer);
-            return coreBankingService.transfer(transactionDTO, "WAYAOFFTOOFF");
+            return coreBankingService.transfer(transactionDTO, "WAYAOFFTOOFF", request);
 
         }catch (CustomException ex){
             return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
@@ -96,7 +96,7 @@ public class AdminController {
     @ApiOperation(value = "To transfer money from one waya official account to user wallet", notes = "Post Money", tags = {
             "ADMIN" })
     @PostMapping("/official/user/transfer")
-    public ResponseEntity<?> OfficialUserMoneyEventID(@Valid @RequestBody OfficeUserTransferDTO transfer) {
+    public ResponseEntity<?> OfficialUserMoneyEventID(HttpServletRequest request, @Valid @RequestBody OfficeUserTransferDTO transfer) {
 
         TransferTransactionDTO transactionDTO = new TransferTransactionDTO();
         BeanUtils.copyProperties(transfer, transactionDTO);  
@@ -106,7 +106,7 @@ public class AdminController {
 
         try{
             log.info("Send Money: {}", transfer);
-            return coreBankingService.transfer(transactionDTO, "WAYAOFFTOCUS");
+            return coreBankingService.transfer(transactionDTO, "WAYAOFFTOCUS", request);
 
         }catch (CustomException ex){
             return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
