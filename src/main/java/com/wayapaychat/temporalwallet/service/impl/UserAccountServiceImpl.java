@@ -4,6 +4,7 @@ import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.*;
+import com.wayapaychat.temporalwallet.enumm.ResponseCodes;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.pojo.*;
@@ -11,6 +12,8 @@ import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
 import com.wayapaychat.temporalwallet.repository.*;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.response.MifosAccountCreationResponse;
+import com.wayapaychat.temporalwallet.service.CoreBankingService;
+import com.wayapaychat.temporalwallet.service.SwitchWalletService;
 import com.wayapaychat.temporalwallet.service.UserAccountService;
 import com.wayapaychat.temporalwallet.service.UserPricingService;
 import com.wayapaychat.temporalwallet.util.*;
@@ -40,7 +43,6 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserAccountServiceImpl implements UserAccountService {
 
-
 	private final WalletUserRepository walletUserRepository;
 	private final WalletAccountRepository walletAccountRepository;
 	private final WalletProductRepository walletProductRepository;
@@ -54,7 +56,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 	private final MifosWalletProxy mifosWalletProxy;
 	private final TokenImpl tokenService;
 	private final UserPricingService userPricingService;
-
+	private final CoreBankingService coreBankingService;
+	private final SwitchWalletService switchWalletService;
 
 	@Value("${waya.wallet.productcode}")
 	private String wayaProduct;
@@ -71,11 +74,15 @@ public class UserAccountServiceImpl implements UserAccountService {
 	@Value("${ofi.financialInstitutionCode}")
 	private String financialInstitutionCode;
 
-
 	@Autowired
-	public UserAccountServiceImpl(WalletUserRepository walletUserRepository, WalletAccountRepository walletAccountRepository, WalletProductRepository walletProductRepository,
-								  WalletProductCodeRepository walletProductCodeRepository, AuthUserServiceDAO authService, ReqIPUtils reqUtil, ParamDefaultValidation paramValidation,
-								  WalletTellerRepository walletTellerRepository, TemporalWalletDAO tempwallet, WalletEventRepository walletEventRepo, MifosWalletProxy mifosWalletProxy, TokenImpl tokenService, UserPricingService userPricingService) {
+	public UserAccountServiceImpl(WalletUserRepository walletUserRepository,
+			WalletAccountRepository walletAccountRepository, WalletProductRepository walletProductRepository,
+			WalletProductCodeRepository walletProductCodeRepository, AuthUserServiceDAO authService, ReqIPUtils reqUtil,
+			ParamDefaultValidation paramValidation,
+			WalletTellerRepository walletTellerRepository, TemporalWalletDAO tempwallet,
+			WalletEventRepository walletEventRepo, MifosWalletProxy mifosWalletProxy,
+			TokenImpl tokenService, UserPricingService userPricingService,
+			CoreBankingService coreBankingService, SwitchWalletService switchWalletService) {
 		this.walletUserRepository = walletUserRepository;
 		this.walletAccountRepository = walletAccountRepository;
 		this.walletProductRepository = walletProductRepository;
@@ -89,10 +96,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 		this.mifosWalletProxy = mifosWalletProxy;
 		this.tokenService = tokenService;
 		this.userPricingService = userPricingService;
+		this.coreBankingService = coreBankingService;
+        this.switchWalletService = switchWalletService;
 	}
 
-	
- 
 	public String generateRandomNumber(int length) {
 
 		int randNumOrigin = generateRandomNumber(58, 34);
@@ -106,9 +113,11 @@ public class UserAccountServiceImpl implements UserAccountService {
 						StringBuilder::append)
 				.toString();
 	}
+
 	public int generateRandomNumber(int max, int min) {
 		return (int) (Math.random() * (max - min + 1) + min);
 	}
+
 	public ResponseEntity<?> createUser(UserDTO user) {
 		int userId = (int) user.getUserId();
 		UserDetailPojo wallet = authService.AuthUser(userId);
@@ -126,17 +135,18 @@ public class UserAccountServiceImpl implements UserAccountService {
 		if (existingUser == null) {
 
 			String code = generateRandomNumber(9);
-			WalletUserDTO userInfow = new WalletUserDTO("0000",user.getUserId(), wallet.getFirstName().toUpperCase(),wallet.getSurname().toUpperCase(),
-					wallet.getEmail(), wallet.getPhoneNo(), new Date(), new BigDecimal("50000.00").doubleValue(),  "MR", "M", code,
+			WalletUserDTO userInfow = new WalletUserDTO("0000", user.getUserId(), wallet.getFirstName().toUpperCase(),
+					wallet.getSurname().toUpperCase(),
+					wallet.getEmail(), wallet.getPhoneNo(), new Date(), new BigDecimal("50000.00").doubleValue(), "MR",
+					"M", code,
 					new Date(), user.getAccountType(), false, user.getDescription());
-
 
 			ResponseEntity<?> res = createUserAccount(userInfow);
 
 			System.out.println("RES" + res);
-			if(res.getStatusCode().is2xxSuccessful()){
+			if (res.getStatusCode().is2xxSuccessful()) {
 				return new ResponseEntity<>(new SuccessResponse("Wallet created successfully"), HttpStatus.OK);
-			}else{
+			} else {
 				return new ResponseEntity<>(new ErrorResponse("Wallet User Does not exists"), HttpStatus.BAD_REQUEST);
 			}
 
@@ -216,12 +226,11 @@ public class UserAccountServiceImpl implements UserAccountService {
 			}
 		}
 
-		if(user.getAccountType() == null){
+		if (user.getAccountType() == null) {
 			user.setAccountType("SAVINGS");
 		}
 
-
-		if (user.getDescription() == null){
+		if (user.getDescription() == null) {
 			user.setDescription("SAVINGS ACCOUNT");
 		}
 		String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, user.getAccountType());
@@ -233,15 +242,17 @@ public class UserAccountServiceImpl implements UserAccountService {
 			WalletAccount account = new WalletAccount();
 			if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 					|| product.getProduct_type().equals("ODA"))) {
-				account = new WalletAccount("0000", "", acctNo, nubanAccountNumber,acct_name, userx, code.getGlSubHeadCode(), wayaProduct,
+				account = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, userx,
+						code.getGlSubHeadCode(), wayaProduct,
 						acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 						LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
 						product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
 						product.getXfer_cr_limit(), false, user.getAccountType(), user.getDescription());
 			}
-			walletAccountRepository.save(account);
-			WalletAccount caccount = new WalletAccount();
 
+			coreBankingService.createAccount(userx, account);
+
+			WalletAccount caccount = new WalletAccount();
 			// Commission Wallet
 			if (user.isCorporate() && wallet.is_corporate()) {
 				Optional<WalletAccount> acct = walletAccountRepository.findByProductCode(wayaProductCommission);
@@ -265,20 +276,19 @@ public class UserAccountServiceImpl implements UserAccountService {
 					acct_name = acct_name + " " + "COMMISSION ACCOUNT";
 					if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 							|| product.getProduct_type().equals("ODA"))) {
-						caccount = new WalletAccount("0000", "", acctNo, nubanAccountNumber,acct_name, userx, code.getGlSubHeadCode(),
+						caccount = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, userx,
+								code.getGlSubHeadCode(),
 								wayaProductCommission, acct_ownership, hashed_no, product.isInt_paid_flg(),
 								product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 								product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
 								product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(),
 								false, user.getAccountType(), user.getDescription());
 					}
-					walletAccountRepository.save(caccount);
+
+					coreBankingService.createAccount(userx, caccount);
 				}
 
 			}
-			// call to Mifos to create a user
-			WalletAccount finalCaccount = caccount;
-			CompletableFuture.runAsync(()-> pushToMifos(userInfo, finalCaccount));
 
 			return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
 					HttpStatus.CREATED);
@@ -286,7 +296,6 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
 	}
-
 
 	@Override
 	public WalletAccount createNubanAccount(WalletUserDTO user) {
@@ -377,8 +386,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			}
 		}
 
-
-		if (user.getDescription() == null){
+		if (user.getDescription() == null) {
 			user.setDescription("SAVINGS ACCOUNT");
 		}
 
@@ -391,19 +399,17 @@ public class UserAccountServiceImpl implements UserAccountService {
 			WalletAccount account = new WalletAccount();
 			if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 					|| product.getProduct_type().equals("ODA"))) {
-				account = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, userx, code.getGlSubHeadCode(), wayaProduct,
+				account = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, userx,
+						code.getGlSubHeadCode(), wayaProduct,
 						acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 						LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
 						product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
-						product.getXfer_cr_limit(),true, user.getAccountType(), user.getDescription());
+						product.getXfer_cr_limit(), true, user.getAccountType(), user.getDescription());
 			}
-			WalletAccount sAcct = walletAccountRepository.save(account);
-			//WalletAccount caccount = new WalletAccount();
-			// Commission Wallet
 
-			sAcct.setWalletDefault(true);
-			walletAccountRepository.save(sAcct);
-			log.info("Account Creation: " + sAcct.getAccountNo());
+			account.setWalletDefault(true);
+			coreBankingService.createAccount(userx, account);
+
 			return account;
 		} catch (Exception e) {
 			throw new CustomException(e.getLocalizedMessage(), HttpStatus.EXPECTATION_FAILED);
@@ -411,13 +417,11 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 	}
 
-
-
-	public WalletUser creatUserAccountUtil(UserDetailPojo userDetailPojo){
+	public WalletUser creatUserAccountUtil(UserDetailPojo userDetailPojo) {
 
 		log.info("userDetailPojo :: " + userDetailPojo);
 		WalletUserDTO user = new WalletUserDTO();
-				//builderPOST(userDetailPojo);
+		// builderPOST(userDetailPojo);
 
 		// Default Wallet
 		String acct_name = user.getFirstName().toUpperCase() + " " + user.getLastName().toUpperCase();
@@ -430,7 +434,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 	}
 
 	// Call by Aut-service and others
-	public ResponseEntity<?> createUserAccount(WalletUserDTO user){
+	public ResponseEntity<?> createUserAccount(WalletUserDTO user) {
 		log.info(" ###################### CALL TO CREATE WALLET ##################" + user);
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
 		if (existingUser != null) {
@@ -450,7 +454,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 		WalletUser userInfo = new WalletUser(user.getSolId(), user.getUserId(), user.getFirstName().toUpperCase(),
 				user.getLastName().toUpperCase(), user.getEmailId(), user.getMobileNo(), acct_name,
 				user.getCustTitleCode().toUpperCase(), user.getCustSex().toUpperCase(), user.getDob(),
-				user.getCustIssueId(), user.getCustExpIssueDate(), LocalDate.now(), user.getCustDebitLimit(), user.isCorporate());
+				user.getCustIssueId(), user.getCustExpIssueDate(), LocalDate.now(), user.getCustDebitLimit(),
+				user.isCorporate());
 
 		WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
 		WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
@@ -529,7 +534,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 
 		String accountType = user.getAccountType();
-		switch (accountType){
+		switch (accountType) {
 			case "ledger":
 				accountType = Constant.LEDGER;
 				break;
@@ -568,8 +573,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 				break;
 		}
 
-
-		if (user.getDescription() == null){
+		if (user.getDescription() == null) {
 			user.setDescription("SAVINGS ACCOUNT");
 		}
 
@@ -582,13 +586,17 @@ public class UserAccountServiceImpl implements UserAccountService {
 			WalletAccount account = new WalletAccount();
 			if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 					|| product.getProduct_type().equals("ODA"))) {
-				account = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, userx, code.getGlSubHeadCode(), wayaProduct,
+				account = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, userx,
+						code.getGlSubHeadCode(), wayaProduct,
 						acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 						LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
 						product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
-						product.getXfer_cr_limit(),true, accountType, user.getDescription());
+						product.getXfer_cr_limit(), true, accountType, user.getDescription());
 			}
-			WalletAccount sAcct = walletAccountRepository.save(account);
+
+			account.setWalletDefault(true);
+			coreBankingService.createAccount(userInfo, account);
+			
 			WalletAccount caccount = new WalletAccount();
 			// Commission Wallet
 			if (wallet.is_corporate()) {
@@ -615,27 +623,22 @@ public class UserAccountServiceImpl implements UserAccountService {
 					user.setDescription("COMMISSION ACCOUNT");
 					if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 							|| product.getProduct_type().equals("ODA"))) {
-						caccount = new WalletAccount("0000", "", acctNo, _nubanAccountNumber,acct_name, userx, code.getGlSubHeadCode(),
+						caccount = new WalletAccount("0000", "", acctNo, _nubanAccountNumber, acct_name, userx,
+								code.getGlSubHeadCode(),
 								wayaProductCommission, acct_ownership, hashed_no, product.isInt_paid_flg(),
 								product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 								product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
 								product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(),
 								false, accountType, user.getDescription());
 					}
-					WalletAccount cAcct = walletAccountRepository.save(caccount);
-					// call to Mifos to create commission
-					CompletableFuture.runAsync(()-> pushToMifos(userInfo, cAcct));
+
+					coreBankingService.createAccount(userInfo, caccount);
+
 				}
 			}
-			sAcct.setWalletDefault(true);
-			walletAccountRepository.save(sAcct);
-			log.info(" ############### Account Creation Successful: #################" + sAcct.getAccountNo());
-
-			// call to Mifos to create a user
-			CompletableFuture.runAsync(()-> pushToMifos(userInfo, sAcct));
 
 			// call to create a user pricing
-			CompletableFuture.runAsync(()->userPricingService.createUserPricing(userx));
+			CompletableFuture.runAsync(() -> userPricingService.createUserPricing(userx));
 
 			// setup user pricing
 
@@ -648,76 +651,38 @@ public class UserAccountServiceImpl implements UserAccountService {
 	}
 
 
-	 private void pushToMifos(WalletUser userInfo, WalletAccount sAcct){
-		log.info("pushToMifos before request::: " + userInfo);
-		log.info("pushToMifos before request::: " + sAcct);
-		MifosCreateAccount mifos = new MifosCreateAccount();
-		mifos.setAccountNumber(sAcct.getNubanAccountNo());
-		mifos.setEmail(userInfo.getEmailAddress());
-		mifos.setFirstName(userInfo.getFirstName());
-		mifos.setMobileNumber(userInfo.getMobileNo());
-		mifos.setLastName(userInfo.getLastName());
-
-		try{
-			log.info("mifosWalletProxy :: " + mifosWalletProxy);
-			MifosAccountCreationResponse response = mifosWalletProxy.createAccount(mifos);
-			log.info("pushToMifos after request build ::: " + mifos);
-
-		 log.info("RESPONSE FROM MIFOS::: " + response);
-		}catch (Exception ex){
-			log.info("RESPONSE FROM MIFOS::: " + ex);
-			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
-		}
-
-}
-
-	 public ResponseEntity<?> createAccountOnMIFOS(MifosCreateAccount user) {
-		try{
+	public ResponseEntity<?> createNubbanAccountAuto() {
+		try {
+			List<WalletAccount> accountList = walletAccountRepository.findByAllNonNubanAccount();
 			System.out.println("mifosWalletProxy :: " + mifosWalletProxy);
-			MifosAccountCreationResponse response = mifosWalletProxy.createAccount(user);
-			log.info("pushToMifos after request build ::: " + user);
+			for (WalletAccount data : accountList) {
+				String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, "savings");
+				MifosCreateAccount account = new MifosCreateAccount();
 
-			log.info("RESPONSE FROM MIFOS::: " + response);
-		}catch (Exception ex){
-			log.info("RESPONSE FROM MIFOS::: " + ex);
-			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
-		}
-		return new ResponseEntity<>(new SuccessResponse("Successfully createAccountOnMIFOS"),
-				HttpStatus.OK);
-}
-
-public ResponseEntity<?> createNubbanAccountAuto() {
-	try{
-		List<WalletAccount> accountList = walletAccountRepository.findByAllNonNubanAccount();
-		System.out.println("mifosWalletProxy :: " + mifosWalletProxy);
-		for(WalletAccount data: accountList){
-			String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, "savings");
-			MifosCreateAccount account = new MifosCreateAccount();
- 
-				if(data.getUser() !=null){
+				if (data.getUser() != null) {
 					WalletUser userx = walletUserRepository.findByAccount(data);
 					account.setFirstName(userx.getFirstName());
 					account.setLastName(userx.getFirstName());
 					account.setMobileNumber(userx.getFirstName());
 					account.setEmail(userx.getEmailAddress());
-			
-				account.setAccountNumber(nubanAccountNumber);
-				data.setNubanAccountNo(nubanAccountNumber);
-				WalletAccount wAcc = walletAccountRepository.save(data);
 
-				System.out.println("mifosWalletProxy :: " + wAcc);
-				MifosAccountCreationResponse response = mifosWalletProxy.createAccount(account);
-				log.info("RESPONSE FROM MIFOS::: " + response);
-			} 
+					account.setAccountNumber(nubanAccountNumber);
+					data.setNubanAccountNo(nubanAccountNumber);
+					WalletAccount wAcc = walletAccountRepository.save(data);
+
+					System.out.println("mifosWalletProxy :: " + wAcc);
+					MifosAccountCreationResponse response = mifosWalletProxy.createAccount(account);
+					log.info("RESPONSE FROM MIFOS::: " + response);
+				}
+			}
+
+		} catch (Exception ex) {
+			log.info("RESPONSE FROM MIFOS::: " + ex);
+			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
 		}
-
-	}catch (Exception ex){
-		log.info("RESPONSE FROM MIFOS::: " + ex);
-		throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+		return new ResponseEntity<>(new SuccessResponse("Successfully createAccountOnMIFOS"),
+				HttpStatus.OK);
 	}
-	return new ResponseEntity<>(new SuccessResponse("Successfully createAccountOnMIFOS"),
-			HttpStatus.OK);
-}
 
 	public ResponseEntity<?> modifyUserAccount(UserAccountDTO user) {
 		WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
@@ -813,7 +778,7 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 				}
 
 				List<WalletAccount> listAcct = walletAccountRepository.findByUser(existingUser);
-				for(WalletAccount data: listAcct){
+				for (WalletAccount data : listAcct) {
 					data.setWalletDefault(false);
 					walletAccountRepository.save(data);
 				}
@@ -962,7 +927,7 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 		String acctNo = teller.getCrncyCode() + teller.getSol_id() + teller.getAdminCashAcct();
 		String acct_ownership = "O";
 
-		if(user.getAccountType() == null){
+		if (user.getAccountType() == null) {
 			user.setAccountType("SAVINGS");
 		}
 		try {
@@ -970,7 +935,8 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 					user.getUserId() + "|" + acctNo + "|" + user.getProductCode() + "|" + product.getCrncy_code());
 
 			WalletAccount account;
-			account = new WalletAccount(teller.getSol_id(), teller.getAdminCashAcct(), acctNo, "0",user.getAccountName(),
+			account = new WalletAccount(teller.getSol_id(), teller.getAdminCashAcct(), acctNo, "0",
+					user.getAccountName(),
 					null, code.getGlSubHeadCode(), product.getProductCode(), acct_ownership, hashed_no,
 					product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
 					product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
@@ -995,12 +961,13 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 		if (!validate2) {
 			return new ResponseEntity<>(new ErrorResponse("Currency Code Validation Failed"), HttpStatus.BAD_REQUEST);
 		}
-		
-		WalletEventCharges event = walletEventRepo.findByEventCurrency(user.getEventId(), user.getCrncyCode()).orElse(null);
-        if(event == null) {
-        	return new ResponseEntity<>(new ErrorResponse("No Event created"), HttpStatus.BAD_REQUEST);
-        }
-        
+
+		WalletEventCharges event = walletEventRepo.findByEventCurrency(user.getEventId(), user.getCrncyCode())
+				.orElse(null);
+		if (event == null) {
+			return new ResponseEntity<>(new ErrorResponse("No Event created"), HttpStatus.BAD_REQUEST);
+		}
+
 		WalletProduct product = walletProductRepository.findByProductCode(user.getProductCode(), user.getProductGL());
 		if ((!product.getProduct_type().equals("OAB"))) {
 			return new ResponseEntity<>(new ErrorResponse("Product Type Does Not Match"), HttpStatus.BAD_REQUEST);
@@ -1013,13 +980,12 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 		}
 
 		WalletUser walletUser = walletUserRepository.findByUserId(Long.valueOf(1));
-		if (ObjectUtils.isEmpty(walletUser)){
+		if (ObjectUtils.isEmpty(walletUser)) {
 			return new ResponseEntity<>(new ErrorResponse("System config not completed"), HttpStatus.BAD_REQUEST);
 		}
 
 		String acctNo = product.getCrncy_code() + "0000" + user.getPlaceholderCode();
 		String acct_ownership = "O";
-
 
 		// call to generate nuban account
 		String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, user.getAccountType());
@@ -1027,18 +993,21 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 			String hashed_no = reqUtil
 					.WayaEncrypt(0L + "|" + acctNo + "|" + user.getProductCode() + "|" + product.getCrncy_code());
 
-			WalletAccount _account = new WalletAccount("0000", user.getPlaceholderCode(), acctNo, nubanAccountNumber,user.getAccountName(), null,
+			WalletAccount _account = new WalletAccount("0000", user.getPlaceholderCode(), acctNo, nubanAccountNumber,
+					user.getAccountName(), null,
 					code.getGlSubHeadCode(), product.getProductCode(), acct_ownership, hashed_no,
 					product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
 					product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
 					product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
 					product.getXfer_cr_limit(), false, user.getAccountType(), user.getDescription());
-			_account.setUser(walletUser);	
-			walletAccountRepository.save(_account);
+			_account.setUser(walletUser);
+
+			coreBankingService.createAccount(walletUser, _account);
+
 			event.setProcessflg(true);
 			walletEventRepo.save(event);
-			CompletableFuture.runAsync(()-> pushToMifos(walletUser, _account));
-			return new ResponseEntity<>(new SuccessResponse("Office Account created successfully.", _account), HttpStatus.CREATED);
+			return new ResponseEntity<>(new SuccessResponse("Office Account created successfully.", _account),
+					HttpStatus.CREATED);
 		} catch (Exception e) {
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 		}
@@ -1046,11 +1015,11 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 
 	public ResponseEntity<?> createAccount(AccountPojo2 accountPojo) {
 		MyData tokenData = tokenService.getUserInformation();
-		if(tokenData == null){
+		if (tokenData == null) {
 			return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
 		}
 
-		if(!isAllowed(tokenData, accountPojo.getUserId())){
+		if (!isAllowed(tokenData, accountPojo.getUserId())) {
 			return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
 		}
 
@@ -1062,10 +1031,9 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 		WalletUser y = walletUserRepository.findByUserId(accountPojo.getUserId());
 		WalletUser x = walletUserRepository.findByEmailAddress(user.getEmail());
 
-		if(x == null && y == null && Long.compare(accountPojo.getUserId(), tokenData.getId()) == 0){
+		if (x == null && y == null && Long.compare(accountPojo.getUserId(), tokenData.getId()) == 0) {
 			return createDefaultWallet(tokenData);
-		}
-		else if(x == null && y == null){
+		} else if (x == null && y == null) {
 			return new ResponseEntity<>(new ErrorResponse("Default Wallet Not Created"), HttpStatus.BAD_REQUEST);
 		}
 
@@ -1126,43 +1094,44 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 				acctNo = product.getCrncy_code() + "0000" + rand;
 			}
 
-			if(accountPojo.getAccountType() == null){
+			if (accountPojo.getAccountType() == null) {
 				accountPojo.setAccountType("SAVINGS");
 			}
 
-			if (accountPojo.getDescription().isEmpty()){
+			if (accountPojo.getDescription().isEmpty()) {
 				accountPojo.setDescription("SAVINGS ACCOUNT");
 			}
 
 			try {
 				String hashed_no = reqUtil
 						.WayaEncrypt(userId + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
- 
+
 				if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 						|| product.getProduct_type().equals("ODA"))) {
-					String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, accountPojo.getAccountType());
-					WalletAccount _account  = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, y, code.getGlSubHeadCode(), wayaProduct,
+					String nubanAccountNumber = Util.generateNuban(financialInstitutionCode,
+							accountPojo.getAccountType());
+					WalletAccount _account = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, y,
+							code.getGlSubHeadCode(), wayaProduct,
 							acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 							LocalDate.now(), product.getCrncy_code(), product.getProduct_type(),
 							product.isChq_book_flg(), product.getCash_dr_limit(), product.getXfer_dr_limit(),
-							product.getCash_cr_limit(), product.getXfer_cr_limit(), false, accountPojo.getAccountType(), accountPojo.getDescription());
-				
-					walletAccountRepository.save(_account);
-					// call to Mifos to create a user
-					CompletableFuture.runAsync(()-> pushToMifos(y, _account));
-				
+							product.getCash_cr_limit(), product.getXfer_cr_limit(), false, accountPojo.getAccountType(),
+							accountPojo.getDescription());
+
+					coreBankingService.createAccount(y, _account);
+
 					return new ResponseEntity<>(new SuccessResponse("Account Created Successfully.", _account),
-						HttpStatus.CREATED);
+							HttpStatus.CREATED);
 
 				}
 			} catch (Exception e) {
 				return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
 			}
-		} 
+		}
 
 		return new ResponseEntity<>(new ErrorResponse("Default Wallet has not been created.please contact Admin"),
-					HttpStatus.NOT_FOUND);
-	
+				HttpStatus.NOT_FOUND);
+
 	}
 
 	public ResponseEntity<?> createAccountProduct(AccountProductDTO accountPojo) {
@@ -1239,11 +1208,11 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 				acctNo = product.getCrncy_code() + "0000" + rand;
 			}
 
-			if (accountPojo.getAccountType() == null){
+			if (accountPojo.getAccountType() == null) {
 				accountPojo.setAccountType("SAVINGS");
 			}
 
-			if (accountPojo.getDescription().isEmpty()){
+			if (accountPojo.getDescription().isEmpty()) {
 				accountPojo.setDescription("SAVINGS ACCOUNT");
 			}
 			try {
@@ -1253,13 +1222,16 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 				WalletAccount account = new WalletAccount();
 				if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 						|| product.getProduct_type().equals("ODA"))) {
-					account = new WalletAccount("0000", "", acctNo, "0",acct_name, y, code.getGlSubHeadCode(),
+					account = new WalletAccount("0000", "", acctNo, "0", acct_name, y, code.getGlSubHeadCode(),
 							fProduct.getProductCode(), acct_ownership, hashed_no, product.isInt_paid_flg(),
 							product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 							product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
-							product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(), false, accountPojo.getAccountType(), accountPojo.getDescription());
+							product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(), false,
+							accountPojo.getAccountType(), accountPojo.getDescription());
 				}
-				walletAccountRepository.save(account);
+
+				coreBankingService.createAccount(y, account);
+
 				return new ResponseEntity<>(new SuccessResponse("Account Created Successfully.", account),
 						HttpStatus.CREATED);
 			} catch (Exception e) {
@@ -1328,7 +1300,7 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 		if (acct == null) {
 			return new ResponseEntity<>(new ErrorResponse("Invalid Account"), HttpStatus.NOT_FOUND);
 		}
-		
+
 		AccountDetailDTO account = new AccountDetailDTO(acct.getId(), acct.getSol_id(), acct.getAccountNo(),
 				acct.getAcct_name(), acct.getProduct_code(), BigDecimal.valueOf(0.0),
 				acct.getAcct_crncy_code(), acct.isWalletDefault());
@@ -1337,10 +1309,10 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 	}
 
 	public ResponseEntity<?> fetchAccountDetail(String accountNo, Boolean isAdmin) {
-		 if(!isAdmin){
+		if (!isAdmin) {
 			securityWtihAccountNo(accountNo);
-		 }
-	
+		}
+
 		WalletAccount acct = walletAccountRepository.findByAccountNo(accountNo);
 		if (acct == null) {
 			return new ResponseEntity<>(new ErrorResponse("Invalid Account"), HttpStatus.NOT_FOUND);
@@ -1364,22 +1336,21 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 	}
 
 	@Override
-	public ResponseEntity<?> getUserAccountList(long userId){  
-        MyData tokenData = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-		if(tokenData == null){
+	public ResponseEntity<?> getUserAccountList(long userId) {
+		MyData tokenData = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+		if (tokenData == null) {
 			return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
 		}
 
-		if(!isAllowed(tokenData, userId)){
+		if (!isAllowed(tokenData, userId)) {
 			return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
 		}
 
 		Optional<WalletUser> walletUser = walletUserRepository.findUserId(userId);
 
-		if(!walletUser.isPresent() && Long.compare(userId, tokenData.getId()) == 0){
+		if (!walletUser.isPresent() && Long.compare(userId, tokenData.getId()) == 0) {
 			return createDefaultWallet(tokenData);
-		}
-		else if(!walletUser.isPresent()){
+		} else if (!walletUser.isPresent()) {
 			return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
 		}
 
@@ -1392,34 +1363,32 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 	}
 
 	private void updateTractionLimit(WalletUser walletUser, String transactionLimit) {
-		
-		if(ObjectUtils.isEmpty(walletUser)){  return; }
+
+		if (ObjectUtils.isEmpty(walletUser)) {
+			return;
+		}
 
 		walletUser.setCust_debit_limit(Double.parseDouble(transactionLimit));
 		walletUserRepository.save(walletUser);
 
 	}
 
-
-
-	private boolean isAllowed(MyData tokenData, long userId){
+	private boolean isAllowed(MyData tokenData, long userId) {
 
 		boolean isWriteAdmin = tokenData.getRoles().stream().anyMatch("ROLE_ADMIN_OWNER"::equalsIgnoreCase);
-        isWriteAdmin = tokenData.getRoles().stream().anyMatch("ROLE_ADMIN_APP"::equalsIgnoreCase)? true : isWriteAdmin;
-        boolean isOwner =  Long.compare(userId, tokenData.getId()) == 0;
+		isWriteAdmin = tokenData.getRoles().stream().anyMatch("ROLE_ADMIN_APP"::equalsIgnoreCase) ? true : isWriteAdmin;
+		boolean isOwner = Long.compare(userId, tokenData.getId()) == 0;
 
-		if(isOwner || isWriteAdmin){
+		if (isOwner || isWriteAdmin) {
 			log.error("owner check {} {}", isOwner, isWriteAdmin);
 			return true;
 		}
-        
+
 		return false;
 	}
 
-
-
 	public ResponseEntity<?> ListUserAccount(long userId) {
-		//securityCheck(userId);
+		// securityCheck(userId);
 		int uId = (int) userId;
 		UserDetailPojo ur = authService.AuthUser(uId);
 		if (ur == null) {
@@ -1434,24 +1403,24 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 		if (listAcct == null) {
 			return new ResponseEntity<>(new ErrorResponse("Account List Does Not Exist"), HttpStatus.NOT_FOUND);
 		}
-		for(WalletAccount wAcct : listAcct) {
+		for (WalletAccount wAcct : listAcct) {
 			NewWalletAccount mAcct = new NewWalletAccount(wAcct, userId);
 			accounts.add(mAcct);
 		}
-		
+
 		return new ResponseEntity<>(new SuccessResponse("Success.", accounts), HttpStatus.OK);
 	}
 
 	@Override
 	public ResponseEntity<?> getAllAccount() {
-		//List<WalletAccount> pagedResult = walletAccountRepository.findAll();
+		// List<WalletAccount> pagedResult = walletAccountRepository.findAll();
 		List<WalletAccount> pagedResult = walletAccountRepository.findByWalletAccount();
 		return new ResponseEntity<>(new SuccessResponse("Success.", pagedResult), HttpStatus.OK);
 	}
 
 	@Override
 	public ResponseEntity<?> getUserCommissionList(long userId, Boolean isAdmin) {
-		if(!isAdmin){
+		if (!isAdmin) {
 			securityCheck(userId);
 		}
 
@@ -1476,34 +1445,35 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 		return new ResponseEntity<>(new SuccessResponse("Default wallet set", account), HttpStatus.OK);
 
 	}
-	private MyData getEmailFromToken(long userId){
+
+	private MyData getEmailFromToken(long userId) {
 		Authentication auth = SecurityContextHolder.getContext().getAuthentication();
 		return (MyData) auth.getPrincipal();
 	}
- 
-	private void securityWtihAccountNo(String accountNo){
-		try{
+
+	private void securityWtihAccountNo(String accountNo) {
+		try {
 			WalletAccount walletAccount = walletAccountRepository.findByAccountNo(accountNo);
-			WalletUser xUser = walletUserRepository.findByAccount(walletAccount); 
+			WalletUser xUser = walletUserRepository.findByAccount(walletAccount);
 			securityCheck(Long.valueOf(xUser.getUserId()));
-		}catch(CustomException ex){
+		} catch (CustomException ex) {
 			throw new CustomException("Your Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
 		}
 	}
 
-	public void securityCheck(long userId){
+	public void securityCheck(long userId) {
 		MyData jwtUser = getEmailFromToken(userId);
 		WalletUser user = walletUserRepository.findByUserId(userId);
-		if(!user.getEmailAddress().equals(jwtUser.getEmail()) || user.getUserId() != userId){
+		if (!user.getEmailAddress().equals(jwtUser.getEmail()) || user.getUserId() != userId) {
 			throw new CustomException("Your Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
 		}
 	}
 
 	@Override
 	public ResponseEntity<?> UserWalletLimit(long userId) {
-		//security check
+		// security check
 		securityCheck(userId);
-		
+
 		WalletUser user = walletUserRepository.findByUserId(userId);
 		if (user == null) {
 			return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
@@ -1532,17 +1502,17 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 	}
 
 	public ResponseEntity<?> getAccountDetails(String accountNo, Boolean isAdmin) throws Exception {
-		if(!isAdmin){
+		if (!isAdmin) {
 			securityWtihAccountNo(accountNo);
 		}
 
-		try{
+		try {
 			Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
 			if (!account.isPresent()) {
 				return new ResponseEntity<>(new ErrorResponse("Unable to fetch account"), HttpStatus.BAD_REQUEST);
 			}
 			return new ResponseEntity<>(new SuccessResponse("Wallet", account), HttpStatus.OK);
-		}catch (Exception ex){
+		} catch (Exception ex) {
 			throw new Exception(ex.getMessage());
 		}
 	}
@@ -1657,10 +1627,10 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 
 	@Override
 	public ResponseEntity<?> getListWalletAccount() {
-		
+
 		WalletUser user = Util.checkOwner();
 		List<WalletAccount> findByUser = walletAccountRepository.findByUser(user);
-	  
+
 		if (findByUser.isEmpty()) {
 			return new ResponseEntity<>(new ErrorResponse("NO WAYA ACCOUNT"), HttpStatus.BAD_REQUEST);
 		}
@@ -1699,8 +1669,7 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 		acctNo = product.getCrncy_code() + "00" + acctNo;
 		String acct_ownership = "O";
 
-
-		if (accountPojo.getDescription().isEmpty()){
+		if (accountPojo.getDescription().isEmpty()) {
 			accountPojo.setDescription("SAVINGS ACCOUNT");
 		}
 
@@ -1709,12 +1678,17 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 					0L + "|" + acctNo + "|" + accountPojo.getProductCode() + "|" + product.getCrncy_code());
 
 			WalletAccount account = new WalletAccount();
-			account = new WalletAccount("0000", "", acctNo, "0",accountPojo.getAccountName(), null, code.getGlSubHeadCode(),
+			account = new WalletAccount("0000", "", acctNo, "0", accountPojo.getAccountName(), null,
+					code.getGlSubHeadCode(),
 					product.getProductCode(), acct_ownership, hashed_no, product.isInt_paid_flg(),
 					product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 					product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
-					product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(), false, accountPojo.getAccountType(), accountPojo.getDescription());
-			walletAccountRepository.save(account);
+					product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(), false,
+					accountPojo.getAccountType(), accountPojo.getDescription());
+			
+			WalletUser walletUser = walletUserRepository.findByEmailAddress("admin@wayapaychat.com");
+			coreBankingService.createAccount(walletUser, account);
+			
 			return new ResponseEntity<>(new SuccessResponse("Office Account created successfully.", account),
 					HttpStatus.CREATED);
 		} catch (Exception e) {
@@ -1726,8 +1700,8 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 	public ArrayList<Object> createOfficialAccount(List<OfficialAccountDTO> account) {
 		ResponseEntity<?> responseEntity = null;
 		ArrayList<Object> objectArrayList = new ArrayList<>();
-		try{
-			for(OfficialAccountDTO data: account){
+		try {
+			for (OfficialAccountDTO data : account) {
 
 				responseEntity = createOfficialAccount(data);
 				objectArrayList.add(responseEntity.getBody());
@@ -1789,14 +1763,14 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 	public ResponseEntity<?> AccountAccessPause(AccountFreezeDTO user) {
 		try {
 			switch (user.getFreezCode()) {
-			case "D":
-				break;
-			case "C":
-				break;
-			case "T":
-				break;
-			default:
-				return new ResponseEntity<>(new ErrorResponse("Unknown freeze code"), HttpStatus.NOT_FOUND);
+				case "D":
+					break;
+				case "C":
+					break;
+				case "T":
+					break;
+				default:
+					return new ResponseEntity<>(new ErrorResponse("Unknown freeze code"), HttpStatus.NOT_FOUND);
 			}
 
 			WalletAccount account = walletAccountRepository.findByAccountNo(user.getCustomerAccountNo());
@@ -1823,8 +1797,9 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 					HttpStatus.BAD_REQUEST);
 		}
 	}
+
 	@Override
-	public ResponseEntity<?>  AccountAccessBlockAndUnblock(AccountBlockDTO user, HttpServletRequest request) {
+	public ResponseEntity<?> AccountAccessBlockAndUnblock(AccountBlockDTO user, HttpServletRequest request) {
 		try {
 
 			WalletAccount account = walletAccountRepository.findByAccountNo(user.getCustomerAccountNo());
@@ -1832,48 +1807,48 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 				return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"), HttpStatus.NOT_FOUND);
 			}
 
-			if(user.isBlock()){
+			if (user.isBlock()) {
 				account.setAcct_cls_date(LocalDate.now());
 				account.setAcct_cls_flg(true);
 				walletAccountRepository.save(account);
-				CompletableFuture.runAsync(() -> blockAccount(account, request,true));
-				return new ResponseEntity<>(new SuccessResponse("Account blocked successfully.", account), HttpStatus.OK);
+				CompletableFuture.runAsync(() -> blockAccount(account, request, true));
+				return new ResponseEntity<>(new SuccessResponse("Account blocked successfully.", account),
+						HttpStatus.OK);
 
-			}else{
+			} else {
 				account.setAcct_cls_date(LocalDate.now());
 				account.setAcct_cls_flg(false);
 				walletAccountRepository.save(account);
-				CompletableFuture.runAsync(() -> blockAccount(account, request,false));
-				return new ResponseEntity<>(new SuccessResponse("Account Unblock successfully.", account), HttpStatus.OK);
+				CompletableFuture.runAsync(() -> blockAccount(account, request, false));
+				return new ResponseEntity<>(new SuccessResponse("Account Unblock successfully.", account),
+						HttpStatus.OK);
 
 			}
 
-
- 		} catch (Exception e) {
+		} catch (Exception e) {
 			return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage() + " : " + e.getMessage()),
 					HttpStatus.BAD_REQUEST);
 		}
 	}
 
-	private void blockAccount(WalletAccount account, HttpServletRequest request, boolean isBlock){
+	private void blockAccount(WalletAccount account, HttpServletRequest request, boolean isBlock) {
 		log.info("request : " + request);
-		try{
-		MifosBlockAccount mifosBlockAccount = new MifosBlockAccount();
+		try {
+			MifosBlockAccount mifosBlockAccount = new MifosBlockAccount();
 
-		mifosBlockAccount.setAccountNumber(account.getNubanAccountNo());
+			mifosBlockAccount.setAccountNumber(account.getNubanAccountNo());
 
-			if(isBlock){
-			mifosBlockAccount.setNarration("block account");
+			if (isBlock) {
+				mifosBlockAccount.setNarration("block account");
 
-		}else{
-			mifosBlockAccount.setNarration("unblock account");
-		}
+			} else {
+				mifosBlockAccount.setNarration("unblock account");
+			}
 
 		} catch (Exception e) {
-			throw new CustomException(e.getMessage(),HttpStatus.BAD_REQUEST);
+			throw new CustomException(e.getMessage(), HttpStatus.BAD_REQUEST);
 		}
 	}
-
 
 	@Override
 	public ResponseEntity<?> AccountAccessClosure(AccountCloseDTO user) {
@@ -1892,7 +1867,6 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 				if (account.isAcct_cls_flg())
 					return new ResponseEntity<>(new ErrorResponse("Account already closed"), HttpStatus.NOT_FOUND);
 			}
-
 
 			if (account.getClr_bal_amt() == 0) {
 				account.setAcct_cls_date(LocalDate.now());
@@ -1913,10 +1887,10 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 	@Override
 	public ResponseEntity<?> AccountAccessClosureMultiple(List<AccountCloseDTO> user) {
 		int count = 0;
-		for (AccountCloseDTO data: user){
+		for (AccountCloseDTO data : user) {
 			ResponseEntity<?> dd = AccountAccessClosure(data);
 			log.info("dd : " + dd);
-			count ++;
+			count++;
 		}
 		return new ResponseEntity<>(new SuccessResponse(count + "accounts closed successfully.", user), HttpStatus.OK);
 	}
@@ -1933,11 +1907,11 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 			if (account == null) {
 				return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"), HttpStatus.NOT_FOUND);
 			}
-			if(user.isLien()){
+			if (user.isLien()) {
 				double acctAmt = account.getLien_amt() + user.getLienAmount().doubleValue();
 				account.setLien_amt(acctAmt);
 				account.setLien_reason(user.getLienReason());
-			}else{
+			} else {
 				double acctAmt = account.getLien_amt() - user.getLienAmount().doubleValue();
 				log.info("###################### account.getLien_amt() ########### " + account.getLien_amt());
 				log.info("###################### user.getLienAmount() ########### " + user.getLienAmount());
@@ -1953,7 +1927,7 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 					HttpStatus.BAD_REQUEST);
 		}
 	}
-	
+
 	public ResponseEntity<?> getAccountSimulated(Long user_id) {
 		WalletUser user = walletUserRepository.findBySimulated(user_id);
 		if (user == null) {
@@ -1965,7 +1939,7 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 		}
 		return new ResponseEntity<>(new SuccessResponse("Simulated Account", account), HttpStatus.OK);
 	}
-	
+
 	public ResponseEntity<?> getListSimulatedAccount() {
 		List<WalletUser> user = walletUserRepository.findBySimulated();
 		if (user == null) {
@@ -1977,7 +1951,7 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 		}
 		return new ResponseEntity<>(new SuccessResponse("LIST SIMULATED ACCOUNT", account), HttpStatus.OK);
 	}
-	
+
 	public ResponseEntity<?> getUserAccountCount(Long userId) {
 		WalletUser user = walletUserRepository.findByUserId(userId);
 		if (user == null) {
@@ -1992,31 +1966,31 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 
 	@Override
 	public ResponseEntity<?> AccountLookUp(String account, SecureDTO secureKey) {
-		
-		if(!secureKey.getKey().equals("yYSowX0uQVUZpNnkY28fREx0ayq+WsbEfm2s7ukn4+RHw1yxGODamMcLPH3R7lBD+Tmyw/FvCPG6yLPfuvbJVA==")) {
+
+		if (!secureKey.getKey()
+				.equals("yYSowX0uQVUZpNnkY28fREx0ayq+WsbEfm2s7ukn4+RHw1yxGODamMcLPH3R7lBD+Tmyw/FvCPG6yLPfuvbJVA==")) {
 			return new ResponseEntity<>(new ErrorResponse("INVALID KEY"), HttpStatus.BAD_REQUEST);
 		}
-		
+
 		com.wayapaychat.temporalwallet.dto.AccountLookUp mAccount = tempwallet.GetAccountLookUp(account);
 		if (mAccount == null) {
 			return new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT"), HttpStatus.BAD_REQUEST);
 		}
-		
+
 		return new ResponseEntity<>(new SuccessResponse("ACCOUNT SEARCH", mAccount), HttpStatus.OK);
 	}
 
-
-	public ResponseEntity<?>  getTotalActiveAccount(){
+	public ResponseEntity<?> getTotalActiveAccount() {
 		BigDecimal count = walletAccountRepository.totalActiveAccount();
 		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
 	}
 
-	public ResponseEntity<?>  countActiveAccount(){
+	public ResponseEntity<?> countActiveAccount() {
 		long count = walletAccountRepository.countActiveAccount();
 		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
 	}
 
-	public ResponseEntity<?>  countInActiveAccount(){
+	public ResponseEntity<?> countInActiveAccount() {
 		long count = walletAccountRepository.countInActiveAccount();
 		return new ResponseEntity<>(new SuccessResponse("SUCCESS", count), HttpStatus.OK);
 	}
@@ -2024,44 +1998,63 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 	@Override
 	public ResponseEntity<?> createDefaultWallet(MyData tokenData) {
 		WalletUserDTO createAccount = new WalletUserDTO();
-        // Default Debit Limit SetUp
-        createAccount.setCustDebitLimit(0.0);
-        // Default Account Expiration Date
-        LocalDateTime time = LocalDateTime.of(2099, Month.DECEMBER, 30, 0, 0);
-        createAccount.setCustExpIssueDate(Date.from(time.atZone(ZoneId.systemDefault()).toInstant()));
-        createAccount.setUserId(tokenData.getId());
-        createAccount.setCustIssueId(generateRandomNumber(9));
-        createAccount.setFirstName(tokenData.getFirstName());
-        createAccount.setLastName(tokenData.getSurname());
-        createAccount.setEmailId(tokenData.getEmail());
-        createAccount.setMobileNo(tokenData.getPhoneNumber());
+		// Default Debit Limit SetUp
+		createAccount.setCustDebitLimit(0.0);
+		// Default Account Expiration Date
+		LocalDateTime time = LocalDateTime.of(2099, Month.DECEMBER, 30, 0, 0);
+		createAccount.setCustExpIssueDate(Date.from(time.atZone(ZoneId.systemDefault()).toInstant()));
+		createAccount.setUserId(tokenData.getId());
+		createAccount.setCustIssueId(generateRandomNumber(9));
+		createAccount.setFirstName(tokenData.getFirstName());
+		createAccount.setLastName(tokenData.getSurname());
+		createAccount.setEmailId(tokenData.getEmail());
+		createAccount.setMobileNo(tokenData.getPhoneNumber());
 
-        createAccount.setCustSex("N"); //Set to default
-        createAccount.setCustTitleCode(""); //Set to default
-        createAccount.setDob(new Date()); //Set to default
-        // Default Branch SOL ID
-        createAccount.setSolId("0000");
-        createAccount.setAccountType("saving");
-        createAccount.setCorporate(tokenData.isCorporate());
-		log.info("retrying to create wallet for {}",createAccount.getEmailId());
-		return createUserAccount(createAccount );
+		createAccount.setCustSex("N"); // Set to default
+		createAccount.setCustTitleCode(""); // Set to default
+		createAccount.setDob(new Date()); // Set to default
+		// Default Branch SOL ID
+		createAccount.setSolId("0000");
+		createAccount.setAccountType("saving");
+		createAccount.setCorporate(tokenData.isCorporate());
+		log.info("retrying to create wallet for {}", createAccount.getEmailId());
+		return createUserAccount(createAccount);
 	}
 
-	public ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount){
+	public ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount) {
 		System.out.println("updateCustomerDebitLimit :: " + amount);
 		log.info("updateCustomerDebitLimit userId :: " + userId);
-		try{
+		try {
 			Optional<WalletUser> walletUser = walletUserRepository.findUserId(Long.parseLong(userId));
-			if(walletUser.isPresent()){
+			if (walletUser.isPresent()) {
 				WalletUser walletUser1 = walletUser.get();
 				walletUser1.setCust_debit_limit(amount.doubleValue());
 				walletUserRepository.save(walletUser1);
 			}
-			return new ResponseEntity<>(new SuccessResponse("SUCCESS", walletUserRepository.findUserId(Long.parseLong(userId))), HttpStatus.OK);
-		}catch (CustomException ex){
+			return new ResponseEntity<>(
+					new SuccessResponse("SUCCESS", walletUserRepository.findUserId(Long.parseLong(userId))),
+					HttpStatus.OK);
+		} catch (CustomException ex) {
 			throw new CustomException("error", HttpStatus.EXPECTATION_FAILED);
 		}
 
 	}
- 
+
+	@Override
+	public ResponseEntity<?> createExternalAccount(String accountNumber) {
+		WalletAccount account = walletAccountRepository.findByAccountNo(accountNumber);
+		if (account == null) {
+			return new ResponseEntity<>(new ErrorResponse("Wallet Account does not exists"),
+					HttpStatus.NOT_FOUND);
+		}
+
+		Provider provider = switchWalletService.getActiveProvider();
+        if (provider == null) {
+			return new ResponseEntity<>(new ErrorResponse(ResponseCodes.NO_PROVIDER.getValue()),
+					HttpStatus.NOT_FOUND);
+        }
+
+		return coreBankingService.externalCBACreateAccount(account.getUser(), account, null);
+	}
+
 }

@@ -23,14 +23,15 @@ import com.wayapaychat.temporalwallet.dto.MifosTransfer;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
 import com.wayapaychat.temporalwallet.pojo.CBATransaction;
+import com.wayapaychat.temporalwallet.pojo.MifosCreateAccount;
 import com.wayapaychat.temporalwallet.pojo.MyData;
-import com.wayapaychat.temporalwallet.pojo.TransactionPojo;
 import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
 import com.wayapaychat.temporalwallet.repository.UserPricingRepository;
 import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletEventRepository;
 import com.wayapaychat.temporalwallet.repository.WalletTransAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletTransactionRepository;
+import com.wayapaychat.temporalwallet.response.MifosAccountCreationResponse;
 import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.TransactionCountService;
 import com.wayapaychat.temporalwallet.service.SwitchWalletService;
@@ -46,6 +47,7 @@ import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.entity.WalletEventCharges;
 import com.wayapaychat.temporalwallet.entity.WalletTransAccount;
 import com.wayapaychat.temporalwallet.entity.WalletTransaction;
+import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.enumm.CBAAction;
 import com.wayapaychat.temporalwallet.enumm.CategoryType;
 import com.wayapaychat.temporalwallet.enumm.EventCharge;
@@ -97,13 +99,58 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public ResponseEntity<?> createAccount(TransactionPojo transactionPojo) {
-        /**
-         * create on temp
-         * create on mifos (is customer - savings, [official GL income-rev,
-         * collection-asset, disburs-asset])
-         */
-        return null;
+    public ResponseEntity<?> externalCBACreateAccount(WalletUser userInfo, WalletAccount sAcct, Provider provider) {
+        log.info("externalCBACreateAccount: {} ", sAcct.getAccountNo());
+        ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse(ResponseCodes.NO_PROVIDER.getValue()), HttpStatus.BAD_REQUEST);
+
+        MifosAccountCreationResponse externalResponse = null;
+        MifosCreateAccount mifos = new MifosCreateAccount();
+		mifos.setAccountNumber(sAcct.getNubanAccountNo());
+		mifos.setEmail(userInfo.getEmailAddress());
+		mifos.setFirstName(userInfo.getFirstName());
+		mifos.setMobileNumber(userInfo.getMobileNo());
+		mifos.setLastName(userInfo.getLastName());
+
+        try {
+            if (ProviderType.MIFOS.equalsIgnoreCase(provider.getName())) {
+                externalResponse = mifosWalletProxy.createAccount(mifos);
+            } else {
+                externalResponse = new MifosAccountCreationResponse(ExternalCBAResponseCodes.R_00);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        if (externalResponse == null) {
+            return response;
+        }
+
+        if (!ExternalCBAResponseCodes.R_00.getRespCode().equals(externalResponse.getResponseCode())) {
+            return response;
+        }
+
+        return new ResponseEntity<>(new ErrorResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue()),
+                HttpStatus.ACCEPTED);
+    }
+
+    @Override
+    public ResponseEntity<?> createAccount(WalletUser userInfo, WalletAccount sAcct) {
+        log.info("createAccount: {} ", sAcct.getAccountNo());
+        Provider provider = switchWalletService.getActiveProvider();
+        if (provider == null) {
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.NO_PROVIDER.getValue()),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        ResponseEntity<?> response = externalCBACreateAccount(userInfo, sAcct, provider);
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            log.error("External CBA failed to process crear account:{} ", sAcct);
+            return response;
+        }
+
+        walletAccountRepository.save(sAcct);
+    
+        return new ResponseEntity<>(new SuccessResponse("Account Created Successfully.", sAcct), HttpStatus.CREATED);
     }
 
     public ResponseEntity<?> getAccountDetails(String accountNo) {

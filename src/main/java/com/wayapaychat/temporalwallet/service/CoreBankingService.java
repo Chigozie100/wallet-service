@@ -2,20 +2,21 @@ package com.wayapaychat.temporalwallet.service;
 
 
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
+import com.wayapaychat.temporalwallet.entity.Provider;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
+import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.enumm.WalletTransStatus;
 import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
 import com.wayapaychat.temporalwallet.pojo.CBATransaction;
-import com.wayapaychat.temporalwallet.pojo.TransactionPojo;
-
 import java.math.BigDecimal;
  
-
 import org.springframework.http.ResponseEntity;
 
 public interface CoreBankingService {
 
-    ResponseEntity<?> createAccount(TransactionPojo transactionPojo);
+    ResponseEntity<?> externalCBACreateAccount(WalletUser userInfo, WalletAccount sAcct, Provider provider);
+
+    ResponseEntity<?> createAccount(WalletUser userInfo, WalletAccount sAcct);
 
     ResponseEntity<?> getAccountDetails(String accountNo);
 

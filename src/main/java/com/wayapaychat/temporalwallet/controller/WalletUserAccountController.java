@@ -1,15 +1,10 @@
 package com.wayapaychat.temporalwallet.controller;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import com.wayapaychat.temporalwallet.dto.*;
-import com.wayapaychat.temporalwallet.pojo.MifosCreateAccount;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -25,10 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
-import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.UserAccountService;
-import com.wayapaychat.temporalwallet.util.Util;
-
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
@@ -44,9 +36,6 @@ public class WalletUserAccountController {
 	
 	@Autowired
     UserAccountService userAccountService;
-
-    @Autowired
-    CoreBankingService coreBankingService;
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
@@ -76,11 +65,11 @@ public class WalletUserAccountController {
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-    @ApiOperation(value = "createAccountOnMIFOS", tags = { "USER-ACCOUNT-WALLET" })
-    @PostMapping(path = "/user/mifos-account")
-    public ResponseEntity<?> createAccountOnMIFOS(@Valid @RequestBody MifosCreateAccount user) {
-        log.info("Request input: {}",user);
-        return userAccountService.createAccountOnMIFOS(user);
+    @ApiOperation(value = "createExternal CBA Account e.g. MIFOS", tags = { "USER-ACCOUNT-WALLET" })
+    @GetMapping(path = "/user/externalcba-account/{accountNumber}")
+    public ResponseEntity<?> createAccountOnMIFOS(@PathVariable("accountNumber") String accountNumber) {
+        log.info("Request input: {}", accountNumber);
+        return userAccountService.createExternalAccount(accountNumber);
     }
 
 @ApiImplicitParams({
@@ -217,8 +206,6 @@ public ResponseEntity<?> createNubbanAccountAuto() {
         return userAccountService.createUserAccount(createAccountPojo);
     }
     
-  
-	
 	@ApiOperation(value = "Get Wallet Account Info", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/commission/{accountNo}")
     public ResponseEntity<?> getAcctCommission(@PathVariable String accountNo) {
@@ -230,13 +217,6 @@ public ResponseEntity<?> createNubbanAccountAuto() {
     @GetMapping(path = "/user-account/{accountNo}")
     public ResponseEntity<?> getAccountDetails(@PathVariable String accountNo) throws Exception {
         return userAccountService.getAccountDetails(accountNo,false);
-    }
-
-    @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-    @ApiOperation(value = "Get Wallet Account Info By Account Number", tags = { "USER-ACCOUNT-WALLET" })
-    @GetMapping(path = "/user-balance-account/{accountNo}")
-    public ResponseEntity<?> balanceAccountDetails(@PathVariable String accountNo) throws Exception {
-        return coreBankingService.getAccountDetails(accountNo);
     }
 
     @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
@@ -278,17 +258,6 @@ public ResponseEntity<?> createNubbanAccountAuto() {
         }
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
-	
-    // @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-	// @ApiOperation(value = "List all wallet accounts", tags = { "USER-ACCOUNT-WALLET" })
-    // @GetMapping(path = "/wallet/account")
-    // public ResponseEntity<?> ListAllWalletAccount() {
- 
-  
-    //     return userAccountService.getListWalletAccount();
-    // }
-	
-
 	
 	@ApiOperation(value = "Get Wallet User account count", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/account/count/{userId}")
