@@ -30,6 +30,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -96,10 +97,10 @@ public class WalletTransactionController {
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Send Money to Wallet", notes = "Post Money", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/sendmoney/wallet")
-	public ResponseEntity<?> sendMoney(@Valid @RequestBody TransferTransactionDTO transfer) {
+	public ResponseEntity<?> sendMoney(HttpServletRequest request, @Valid @RequestBody TransferTransactionDTO transfer) {
 
 		try{
-			return coreBankingService.transfer(transfer, "WAYATRAN");
+			return coreBankingService.transfer(transfer, "WAYATRAN", request);
 		}catch (CustomException ex){
 			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}
@@ -113,7 +114,7 @@ public class WalletTransactionController {
 	public ResponseEntity<?> sendMoneyCBA(HttpServletRequest request,
 										  @Valid @RequestBody TransferTransactionDTO transfer) {
 		try{
-			return coreBankingService.transfer(transfer, "WAYATRAN");
+			return coreBankingService.transfer(transfer, "WAYATRAN", request);
 		}catch (CustomException ex){
 			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}
@@ -124,7 +125,7 @@ public class WalletTransactionController {
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Send Money to Contact: Email or Phone or ID ", notes = "Send Money to Contact: Email or Phone of ID", tags = { "TRANSACTION-WALLET" })
 	@PostMapping("/sendmoney/to-contact")
-	public ResponseEntity<?> sendMoneyToEmailOrPhone(@Valid @RequestBody SendMoneyToEmailOrPhone transfer) {
+	public ResponseEntity<?> sendMoneyToEmailOrPhone(HttpServletRequest request, @Valid @RequestBody SendMoneyToEmailOrPhone transfer) {
 		try{
 	 	 
 			// get user by email or phone
@@ -138,7 +139,7 @@ public class WalletTransactionController {
 					transfer.getPaymentReference(),
 					"TRANSFER");
 
-			return coreBankingService.transfer(data, EventCharge.WAYATRAN.name());
+			return coreBankingService.transfer(data, EventCharge.WAYATRAN.name(), request);
 		}catch (CustomException ex){
 			return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
 		}

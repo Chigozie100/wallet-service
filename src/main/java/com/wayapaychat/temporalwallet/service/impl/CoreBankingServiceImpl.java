@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 
 import org.apache.commons.lang3.ObjectUtils;
@@ -374,11 +375,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public ResponseEntity<?> transfer(TransferTransactionDTO transferTransactionRequestData, String channelEventId) {
+    public ResponseEntity<?> transfer(TransferTransactionDTO transferTransactionRequestData, String channelEventId, HttpServletRequest request) {
         log.info("Processing transfer transaction {}", transferTransactionRequestData.toString());
 
         ResponseEntity<?> response = securityCheck(transferTransactionRequestData.getDebitAccountNumber(),
-                transferTransactionRequestData.getAmount());
+                transferTransactionRequestData.getAmount(), request);
         if (!response.getStatusCode().is2xxSuccessful()) {
             return response;
         }
@@ -708,7 +709,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount) {
+    public ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount, HttpServletRequest request) {
         log.info("securityCheck to debit account{} amount{}", accountNumber, amount);
         MyData userToken = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (userToken == null) {
@@ -717,11 +718,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     HttpStatus.BAD_REQUEST);
         }
 
-        // if(tokenImpl.validatePIN(null, null)){
-        //     log.error("pin validation failed for debiting account{} with amount{}", accountNumber, amount);
-        //     return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_PIN.getValue()),
-        //             HttpStatus.BAD_REQUEST);
-        // }
+        if(tokenImpl.validatePIN(request.getHeader("authorization"), request.getHeader("pin"))){
+            log.error("pin validation failed for debiting account{} with amount{}", accountNumber, amount);
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_PIN.getValue()),
+                    HttpStatus.BAD_REQUEST);
+        }
 
         if (amount.doubleValue() <= 0) {
             log.error("amount is less than zero for debiting account{} with amount{}",  accountNumber, amount);
