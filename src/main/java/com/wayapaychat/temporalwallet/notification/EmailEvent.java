@@ -24,6 +24,7 @@ public class EmailEvent extends EventBase {
     private EmailPayload data;
     
     private String eventCategory;
+    private String subject;
     
     private String productType;
 

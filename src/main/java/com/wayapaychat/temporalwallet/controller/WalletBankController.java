@@ -208,7 +208,7 @@ public class WalletBankController {
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "AUTO CREATE ACCOUNT", tags = { "BANK-WALLET" })
     @PostMapping(path = "/auto-create/account")
-    // @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> AutoCreateTransAccount(@RequestBody AutoCreateAccount request) {
         ResponseEntity<?> responseEntity = configService.AutoCreateTransAccount(request);
         if (responseEntity.getStatusCode().is2xxSuccessful()){
