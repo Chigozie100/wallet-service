@@ -45,6 +45,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
 import static com.wayapaychat.temporalwallet.util.Constant.ADMIN_TRANSACTION;
+import static com.wayapaychat.temporalwallet.util.Constant.*;
 
 @Slf4j
 @Service
@@ -149,7 +150,7 @@ public class PostPaymentServiceImpl implements IPostPaymentService {
 
                 String message1 = MessageHelper.formatDebitMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
                         transfer.getTranNarration());
-                CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, xfullName,
+                CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(DEBIT_TRANSACTION_ALERT,token, xfullName,
                         xUser.getEmailAddress(), message1, userToken.getId(), transfer.getAmount().toString(), tranId,
                         tranDate, transfer.getTranNarration()));
                 CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName, xUser.getMobileNo(),
@@ -163,7 +164,7 @@ public class PostPaymentServiceImpl implements IPostPaymentService {
 
                 String message2 = MessageHelper.formatNewMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
                         transfer.getTranNarration());
-                CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(token, yfullName,
+                CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(CREDIT_TRANSACTION_ALERT,token, yfullName,
                         yUser.getEmailAddress(), message2, userToken.getId(), transfer.getAmount().toString(), tranId,
                         tranDate, transfer.getTranNarration()));
                 CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName, yUser.getMobileNo(),
