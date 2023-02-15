@@ -11,6 +11,7 @@ import java.util.concurrent.CompletableFuture;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.constraints.NotNull;
 
+import com.wayapaychat.temporalwallet.util.Constant;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.math3.util.Precision;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -182,7 +183,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
             walletAccountRepository.saveAndFlush(accountCredit);
 
-            CompletableFuture.runAsync(() -> logNotification(transactionPojo, accountCredit.getClr_bal_amt(), "CR"));
+            CompletableFuture.runAsync(() -> logNotification(Constant.CREDIT_TRANSACTION_ALERT,transactionPojo, accountCredit.getClr_bal_amt(), "CR"));
 
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.SUCCESSFUL_CREDIT.getValue()),
                     HttpStatus.ACCEPTED);
@@ -229,7 +230,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
             walletAccountRepository.saveAndFlush(accountDebit);
 
-            CompletableFuture.runAsync(() -> logNotification(transactionPojo, accountDebit.getClr_bal_amt(), "DR"));
+            CompletableFuture.runAsync(() -> logNotification(Constant.DEBIT_TRANSACTION_ALERT,transactionPojo, accountDebit.getClr_bal_amt(), "DR"));
     
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.SUCCESSFUL_DEBIT.getValue()),
                     HttpStatus.ACCEPTED);
@@ -631,7 +632,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public void logNotification(CBAEntryTransaction transactionPojo, double currentBalance, String tranType) {
+    public void logNotification(String subject, CBAEntryTransaction transactionPojo, double currentBalance, String tranType) {
         String tranDate = LocalDate.now().toString();
 
         AccountSumary account = tempwallet.getAccountSumaryLookUp(transactionPojo.getAccountNo());
@@ -655,7 +656,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             _email_message.append(String.format("Date: %s", tranDate));
             _email_message.append("\n");
             _email_message.append(String.format("Narration :%s ", transactionPojo.getTranNarration()));
-            customNotification.pushEMAIL(systemToken, account.getCustName(), account.getEmail(), _email_message.toString(), account.getUId());
+            customNotification.pushEMAIL("",systemToken, account.getCustName(), account.getEmail(), _email_message.toString(), account.getUId());
         }
         
         if (!ObjectUtils.isEmpty(account.getPhone())) { 
