@@ -37,7 +37,7 @@ spec:
             cpu: "49m"
           limits:
             memory: "500Mi"
-            cpu: "138m"
+            cpu: "300m"
         envFrom:
         - configMapRef:
             name: common-services-config
