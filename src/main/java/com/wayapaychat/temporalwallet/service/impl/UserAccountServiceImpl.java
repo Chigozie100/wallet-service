@@ -1295,6 +1295,18 @@ public class UserAccountServiceImpl implements UserAccountService {
 	}
 
 	@Override
+	public ResponseEntity<?> getAccountInfoWithUserInfo(String accountNo) {
+		// securityWtihAccountNo(accountNo);
+		WalletAccount account = walletAccountRepository.findByAccountNo(accountNo);
+		if (account == null) {
+			return new ResponseEntity<>(new ErrorResponse("Invalid Account"), HttpStatus.BAD_REQUEST);
+		}
+		WalletUser user = walletUserRepository.findByAccount(account);
+		return new ResponseEntity<>(new SuccessResponse("Success", user), HttpStatus.OK);
+	}
+
+	//
+	@Override
 	public ResponseEntity<?> nameEnquiry(String accountNo) {
 		WalletAccount acct = walletAccountRepository.findByAccountNo(accountNo);
 		if (acct == null) {
@@ -2057,4 +2069,57 @@ public class UserAccountServiceImpl implements UserAccountService {
 		return coreBankingService.externalCBACreateAccount(account.getUser(), account, null);
 	}
 
+
+    public ResponseEntity<?> updateNotificationEmail(String accountNumber, String email){
+
+		Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNumber);
+
+		if(account.isEmpty()){
+			return new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT"), HttpStatus.BAD_REQUEST);
+		}
+
+		ResponseEntity<?> result = securityCheckOwner(accountNumber);
+		if(!result.getStatusCode().is2xxSuccessful()){
+			return result;
+		}
+		
+		account.get().setNotify_email(email);
+		walletAccountRepository.save(account.get());
+
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", null), HttpStatus.OK);
+
+	}
+ 
+    public ResponseEntity<?> securityCheckOwner(String accountNumber) {
+        log.info("securityCheck Ownership:: " + accountNumber);
+        MyData userToken = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (userToken == null) {
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_TOKEN.getValue()),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        AccountSumary account = tempwallet.getAccountSumaryLookUp(accountNumber);
+        log.info("AccountSumary :: " + account);
+        if (account == null) {
+            return new ResponseEntity<>(
+                    new ErrorResponse(
+                            String.format("%s  %s", ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accountNumber)),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        boolean isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_OWNER"::equalsIgnoreCase);
+        isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_APP"::equalsIgnoreCase) ? true : isWriteAdmin;
+        boolean isOwner = Long.compare(account.getUId(), userToken.getId()) == 0;
+
+        if (!isOwner && !isWriteAdmin) {
+            log.error("owner check {} {}", isOwner, isWriteAdmin);
+            return new ResponseEntity<>(new ErrorResponse(String.format("%s %s %s %s",
+                    ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accountNumber, isOwner, isWriteAdmin)),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        return new ResponseEntity<>(account, HttpStatus.ACCEPTED);
+
+    }
+ 
 }

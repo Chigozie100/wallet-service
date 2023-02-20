@@ -45,6 +45,8 @@ public interface UserAccountService {
 	
 	ResponseEntity<?> getAccountInfo(String accountNo);
 
+	ResponseEntity<?> getAccountInfoWithUserInfo(String accountNo);
+
 	ResponseEntity<?> fetchAccountDetail(String accountNo, Boolean isAdmin);
 
 	ResponseEntity<?> fetchVirtualAccountDetail(String accountNo);
@@ -122,5 +124,7 @@ public interface UserAccountService {
 	void securityCheck(long userId);
 
     ResponseEntity<?> createExternalAccount(String accountNumber);
+	
+    ResponseEntity<?> updateNotificationEmail(String accountNumber, String email);
 
 }

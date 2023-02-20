@@ -9,7 +9,9 @@ import com.wayapaychat.temporalwallet.enumm.WalletTransStatus;
 import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
 import com.wayapaychat.temporalwallet.pojo.CBATransaction;
 import java.math.BigDecimal;
- 
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.http.ResponseEntity;
 
 public interface CoreBankingService {
@@ -40,7 +42,7 @@ public interface CoreBankingService {
 
     ResponseEntity<?> processCBACustomerTransferTransactionWithDoubleEntryTransit(CBATransaction cbaTransaction);
 
-    ResponseEntity<?> processTransaction(TransferTransactionDTO transferTransactionDTO, String channelEventId);
+    ResponseEntity<?> processTransaction(TransferTransactionDTO transferTransactionDTO, String channelEventId, HttpServletRequest request);
 
     String getEventAccountNumber(String channelEventId);
 
@@ -50,11 +52,11 @@ public interface CoreBankingService {
 
     void addLien(WalletAccount account, BigDecimal amount); 
 
-    void logNotification(CBAEntryTransaction transactionPojo, double currentBalance, String tranType);
+    void logNotification(String subject, CBAEntryTransaction transactionPojo, double currentBalance, String tranType);
 
     ResponseEntity<?> securityCheckOwner(String accountNumber);
 
-    ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount);
+    ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount, HttpServletRequest request);
 
     BigDecimal computeTotalTransactionFee(String accountNumber, BigDecimal amount,  String eventId);
 

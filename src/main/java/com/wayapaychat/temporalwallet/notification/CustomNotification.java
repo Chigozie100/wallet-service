@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.wayapaychat.temporalwallet.util.Constant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,13 +25,14 @@ public class CustomNotification {
 	@Autowired
 	private NotificationProxy notificationFeignClient;
 
-	public void pushEMAIL(String token, String name, String email, String message, Long userId) {
+	public void pushEMAIL(String subject, String token, String name, String email, String message, Long userId) {
 
 		EmailEvent emailEvent = new EmailEvent();
 
-		emailEvent.setEventType("EMAIL");
+		emailEvent.setEventType(Constant.EMAIL);
 		emailEvent.setEventCategory("TRANSACTION");
-		emailEvent.setProductType("WAYABANK");
+		emailEvent.setProductType(Constant.PRODUCT);
+		emailEvent.setSubject(subject);
 		EmailPayload data = new EmailPayload();
 
 		data.setMessage(message);
@@ -55,13 +57,14 @@ public class CustomNotification {
 
 	}
 	
-	public void pushTranEMAIL(String token, String name, String email, String message, Long userId,
+	public void pushTranEMAIL(String subject, String token, String name, String email, String message, Long userId,
 			String amount, String tranId, String tranDate, String narrate) {
 
 		TransEmailEvent emailEvent = new TransEmailEvent();
 
-		emailEvent.setEventType("EMAIL");
-		emailEvent.setProductType("WAYABANK");
+		emailEvent.setEventType(Constant.EMAIL);
+		emailEvent.setProductType(Constant.PRODUCT);
+		emailEvent.setSubject(subject);
 		EmailPayload data = new EmailPayload();
 
 		data.setMessage(message);

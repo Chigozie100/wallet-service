@@ -1,7 +1,6 @@
 package com.wayapaychat.temporalwallet.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import com.wayapaychat.temporalwallet.pojo.TokenCheckResponse;
@@ -20,7 +19,7 @@ public class GetUserDataService {
 
 
 	public TokenCheckResponse getUserData(String token) {
-		TokenCheckResponse res = null;
+		TokenCheckResponse res = new TokenCheckResponse(null, false, "Failed to fetch data", null);
 		
 		try {
 			res = authProxy.getUserDataToken(token);

@@ -7,6 +7,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
+import javax.servlet.http.HttpServletRequest;
+import com.wayapaychat.temporalwallet.util.Constant;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.math3.util.Precision;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -201,7 +203,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
             walletAccountRepository.saveAndFlush(accountCredit);
 
-            CompletableFuture.runAsync(() -> logNotification(transactionPojo, accountCredit.getClr_bal_amt(), "CR"));
+            CompletableFuture.runAsync(() -> logNotification(Constant.CREDIT_TRANSACTION_ALERT,transactionPojo, accountCredit.getClr_bal_amt(), "CR"));
 
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.SUCCESSFUL_CREDIT.getValue()),
                     HttpStatus.ACCEPTED);
@@ -248,7 +250,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
             walletAccountRepository.saveAndFlush(accountDebit);
 
-            CompletableFuture.runAsync(() -> logNotification(transactionPojo, accountDebit.getClr_bal_amt(), "DR"));
+            CompletableFuture.runAsync(() -> logNotification(Constant.DEBIT_TRANSACTION_ALERT,transactionPojo, accountDebit.getClr_bal_amt(), "DR"));
 
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.SUCCESSFUL_DEBIT.getValue()),
                     HttpStatus.ACCEPTED);
@@ -261,7 +263,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     @Override
     public ResponseEntity<?> processTransaction(TransferTransactionDTO transferTransactionRequestData,
-            String channelEventId) {
+            String channelEventId, HttpServletRequest request) {
         log.info("Processing transfer transaction {}", transferTransactionRequestData.toString());
 
         if (transferTransactionRequestData.getDebitAccountNumber()
@@ -276,7 +278,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         ResponseEntity<?> response = securityCheck(transferTransactionRequestData.getDebitAccountNumber(),
-                transferTransactionRequestData.getAmount());
+                transferTransactionRequestData.getAmount(), request);
         if (!response.getStatusCode().is2xxSuccessful()) {
             return response;
         }
@@ -507,7 +509,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public void logNotification(CBAEntryTransaction transactionPojo, double currentBalance, String tranType) {
+    public void logNotification(String subject, CBAEntryTransaction transactionPojo, double currentBalance, String tranType) {
         String tranDate = LocalDate.now().toString();
 
         AccountSumary account = tempwallet.getAccountSumaryLookUp(transactionPojo.getAccountNo());
@@ -536,7 +538,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             _email_message.append(String.format("Date: %s", tranDate));
             _email_message.append("\n");
             _email_message.append(String.format("Narration :%s ", transactionPojo.getTranNarration()));
-            customNotification.pushEMAIL(systemToken, account.getCustName(), account.getEmail(),
+            customNotification.pushEMAIL(subject, systemToken, account.getCustName(), account.getEmail(),
                     _email_message.toString(), account.getUId());
         }
 
@@ -592,7 +594,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount) {
+    public ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount, HttpServletRequest request) {
         log.info("securityCheck to debit account{} amount{}", accountNumber, amount);
         MyData userToken = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (userToken == null) {
@@ -601,13 +603,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     HttpStatus.BAD_REQUEST);
         }
 
-        // if(tokenImpl.validatePIN(null, null)){
-        // log.error("pin validation failed for debiting account{} with amount{}",
-        // accountNumber, amount);
-        // return new ResponseEntity<>(new
-        // ErrorResponse(ResponseCodes.INVALID_PIN.getValue()),
-        // HttpStatus.BAD_REQUEST);
-        // }
+        if(tokenImpl.validatePIN(request.getHeader("authorization"), request.getHeader("pin"))){
+            log.error("pin validation failed for debiting account{} with amount{}", accountNumber, amount);
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_PIN.getValue()),
+                    HttpStatus.BAD_REQUEST);
+        }
 
         if (amount.doubleValue() <= 0) {
             log.error("amount is less than zero for debiting account{} with amount{}", accountNumber, amount);

@@ -58,18 +58,25 @@ public class Constant {
     public static final String NO_RECORDS_FOUND = "NO RECORDS FOUND";
     public static final String UPDATED_SUCCESSUFLLY = "Updated Successfully";
     public static final String DAYS_ADDED = "Days Created Successfully";
-
     public static final String ADD_PRICE = "CUSTOM PRICE CREATED";
     public static final String UPDATE_PRICE = "CUSTOM PRICE UPDATED";
-
-    public static final String USER_PRICE_SYNC = "USER PRICING SYNC"; 
-
+    public static final String USER_PRICE_SYNC = "USER PRICING SYNC";
     public static final String APPLY_DISCOUNT = "APPLYING DISCOUNT AMOUNT...";
-
     public static final String APPLY_CAP = "APPLYING CAP AMOUNT ...";
-
     public static final String APPLY_GENERAL = "APPLYING GENERAL AMOUNT ...";
-
-
     public static final String INPROGRESS = "APPLYING PRICE ON PRODUCT ...";
+    public static final String PRODUCT = "WAYABANK";
+    public static final String EMAIL = "EMAIL";
+    public static final String SUCCESSFUL_TRANSACTION = "Successful Transaction";
+    public static final String DEBIT_TRANSACTION_ALERT = "Debit Transaction Alert";
+    public static final String CREDIT_TRANSACTION_ALERT = "Credit Transaction Alert";
+
+    public static final String REVERSE_TRANSACTION_ALERT = "Reverse Transaction Alert";
+
+    public static final String NON_WAYA_TRANSACTION_ALERT = "None Waya Transaction Alert";
+
+    public static final String REDEEM_NON_WAYA_TRANSACTION_ALERT = "Redeem None Waya Transaction Alert";
+    public static final String TRADE_TRANSACTION_ALERT = "Trade Transaction Alert";
+
+
 }

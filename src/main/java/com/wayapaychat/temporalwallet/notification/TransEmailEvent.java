@@ -22,6 +22,7 @@ public class TransEmailEvent extends EventBase {
     private String eventType;
 
     private EventCategory eventCategory;
+    private String subject;
 
 
     @Valid
