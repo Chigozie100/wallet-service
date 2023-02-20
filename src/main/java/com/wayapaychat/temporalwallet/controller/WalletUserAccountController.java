@@ -331,5 +331,16 @@ public ResponseEntity<?> createNubbanAccountAuto() {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
+    @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "updateNotificationEmail", notes = "updateNotificationEmail", tags = { "USER-ACCOUNT-WALLET" })
+    @PostMapping("/updateNotificationEmail")
+    public ResponseEntity<?> updateNotificationEmail(@RequestParam("accountNumber") String accountNumber, @RequestParam("email") String email) {
+        ResponseEntity<?> res = userAccountService.updateNotificationEmail(accountNumber, email);
+        if (!res.getStatusCode().is2xxSuccessful()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+
 
 }

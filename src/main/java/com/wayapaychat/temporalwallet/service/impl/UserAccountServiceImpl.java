@@ -2075,5 +2075,21 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 		}
 
 	}
+
+
+    public ResponseEntity<?> updateNotificationEmail(String accountNumber, String email){
+
+		Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNumber);
+
+		if(account.isEmpty()){
+			return new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT"), HttpStatus.BAD_REQUEST);
+		}
+
+		//account.get().setnotif
+		walletAccountRepository.save(account.get());
+
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", null), HttpStatus.OK);
+
+	}
  
 }
