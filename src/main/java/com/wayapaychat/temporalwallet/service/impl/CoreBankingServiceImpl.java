@@ -647,7 +647,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 			log.error("Unable to get system token :: {}", e);
         }
         
-        if(!ObjectUtils.isEmpty(account.getEmail())) { 
+        String notifyEmail = !ObjectUtils.isEmpty(account.getNotifyEmail())? account.getNotifyEmail():account.getEmail();
+        if (!ObjectUtils.isEmpty(notifyEmail)) {
             StringBuilder _email_message = new StringBuilder();
             _email_message.append(String.format("A %s transaction has occurred with reference: %s ", tranType, transactionPojo.getTranId()));
             _email_message.append("on your account see details below. \n");
