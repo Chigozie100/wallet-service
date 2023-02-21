@@ -769,7 +769,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         try {
             response = debitAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(), tranId,
                     cbaTransaction.getPaymentReference(), tranCategory, getDebitAccountNumber(cbaTransaction),
-                    cbaTransaction.getNarration(), cbaTransaction.getAmount(), 1, tranType, ""));
+                    cbaTransaction.getNarration(), cbaTransaction.getAmount(), 1, tranType, "", ""));
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
@@ -783,7 +783,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         try {
             response = creditAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(), tranId,
                     cbaTransaction.getPaymentReference(), tranCategory, getCreditAccountNumber(cbaTransaction),
-                    cbaTransaction.getNarration(), cbaTransaction.getAmount(), 2, tranType, ""));
+                    cbaTransaction.getNarration(), cbaTransaction.getAmount(), 2, tranType, "", ""));
         } catch (Exception e) {
             e.printStackTrace();
             response = new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
@@ -797,7 +797,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             processExternalCBATransactionGLDoubleEntry(cbaTransaction, true);
             creditAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(), tranId,
                     cbaTransaction.getPaymentReference(), tranCategory, getDebitAccountNumber(cbaTransaction),
-                    cbaTransaction.getNarration(), cbaTransaction.getAmount(), 2, tranType, ""));
+                    cbaTransaction.getNarration(), cbaTransaction.getAmount(), 2, tranType, "", ""));
         }
 
         return response;
@@ -891,11 +891,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             if (cbaTransaction.getAction().equals(CBAAction.DEPOSIT)) {
                 creditAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(), tranId,
                         cbaTransaction.getPaymentReference(), tranCategory, cbaTransaction.getCustomerAccount(),
-                        cbaTransaction.getNarration(), totalAmount, 1, tranType, ""));
+                        cbaTransaction.getNarration(), totalAmount, 1, tranType, "", ""));
             } else {
                 response = debitAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(), tranId,
                         cbaTransaction.getPaymentReference(), tranCategory, cbaTransaction.getCustomerAccount(),
-                        cbaTransaction.getNarration(), totalAmount, 1, tranType, ""));
+                        cbaTransaction.getNarration(), totalAmount, 1, tranType, "", ""));
             }
         } catch (Exception e) {
             e.printStackTrace();
