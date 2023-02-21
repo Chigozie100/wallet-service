@@ -297,6 +297,15 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     HttpStatus.BAD_REQUEST);
         }
 
+        Long tranId = logTransaction(transferTransactionRequestData.getDebitAccountNumber(),
+                transferTransactionRequestData.getBenefAccountNumber(),
+                transferTransactionRequestData.getAmount(), transferTransactionRequestData.getTransactionCategory(),
+                transferTransactionRequestData.getTranCrncy(), WalletTransStatus.PENDING);
+        if (tranId == null) {
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
+                    HttpStatus.BAD_REQUEST);
+        }
+
         BigDecimal chargeAmount = computeTransactionFee(transferTransactionRequestData.getDebitAccountNumber(), 
                                         transferTransactionRequestData.getAmount(), channelEventId);
         BigDecimal vatAmount = computeVatFee(chargeAmount, channelEventId);
