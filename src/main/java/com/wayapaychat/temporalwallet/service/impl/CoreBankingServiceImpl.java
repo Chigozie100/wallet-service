@@ -356,6 +356,13 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             chargeAmount, vatAmount, provider, channelEventId, CBAAction.MOVE_CUSTOMER_TO_CUSTOMER));
         }
 
+        if (response.getStatusCode().is2xxSuccessful()) {
+            updateTransactionLog(tranId, WalletTransStatus.SUCCESSFUL);
+        }
+        else{
+            updateTransactionLog(tranId, WalletTransStatus.REVERSED);
+        }
+
         return response;
 
     }
