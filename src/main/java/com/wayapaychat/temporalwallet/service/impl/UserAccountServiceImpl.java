@@ -11,7 +11,7 @@ import com.wayapaychat.temporalwallet.pojo.*;
 import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
 import com.wayapaychat.temporalwallet.repository.*;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
-import com.wayapaychat.temporalwallet.response.MifosAccountCreationResponse;
+import com.wayapaychat.temporalwallet.response.ExternalCBAAccountCreationResponse;
 import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.SwitchWalletService;
 import com.wayapaychat.temporalwallet.service.UserAccountService;
@@ -679,7 +679,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			System.out.println("mifosWalletProxy :: " + mifosWalletProxy);
 			for (WalletAccount data : accountList) {
 				String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, "savings");
-				MifosCreateAccount account = new MifosCreateAccount();
+				CreateAccountData account = new CreateAccountData();
 
 				if (data.getUser() != null) {
 					WalletUser userx = walletUserRepository.findByAccount(data);
@@ -693,7 +693,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 					WalletAccount wAcc = walletAccountRepository.save(data);
 
 					System.out.println("mifosWalletProxy :: " + wAcc);
-					MifosAccountCreationResponse response = mifosWalletProxy.createAccount(account);
+					ExternalCBAAccountCreationResponse response = mifosWalletProxy.createAccount(account);
 					log.info("RESPONSE FROM MIFOS::: " + response);
 				}
 			}

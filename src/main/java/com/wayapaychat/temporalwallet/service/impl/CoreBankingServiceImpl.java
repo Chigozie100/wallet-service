@@ -25,7 +25,7 @@ import com.wayapaychat.temporalwallet.dto.MifosTransfer;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
 import com.wayapaychat.temporalwallet.pojo.CBATransaction;
-import com.wayapaychat.temporalwallet.pojo.MifosCreateAccount;
+import com.wayapaychat.temporalwallet.pojo.CreateAccountData;
 import com.wayapaychat.temporalwallet.pojo.MyData;
 import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
 import com.wayapaychat.temporalwallet.repository.UserPricingRepository;
@@ -33,7 +33,7 @@ import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletEventRepository;
 import com.wayapaychat.temporalwallet.repository.WalletTransAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletTransactionRepository;
-import com.wayapaychat.temporalwallet.response.MifosAccountCreationResponse;
+import com.wayapaychat.temporalwallet.response.ExternalCBAAccountCreationResponse;
 import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.TransactionCountService;
 import com.wayapaychat.temporalwallet.service.SwitchWalletService;
@@ -101,23 +101,24 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public ResponseEntity<?> externalCBACreateAccount(WalletUser userInfo, WalletAccount sAcct, Provider provider) {
-        log.info("externalCBACreateAccount: {} ", sAcct.getAccountNo());
+    public ResponseEntity<?> externalCBACreateAccount(WalletUser accountOwnerUser, WalletAccount accountDetails, Provider provider) {
+        log.info("externalCBACreateAccount: {} ", accountDetails.getAccountNo());
         ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse(ResponseCodes.NO_PROVIDER.getValue()), HttpStatus.BAD_REQUEST);
 
-        MifosAccountCreationResponse externalResponse = null;
-        MifosCreateAccount mifos = new MifosCreateAccount();
-		mifos.setAccountNumber(sAcct.getNubanAccountNo());
-		mifos.setEmail(userInfo.getEmailAddress());
-		mifos.setFirstName(userInfo.getFirstName());
-		mifos.setMobileNumber(userInfo.getMobileNo());
-		mifos.setLastName(userInfo.getLastName());
+        ExternalCBAAccountCreationResponse externalResponse = null;
+        CreateAccountData createAccountRequest = new CreateAccountData();
+		createAccountRequest.setAccountNumber(accountDetails.getNubanAccountNo());
+		createAccountRequest.setEmail(accountOwnerUser.getEmailAddress());
+		createAccountRequest.setFirstName(accountOwnerUser.getFirstName());
+		createAccountRequest.setMobileNumber(accountOwnerUser.getMobileNo());
+		createAccountRequest.setLastName(accountOwnerUser.getLastName());
+        createAccountRequest.setAccountName(accountDetails.getAcct_name());
 
         try {
             if (ProviderType.MIFOS.equalsIgnoreCase(provider.getName())) {
-                externalResponse = mifosWalletProxy.createAccount(mifos);
+                externalResponse = mifosWalletProxy.createAccount(createAccountRequest);
             } else {
-                externalResponse = new MifosAccountCreationResponse(ExternalCBAResponseCodes.R_00);
+                externalResponse = new ExternalCBAAccountCreationResponse(ExternalCBAResponseCodes.R_00);
             }
         } catch (Exception e) {
             e.printStackTrace();
