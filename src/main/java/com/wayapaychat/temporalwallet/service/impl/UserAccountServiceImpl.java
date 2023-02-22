@@ -74,6 +74,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 	@Value("${ofi.financialInstitutionCode}")
 	private String financialInstitutionCode;
 
+	@Value("${waya.wallet.systemuser.email:wayabanksystem@wayapaychat.com}")
+	private String systemUserEmail;
+
 	@Autowired
 	public UserAccountServiceImpl(WalletUserRepository walletUserRepository,
 			WalletAccountRepository walletAccountRepository, WalletProductRepository walletProductRepository,
@@ -137,7 +140,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			String code = generateRandomNumber(9);
 			WalletUserDTO userInfow = new WalletUserDTO("0000", user.getUserId(), wallet.getFirstName().toUpperCase(),
 					wallet.getSurname().toUpperCase(),
-					wallet.getEmail(), wallet.getPhoneNo(), new Date(), new BigDecimal("50000.00").doubleValue(), "MR",
+					wallet.getEmail(), wallet.getPhoneNo(), new Date(), new BigDecimal("0.0").doubleValue(), "MR",
 					"M", code,
 					new Date(), user.getAccountType(), false, user.getDescription());
 
@@ -979,7 +982,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Product Type Does Not Match"), HttpStatus.BAD_REQUEST);
 		}
 
-		WalletUser walletUser = walletUserRepository.findByUserId(Long.valueOf(1));
+		WalletUser walletUser = walletUserRepository.findByEmailAddress(systemUserEmail);
 		if (ObjectUtils.isEmpty(walletUser)) {
 			return new ResponseEntity<>(new ErrorResponse("System config not completed"), HttpStatus.BAD_REQUEST);
 		}
@@ -1668,6 +1671,12 @@ public class UserAccountServiceImpl implements UserAccountService {
 			return new ResponseEntity<>(new ErrorResponse("Product Type Does Not Match"), HttpStatus.BAD_REQUEST);
 		}
 
+
+		WalletUser walletUser = walletUserRepository.findByEmailAddress(systemUserEmail);
+		if(ObjectUtils.isEmpty(walletUser)){
+			return new ResponseEntity<>(new ErrorResponse("Wallet not properly setup"), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
 		Integer rand = reqUtil.getAccountNo();
 		if (rand == 0) {
 			return new ResponseEntity<>(new ErrorResponse("Unable to generate Wallet Account"), HttpStatus.BAD_REQUEST);
@@ -1698,7 +1707,6 @@ public class UserAccountServiceImpl implements UserAccountService {
 					product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(), false,
 					accountPojo.getAccountType(), accountPojo.getDescription());
 			
-			WalletUser walletUser = walletUserRepository.findByEmailAddress("admin@wayapaychat.com");
 			coreBankingService.createAccount(walletUser, account);
 			
 			return new ResponseEntity<>(new SuccessResponse("Office Account created successfully.", account),
