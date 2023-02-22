@@ -248,7 +248,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			WalletAccount account = new WalletAccount();
 			if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 					|| product.getProduct_type().equals("ODA"))) {
-				account = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, userx,
+						account = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, userx,
 						code.getGlSubHeadCode(), wayaProduct,
 						acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
 						LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
@@ -957,7 +957,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 					user.getUserId() + "|" + acctNo + "|" + user.getProductCode() + "|" + product.getCrncy_code());
 
 			WalletAccount account;
-			account = new WalletAccount(teller.getSol_id(), teller.getAdminCashAcct(), acctNo, "0",
+			String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, "ledger");
+			account = new WalletAccount(teller.getSol_id(), teller.getAdminCashAcct(), acctNo, nubanAccountNumber,
 					user.getAccountName(),
 					null, code.getGlSubHeadCode(), product.getProductCode(), acct_ownership, hashed_no,
 					product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(),
@@ -1242,9 +1243,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 						userId + "|" + acctNo + "|" + fProduct.getProductCode() + "|" + product.getCrncy_code());
 
 				WalletAccount account = new WalletAccount();
+				String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, accountPojo.getAccountType());
 				if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
 						|| product.getProduct_type().equals("ODA"))) {
-					account = new WalletAccount("0000", "", acctNo, "0", acct_name, y, code.getGlSubHeadCode(),
+					account = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, y, code.getGlSubHeadCode(),
 							fProduct.getProductCode(), acct_ownership, hashed_no, product.isInt_paid_flg(),
 							product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
 							product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
@@ -1717,8 +1719,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 			String hashed_no = reqUtil.WayaEncrypt(
 					0L + "|" + acctNo + "|" + accountPojo.getProductCode() + "|" + product.getCrncy_code());
 
-			WalletAccount account = new WalletAccount();
-			account = new WalletAccount("0000", "", acctNo, "0", accountPojo.getAccountName(), null,
+			String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, "ledger");
+			WalletAccount account = new WalletAccount("0000", "", acctNo, nubanAccountNumber, accountPojo.getAccountName(), null,
 					code.getGlSubHeadCode(),
 					product.getProductCode(), acct_ownership, hashed_no, product.isInt_paid_flg(),
 					product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
