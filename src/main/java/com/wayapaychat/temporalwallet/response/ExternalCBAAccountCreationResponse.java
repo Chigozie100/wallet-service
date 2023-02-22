@@ -3,8 +3,10 @@ package com.wayapaychat.temporalwallet.response;
 import com.wayapaychat.temporalwallet.enumm.ExternalCBAResponseCodes;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 public class ExternalCBAAccountCreationResponse {
     private String resourceId;
     private String responseCode;
