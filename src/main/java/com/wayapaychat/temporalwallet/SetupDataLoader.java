@@ -3,8 +3,8 @@ package com.wayapaychat.temporalwallet;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationListener;
 import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,7 +14,7 @@ import com.wayapaychat.temporalwallet.repository.WalletEventRepository;
 import com.wayapaychat.temporalwallet.service.UserAccountService;
 
 @Component
-public class SetupDataLoader implements ApplicationListener<ContextRefreshedEvent> {
+public class SetupDataLoader{
 
 	boolean alreadySetup = false;
 
@@ -23,8 +23,8 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 
 	@Autowired
 	UserAccountService userAccountService;
-
-	@Override
+ 
+	@EventListener
 	@Transactional
 	public void onApplicationEvent(ContextRefreshedEvent event) {
 		if (alreadySetup)
