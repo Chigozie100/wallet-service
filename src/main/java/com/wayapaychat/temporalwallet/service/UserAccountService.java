@@ -127,4 +127,6 @@ public interface UserAccountService {
 	
     ResponseEntity<?> updateNotificationEmail(String accountNumber, String email);
 
+    void setupSystemUser();
+
 }

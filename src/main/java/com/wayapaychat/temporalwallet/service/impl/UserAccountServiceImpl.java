@@ -77,6 +77,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 	@Value("${waya.wallet.systemuser.email:wayabanksystem@wayapaychat.com}")
 	private String systemUserEmail;
 
+	@Value("${waya.wallet.systemuser.phone:2340000000000}")
+	private String systemUserMobileNumber;
+
 	@Autowired
 	public UserAccountServiceImpl(WalletUserRepository walletUserRepository,
 			WalletAccountRepository walletAccountRepository, WalletProductRepository walletProductRepository,
@@ -418,6 +421,22 @@ public class UserAccountServiceImpl implements UserAccountService {
 			throw new CustomException(e.getLocalizedMessage(), HttpStatus.EXPECTATION_FAILED);
 
 		}
+	}
+
+	@Override
+	public void setupSystemUser(){
+		WalletUser walletUser = walletUserRepository.findByEmailAddress(systemUserEmail);
+		if (ObjectUtils.isNotEmpty(walletUser)) {
+			return;
+		}
+
+		WalletUser userInfo = new WalletUser("0000", 0L, "SYSTEM",
+				"ACCOUNT", systemUserEmail, systemUserMobileNumber, "SYSTEM ACCOUNT",
+				null, null, null,
+				null, null, LocalDate.now(), 100000000.0);
+		
+		walletUserRepository.save(userInfo);
+
 	}
 
 	public WalletUser creatUserAccountUtil(UserDetailPojo userDetailPojo) {

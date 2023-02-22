@@ -31,6 +31,7 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 			return;
 
 		//Setup Internal account CFID
+		userAccountService.setupSystemUser();
 		
 		List<WalletEventCharges> eventchg = walletEventRepo.findAll();
 		if (eventchg != null) {
