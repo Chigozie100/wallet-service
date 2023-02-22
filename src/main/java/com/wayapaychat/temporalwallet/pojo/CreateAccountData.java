@@ -10,4 +10,5 @@ public class CreateAccountData {
     private String email;
     private String accountNumber;
     private String accountName;
+    private String product;
 }

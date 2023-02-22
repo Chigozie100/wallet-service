@@ -113,6 +113,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 		createAccountRequest.setMobileNumber(accountOwnerUser.getMobileNo());
 		createAccountRequest.setLastName(accountOwnerUser.getLastName());
         createAccountRequest.setAccountName(accountDetails.getAcct_name());
+        createAccountRequest.setProduct(accountDetails.getAcct_ownership());
 
         try {
             if (ProviderType.MIFOS.equalsIgnoreCase(provider.getName())) {
