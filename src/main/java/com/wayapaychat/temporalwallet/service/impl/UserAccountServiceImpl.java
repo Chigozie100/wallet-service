@@ -8,10 +8,8 @@ import com.wayapaychat.temporalwallet.enumm.ResponseCodes;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.pojo.*;
-import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
 import com.wayapaychat.temporalwallet.repository.*;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
-import com.wayapaychat.temporalwallet.response.ExternalCBAAccountCreationResponse;
 import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.SwitchWalletService;
 import com.wayapaychat.temporalwallet.service.UserAccountService;
@@ -53,7 +51,6 @@ public class UserAccountServiceImpl implements UserAccountService {
 	private final WalletTellerRepository walletTellerRepository;
 	private final TemporalWalletDAO tempwallet;
 	private final WalletEventRepository walletEventRepo;
-	private final MifosWalletProxy mifosWalletProxy;
 	private final TokenImpl tokenService;
 	private final UserPricingService userPricingService;
 	private final CoreBankingService coreBankingService;
@@ -86,7 +83,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 			WalletProductCodeRepository walletProductCodeRepository, AuthUserServiceDAO authService, ReqIPUtils reqUtil,
 			ParamDefaultValidation paramValidation,
 			WalletTellerRepository walletTellerRepository, TemporalWalletDAO tempwallet,
-			WalletEventRepository walletEventRepo, MifosWalletProxy mifosWalletProxy,
+			WalletEventRepository walletEventRepo,
 			TokenImpl tokenService, UserPricingService userPricingService,
 			CoreBankingService coreBankingService, SwitchWalletService switchWalletService) {
 		this.walletUserRepository = walletUserRepository;
@@ -99,7 +96,6 @@ public class UserAccountServiceImpl implements UserAccountService {
 		this.walletTellerRepository = walletTellerRepository;
 		this.tempwallet = tempwallet;
 		this.walletEventRepo = walletEventRepo;
-		this.mifosWalletProxy = mifosWalletProxy;
 		this.tokenService = tokenService;
 		this.userPricingService = userPricingService;
 		this.coreBankingService = coreBankingService;
@@ -674,34 +670,6 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 
 	public ResponseEntity<?> createNubbanAccountAuto() {
-		try {
-			List<WalletAccount> accountList = walletAccountRepository.findByAllNonNubanAccount();
-			System.out.println("mifosWalletProxy :: " + mifosWalletProxy);
-			for (WalletAccount data : accountList) {
-				String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, "savings");
-				CreateAccountData account = new CreateAccountData();
-
-				if (data.getUser() != null) {
-					WalletUser userx = walletUserRepository.findByAccount(data);
-					account.setFirstName(userx.getFirstName());
-					account.setLastName(userx.getFirstName());
-					account.setMobileNumber(userx.getFirstName());
-					account.setEmail(userx.getEmailAddress());
-
-					account.setAccountNumber(nubanAccountNumber);
-					data.setNubanAccountNo(nubanAccountNumber);
-					WalletAccount wAcc = walletAccountRepository.save(data);
-
-					System.out.println("mifosWalletProxy :: " + wAcc);
-					ExternalCBAAccountCreationResponse response = mifosWalletProxy.createAccount(account);
-					log.info("RESPONSE FROM MIFOS::: " + response);
-				}
-			}
-
-		} catch (Exception ex) {
-			log.info("RESPONSE FROM MIFOS::: " + ex);
-			throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
-		}
 		return new ResponseEntity<>(new SuccessResponse("Successfully createAccountOnMIFOS"),
 				HttpStatus.OK);
 	}
