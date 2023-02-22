@@ -2129,7 +2129,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 				wallet.setNubanAccountNo(Util.generateNuban(financialInstitutionCode, ("O".equalsIgnoreCase(wallet.getAcct_ownership())?"ledger":"savings")));
 				walletAccountRepository.save(wallet);
 			}
-			coreBankingService.createAccount(wallet.getUser(), wallet);
+			Provider provider = switchWalletService.getActiveProvider();
+			coreBankingService.externalCBACreateAccount(wallet.getUser(), wallet, provider);
 		}
 
 	}
