@@ -44,6 +44,8 @@ public class SetupDataLoader implements ApplicationListener<ContextRefreshedEven
 			}
 		}
 
+		userAccountService.setupExternalCBA();
+
 		alreadySetup = true;
 
 	}

@@ -2150,5 +2150,20 @@ public class UserAccountServiceImpl implements UserAccountService {
         return new ResponseEntity<>(account, HttpStatus.ACCEPTED);
 
     }
+
+	@Override
+	public void setupExternalCBA(){
+		List<WalletAccount> walletAccounts = walletAccountRepository.findAll();
+
+		for (WalletAccount wallet : walletAccounts) {
+			if("0".equals(wallet.getNubanAccountNo()))
+			{
+				wallet.setNubanAccountNo(Util.generateNuban(financialInstitutionCode, ("O".equalsIgnoreCase(wallet.getAcct_ownership())?"ledger":"savings")));
+				walletAccountRepository.save(wallet);
+			}
+			coreBankingService.createAccount(wallet.getUser(), wallet);
+		}
+
+	}
  
 }

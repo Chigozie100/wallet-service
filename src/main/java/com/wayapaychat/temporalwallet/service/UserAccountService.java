@@ -129,4 +129,6 @@ public interface UserAccountService {
 
     void setupSystemUser();
 
+    void setupExternalCBA();
+
 }
