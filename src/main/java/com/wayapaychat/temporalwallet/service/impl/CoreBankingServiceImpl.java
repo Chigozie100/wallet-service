@@ -657,7 +657,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             _email_message.append(String.format("Date: %s", tranDate));
             _email_message.append("\n");
             _email_message.append(String.format("Narration :%s ", transactionPojo.getTranNarration()));
-            customNotification.pushEMAIL("",systemToken, account.getCustName(), account.getEmail(), _email_message.toString(), account.getUId());
+            customNotification.pushEMAIL(subject,systemToken, account.getCustName(), account.getEmail(), _email_message.toString(), account.getUId());
         }
         
         if (!ObjectUtils.isEmpty(account.getPhone())) { 

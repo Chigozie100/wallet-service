@@ -297,4 +297,17 @@ public class CustomNotification {
 
 	}
 
+//	public ResponsePojo sendEmailList(MsgObject data,String token){
+//		data.getUsersList().forEach(user->{
+//			if(( !(StringUtils.isBlank(user.getEmail())) && !(StringUtils.isBlank(user.getPhoneNumber())) && !(StringUtils.isBlank(data.getMsg())))) {
+//
+//				UserPojo pojo = new UserPojo(user.getSenderUserId(),user.getEmail(),user.getPhoneNumber(),user.getFirstName(),user.getSurname());
+//				sendEmailNotification(Constants.INVITE_MESSAGE,data.getMsg(),pojo,token);
+//
+//			}});
+//
+//		return new ResponsePojo(true,"Operation successful",0);
+//	}
+
+
 }

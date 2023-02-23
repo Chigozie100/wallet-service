@@ -4456,6 +4456,16 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 	}
 
 	@Override
+	public ApiResponse<?> viewTransActivities(String userId) {
+		WalletUser walletUser = walletUserRepository.findByUserId(Long.valueOf(userId));
+		// walletUser.getId()
+		WalletAccount walletTransaction = walletAccountRepository.findByAccountUser(walletUser).orElse(null);
+
+
+		return null;
+	}
+
+	@Override
 	public ApiResponse<?> PaymentOffTrans(int page, int size, String fillter) {
 		Pageable pagable = PageRequest.of(page,size);
 		Page<WalletTransaction> walletTransactionPage = walletTransactionRepository.findByAccountOfficial3(pagable,fillter);
