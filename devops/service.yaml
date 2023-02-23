@@ -1,35 +1,35 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: waya-repository-v2
+  name: waya-repository
   labels:
-    app: waya-repository-v2
+    app: waya-repository
 spec:
   ports:
   - name: http
     port: 80
     targetPort: 80
   selector:
-    app: waya-repository-v2
+    app: waya-repository
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: waya-repository-v2
+  name: waya-repository
   labels:
-    app: waya-repository-v2
+    app: waya-repository
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: waya-repository-v2
+      app: waya-repository
   template:
     metadata:
       labels:
-        app: waya-repository-v2
+        app: waya-repository
     spec:
       containers:
-      - name: waya-repository-v2
+      - name: waya-repository
         image: 863852973330.dkr.ecr.eu-west-2.amazonaws.com/waya-repository:imgtag
         resources:
           requests:
