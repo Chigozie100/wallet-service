@@ -369,7 +369,7 @@ public class AdminController {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
-    @ApiOperation(value = "To Fetch Official Transaction activities", notes = "Transfer amount from one wallet to another wallet", tags = {
+    @ApiOperation(value = "To Fetch Official Transaction activities", notes = "To Fetch Official Transaction activities", tags = {
             "ADMIN" })
     @GetMapping("/official/transaction/{wayaNo}")
     public ResponseEntity<?> PaymentWayaReport(
@@ -391,9 +391,31 @@ public class AdminController {
 
     }
 
+    @ApiOperation(value = "To Fetch Transaction activities per user", notes = "To Fetch Transaction activities per user", tags = {
+            "ADMIN" })
+    @GetMapping("/official/transaction/{wayaNo}/user")
+    public ResponseEntity<?> PaymentWayaReportPerUser(
+            @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
+            @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
+            @PathVariable("wayaNo") String wayaNo) {
+        ApiResponse<?> res;
+        try {
+            res = transAccountService.PaymentAccountTrans(fromdate, todate, wayaNo);
+            if (!res.getStatus()) {
+                return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+
+    }
+
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-    @ApiOperation(value = "To List Official Transaction activities", notes = "Transfer amount from one wallet to another wallet", tags = {
+    @ApiOperation(value = "To List Official Transaction activities", notes = "To List Official Transaction activities", tags = {
             "ADMIN" })
     @GetMapping("/official/transaction")
     public ResponseEntity<?> PaymentOffWaya(@RequestParam( defaultValue = "0") int page,
