@@ -126,4 +126,6 @@ public interface UserAccountService {
 	
 	void securityCheck(long userId);
 
+    ResponseEntity<?> updateNotificationEmail(String accountNumber, String email);
+
 }

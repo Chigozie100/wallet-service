@@ -4,6 +4,7 @@ import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.*;
+import com.wayapaychat.temporalwallet.enumm.ResponseCodes;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.pojo.*;
@@ -2075,5 +2076,58 @@ public ResponseEntity<?> createNubbanAccountAuto() {
 		}
 
 	}
+
+
+    public ResponseEntity<?> updateNotificationEmail(String accountNumber, String email){
+
+		Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNumber);
+
+		if(account.isEmpty()){
+			return new ResponseEntity<>(new ErrorResponse("INVALID ACCOUNT"), HttpStatus.BAD_REQUEST);
+		}
+
+		ResponseEntity<?> result = securityCheckOwner(accountNumber);
+		if(!result.getStatusCode().is2xxSuccessful()){
+			return result;
+		}
+		
+		account.get().setNotify_email(email);
+		walletAccountRepository.save(account.get());
+
+		return new ResponseEntity<>(new SuccessResponse("SUCCESS", null), HttpStatus.OK);
+
+	}
+ 
+    public ResponseEntity<?> securityCheckOwner(String accountNumber) {
+        log.info("securityCheck Ownership:: " + accountNumber);
+        MyData userToken = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (userToken == null) {
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_TOKEN.getValue()),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        AccountSumary account = tempwallet.getAccountSumaryLookUp(accountNumber);
+        log.info("AccountSumary :: " + account);
+        if (account == null) {
+            return new ResponseEntity<>(
+                    new ErrorResponse(
+                            String.format("%s  %s", ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accountNumber)),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        boolean isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_OWNER"::equalsIgnoreCase);
+        isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_APP"::equalsIgnoreCase) ? true : isWriteAdmin;
+        boolean isOwner = Long.compare(account.getUId(), userToken.getId()) == 0;
+
+        if (!isOwner && !isWriteAdmin) {
+            log.error("owner check {} {}", isOwner, isWriteAdmin);
+            return new ResponseEntity<>(new ErrorResponse(String.format("%s %s %s %s",
+                    ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accountNumber, isOwner, isWriteAdmin)),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        return new ResponseEntity<>(account, HttpStatus.ACCEPTED);
+
+    }
  
 }
