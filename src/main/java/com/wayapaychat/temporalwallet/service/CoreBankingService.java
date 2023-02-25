@@ -15,7 +15,6 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 
 public interface CoreBankingService {
-
     ResponseEntity<?> externalCBACreateAccount(WalletUser userInfo, WalletAccount sAcct, Provider provider);
 
     ResponseEntity<?> createAccount(WalletUser userInfo, WalletAccount sAcct);
@@ -28,7 +27,7 @@ public interface CoreBankingService {
 
     ResponseEntity<?> processExternalCBATransactionGLDoubleEntry(CBATransaction cbaTransaction, boolean reversal);
 
-    ResponseEntity<?> processCBATransactionGLDoubleEntry(CBATransaction cbaTransaction);  
+    ResponseEntity<?> processCBATransactionGLDoubleEntry(CBATransaction cbaTransaction);
 
     ResponseEntity<?> processCBATransactionGLDoubleEntryWithTransit(CBATransaction cbaTransaction);
 
@@ -47,10 +46,10 @@ public interface CoreBankingService {
     String getEventAccountNumber(String channelEventId);
 
     Long logTransaction(String fromAccountNumber, String toAccountNumber, BigDecimal amount, String transCategory,String tranCrncy, WalletTransStatus status);
-    
+
     void updateTransactionLog(Long tranId, WalletTransStatus status);
 
-    void addLien(WalletAccount account, BigDecimal amount); 
+    void addLien(WalletAccount account, BigDecimal amount);
 
     void logNotification(String subject, CBAEntryTransaction transactionPojo, double currentBalance, String tranType);
 
@@ -63,5 +62,4 @@ public interface CoreBankingService {
     BigDecimal computeTransactionFee(String accountNumber, BigDecimal amount,  String eventId);
 
     BigDecimal computeVatFee(BigDecimal fee,  String eventId);
-
 }

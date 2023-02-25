@@ -23,7 +23,11 @@ public class TransEmailEvent extends EventBase {
 
     private EventCategory eventCategory;
     private String subject;
-
+    private String availableBalance;
+    private String accountName;
+    private String transactionCurrency;
+    private String accountNumber;
+    private String transactionType;
 
     @Valid
     @NotNull(message = "make sure you entered the right key *data* , and the value must not be null")
@@ -37,9 +41,7 @@ public class TransEmailEvent extends EventBase {
     
     @NotNull(message = "make sure you entered the right key *data* , and the value must not be null")
     private String transactionDate;
-
     private String narration;
-    
     private String productType;
 
     public TransEmailEvent(EmailPayload data, String eventType) {

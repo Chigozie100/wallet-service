@@ -28,6 +28,7 @@ import com.wayapaychat.temporalwallet.util.*;
 
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.math3.util.Precision;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -417,7 +418,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 				transfer.getTranNarration());
 		CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(NON_WAYA_TRANSACTION_ALERT,token, transfer.getFullName(),
 				transfer.getEmailOrPhoneNo(), message, userToken.getId(), transfer.getAmount().toString(),
-				tranId, tranDate, transfer.getTranNarration()));
+				tranId, tranDate, transfer.getTranNarration(),"","",""));
 		CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
 				transfer.getEmailOrPhoneNo(), message, userToken.getId()));
  		return debitResponse;
@@ -1050,7 +1051,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 						transfer.getTranNarration());
 				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(TRADE_TRANSACTION_ALERT,token, fullName,
 						xUser.getEmailAddress(), message, userToken.getId(), transfer.getAmount().toString(), tranId,
-						tranDate, transfer.getTranNarration()));
+						tranDate, transfer.getTranNarration(),xAccount.getAccountNo(),"Alert".toUpperCase(), transfer.getAmount().toString()));
+
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
 						message, userToken.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getUserId().toString(),
@@ -1210,9 +1212,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 		String message = formatNewMessage(transfer.getAmount(), tranId, new Date().toString()
 				, transfer.getTranCrncy(),
 				transfer.getTranNarration(),transfer.getSenderName(), transfer.getReceiverName(), xAccount.getClr_bal_amt(), description, transfer.getBankName());
-		CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(DEBIT_TRANSACTION_ALERT,token, fullName,
-				email, message, userToken.getId(), transfer.getAmount().toString(), tranId,
-				tranDate, transfer.getTranNarration()));
+		CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(TRADE_TRANSACTION_ALERT,token, fullName,
+				xUser.getEmailAddress(), message, userToken.getId(), transfer.getAmount().toString(), tranId,
+				tranDate, transfer.getTranNarration(),xAccount.getAccountNo(),"Alert".toUpperCase(), transfer.getAmount().toString()));
+
 		CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, phone,
 				message, userToken.getId()));
 		CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getUserId().toString(),
@@ -2978,9 +2981,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 
 			String finalTranId = tranId;
-			CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(DEBIT_TRANSACTION_ALERT,token, fullName,
-					xUser.getEmailAddress(), message, userToken.getId(), amount.toString(), finalTranId,
-					tranDate, tranNarrate));
+			CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(TRADE_TRANSACTION_ALERT,token, fullName,
+					xUser.getEmailAddress(), message, userToken.getId(), amount.toString(), tranId,
+					tranDate, finalTranId,xAccount.getAccountNo(),"Alert".toUpperCase(), amount.toString()));
+
 			CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
 					message, userToken.getId()));
 			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getUserId().toString(),
@@ -3009,9 +3013,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			String message2 = formatNewMessage(amount, tranId, tranDate, tranCrncy, tranNarrate);
 
-			CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(CREDIT_TRANSACTION_ALERT,token, fullName,
-					xUser.getEmailAddress(), message2, userToken.getId(), amount.toString(), finalTranId,
-					tranDate, tranNarrate));
+			CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(TRADE_TRANSACTION_ALERT,token, fullName,
+					xUser.getEmailAddress(), message2, userToken.getId(), amount.toString(), tranId,
+					tranDate, finalTranId,xAccount.getAccountNo(),"Alert".toUpperCase(), amount.toString()));
+
 			CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
 					message, userToken.getId()));
 			CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getUserId().toString(),
@@ -3496,233 +3501,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 	}
 
-	public String createEventCommission(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
-			TransactionTypeEnum tranType, String tranNarration, String paymentRef, HttpServletRequest request,
-			CategoryType tranCategory) {
-		try {
-			int n = 1;
-			log.info("START TRANSACTION");
-			String tranCount = tempwallet.transactionCount(paymentRef, creditAcctNo);
-			if (!tranCount.isBlank()) {
-				return "tranCount";
-			}
-			boolean validate = paramValidation.validateDefaultCode(tranCrncy, "Currency");
-			if (!validate) {
-				return "DJGO|Currency Code Validation Failed";
-			}
-			Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
-			if (eventInfo.isEmpty()) {
-				return "DJGO|Event Code Does Not Exist";
-			}
-			WalletEventCharges charge = eventInfo.get();
-			boolean validate2 = paramValidation.validateDefaultCode(charge.getPlaceholder(), "Batch Account");
-			if (!validate2) {
-				return "DJGO|Event Validation Failed";
-			}
-			WalletAccount eventAcct = walletAccountRepository.findByAccountNo(creditAcctNo);
-			if (eventAcct == null) {
-				return "DJGO|CUSTOMER ACCOUNT DOES NOT EXIST";
-			}
-			// Does account exist
-			Optional<WalletAccount> accountDebitTeller = walletAccountRepository
-					.findByUserPlaceholder(charge.getPlaceholder(), charge.getCrncyCode(), eventAcct.getSol_id());
-			if (accountDebitTeller.isEmpty()) {
-				return "DJGO|NO EVENT ACCOUNT";
-			}
-			WalletAccount accountDebit;
-			WalletAccount accountCredit;
-			if (!charge.isChargeCustomer() && charge.isChargeWaya()) {   // && charge.isChargeWaya()
-				accountDebit = accountDebitTeller.get();
-				accountCredit = walletAccountRepository.findByAccountNo(creditAcctNo);
-			} else {
-				accountCredit = accountDebitTeller.get();
-				accountDebit = walletAccountRepository.findByAccountNo(creditAcctNo);
-			}
-			if (accountDebit == null || accountCredit == null) {
-				return "DJGO|DEBIT ACCOUNT OR BENEFICIARY ACCOUNT DOES NOT EXIST";
-			}
-			// Check for account security
-			log.info(accountDebit.getHashed_no());
-			if (!accountDebit.getAcct_ownership().equals("O")) {
-				String compareDebit = tempwallet.GetSecurityTest(accountDebit.getAccountNo());
-				log.info(compareDebit);
-			}
-			String secureDebit = reqIPUtils.WayaDecrypt(accountDebit.getHashed_no());
-			log.info(secureDebit);
-			String[] keyDebit = secureDebit.split(Pattern.quote("|"));
-			if ((!keyDebit[1].equals(accountDebit.getAccountNo()))
-					|| (!keyDebit[2].equals(accountDebit.getProduct_code()))
-					|| (!keyDebit[3].equals(accountDebit.getAcct_crncy_code()))) {
-				return "DJGO|DEBIT ACCOUNT DATA INTEGRITY ISSUE";
-			}
-
-			log.info(accountCredit.getHashed_no());
-			if (!accountDebit.getAcct_ownership().equals("O")) {
-				String compareCredit = tempwallet.GetSecurityTest(creditAcctNo);
-				log.info(compareCredit);
-			}
-			String secureCredit = reqIPUtils.WayaDecrypt(accountCredit.getHashed_no());
-			log.info(secureCredit);
-			String[] keyCredit = secureCredit.split(Pattern.quote("|"));
-			if ((!keyCredit[1].equals(accountCredit.getAccountNo()))
-					|| (!keyCredit[2].equals(accountCredit.getProduct_code()))
-					|| (!keyCredit[3].equals(accountCredit.getAcct_crncy_code()))) {
-				return "DJGO|CREDIT ACCOUNT DATA INTEGRITY ISSUE";
-			}
-			// Check for Amount Limit
-			if (!accountDebit.getAcct_ownership().equals("O")) {
-
-				Long userId = Long.parseLong(keyDebit[0]);
-				WalletUser user = walletUserRepository.findByUserId(userId);
-				BigDecimal AmtVal = BigDecimal.valueOf(user.getCust_debit_limit());
-				if (AmtVal.compareTo(amount) == -1) {
-					return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";
-				}
-
-				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(amount) == -1) {
-					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
-				}
-
-				if (BigDecimal.valueOf(accountDebit.getClr_bal_amt()).compareTo(BigDecimal.ONE) != 1) {
-					return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
-				}
-			}
-			// Token Fetch
-			MyData tokenData = tokenService.getUserInformation();
-			String email = tokenData != null ? tokenData.getEmail() : "";
-			String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
-			// **********************************************
-
-			// AUth Security check
-			// **********************************************
-			if (!accountDebit.getAcct_ownership().equals("O")) {
-				if (accountDebit.isAcct_cls_flg())
-					return "DJGO|DEBIT ACCOUNT IS CLOSED || BLOCKED";
-				log.info("Debit Account is: {}", accountDebit.getAccountNo());
-				log.info("Debit Account Freeze Code is: {}", accountDebit.getFrez_code());
-				if (accountDebit.getFrez_code() != null) {
-					if (accountDebit.getFrez_code().equals("D"))
-						return "DJGO|DEBIT ACCOUNT IS ON DEBIT FREEZE";
-				}
-
-				if (accountDebit.getLien_amt() != 0) {
-					double oustbal = accountDebit.getClr_bal_amt() - accountDebit.getLien_amt();
-					if (new BigDecimal(oustbal).compareTo(BigDecimal.ONE) != 1) {
-						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
-					}
-					if (new BigDecimal(oustbal).compareTo(amount) == -1) {
-						return "DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE";
-					}
-				}
-
-				BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
-				if (userLim.compareTo(amount) == -1) {
-					return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
-				}
-			}
-
-			if (!accountCredit.getAcct_ownership().equals("O")) {
-				if (accountCredit.isAcct_cls_flg())
-					return "DJGO|CREDIT ACCOUNT IS CLOSED";
-
-				log.info("Credit Account is: {}", accountCredit.getAccountNo());
-				log.info("Credit Account Freeze Code is: {}", accountCredit.getFrez_code());
-				if (accountCredit.getFrez_code() != null) {
-					if (accountCredit.getFrez_code().equals("C"))
-						return "DJGO|CREDIT ACCOUNT IS ON CREDIT FREEZE";
-				}
-			}
-
-			// **********************************************
-			// Account Transaction Locks
-			// *********************************************
-
-			// **********************************************
-			String tranId;
-			if (tranType.getValue().equalsIgnoreCase("CARD") || tranType.getValue().equalsIgnoreCase("LOCAL")) {
-				tranId = tempwallet.SystemGenerateTranId();
-			} else {
-				tranId = tempwallet.GenerateTranId();
-			}
-			if (tranId.equals("")) {
-				return "DJGO|TRANSACTION ID GENERATION FAILED: PLS CONTACT ADMIN";
-			}
-			// MyData tokenData = tokenService.getUserInformation();
-			// String email = tokenData != null ? tokenData.getEmail() : "";
-			// String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
-			String senderName = accountDebit.getAcct_name();
-			String receiverName = accountCredit.getAcct_name();
-
-			String tranNarrate = "WALLET-" + tranNarration;
-			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,
-					n, tranCategory,senderName,receiverName);
-
-			n = n + 1;
-			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
-					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email,
-					n, tranCategory,senderName,receiverName);
-			log.info("TRANSACTION CREATION DEBIT: {} WITH CREDIT: {}", tranDebit.toString(), tranCredit.toString());
-			walletTransactionRepository.saveAndFlush(tranDebit);
-			walletTransactionRepository.saveAndFlush(tranCredit);
-			tempwallet.updateTransaction(paymentRef, amount, tranId);
-
-			double clrbalAmtDr = accountDebit.getClr_bal_amt() - amount.doubleValue();
-			double cumbalDrAmtDr = accountDebit.getCum_dr_amt() + amount.doubleValue();
-			accountDebit.setLast_tran_id_dr(tranId);
-			accountDebit.setClr_bal_amt(clrbalAmtDr);
-			accountDebit.setCum_dr_amt(cumbalDrAmtDr);
-			accountDebit.setLast_tran_date(LocalDate.now());
-			walletAccountRepository.saveAndFlush(accountDebit);
-
-			double clrbalAmtCr = accountCredit.getClr_bal_amt() + amount.doubleValue();
-			double cumbalCrAmtCr = accountCredit.getCum_cr_amt() + amount.doubleValue();
-			accountCredit.setLast_tran_id_cr(tranId);
-			accountCredit.setClr_bal_amt(clrbalAmtCr);
-			accountCredit.setCum_cr_amt(cumbalCrAmtCr);
-			accountCredit.setLast_tran_date(LocalDate.now());
-			walletAccountRepository.saveAndFlush(accountCredit);
-			log.info("END TRANSACTION");
-			// HttpServletRequest request
-			String token = request.getHeader(SecurityConstants.HEADER_STRING);
-			String receiverAcct = accountCredit.getAccountNo();
-			String receiverName2 = accountCredit.getAcct_name();
-			CompletableFuture.runAsync(() -> externalServiceProxy.printReceipt(amount, receiverAcct, paymentRef,
-					new Date(), tranType.getValue(), userId, receiverName2, tranCategory.getValue(), token,senderName));
 
 
 
-
-			sendInApp( token,  accountCredit,  tranId,  new Date().toString(), tranCrncy, amount, tokenData, tranNarration,tranCategory);
-
-
-			return tranId;
-		} catch (Exception e) {
-			e.printStackTrace();
-			return ("DJGO|" + e.getMessage());
-		}
-
-	}
-
-	private void sendInApp(String token, WalletAccount accountCredit, String tranId, String tranDate, String tranCrncy, BigDecimal amount, MyData tokenData, String tranNarration, CategoryType categoryType){
-		//WalletAccount xAccount = walletAccountRepository.findByAccountNo(fromAccountNumber.getAccountNo());
-
-		log.info("categoryType : " + categoryType);
-		WalletUser xUser = walletUserRepository.findByAccount(accountCredit);
-		String xfullName = xUser.getFirstName() + " " + xUser.getLastName();
-
-		String message1 = formatCreditMessage(amount, tranId, tranDate, tranCrncy,
-				tranNarration);
-		CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(CREDIT_TRANSACTION_ALERT,token, xfullName,
-				xUser.getEmailAddress(), message1, tokenData.getId(), amount.toString(), tranId,
-				tranDate, tranNarration));
-		CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName, xUser.getMobileNo(),
-				message1, xUser.getId()));
-		CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, xUser.getUserId().toString(),
-				message1, tokenData.getId(),COMMISSION));
-
-	}
-//BankPaymentOffice
 public String BankTransactionPayOffice(String eventId, String creditAcctNo, String tranCrncy, BigDecimal amount,
 								 TransactionTypeEnum tranType, String tranNarration, String paymentRef, String bk,
 								 HttpServletRequest request, CategoryType tranCategory, String senderName, String receiverName) {
@@ -4325,7 +4106,8 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 			if(tokenData !=null){
 				CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(Constant.REVERSE_TRANSACTION_ALERT,token, fullName,
 						xUser.getEmailAddress(), message2, tokenData.getId(), trans.getTranAmount().toString(), trans.getTranId(),
-						trans.getTranDate().toString(), trans.getTranNarrate()));
+						trans.getTranDate().toString(), trans.getTranNarrate(), "","", ""));
+
 				CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, xUser.getMobileNo(),
 						message2, tokenData.getId()));
 				CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getUserId().toString(),

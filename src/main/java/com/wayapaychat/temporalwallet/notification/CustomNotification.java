@@ -58,7 +58,7 @@ public class CustomNotification {
 	}
 	
 	public void pushTranEMAIL(String subject, String token, String name, String email, String message, Long userId,
-			String amount, String tranId, String tranDate, String narrate) {
+			String amount, String tranId, String tranDate, String narrate, String accountNumber, String transactionType, String availableBalance) {
 
 		TransEmailEvent emailEvent = new TransEmailEvent();
 
@@ -84,8 +84,25 @@ public class CustomNotification {
 		emailEvent.setTransactionId(tranId);
 		emailEvent.setTransactionDate(CryptoUtils.getNigeriaDate(tranDate));
 		emailEvent.setNarration(narrate);
+		emailEvent.setAvailableBalance(availableBalance);
+		emailEvent.setAccountName(name);
+		emailEvent.setAccountNumber(accountNumber);
+		emailEvent.setTransactionCurrency("NGN");
+		emailEvent.setTransactionType(transactionType);
+
 		log.info("REQUEST EMAIL TRANSACTION: " + emailEvent.toString());
 
+		/*
+		Account
+Transaction Type
+Transaction Amount
+Transaction Currency
+Account Number
+Transaction Narration
+Transaction Reference
+Date and Time
+Available Balance
+		 */
 		try {
 			postEmailNotification(emailEvent, token);
 		} catch (Exception ex) {
