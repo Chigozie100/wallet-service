@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import com.wayapaychat.temporalwallet.config.SecurityConstants;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,7 +18,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 
 import com.wayapaychat.temporalwallet.SpringApplicationContext;
-import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.pojo.TokenCheckResponse;
 import com.wayapaychat.temporalwallet.service.GetUserDataService;
 
@@ -42,28 +40,24 @@ public class AuthorizationFilter extends BasicAuthenticationFilter {
             return;
         }
 
-        UsernamePasswordAuthenticationToken authentication = getAuthentication(header);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        chain.doFilter(req, res);
-    }
-
-    private UsernamePasswordAuthenticationToken getAuthentication(String request) {
-
-        if (request == null) {
-            return null;
-        }
         GetUserDataService authProxy = (GetUserDataService) SpringApplicationContext.getBean("getUserDataService");
-        TokenCheckResponse tokenResponse = authProxy.getUserData(request);
+        TokenCheckResponse tokenResponse = authProxy.getUserData(header);
 
-        if (!tokenResponse.isStatus()) {
-            log.error("Error::: {}, {} and {}", tokenResponse.getMessage(), 2, 3);
-            throw new CustomException(tokenResponse.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY);
+        if(tokenResponse.isStatus()){
+            List<GrantedAuthority> grantedAuthorities = tokenResponse.getData().getRoles().stream().map(r -> {
+                log.info("Privilege List::: {}, {} and {}", r, 2, 3);
+                return new SimpleGrantedAuthority(r);
+            }).collect(Collectors.toList());
+
+            SecurityContextHolder.getContext().setAuthentication(
+                new UsernamePasswordAuthenticationToken(tokenResponse.getData(), null, grantedAuthorities)
+            );
         }
-        List<GrantedAuthority> grantedAuthorities = tokenResponse.getData().getRoles().stream().map(r -> {
-            log.info("Privilege List::: {}, {} and {}", r, 2, 3);
-            return new SimpleGrantedAuthority(r);
-        }).collect(Collectors.toList());
-        return new UsernamePasswordAuthenticationToken(tokenResponse.getData(), null, grantedAuthorities);
+
+        chain.doFilter(req, res);
 
     }
+
+
+
 }

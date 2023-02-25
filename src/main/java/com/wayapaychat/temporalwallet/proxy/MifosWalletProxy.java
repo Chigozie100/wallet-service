@@ -2,10 +2,11 @@ package com.wayapaychat.temporalwallet.proxy;
 
 import com.wayapaychat.temporalwallet.dto.ExternalCBAAccountDetailsResponse;
 import com.wayapaychat.temporalwallet.dto.ExternalCBAResponse;
+import com.wayapaychat.temporalwallet.dto.MifosTransaction;
 import com.wayapaychat.temporalwallet.dto.MifosTransfer;
 import com.wayapaychat.temporalwallet.pojo.MifosBlockAccount;
-import com.wayapaychat.temporalwallet.pojo.MifosCreateAccount;
-import com.wayapaychat.temporalwallet.response.MifosAccountCreationResponse;
+import com.wayapaychat.temporalwallet.pojo.CreateAccountData;
+import com.wayapaychat.temporalwallet.response.ExternalCBAAccountCreationResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 
@@ -52,7 +53,7 @@ public interface MifosWalletProxy {
 	ApiResponse getByAccountNumber(@RequestParam("accountNo") String accountNo, @RequestHeader("authorization") String token);
 
 	@PostMapping("/wallet/create/user")
-	MifosAccountCreationResponse createAccount(@RequestBody MifosCreateAccount reAccount);
+	ExternalCBAAccountCreationResponse createAccount(@RequestBody CreateAccountData reAccount);
 
 	@DeleteMapping("/wallet/account/block")
 	ApiResponse<?> blockAccount(@RequestHeader("authorization") String token, @RequestBody MifosBlockAccount reAccount);
@@ -65,5 +66,11 @@ public interface MifosWalletProxy {
 
 	@PostMapping("/wallet/transfer")
 	ExternalCBAResponse transferMoney(@RequestBody MifosTransfer transfer);
+
+	@PostMapping("/wallet/glEntry")
+    ExternalCBAResponse applyGLEntry(MifosTransfer mifosTransfer);
+
+	@PostMapping("/wallet/transaction")
+    ExternalCBAResponse processTransaction(MifosTransaction mifosTransfer);
 
 }

@@ -83,7 +83,7 @@ public class AdminController {
 
         try{
             log.info("Send Money: {}", transfer);
-            return coreBankingService.transfer(transactionDTO, "WAYAOFFTOOFF", request);
+            return coreBankingService.processTransaction(transactionDTO, "WAYAOFFTOOFF", request);
 
         }catch (CustomException ex){
             return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
@@ -106,7 +106,7 @@ public class AdminController {
 
         try{
             log.info("Send Money: {}", transfer);
-            return coreBankingService.transfer(transactionDTO, "WAYAOFFTOCUS", request);
+            return coreBankingService.processTransaction(transactionDTO, "WAYAOFFTOCUS", request);
 
         }catch (CustomException ex){
             return new ResponseEntity<>(new ErrorResponse(ex.getMessage()), HttpStatus.BAD_REQUEST);
