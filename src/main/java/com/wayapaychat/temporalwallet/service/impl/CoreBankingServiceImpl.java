@@ -636,7 +636,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         if(tokenImpl.validatePIN(request.getHeader("authorization"), request.getHeader("pin"))){
-            log.error("pin validation failed for debiting account{} with amount{}", accountNumber, amount);
+            log.error("pin {} validation failed for debiting account {} with amount{}", request.getHeader("pin"), accountNumber, amount);
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_PIN.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
