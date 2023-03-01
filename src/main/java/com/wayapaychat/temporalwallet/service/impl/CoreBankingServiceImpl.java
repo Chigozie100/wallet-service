@@ -1011,7 +1011,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return response;
         }
 
-        cbaTransaction.setDebitGLAccount(cbaTransaction.getCreditGLAccount());
         cbaTransaction.setCreditGLAccount(chargeCollectionAccount);
         cbaTransaction.setAmount( cbaTransaction.getCharge());
         processCBATransactionGLDoubleEntryWithTransit(cbaTransaction);
