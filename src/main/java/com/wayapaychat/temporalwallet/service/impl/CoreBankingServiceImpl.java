@@ -1008,7 +1008,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         cbaTransaction.setCreditGLAccount(vatCollectionAccount);
-        cbaTransaction.setAmount( cbaTransaction.getCharge());
+        cbaTransaction.setAmount( cbaTransaction.getVat());
         processCBATransactionGLDoubleEntryWithTransit(cbaTransaction);
 
         /**
