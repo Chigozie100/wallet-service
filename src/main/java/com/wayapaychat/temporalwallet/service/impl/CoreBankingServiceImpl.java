@@ -1027,6 +1027,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                 cbaTransaction.getTransitGLAccount());
         String debitAccount = cbaTransaction.getDebitGLAccount();
         String creditAccount = cbaTransaction.getCreditGLAccount();
+        BigDecimal amount = cbaTransaction.getAmount();
 
         cbaTransaction.setDebitGLAccount(cbaTransaction.getCustomerAccount());
         cbaTransaction.setCreditGLAccount(cbaTransaction.getCustomerAccount());
@@ -1043,6 +1044,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         cbaTransaction.setCustomerAccount(creditAccount);
         cbaTransaction.setCharge(BigDecimal.valueOf(0));
         cbaTransaction.setVat(BigDecimal.valueOf(0));
+        cbaTransaction.setAmount(amount);
         response = processCBACustomerDepositTransactionWithDoubleEntryTransit(cbaTransaction);
 
         return response;
