@@ -44,7 +44,7 @@ public class SetupDataLoader{
 			}
 		}
 
-		//userAccountService.setupExternalCBA();
+		userAccountService.setupExternalCBA();
 
 		alreadySetup = true;
 
