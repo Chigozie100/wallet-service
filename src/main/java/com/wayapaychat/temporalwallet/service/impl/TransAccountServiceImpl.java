@@ -1184,7 +1184,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		MyData userToken = (MyData)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-		String wayaDisbursementAccount = coreBankingService.getEventAccountNumber(transfer.getEventId());
+		String wayaDisbursementAccount = coreBankingService.getEventAccountNumber(EventCharge.DISBURS_.name().concat(transfer.getEventId()));
 
 		log.info("BankTransferPayment :: wayaDisbursementAccount " + wayaDisbursementAccount);
 
