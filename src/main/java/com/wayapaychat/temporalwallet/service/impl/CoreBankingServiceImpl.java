@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -313,6 +314,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         BigDecimal chargeAmount = computeTransactionFee(transferTransactionRequestData.getDebitAccountNumber(),
                 transferTransactionRequestData.getAmount(), channelEventId);
         BigDecimal vatAmount = computeVatFee(chargeAmount, channelEventId);
+        String customerAccount = null;
 
         if (transferTransactionRequestData.getDebitAccountNumber().length() > 10
                 && transferTransactionRequestData.getBenefAccountNumber().length() > 10) {
@@ -325,6 +327,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transferTransactionRequestData.getTranType(),
                             transferTransactionRequestData.getAmount(),
                             chargeAmount, vatAmount, provider, channelEventId,CBAAction.MOVE_GL_TO_GL));
+            customerAccount = transferTransactionRequestData.getDebitAccountNumber();
         } else if (transferTransactionRequestData.getDebitAccountNumber().length() > 10
                 && transferTransactionRequestData.getBenefAccountNumber().length() == 10) {
             response = processCBACustomerDepositTransactionWithDoubleEntryTransit(
@@ -336,6 +339,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transferTransactionRequestData.getTranType(),
                             transferTransactionRequestData.getAmount(),
                             BigDecimal.valueOf(0), BigDecimal.valueOf(0), provider, channelEventId, CBAAction.DEPOSIT));
+            customerAccount = transferTransactionRequestData.getBenefAccountNumber();
         } else if (transferTransactionRequestData.getDebitAccountNumber().length() == 10
                 && transferTransactionRequestData.getBenefAccountNumber().length() > 10) {
 
@@ -348,6 +352,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transferTransactionRequestData.getTranType(),
                             transferTransactionRequestData.getAmount(),
                             chargeAmount, vatAmount, provider, channelEventId, CBAAction.WITHDRAWAL));
+            customerAccount = transferTransactionRequestData.getDebitAccountNumber();
         } else {
             response = processCBACustomerTransferTransactionWithDoubleEntryTransit(
                     new CBATransaction(userData, transferTransactionRequestData.getPaymentReference(), transitAccount,
@@ -358,12 +363,22 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transferTransactionRequestData.getTranType(),
                             transferTransactionRequestData.getAmount(),
                             chargeAmount, vatAmount, provider, channelEventId, CBAAction.MOVE_CUSTOMER_TO_CUSTOMER));
+            customerAccount = transferTransactionRequestData.getDebitAccountNumber();
         }
 
         WalletTransStatus transactionStatus = response.getStatusCode().is2xxSuccessful()?WalletTransStatus.SUCCESSFUL:WalletTransStatus.REVERSED;
         updateTransactionLog(tranId, transactionStatus);
 
-        return response;
+        Optional<List<WalletTransaction>> transaction = walletTransactionRepository
+                            .findByReferenceAndAccount(transferTransactionRequestData.getPaymentReference(), customerAccount);
+                            
+        if (transaction.isEmpty()) {
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        return new ResponseEntity<>(new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue(), transaction),
+                HttpStatus.CREATED);
 
     }
 
