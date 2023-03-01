@@ -1028,12 +1028,13 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         String debitAccount = cbaTransaction.getDebitGLAccount();
         String creditAccount = cbaTransaction.getCreditGLAccount();
         BigDecimal amount = cbaTransaction.getAmount();
+        String eventGL = cbaTransaction.getCustomerAccount();
 
-        cbaTransaction.setDebitGLAccount(cbaTransaction.getCustomerAccount());
-        cbaTransaction.setCreditGLAccount(cbaTransaction.getCustomerAccount());
 
         cbaTransaction.setAction(CBAAction.WITHDRAWAL);
         cbaTransaction.setCustomerAccount(debitAccount);
+        cbaTransaction.setDebitGLAccount(eventGL);
+        cbaTransaction.setCreditGLAccount(eventGL);
         ResponseEntity<?> response = processCBACustomerWithdrawTransactionWithDoubleEntryTransit(cbaTransaction);
 
         if (!response.getStatusCode().is2xxSuccessful()) {
@@ -1045,6 +1046,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         cbaTransaction.setCharge(BigDecimal.valueOf(0));
         cbaTransaction.setVat(BigDecimal.valueOf(0));
         cbaTransaction.setAmount(amount);
+        cbaTransaction.setDebitGLAccount(eventGL);
+        cbaTransaction.setCreditGLAccount(eventGL);
         response = processCBACustomerDepositTransactionWithDoubleEntryTransit(cbaTransaction);
 
         return response;
