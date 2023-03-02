@@ -29,12 +29,15 @@ public class WalletTransAccount {
     @NotNull
     private String creditAccountNumber;
 
-
     @NotNull
     private String debitAccountNumber;
 
     @NotNull
     private BigDecimal tranAmount;
+
+    private BigDecimal chargeAmount;
+
+    private BigDecimal vatAmount;
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -46,9 +49,9 @@ public class WalletTransAccount {
 
     private String tranCrncy;
 
+    private String eventId;
+
     @Enumerated(EnumType.STRING)
     private WalletTransStatus status;  // PENDING  // REVERSED  // SUCCESSFUL
-
-
 
 }

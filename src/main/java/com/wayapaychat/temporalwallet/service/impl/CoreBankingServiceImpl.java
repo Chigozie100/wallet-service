@@ -23,6 +23,7 @@ import com.wayapaychat.temporalwallet.dto.AccountSumary;
 import com.wayapaychat.temporalwallet.dto.ExternalCBAResponse;
 import com.wayapaychat.temporalwallet.dto.MifosTransaction;
 import com.wayapaychat.temporalwallet.dto.MifosTransfer;
+import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
 import com.wayapaychat.temporalwallet.pojo.CBATransaction;
@@ -302,19 +303,19 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     HttpStatus.BAD_REQUEST);
         }
 
-        Long tranId = logTransaction(transferTransactionRequestData.getDebitAccountNumber(),
-                transferTransactionRequestData.getBenefAccountNumber(),
-                transferTransactionRequestData.getAmount(), transferTransactionRequestData.getTransactionCategory(),
-                transferTransactionRequestData.getTranCrncy(), WalletTransStatus.PENDING);
-        if (tranId == null) {
-            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
-                    HttpStatus.BAD_REQUEST);
-        }
-
         BigDecimal chargeAmount = computeTransactionFee(transferTransactionRequestData.getDebitAccountNumber(),
                 transferTransactionRequestData.getAmount(), channelEventId);
         BigDecimal vatAmount = computeVatFee(chargeAmount, channelEventId);
         String customerAccount = null;
+
+        Long tranId = logTransaction(transferTransactionRequestData.getDebitAccountNumber(),
+                transferTransactionRequestData.getBenefAccountNumber(),
+                transferTransactionRequestData.getAmount(), chargeAmount, vatAmount, transferTransactionRequestData.getTransactionCategory(),
+                transferTransactionRequestData.getTranCrncy(), channelEventId, WalletTransStatus.PENDING);
+        if (tranId == null) {
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
+                    HttpStatus.BAD_REQUEST);
+        }
 
         if (transferTransactionRequestData.getDebitAccountNumber().length() > 10
                 && transferTransactionRequestData.getBenefAccountNumber().length() > 10) {
@@ -380,6 +381,12 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         return new ResponseEntity<>(new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue(), transaction),
                 HttpStatus.CREATED);
 
+    }
+
+    @Override
+    public ResponseEntity<?> processTransactionReversal(ReverseTransactionDTO reverseDTO, HttpServletRequest request){
+        
+        return new ResponseEntity<>(new SuccessResponse(ResponseCodes.REVERSAL_SUCCESSFUL.getValue(), null), HttpStatus.CREATED);
     }
 
     @Override
@@ -489,8 +496,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public Long logTransaction(String fromAccountNumber, String toAccountNumber, BigDecimal amount,
-                               String transCategory, String tranCrncy, WalletTransStatus status) {
+    public Long logTransaction(String fromAccountNumber, String toAccountNumber, BigDecimal amount, BigDecimal chargeAmount, BigDecimal vatAmount,
+                               String transCategory, String tranCrncy, String eventId, WalletTransStatus status) {
 
         String code = new Util().generateRandomNumber(9);
         try {
@@ -499,9 +506,12 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             walletTransAccount.setDebitAccountNumber(fromAccountNumber);
             walletTransAccount.setCreditAccountNumber(toAccountNumber);
             walletTransAccount.setTranAmount(amount);
+            walletTransAccount.setChargeAmount(chargeAmount);
+            walletTransAccount.setVatAmount(vatAmount);
             walletTransAccount.setTranId(code);
             walletTransAccount.setTransactionType(transCategory);
             walletTransAccount.setTranCrncy(tranCrncy);
+            walletTransAccount.setEventId(eventId);
             walletTransAccount.setStatus(status);
             return walletTransAccountRepository.save(walletTransAccount).getId();
         } catch (CustomException ex) {
