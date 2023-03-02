@@ -16,11 +16,9 @@ public class GetUserDataService {
 	@Autowired
 	private AuthProxy authProxy;
 
-
-
 	public TokenCheckResponse getUserData(String token) {
-		TokenCheckResponse res = new TokenCheckResponse(null, false, "Failed to fetch data", null);
-		
+		TokenCheckResponse res = new TokenCheckResponse(null, false, "Failed to validat token", null);
+
 		try {
 			res = authProxy.getUserDataToken(token);
 			log.info("::::Token::::" + res.getMessage());
@@ -30,8 +28,7 @@ public class GetUserDataService {
 				String httpStatus = Integer.toString(((FeignException) ex).status());
 				log.error("Feign Exception Status {}", httpStatus);
 			}
-			log.error("Higher Wahala {}", ex.getMessage());
-			log.error("FEIGN ERROR: " + ex.getLocalizedMessage());
+			log.error("FEIGN ERROR: {}", ex.getMessage());
 		}
 		return res;
 	}

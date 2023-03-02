@@ -39,12 +39,12 @@ public class CBAEntryTransaction {
         this.amount = amount;
 
         this.userToken = userToken;
-        this.senderName = "WAYA USER";
-	    this.receiverName = "WAYA USER";
+        this.senderName = "";
+	    this.receiverName = "";
     }
 
     public CBAEntryTransaction(MyData userToken, String tranId, String paymentReference, CategoryType transactionCategory, String accountNo, String tranNarration,BigDecimal amount,
-                Integer tranPart, TransactionTypeEnum tranType, String receiverName) {
+                Integer tranPart, TransactionTypeEnum tranType, String senderName, String receiverName) {
         this.accountNo = accountNo; 
         this.amount = amount;
         this.tranPart = tranPart;
@@ -53,28 +53,12 @@ public class CBAEntryTransaction {
         this.tranNarration = tranNarration;
         this.paymentReference = paymentReference;
         this.transactionCategory = transactionCategory;
-        this.receiverName = receiverName;
 
         this.userToken = userToken;
-        this.senderName = "WAYA USER";
-	    this.receiverName = "WAYA USER";
-    }
-
-    public CBAEntryTransaction(MyData userToken, String tranId, String paymentReference, CategoryType transactionCategory, String accountNo, String tranNarration,BigDecimal amount,
-                Integer tranPart, String senderName, TransactionTypeEnum tranType) {
-        this.accountNo = accountNo; 
-        this.amount = amount;
-        this.tranPart = tranPart;
-        this.tranId = tranId;
-        this.tranType = tranType;
-        this.tranNarration = tranNarration;
-        this.paymentReference = paymentReference;
-        this.transactionCategory = transactionCategory;
         this.senderName = senderName;
-
-        this.userToken = userToken;
-        this.senderName = "WAYA USER";
-	    this.receiverName = "WAYA USER";
+        this.receiverName = receiverName;
     }
+
+
 
 }

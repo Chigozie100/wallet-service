@@ -11,6 +11,8 @@ public enum EventCharge {
     VAT_,
     DISBURS_,
     COLLECTION_,
+    _PAYOUT,
+    _FUNDING,
     WAYATRAN,
     PAYSTACK;
     public static Optional<EventCharge> find(String value){

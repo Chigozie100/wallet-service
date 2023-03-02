@@ -152,7 +152,7 @@ public class PostPaymentServiceImpl implements IPostPaymentService {
                         transfer.getTranNarration());
                 CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(DEBIT_TRANSACTION_ALERT,token, xfullName,
                         xUser.getEmailAddress(), message1, userToken.getId(), transfer.getAmount().toString(), tranId,
-                        tranDate, transfer.getTranNarration()));
+                        tranDate, transfer.getTranNarration(),xAccount.getAccountNo(),"DR",""));
                 CompletableFuture.runAsync(() -> customNotification.pushSMS(token, xfullName, xUser.getMobileNo(),
                         message1, userToken.getId()));
                 CompletableFuture.runAsync(() -> customNotification.pushInApp(token, xfullName, "0",
@@ -166,7 +166,7 @@ public class PostPaymentServiceImpl implements IPostPaymentService {
                         transfer.getTranNarration());
                 CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(CREDIT_TRANSACTION_ALERT,token, yfullName,
                         yUser.getEmailAddress(), message2, userToken.getId(), transfer.getAmount().toString(), tranId,
-                        tranDate, transfer.getTranNarration()));
+                        tranDate, transfer.getTranNarration(),yAccount.getAccountNo(),"CR",""));
                 CompletableFuture.runAsync(() -> customNotification.pushSMS(token, yfullName, yUser.getMobileNo(),
                         message2, userToken.getId()));
                 CompletableFuture.runAsync(() -> customNotification.pushInApp(token, yfullName, yUser.getUserId().toString(),
