@@ -66,8 +66,6 @@ import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.notification.CustomNotification;
 
-import static com.wayapaychat.temporalwallet.util.Constant.NON_WAYA_TRANSACTION_ALERT;
-
 @Service
 @Slf4j
 public class CoreBankingServiceImpl implements CoreBankingService {
