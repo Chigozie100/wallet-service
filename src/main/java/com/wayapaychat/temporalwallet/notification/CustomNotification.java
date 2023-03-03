@@ -90,7 +90,7 @@ public class CustomNotification {
 		emailEvent.setTransactionCurrency("NGN");
 		emailEvent.setTransactionType(transactionType);
 
-		log.info("REQUEST EMAIL TRANSACTION: " + emailEvent.toString());
+		log.debug("REQUEST EMAIL TRANSACTION: " + emailEvent.toString());
 
 		/*
 		Account

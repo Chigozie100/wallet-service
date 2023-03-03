@@ -1184,7 +1184,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 		MyData userToken = (MyData)SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
-		String wayaDisbursementAccount = coreBankingService.getEventAccountNumber(transfer.getEventId());
+		String wayaDisbursementAccount = coreBankingService.getEventAccountNumber(EventCharge.DISBURS_.name().concat(transfer.getEventId()));
 
 		log.info("BankTransferPayment :: wayaDisbursementAccount " + wayaDisbursementAccount);
 
@@ -3994,6 +3994,9 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 	public ResponseEntity<?> ReversePayment(HttpServletRequest request, ReverseTransactionDTO reverseDto)
 			throws ParseException {
+		
+		return coreBankingService.processTransactionReversal(reverseDto, request);
+		/* 
 		DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
 		String toDate = dateFormat.format(new Date());
 		String tranDate = dateFormat.format(reverseDto.getTranDate());
@@ -4058,7 +4061,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 			return new ResponseEntity<>(new SuccessResponse("REVERSE SUCCESSFULLY", statement), HttpStatus.CREATED);
 		} else {
 			return new ResponseEntity<>(new SuccessResponse("TRANSACTION DATE WAS IN PAST", null), HttpStatus.CREATED);
-		}
+		}*/
 
 	}
 
