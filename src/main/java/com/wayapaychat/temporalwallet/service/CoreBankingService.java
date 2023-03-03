@@ -1,6 +1,7 @@
 package com.wayapaychat.temporalwallet.service;
 
 
+import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.entity.Provider;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
@@ -43,9 +44,12 @@ public interface CoreBankingService {
 
     ResponseEntity<?> processTransaction(TransferTransactionDTO transferTransactionDTO, String channelEventId, HttpServletRequest request);
 
+    ResponseEntity<?> processTransactionReversal(ReverseTransactionDTO reverseDTO, HttpServletRequest request);
+
     String getEventAccountNumber(String channelEventId);
 
-    Long logTransaction(String fromAccountNumber, String toAccountNumber, BigDecimal amount, String transCategory,String tranCrncy, WalletTransStatus status);
+    Long logTransaction(String fromAccountNumber, String toAccountNumber, BigDecimal amount, BigDecimal chargeAmount, BigDecimal vatAmount,
+                                String transCategory, String tranCrncy, String eventId, WalletTransStatus status);
 
     void updateTransactionLog(Long tranId, WalletTransStatus status);
 

@@ -6,7 +6,6 @@ import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
@@ -19,8 +18,6 @@ public interface WalletAccountRepository extends JpaRepository<WalletAccount, Lo
 
     WalletAccount findByNubanAccountNo(String nubanAccountNo);
 
-
-    
     @Query("SELECT u FROM WalletAccount u WHERE u.nubanAccountNo = '0' AND u.del_flg = false")
     List<WalletAccount> findByAllNonNubanAccount();
 

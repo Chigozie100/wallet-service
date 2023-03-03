@@ -19,6 +19,9 @@ public class ApiResponse<E> implements Serializable {
     private E data;
     
 
+    private ApiResponse(){
+        
+    }
 
     private ApiResponse(Boolean status, Integer code, String message, E data) {
         this.status = status;

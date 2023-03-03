@@ -18,7 +18,7 @@ public interface AuthProxy {
     @GetMapping("/pin/validate-pin/{pin}")
     ApiResponse validatePin(@PathVariable("pin") String pin, @RequestHeader("Authorization") String token);
 
-    @GetMapping("/pin/validate-pin")
+    @PostMapping("/pin/validate-pin")
     ApiResponse validatePostPin(@RequestBody HashMap request, @RequestHeader("Authorization") String token);
 
     @PostMapping("/auth/validate-user")

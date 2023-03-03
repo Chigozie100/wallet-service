@@ -2121,7 +2121,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
 	@Override
 	public void setupExternalCBA(){
-		List<WalletAccount> walletAccounts = walletAccountRepository.findAll();
+		List<WalletAccount> walletAccounts = walletAccountRepository.findByWayaAccount();
 
 		for (WalletAccount wallet : walletAccounts) {
 			if("0".equals(wallet.getNubanAccountNo()))
