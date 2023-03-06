@@ -15,6 +15,7 @@ import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.enumm.EventCharge;
 import com.wayapaychat.temporalwallet.exception.CustomException;
+import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import com.wayapaychat.temporalwallet.service.TransactionCountService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
@@ -763,12 +764,5 @@ public class WalletTransactionController {
 	public BigDecimal getUserTransactionFee(@PathVariable String accountNo, @PathVariable BigDecimal amount, @PathVariable String eventId) {
 		return transAccountService.computeTransFee(accountNo,amount,eventId);
 	}
-
-@ApiOperation(value = "User Transaction Fee ", notes = "User Transaction Fee", tags = { "TRANSACTION-WALLET" })
-@GetMapping("/transaction/email")
-public void transactionEmail(@RequestBody CBAEntryTransaction transactionPojo, @RequestParam("currentBalance") double currentBalance, @RequestParam("tranType") String tranType) {
-	 coreBankingService.logNotification("",transactionPojo,currentBalance,tranType);
-	//logNotification(CBAEntryTransaction transactionPojo, double currentBalance, String tranType);
-}
 
 }

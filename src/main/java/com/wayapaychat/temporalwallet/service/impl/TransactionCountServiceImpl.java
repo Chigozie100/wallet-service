@@ -62,13 +62,7 @@ public class TransactionCountServiceImpl implements TransactionCountService {
 
     @Override
     public void makeCount(String userId, String transactionRef) {
-        TransactionCount transactionCount = new TransactionCount();
-        transactionCount.setCreatedAt(new Date());
-        transactionCount.setTransactionReference(transactionRef);
-        transactionCount.setUserId(userId);
-        transactionCountRepository.save(transactionCount);
 
-        TransactionCount request = new TransactionCount();
         Map<String, Object> map = new HashMap<>();
         map.put("userId", userId);
         map.put("transactionId", transactionRef);

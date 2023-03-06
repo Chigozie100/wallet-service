@@ -1,5 +1,5 @@
 server:
-  port: 8066
+  port: 9009
   servlet:
     context-path: /temporal-service
 spring:
@@ -66,9 +66,9 @@ job:
 eureka:
  client:
    serviceUrl:
-     defaultZone: https://services.staging.wayabank.ng/eureka
+     defaultZone: http://localhost/eureka
    service-url:
-     default-zone: https://services.staging.wayabank.ng/eureka
+     default-zone: http://localhost/eureka
  instance:
    preferIpAddress: true
 
@@ -97,7 +97,7 @@ waya:
     base-url: ${CONFIG_BASEURL_LOGAUDIT:https://services.staging.wayabank.ng/logs-service}
   notification:
     service: NOTIFICATION-SERVICE
-    notificationurl: ${CONFIG_BASEURL_NOTIFICATION:https://services.staging.wayabank.ng/notification-service}
+    notificationurl: ${CONFIG_BASEURL_NOTIFICATION:http://localhost:8099/notification-service}
   receipt:
     service: RECEIPT-SERVICE
     receipturl: ${CONFIG_BASEURL_RECEIPT:https://services.staging.wayabank.ng/transaction-receipt}

@@ -4301,7 +4301,7 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		response.put("totalPages", walletTransactionPage.getTotalPages());
 
 		if (transaction.isEmpty()) {
-			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO REPORT SPECIFIED DATE", null);
+			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO RECORD FOUND", null);
 		}
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "OFFICIAL ACCOUNT SUCCESSFULLY", response);
 	}

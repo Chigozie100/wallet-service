@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.dao;
 
 import java.util.List;
 
+import com.google.common.base.Strings;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;

@@ -42,7 +42,7 @@ import java.util.List;
 @Tag(name = "ADMIN", description = "Transaction Wallet Service API")
 @Validated
 @Slf4j
-// @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
+@PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
 public class AdminController {
     private final TransAccountService transAccountService;
     private final CoreBankingService coreBankingService;

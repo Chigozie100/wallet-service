@@ -66,8 +66,6 @@ import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.notification.CustomNotification;
 
-import static com.wayapaychat.temporalwallet.util.Constant.NON_WAYA_TRANSACTION_ALERT;
-
 @Service
 @Slf4j
 public class CoreBankingServiceImpl implements CoreBankingService {
@@ -555,7 +553,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         String tranDate = LocalDate.now().toString();
         log.info("subject= >" , subject);
 
-        AccountSumary account = tempwallet.getAccountSumaryLookUp(transactionPojo.getAccountNo());
+     AccountSumary account = tempwallet.getAccountSumaryLookUp(transactionPojo.getAccountNo());
         if (account == null) {
             return;
         }
@@ -577,7 +575,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         String transactionType = transCat+ " "+"alert";
-
 
         String notifyEmail = !ObjectUtils.isEmpty(account.getNotifyEmail())? account.getNotifyEmail():account.getEmail();
         if (!ObjectUtils.isEmpty(notifyEmail)) {
@@ -706,7 +703,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         if (amount.doubleValue() > Double.parseDouble(account.getDebitLimit())) {
             log.error("Debit limit reached :: {}", account.getDebitLimit());
-            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.DEBIT_LIMIT_REACHED.getValue()),
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.DEBIT_LIMIT_REACHED.getValue()+ " " + account.getDebitLimit() +" "+ ResponseCodes.DEBIT_LIMIT_REACHED_EX.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
 
@@ -716,7 +713,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         totalTransactionToday = totalTransactionToday == null ? new BigDecimal(0) : totalTransactionToday;
         if (totalTransactionToday.doubleValue() >= Double.parseDouble(account.getDebitLimit())) {
             log.error("Debit limit reached :: {}", account.getDebitLimit());
-            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.DEBIT_LIMIT_REACHED.getValue()),
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.DEBIT_LIMIT_REACHED.getValue()+ " " + account.getDebitLimit() +" "+ ResponseCodes.DEBIT_LIMIT_REACHED_EX.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
 
