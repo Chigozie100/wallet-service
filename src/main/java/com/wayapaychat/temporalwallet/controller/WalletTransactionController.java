@@ -35,6 +35,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
 import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
 import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
@@ -762,5 +763,12 @@ public class WalletTransactionController {
 	public BigDecimal getUserTransactionFee(@PathVariable String accountNo, @PathVariable BigDecimal amount, @PathVariable String eventId) {
 		return transAccountService.computeTransFee(accountNo,amount,eventId);
 	}
+
+@ApiOperation(value = "User Transaction Fee ", notes = "User Transaction Fee", tags = { "TRANSACTION-WALLET" })
+@GetMapping("/transaction/email")
+public void transactionEmail(@RequestBody CBAEntryTransaction transactionPojo, @RequestParam("currentBalance") double currentBalance, @RequestParam("tranType") String tranType) {
+	 coreBankingService.logNotification("",transactionPojo,currentBalance,tranType);
+	//logNotification(CBAEntryTransaction transactionPojo, double currentBalance, String tranType);
+}
 
 }

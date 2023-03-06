@@ -67,6 +67,20 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.acctNum) LIKE UPPER('NGN%') " + " AND u.del_flg = false" + " order by u.tranDate DESC ")
 	Page<WalletTransaction> findByAccountOfficial(Pageable pageable);
 
+	@Query("SELECT u FROM WalletTransaction u  " + " WHERE u.del_flg = false"+ " AND u.tranDate BETWEEN  (:fromtranDate)" + " AND (:totranDate)" + " order by u.tranDate DESC ")
+	Page<WalletTransaction> findByAllTransactions(Pageable pageable, LocalDate fromtranDate, LocalDate totranDate);
+
+	@Query("SELECT u FROM WalletTransaction u  " + " WHERE u.del_flg = false"+ " AND u.tranDate BETWEEN  (:fromtranDate)" + " AND (:totranDate)" + " order by u.tranDate DESC ")
+	Page<WalletTransaction> findByAllTransactionsWithDateRange(Pageable pageable, LocalDate fromtranDate, LocalDate totranDate);
+
+	@Query("SELECT u FROM WalletTransaction u  " + " WHERE u.del_flg = false AND u.partTranType = UPPER(:partTranType)"+ " AND u.tranDate BETWEEN  (:fromtranDate)" + " AND (:totranDate)" + " order by u.tranDate DESC ")
+	Page<WalletTransaction> findByAllTransactionsWithDateRangeAndTranType(Pageable pageable, @Param("partTranType") String partTranType, LocalDate fromtranDate, LocalDate totranDate);
+
+
+	@Query("SELECT u FROM WalletTransaction u  " + " WHERE u.del_flg = false AND " + "UPPER(u.tranCategory) = UPPER(:value) OR " + " UPPER(u.partTranType) = UPPER(:value)"+  " AND u.tranDate BETWEEN  (:fromtranDate)" + " AND (:totranDate)" + " order by u.tranDate DESC ")
+	Page<WalletTransaction> findByAllTransactionsWithDateRangeAndTranTypeOR(Pageable pageable, @Param("value") String value, LocalDate fromtranDate, LocalDate totranDate);
+
+
 	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.acctNum) LIKE UPPER('NGN%') " + " AND u.del_flg = false" + " AND u.partTranType = 'C'"  +" AND u.partTranType = 'D'" + " order by u.createdAt DESC ")
 	Page<WalletTransaction> findByAccountOfficial2(Pageable pageable);
 
