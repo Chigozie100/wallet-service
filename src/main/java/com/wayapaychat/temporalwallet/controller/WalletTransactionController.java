@@ -764,12 +764,5 @@ public class WalletTransactionController {
 		return transAccountService.computeTransFee(accountNo,amount,eventId);
 	}
 
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true) })
-	@ApiOperation(value = "TransEmail", notes = "TransEmail", tags = { "TRANSACTION-WALLET" })
-	@PostMapping("/transaction/email")
-	public void testTransEmail(@RequestParam("subject") String subject,
-									 @RequestBody CBAEntryTransaction transactionPojo,@RequestParam("currentBalance") double currentBalance, @RequestParam("tranType") String tranType) {
-		coreBankingService.logNotification(subject,transactionPojo,currentBalance,tranType);
-	}
+
 }
