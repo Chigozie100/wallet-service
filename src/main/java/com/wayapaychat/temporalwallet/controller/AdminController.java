@@ -420,7 +420,7 @@ public class AdminController {
     @GetMapping("/official/transaction")
     public ResponseEntity<?> PaymentOffWaya(@RequestParam( defaultValue = "0") int page,
                                             @RequestParam( defaultValue = "10") int size,
-                                            @RequestParam( defaultValue = "D") String filter) {
+                                            @RequestParam( required = false) String filter) {
         ApiResponse<?> res;
         try {
             res = transAccountService.PaymentOffTrans(page, size, filter);
@@ -435,6 +435,35 @@ public class AdminController {
         }
 
     }
+
+@ApiImplicitParams({
+        @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+@ApiOperation(value = "To List All Transaction activities", notes = "To List all Transaction activities", tags = {
+        "ADMIN" })
+@GetMapping("/all/transaction")
+public ResponseEntity<?> allTransactions(@RequestParam( defaultValue = "0") int page,
+                                        @RequestParam( defaultValue = "10") int size,
+                                        @RequestParam( required = false) String filter,
+                                        @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
+                                        @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate
+                                        ) {
+    ApiResponse<?> res;
+    try {
+        res = transAccountService.getAllTransactions(page, size, filter, fromdate,todate);
+        if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    } catch (Exception e) {
+        e.printStackTrace();
+        res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
+        return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+    }
+
+}
+
+
+
 
 
     @ApiImplicitParams({
