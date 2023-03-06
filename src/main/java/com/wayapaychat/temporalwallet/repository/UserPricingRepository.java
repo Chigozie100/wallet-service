@@ -20,6 +20,10 @@ public interface UserPricingRepository extends JpaRepository<UserPricing, Long> 
 
     @Query("select u from UserPricing u where u.userId = :#{#userId} and u.code = :#{#code}")
     Optional<UserPricing> findDetailsByCode(@Param("userId") long userId, @Param("code") String code);
+
+    
+    @Query("select u from UserPricing u where u.userId = :#{#userId} and u.code = :#{#code}")
+    List<UserPricing> findDetailsByCode2(@Param("userId") long userId, @Param("code") String code);
  
     @Query("select u from UserPricing u where u.code = :#{#code}")
     List<UserPricing> getAllDetailsByCode(@Param("code") String code);

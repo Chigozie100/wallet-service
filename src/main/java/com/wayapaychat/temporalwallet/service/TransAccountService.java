@@ -113,6 +113,9 @@ public interface TransAccountService {
 
 	ApiResponse<?> PaymentOffTrans(int page, int size, String filter);
 
+	ApiResponse<?> getAllTransactions(int page, int size, String filter, Date fromdate, Date todate);
+
+
 	ApiResponse<?> TranALLReverseReport();
 
 	ApiResponse<?> statementReport(Date fromdate, Date todate, String acctNo);
