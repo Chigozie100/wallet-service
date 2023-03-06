@@ -660,11 +660,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     HttpStatus.BAD_REQUEST);
         }
 
-        // if(!tokenImpl.validatePIN(request.getHeader("authorization"), request.getHeader("pin"))){
-        //     log.error("pin {} validation failed for debiting account {} with amount{}", request.getHeader("pin"), accountNumber, amount);
-        //     return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_PIN.getValue()),
-        //             HttpStatus.BAD_REQUEST);
-        // }
+        if(!tokenImpl.validatePIN(request.getHeader("authorization"), request.getHeader("pin"))){
+            log.error("pin {} validation failed for debiting account {} with amount{}", request.getHeader("pin"), accountNumber, amount);
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_PIN.getValue()),
+                    HttpStatus.BAD_REQUEST);
+        }
 
         if (amount.doubleValue() <= 0) {
             log.error("amount is less than zero for debiting account{} with amount{}", accountNumber, amount);
@@ -721,15 +721,15 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_APP"::equalsIgnoreCase) ? true : isWriteAdmin;
         boolean isOwner = Long.compare(account.getUId(), userToken.getId()) == 0;
 
-        // if (!isOwner && !isWriteAdmin) {
-        //     log.error("owner check {} {}", isOwner, isWriteAdmin);
-        //     return new ResponseEntity<>(new ErrorResponse(String.format("%s %s %s %s",
-        //             ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accountNumber, isOwner, isWriteAdmin)),
-        //             HttpStatus.BAD_REQUEST);
-        // }
+        if (!isOwner && !isWriteAdmin) {
+            log.error("owner check {} {}", isOwner, isWriteAdmin);
+            return new ResponseEntity<>(new ErrorResponse(String.format("%s %s %s %s",
+                    ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accountNumber, isOwner, isWriteAdmin)),
+                    HttpStatus.BAD_REQUEST);
+        }
 
         addLien(ownerAccount.get(), amount);
-        log.info("IAM HERE NOW");
+ 
         return new ResponseEntity<>(userToken, HttpStatus.ACCEPTED);
 
     }
