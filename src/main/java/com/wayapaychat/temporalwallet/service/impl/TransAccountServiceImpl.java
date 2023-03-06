@@ -4252,12 +4252,20 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 
 	@Override
 	public ApiResponse<?> PaymentOffTrans(int page, int size, String fillter) {
+		System.out.println("wallet fillter " +  fillter);
+ 
 		Pageable pagable = PageRequest.of(page,size);
-		Page<WalletTransaction> walletTransactionPage = walletTransactionRepository.findByAccountOfficial3(pagable,fillter);
-		List<WalletTransaction> transaction = walletTransactionPage.getContent();
 		Map<String, Object> response = new HashMap<>();
+		Page<WalletTransaction> walletTransactionPage = null;
 
-
+		if(fillter != null){
+			walletTransactionPage = walletTransactionRepository.findByAccountOfficial3(pagable,fillter);
+		
+		}else {
+			walletTransactionPage = walletTransactionRepository.findByAccountOfficial(pagable);
+		}
+	 
+		List<WalletTransaction> transaction = walletTransactionPage.getContent(); 
 		response.put("transaction", transaction);
 		response.put("currentPage", walletTransactionPage.getNumber());
 		response.put("totalItems", walletTransactionPage.getTotalElements());
@@ -4268,6 +4276,38 @@ public String BankTransactionPayOffice(String eventId, String creditAcctNo, Stri
 		}
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "OFFICIAL ACCOUNT SUCCESSFULLY", response);
 	}
+
+	public ApiResponse<?> getAllTransactions(int page, int size, String fillter, Date fromdate, Date todate) {
+		System.out.println("wallet fillter " +  fillter);
+		LocalDate fromDate = fromdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		LocalDate toDate = todate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+		Pageable pagable = PageRequest.of(page,size);
+		Map<String, Object> response = new HashMap<>();
+		Page<WalletTransaction> walletTransactionPage = null;
+       
+		if(fillter != null){
+			// LocalDate fromtranDate, LocalDate totranDate
+			walletTransactionPage = walletTransactionRepository.findByAllTransactionsWithDateRangeAndTranTypeOR(pagable,fillter,fromDate,toDate);
+		
+			System.out.println("walletTransactionPage2 " +  walletTransactionPage.getContent());
+		}else {
+			walletTransactionPage = walletTransactionRepository.findByAllTransactionsWithDateRange(pagable,fromDate,toDate);
+		}
+	 
+		List<WalletTransaction> transaction = walletTransactionPage.getContent(); 
+		response.put("transaction", transaction);
+		response.put("currentPage", walletTransactionPage.getNumber());
+		response.put("totalItems", walletTransactionPage.getTotalElements());
+		response.put("totalPages", walletTransactionPage.getTotalPages());
+
+		if (transaction.isEmpty()) {
+			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO RECORD FOUND", null);
+		}
+		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "OFFICIAL ACCOUNT SUCCESSFULLY", response);
+	}
+
+
+	//
 
 	@Override
 	public ApiResponse<?> PaymentTransFilter(String account) {
