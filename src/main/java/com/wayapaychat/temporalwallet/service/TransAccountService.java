@@ -3,6 +3,7 @@ package com.wayapaychat.temporalwallet.service;
 import java.io.ByteArrayInputStream;
 import java.math.BigDecimal;
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -113,7 +114,11 @@ public interface TransAccountService {
 
 	ApiResponse<?> PaymentOffTrans(int page, int size, String filter);
 
-	ApiResponse<?> getAllTransactions(int page, int size, String filter, Date fromdate, Date todate);
+	ApiResponse<?> getAllTransactions(int page, int size, String filter, LocalDate fromdate, LocalDate todate);
+
+	ApiResponse<?> getAllTransactionsByAccountNo(int page, int size, String filter, LocalDate fromdate, LocalDate todate, String accountNo);
+
+
 
 
 	ApiResponse<?> TranALLReverseReport();
@@ -208,4 +213,6 @@ public interface TransAccountService {
 	ResponseEntity<?>  getSingleAccountByEventID(String eventId);
 
 	WalletAccount findByEmailOrPhoneNumberOrId(Boolean isAccountNumber, String value,String userId, String accountNo);
+
+	ApiResponse<?> OfficialAccountReports(int page, int size,LocalDate fromdate, LocalDate todate,  String fillter);
 }

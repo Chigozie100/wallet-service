@@ -33,6 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -444,8 +445,8 @@ public class AdminController {
 public ResponseEntity<?> allTransactions(@RequestParam( defaultValue = "0") int page,
                                         @RequestParam( defaultValue = "10") int size,
                                         @RequestParam( required = false) String filter,
-                                        @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
-                                        @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate
+                                        @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromdate,
+                                        @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate todate
                                         ) {
     ApiResponse<?> res;
     try {
@@ -462,6 +463,60 @@ public ResponseEntity<?> allTransactions(@RequestParam( defaultValue = "0") int 
 
 }
 
+
+@ApiImplicitParams({
+    @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+@ApiOperation(value = "To List All Transaction activities", notes = "To List all Transaction activities", tags = {
+    "ADMIN" })
+@GetMapping("/all/transaction/{accountNo}")
+public ResponseEntity<?> allTransactions(@RequestParam( defaultValue = "0") int page,
+                                    @RequestParam( defaultValue = "10") int size,
+                                    @RequestParam( required = false) String filter,
+                                    @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromdate,
+                                    @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate todate,
+                                    @PathVariable( "accountNo") String accountNo) {
+ApiResponse<?> res;
+try {
+    res = transAccountService.getAllTransactionsByAccountNo(page, size, filter, fromdate,todate, accountNo);
+    if (!res.getStatus()) {
+        return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+    }
+    return new ResponseEntity<>(res, HttpStatus.OK);
+} catch (Exception e) {
+    e.printStackTrace();
+    res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
+    return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+}
+
+}
+
+@ApiImplicitParams({
+    @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+@ApiOperation(value = "Official Account Reports", notes = "Official Account Reports", tags = {
+    "ADMIN" })
+@GetMapping("/offical-account/reports")
+public ResponseEntity<?> OfficialAccountReports(@RequestParam( defaultValue = "0") int page,
+                                    @RequestParam( defaultValue = "10") int size,
+                                    @RequestParam( required = false) String filter,
+                                    @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromdate,
+                                    @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate todate
+                                    ) {
+ApiResponse<?> res;
+try {
+    res = transAccountService.OfficialAccountReports(page, size, fromdate, todate, filter);
+    if (!res.getStatus()) {
+        return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+    }
+    return new ResponseEntity<>(res, HttpStatus.OK);
+} catch (Exception e) {
+    e.printStackTrace();
+    res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
+    return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+}
+
+}
+
+// ApiResponse<?> OfficialAccountReports(int page, int size, String fillter, Date fromdate, Date todate)
 
 
 
