@@ -2157,7 +2157,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 		}
 
 		List<WalletAccount> account = accountsPage.getContent();
-		response.put("transaction", account);
+		response.put("account", account);
 		response.put("currentPage", accountsPage.getNumber());
 		response.put("totalItems", accountsPage.getTotalElements());
 		response.put("totalPages", accountsPage.getTotalPages());
