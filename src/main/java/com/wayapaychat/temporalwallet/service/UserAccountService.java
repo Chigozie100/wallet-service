@@ -1,6 +1,7 @@
 package com.wayapaychat.temporalwallet.service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -130,5 +131,7 @@ public interface UserAccountService {
     void setupSystemUser();
 
     void setupExternalCBA();
+
+    ApiResponse<?> getAllAccounts(int page, int size, String filter, LocalDate fromdate, LocalDate todate);
 
 }
