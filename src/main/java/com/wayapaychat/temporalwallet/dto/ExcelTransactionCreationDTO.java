@@ -47,4 +47,10 @@ public class ExcelTransactionCreationDTO {
 	@NotBlank(message = "Office Account Number Cannot be blank")
 	private String officeAccountNo;
 
+	@NotBlank(message = "Sender Name can not be NULL or Blank")
+	private String senderName;
+
+	@NotBlank(message = "Receiver Name Cannot be blank OR NULL")
+	private String receiverName;
+
 }

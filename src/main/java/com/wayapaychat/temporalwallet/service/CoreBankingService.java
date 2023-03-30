@@ -48,7 +48,7 @@ public interface CoreBankingService {
 
     String getEventAccountNumber(String channelEventId);
 
-    Long logTransaction(String fromAccountNumber, String toAccountNumber, BigDecimal amount, BigDecimal chargeAmount, BigDecimal vatAmount,
+    Long logTransaction(String receiverName,String senderName,String fromAccountNumber, String toAccountNumber, BigDecimal amount, BigDecimal chargeAmount, BigDecimal vatAmount,
                                 String transCategory, String tranCrncy, String eventId, WalletTransStatus status);
 
     void updateTransactionLog(Long tranId, WalletTransStatus status);

@@ -27,6 +27,12 @@ public class WalletTransAccount {
     private String tranId;
 
     @NotNull
+    private String beneficiaryName;
+
+    @NotNull
+    private String senderName;
+
+    @NotNull
     private String creditAccountNumber;
 
     @NotNull

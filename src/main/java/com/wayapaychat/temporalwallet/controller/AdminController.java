@@ -81,6 +81,8 @@ public class AdminController {
         transactionDTO.setBenefAccountNumber(transfer.getOfficeCreditAccount());
         transactionDTO.setDebitAccountNumber(transfer.getOfficeDebitAccount());
         transactionDTO.setTransactionCategory(TransactionTypeEnum.TRANSFER.name());
+        transactionDTO.setBeneficiaryName(transfer.getReceiverName());
+        transactionDTO.setSenderName(transfer.getSenderName());
 
         try {
             log.info("Send Money: {}", transfer);
@@ -104,6 +106,8 @@ public class AdminController {
         transactionDTO.setBenefAccountNumber(transfer.getCustomerCreditAccount());
         transactionDTO.setDebitAccountNumber(transfer.getOfficeDebitAccount());
         transactionDTO.setTransactionCategory(TransactionTypeEnum.TRANSFER.name());
+        transactionDTO.setBeneficiaryName(transfer.getReceiverName());
+        transactionDTO.setSenderName(transfer.getSenderName());
 
         try {
             log.info("Send Money: {}", transfer);

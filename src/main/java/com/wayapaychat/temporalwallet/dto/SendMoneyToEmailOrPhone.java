@@ -24,5 +24,7 @@ public class SendMoneyToEmailOrPhone {
 	private String tranType;
 	private String transactionCategory;
     private Boolean isAccountNumber;
+    private String senderName;
+    private String receiverName;
 			
 }

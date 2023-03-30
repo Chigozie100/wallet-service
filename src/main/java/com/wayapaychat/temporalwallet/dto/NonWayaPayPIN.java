@@ -20,4 +20,10 @@ public class NonWayaPayPIN {
 	@NotNull(message = "Merchant ID must not be Null or Blank")
     private Long merchantId;
 
+	@NotBlank(message = "Receiver Name can not be Null or Blank")
+	private String receiverName;
+
+	@NotBlank(message = "Sender Name can not be Null or Blank")
+	private String senderName;
+
 }
