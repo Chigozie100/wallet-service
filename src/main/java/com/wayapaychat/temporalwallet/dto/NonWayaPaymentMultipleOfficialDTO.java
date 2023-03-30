@@ -38,4 +38,10 @@ public class NonWayaPaymentMultipleOfficialDTO {
     @NotBlank(message = "payment Reference must not Null or Blank")
     @Size(min=3, max=50, message = "paymentReference must be aleast 3 alphanumeric")
     private String paymentReference;
+
+    @NotBlank(message = "Sender Name can not be Null or Blank")
+    private String senderName;
+
+    @NotBlank(message = "Receiver Name can not be Blank or Null")
+    private String receiverName;
 }

@@ -6,7 +6,6 @@ import lombok.Data;
 public class WayaPaymentRequest {
 	
 	private PaymentRequest paymentRequest;
-	
     private String command;
 
 }

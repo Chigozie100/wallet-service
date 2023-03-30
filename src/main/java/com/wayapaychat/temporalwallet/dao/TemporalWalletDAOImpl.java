@@ -79,6 +79,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 			count = jdbcTemplate.queryForObject(sql, String.class);
 			count = "WAYA" + count;
 		} catch (EmptyResultDataAccessException ex) {
+			log.error("Error TransactionGenerate: {}",ex.getLocalizedMessage());
 			ex.printStackTrace();
 		}
 		return count;

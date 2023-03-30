@@ -44,4 +44,10 @@ public class DirectTransactionDTO {
 		@NotBlank(message = "Secure Key must not Null or Blank")
 	    private String secureKey;
 
+		@NotBlank(message = "Sender Name must not be Blank or Null")
+		private String senderName;
+
+		@NotBlank(message = "Receiver name must not be Null Or Blank")
+		private String receiverName;
+
 }

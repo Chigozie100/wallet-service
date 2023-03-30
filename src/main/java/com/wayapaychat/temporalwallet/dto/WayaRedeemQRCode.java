@@ -14,5 +14,7 @@ public class WayaRedeemQRCode {
 	private Long payerId;
 	
 	private String transactionCategory = "TRANSFER";
+	private String receiverName;
+	private String senderName;
 
 }
