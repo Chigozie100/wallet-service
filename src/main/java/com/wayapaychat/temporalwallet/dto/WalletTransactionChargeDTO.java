@@ -46,4 +46,10 @@ public class WalletTransactionChargeDTO {
 	@Size(min=3, max=50)
 	private String eventChargeId;
 
+	@NotBlank(message = "Sender Name must not be Null or Blank")
+	private String senderName;
+
+	@NotBlank(message = "Receiver Name must not be Blank or Null")
+	private String receiverName;
+
 }
