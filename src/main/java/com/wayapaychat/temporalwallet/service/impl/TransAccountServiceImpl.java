@@ -1684,6 +1684,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 		transactionDTO.setDebitAccountNumber(transfer.getDebitAccountNumber());
 		transactionDTO.setBenefAccountNumber(transfer.getBenefAccountNumber());
 		transactionDTO.setAmount(transfer.getAmount());
+		transactionDTO.setSenderName(transfer.getSenderName());
+		transactionDTO.setBeneficiaryName(transfer.getReceiverName());
 
 		ResponseEntity<?> debitResponse = coreBankingService.processTransaction(transactionDTO, "WAYATRAN", request);
 
@@ -1731,6 +1733,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 		transactionDTO.setDebitAccountNumber(transfer.getDebitAccountNumber());
 		transactionDTO.setBenefAccountNumber(toAccountNumber);
 		transactionDTO.setAmount(transfer.getAmount());
+		transactionDTO.setSenderName(transfer.getSenderName());
+		transactionDTO.setBeneficiaryName(transfer.getReceiverName());
 
 		ResponseEntity<?> debitResponse = coreBankingService.processTransaction(transactionDTO, "WAYATRAN", request);
 
