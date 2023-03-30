@@ -26,10 +26,8 @@ public class WalletTransAccount {
     @NotNull
     private String tranId;
 
-    @NotNull
     private String beneficiaryName;
 
-    @NotNull
     private String senderName;
 
     @NotNull
