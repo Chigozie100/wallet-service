@@ -207,7 +207,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
             walletAccountRepository.saveAndFlush(accountCredit);
 
-            CompletableFuture.runAsync(() -> logNotification(Constant.CREDIT_TRANSACTION_ALERT,transactionPojo, accountCredit.getClr_bal_amt(), "CR"));
+            CompletableFuture.runAsync(() -> logNotification(Constant.CREDIT_TRANSACTION_ALERT, accountCredit.getAcct_name(), transactionPojo, accountCredit.getClr_bal_amt(), "CR"));
 
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.SUCCESSFUL_CREDIT.getValue()),
                     HttpStatus.ACCEPTED);
@@ -254,7 +254,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
             walletAccountRepository.saveAndFlush(accountDebit);
 
-            CompletableFuture.runAsync(() -> logNotification(Constant.DEBIT_TRANSACTION_ALERT,transactionPojo, accountDebit.getClr_bal_amt(), "DR"));
+            CompletableFuture.runAsync(() -> logNotification(Constant.DEBIT_TRANSACTION_ALERT, accountDebit.getAcct_name(), transactionPojo, accountDebit.getClr_bal_amt(), "DR"));
 
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.SUCCESSFUL_DEBIT.getValue()),
                     HttpStatus.ACCEPTED);
@@ -549,7 +549,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public void logNotification(String subject, CBAEntryTransaction transactionPojo, double currentBalance, String tranType) {
+    public void logNotification(String subject, String accountName, CBAEntryTransaction transactionPojo, double currentBalance, String tranType) {
         String tranDate = LocalDate.now().toString();
         log.info("subject= >" , subject);
 
@@ -589,7 +589,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             _email_message.append("\n");
             _email_message.append(String.format("Narration :%s ", transactionPojo.getTranNarration()));
 
-            customNotification.pushTranEMAIL(subject,systemToken, account.getCustName(),
+            customNotification.pushTranEMAIL(subject,systemToken, accountName,
                     account.getEmail(), _email_message.toString(), account.getUId(), String.valueOf(Precision.round(transactionPojo.getAmount().doubleValue(), 2)),
                     transactionPojo.getTranId(), tranDate, transactionPojo.getTranNarration(),account.getAccountNo(), transactionType.toUpperCase(),String.valueOf(Precision.round(currentBalance, 2)));
         }
@@ -611,7 +611,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             _sms_message.append("\n");
             _sms_message.append(String.format("Avail Bal: %s", Precision.round(currentBalance, 2)));
 
-            customNotification.pushWayaSMS(systemToken, account.getCustName(), account.getPhone(),
+            customNotification.pushWayaSMS(systemToken, accountName, account.getPhone(),
                     _sms_message.toString(), account.getUId(), account.getEmail());
         }
 
