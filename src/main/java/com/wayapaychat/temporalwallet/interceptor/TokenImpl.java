@@ -19,24 +19,23 @@ import java.util.HashMap;
 @Service
 @Slf4j
 public class TokenImpl {
-	
+
 	@Autowired
 	private AuthProxy authProxy;
 
-
 	@Autowired
 	private Environment environment;
-
 
 	public MyData getUserInformation() {
 		MyData data = null;
 		try {
 			TokenCheckResponse tokenResponse = authProxy.getSignedOnUser();
-			if(tokenResponse.isStatus()) return tokenResponse.getData();
-			
+			if (tokenResponse.isStatus())
+				return tokenResponse.getData();
+
 			log.info(tokenResponse.toString());
-		}catch(Exception ex) {
-			if(ex instanceof FeignException) {
+		} catch (Exception ex) {
+			if (ex instanceof FeignException) {
 				String httpStatus = Integer.toString(((FeignException) ex).status());
 				log.error("Feign Exception Status {}", httpStatus);
 			}
@@ -45,14 +44,14 @@ public class TokenImpl {
 		}
 		return data;
 	}
-	
+
 	public MyData getTokenUser(String token) {
 		MyData data = null;
 		try {
 			TokenCheckResponse tokenResponse = authProxy.getUserDataToken(token);
-			if(tokenResponse == null)
+			if (tokenResponse == null)
 				throw new CustomException("UNABLE TO AUTHENTICATE", HttpStatus.BAD_REQUEST);
-			
+
 			if (tokenResponse.isStatus())
 				return tokenResponse.getData();
 
@@ -72,10 +71,9 @@ public class TokenImpl {
 
 		try {
 			HashMap<String, String> map = new HashMap();
-			map.put("emailOrPhoneNumber",  environment.getProperty("waya.service.username"));
+			map.put("emailOrPhoneNumber", environment.getProperty("waya.service.username"));
 			map.put("password", environment.getProperty("waya.service.password"));
 			map.put("otp", "");
-
 
 			TokenCheckResponse tokenData = authProxy.getToken(map);
 
@@ -83,17 +81,17 @@ public class TokenImpl {
 
 		} catch (Exception ex) {
 			log.error("Unable to get system token :: {}", ex);
-			throw new CustomException(ex.getMessage(), HttpStatus.NOT_FOUND);
+			return null;
 		}
 	}
 
-    public boolean validatePIN(String token, String pin) {
+	public boolean validatePIN(String token, String pin) {
 		try {
 			HashMap<String, String> map = new HashMap();
 			map.put("pin", pin);
 			ApiResponse validaResponse = authProxy.validatePostPin(map, token);
 
-			if(!validaResponse.getStatus()){
+			if (!validaResponse.getStatus()) {
 				log.error("Unable to validate pin :: {}", validaResponse);
 			}
 
@@ -101,7 +99,7 @@ public class TokenImpl {
 		} catch (Exception ex) {
 			log.error("Unable to validate pin :: {}", ex);
 		}
-        return false;
-    }
+		return false;
+	}
 
 }

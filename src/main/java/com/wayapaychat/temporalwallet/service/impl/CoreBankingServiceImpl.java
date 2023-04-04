@@ -85,11 +85,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     @Autowired
     public CoreBankingServiceImpl(SwitchWalletService switchWalletService,
-                                  WalletTransAccountRepository walletTransAccountRepository, WalletAccountRepository walletAccountRepository,
-                                  WalletEventRepository walletEventRepository, WalletTransactionRepository walletTransactionRepository,
-                                  MifosWalletProxy mifosWalletProxy, TemporalWalletDAO tempwallet, CustomNotification customNotification,
-                                  UserPricingRepository userPricingRepository, TransactionCountService transactionCountService,
-                                  TokenImpl tokenImpl) {
+            WalletTransAccountRepository walletTransAccountRepository, WalletAccountRepository walletAccountRepository,
+            WalletEventRepository walletEventRepository, WalletTransactionRepository walletTransactionRepository,
+            MifosWalletProxy mifosWalletProxy, TemporalWalletDAO tempwallet, CustomNotification customNotification,
+            UserPricingRepository userPricingRepository, TransactionCountService transactionCountService,
+            TokenImpl tokenImpl) {
         this.switchWalletService = switchWalletService;
         this.walletTransAccountRepository = walletTransAccountRepository;
         this.walletAccountRepository = walletAccountRepository;
@@ -104,9 +104,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public ResponseEntity<?> externalCBACreateAccount(WalletUser accountOwnerUser, WalletAccount accountDetails, Provider provider) {
+    public ResponseEntity<?> externalCBACreateAccount(WalletUser accountOwnerUser, WalletAccount accountDetails,
+            Provider provider) {
         log.info("externalCBACreateAccount: {} ", accountDetails.getAccountNo());
-        ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse(ResponseCodes.NO_PROVIDER.getValue()), HttpStatus.BAD_REQUEST);
+        ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse(ResponseCodes.NO_PROVIDER.getValue()),
+                HttpStatus.BAD_REQUEST);
 
         ExternalCBAAccountCreationResponse externalResponse = null;
         CreateAccountData createAccountRequest = new CreateAccountData();
@@ -208,7 +210,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
             walletAccountRepository.saveAndFlush(accountCredit);
 
-            CompletableFuture.runAsync(() -> logNotification(Constant.CREDIT_TRANSACTION_ALERT, accountCredit.getAcct_name(), transactionPojo, accountCredit.getClr_bal_amt(), "CR"));
+            CompletableFuture.runAsync(() -> logNotification(Constant.CREDIT_TRANSACTION_ALERT,
+                    accountCredit.getAcct_name(), transactionPojo, accountCredit.getClr_bal_amt(), "CR"));
 
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.SUCCESSFUL_CREDIT.getValue()),
                     HttpStatus.ACCEPTED);
@@ -255,7 +258,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
             walletAccountRepository.saveAndFlush(accountDebit);
 
-            CompletableFuture.runAsync(() -> logNotification(Constant.DEBIT_TRANSACTION_ALERT, accountDebit.getAcct_name(), transactionPojo, accountDebit.getClr_bal_amt(), "DR"));
+            CompletableFuture.runAsync(() -> logNotification(Constant.DEBIT_TRANSACTION_ALERT,
+                    accountDebit.getAcct_name(), transactionPojo, accountDebit.getClr_bal_amt(), "DR"));
 
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.SUCCESSFUL_DEBIT.getValue()),
                     HttpStatus.ACCEPTED);
@@ -269,7 +273,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     @Override
     public ResponseEntity<?> processTransaction(TransferTransactionDTO transferTransactionRequestData,
-                                                String channelEventId, HttpServletRequest request) {
+            String channelEventId, HttpServletRequest request) {
         log.info("Processing transfer transaction {}", transferTransactionRequestData.toString());
 
 
@@ -302,7 +306,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.NO_PROVIDER.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
-        
 
         MyData userData = (MyData) response.getBody();
         String transitAccount = getEventAccountNumber(channelEventId);
@@ -321,7 +324,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         Long tranId = logTransaction(receiverName,senderName,transferTransactionRequestData.getDebitAccountNumber(),
                 transferTransactionRequestData.getBenefAccountNumber(),
-                transferTransactionRequestData.getAmount(), chargeAmount, vatAmount, transferTransactionRequestData.getTransactionCategory(),
+                transferTransactionRequestData.getAmount(), chargeAmount, vatAmount,
+                transferTransactionRequestData.getTransactionCategory(),
                 transferTransactionRequestData.getTranCrncy(), channelEventId, WalletTransStatus.PENDING);
         if (tranId == null) {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
@@ -338,7 +342,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transferTransactionRequestData.getTransactionCategory(),
                             transferTransactionRequestData.getTranType(),
                             transferTransactionRequestData.getAmount(),
-                            chargeAmount, vatAmount, provider, channelEventId,CBAAction.MOVE_GL_TO_GL));
+                            chargeAmount, vatAmount, provider, channelEventId, CBAAction.MOVE_GL_TO_GL));
             customerAccount = transferTransactionRequestData.getDebitAccountNumber();
         } else if (transferTransactionRequestData.getDebitAccountNumber().length() > 10
                 && transferTransactionRequestData.getBenefAccountNumber().length() == 10) {
@@ -378,12 +382,13 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             customerAccount = transferTransactionRequestData.getDebitAccountNumber();
         }
 
-        WalletTransStatus transactionStatus = response.getStatusCode().is2xxSuccessful()?WalletTransStatus.SUCCESSFUL:WalletTransStatus.REVERSED;
+        WalletTransStatus transactionStatus = response.getStatusCode().is2xxSuccessful() ? WalletTransStatus.SUCCESSFUL
+                : WalletTransStatus.REVERSED;
         updateTransactionLog(tranId, transactionStatus);
 
         Optional<List<WalletTransaction>> transaction = walletTransactionRepository
-                            .findByReferenceAndAccount(transferTransactionRequestData.getPaymentReference(), customerAccount);
-                            
+                .findByReferenceAndAccount(transferTransactionRequestData.getPaymentReference(), customerAccount);
+
         if (transaction.isEmpty()) {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
                     HttpStatus.BAD_REQUEST);
@@ -395,9 +400,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public ResponseEntity<?> processTransactionReversal(ReverseTransactionDTO reverseDTO, HttpServletRequest request){
-        
-        return new ResponseEntity<>(new SuccessResponse(ResponseCodes.REVERSAL_SUCCESSFUL.getValue(), null), HttpStatus.CREATED);
+    public ResponseEntity<?> processTransactionReversal(ReverseTransactionDTO reverseDTO, HttpServletRequest request) {
+
+        return new ResponseEntity<>(new SuccessResponse(ResponseCodes.REVERSAL_SUCCESSFUL.getValue(), null),
+                HttpStatus.CREATED);
     }
 
     @Override
@@ -439,7 +445,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     public BigDecimal computeTransactionFee(String accountNumber, BigDecimal amount, String eventId) {
         BigDecimal priceAmount = new BigDecimal(0);
 
-        if(ObjectUtils.isEmpty(amount)){
+        if (ObjectUtils.isEmpty(amount)) {
             return priceAmount;
         }
 
@@ -453,11 +459,12 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return priceAmount;
         }
 
-        UserPricing userPricingOptional = userPricingRepository.findDetailsByCode(account.getUId(), eventId).orElse(null);
-        if(userPricingOptional == null){
+        UserPricing userPricingOptional = userPricingRepository.findDetailsByCode(account.getUId(), eventId)
+                .orElse(null);
+        if (userPricingOptional == null) {
             return priceAmount;
         }
- 
+
         priceAmount = userPricingOptional.getStatus().equals(ProductPriceStatus.GENERAL)
                 ? userPricingOptional.getGeneralAmount() // Get general amount
                 : userPricingOptional.getCustomAmount(); // Get custom amount
@@ -484,11 +491,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     public BigDecimal computeVatFee(BigDecimal fee, String eventId) {
         BigDecimal vatAmount = new BigDecimal(0);
 
-        if(ObjectUtils.isEmpty(fee)){
+        if (ObjectUtils.isEmpty(fee)) {
             return vatAmount;
         }
 
-        if(fee.doubleValue() <= 0){
+        if (fee.doubleValue() <= 0) {
             return vatAmount;
         }
 
@@ -508,6 +515,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     @Override
     public Long logTransaction(String beneficiaryName,String senderName,String fromAccountNumber, String toAccountNumber, BigDecimal amount, BigDecimal chargeAmount, BigDecimal vatAmount,
                                String transCategory, String tranCrncy, String eventId, WalletTransStatus status) {
+
 
         String code = new Util().generateRandomNumber(9);
         try {
@@ -561,36 +569,33 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         walletAccountRepository.saveAndFlush(account);
 
     }
+ 
 
     @Override
-    public void logNotification(String subject, String accountName, CBAEntryTransaction transactionPojo, double currentBalance, String tranType) {
-        String tranDate = LocalDate.now().toString();
-        log.info("subject= >" , subject);
+    public void logNotification(String subject, String accountName, CBAEntryTransaction transactionPojo,
+            double currentBalance, String tranType) {
 
-     AccountSumary account = tempwallet.getAccountSumaryLookUp(transactionPojo.getAccountNo());
-        if (account == null) {
+        AccountSumary account = tempwallet.getAccountSumaryLookUp(transactionPojo.getAccountNo());
+        if (account == null)
             return;
-        }
 
-        String systemToken = null;
-
-        try {
-            systemToken = tokenImpl.getToken();
-        } catch (Exception e) {
-            log.error("Unable to get system token :: {}", e);
-        }
         transactionCountService.makeCount(account.getUId().toString(), transactionPojo.getPaymentReference());
 
-        String transCat = "";
-        if("CR".equalsIgnoreCase(tranType)){
-            transCat = "Credit";
-        }else {
-            transCat = "Debit";
-        }
+        String systemToken = tokenImpl.getToken();
+        if (systemToken == null)
+            return;
 
-        String transactionType = transCat+ " "+"alert";
+        String tranDate = LocalDate.now().toString();
+        if (transactionPojo.getAccountNo().contains("NGN")) subject = "GL Posting";
 
-        String notifyEmail = !ObjectUtils.isEmpty(account.getNotifyEmail())? account.getNotifyEmail():account.getEmail();
+        StringBuilder transactionType = new StringBuilder();
+        if ("CR".equalsIgnoreCase(tranType))
+            transactionType.append("Credit");
+        else
+            transactionType.append("Debit");
+
+        String notifyEmail = !ObjectUtils.isEmpty(account.getNotifyEmail()) ? account.getNotifyEmail()
+                : account.getEmail();
         if (!ObjectUtils.isEmpty(notifyEmail)) {
             StringBuilder _email_message = new StringBuilder();
             _email_message.append(String.format("A %s transaction has occurred with reference: %s ", tranType,
@@ -603,14 +608,17 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             _email_message.append("\n");
             _email_message.append(String.format("Narration :%s ", transactionPojo.getTranNarration()));
 
-            customNotification.pushTranEMAIL(subject,systemToken, accountName,
-                    account.getEmail(), _email_message.toString(), account.getUId(), String.valueOf(Precision.round(transactionPojo.getAmount().doubleValue(), 2)),
-                    transactionPojo.getTranId(), tranDate, transactionPojo.getTranNarration(),account.getAccountNo(), transactionType.toUpperCase(),String.valueOf(Precision.round(currentBalance, 2)));
+            customNotification.pushTranEMAIL(subject, systemToken, accountName,
+                    account.getEmail(), _email_message.toString(), account.getUId(),
+                    String.valueOf(Precision.round(transactionPojo.getAmount().doubleValue(), 2)),
+                    transactionPojo.getTranId(), tranDate, transactionPojo.getTranNarration(), account.getAccountNo(),
+                    transactionType.append("alert").toString().toUpperCase(),
+                    String.valueOf(Precision.round(currentBalance, 2)));
         }
 
         if (!ObjectUtils.isEmpty(account.getPhone())) {
             StringBuilder _sms_message = new StringBuilder();
-            _sms_message.append(String.format("Tnx: %s", transCat));
+            _sms_message.append(String.format("Tnx: %s", transactionType.toString()));
             _sms_message.append("\n");
             _sms_message.append(String.format("Acct: %s", transactionPojo.getAccountNo()));
             _sms_message.append("\n");
@@ -674,6 +682,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     HttpStatus.BAD_REQUEST);
         }
 
+        
         if(!tokenImpl.validatePIN(request.getHeader("authorization"), request.getHeader("pin"))){
             log.error("pin {} validation failed for debiting account {} with amount{}", request.getHeader("pin"), accountNumber, amount);
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_PIN.getValue()),
@@ -717,7 +726,9 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         if (amount.doubleValue() > Double.parseDouble(account.getDebitLimit())) {
             log.error("Debit limit reached :: {}", account.getDebitLimit());
-            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.DEBIT_LIMIT_REACHED.getValue()+ " " + account.getDebitLimit() +" "+ ResponseCodes.DEBIT_LIMIT_REACHED_EX.getValue()),
+            return new ResponseEntity<>(
+                    new ErrorResponse(ResponseCodes.DEBIT_LIMIT_REACHED.getValue() + " " + account.getDebitLimit() + " "
+                            + ResponseCodes.DEBIT_LIMIT_REACHED_EX.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
 
@@ -727,7 +738,9 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         totalTransactionToday = totalTransactionToday == null ? new BigDecimal(0) : totalTransactionToday;
         if (totalTransactionToday.doubleValue() >= Double.parseDouble(account.getDebitLimit())) {
             log.error("Debit limit reached :: {}", account.getDebitLimit());
-            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.DEBIT_LIMIT_REACHED.getValue()+ " " + account.getDebitLimit() +" "+ ResponseCodes.DEBIT_LIMIT_REACHED_EX.getValue()),
+            return new ResponseEntity<>(
+                    new ErrorResponse(ResponseCodes.DEBIT_LIMIT_REACHED.getValue() + " " + account.getDebitLimit() + " "
+                            + ResponseCodes.DEBIT_LIMIT_REACHED_EX.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
 
@@ -750,7 +763,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     private String getDebitAccountNumber(CBATransaction cbaTransaction) {
         String account = cbaTransaction.getDebitGLAccount();
-        if(cbaTransaction.getAction().equals(CBAAction.MOVE_FROM_TRANSIT)){
+        if (cbaTransaction.getAction().equals(CBAAction.MOVE_FROM_TRANSIT)) {
             return cbaTransaction.getTransitGLAccount();
         }
         return account;
@@ -758,7 +771,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     private String getCreditAccountNumber(CBATransaction cbaTransaction) {
         String account = cbaTransaction.getCreditGLAccount();
-        if(cbaTransaction.getAction().equals(CBAAction.MOVE_TO_TRANSIT)){
+        if (cbaTransaction.getAction().equals(CBAAction.MOVE_TO_TRANSIT)) {
             return cbaTransaction.getTransitGLAccount();
         }
         return account;
@@ -766,7 +779,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     @Override
     public ResponseEntity<?> processExternalCBATransactionGLDoubleEntry(CBATransaction cbaTransaction,
-                                                                        boolean reversal) {
+            boolean reversal) {
         log.info("processExternalCBATransactionDoubleEntry amount:{} ", cbaTransaction.getAmount());
         ResponseEntity<?> response = new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
                 HttpStatus.BAD_REQUEST);
@@ -911,7 +924,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         mifosTransfer.setAccountNumber(customer.getNubanAccountNo());
         mifosTransfer.setCurrency(customer.getAcct_crncy_code());
         mifosTransfer.setAccountType("SAVINGS");
-        mifosTransfer.setAmount(BigDecimal.valueOf(Precision.round(cbaTransaction.getAmount().doubleValue() + cbaTransaction.getCharge().doubleValue() + cbaTransaction.getVat().doubleValue(), 2)));
+        mifosTransfer.setAmount(BigDecimal.valueOf(Precision.round(cbaTransaction.getAmount().doubleValue()
+                + cbaTransaction.getCharge().doubleValue() + cbaTransaction.getVat().doubleValue(), 2)));
         mifosTransfer.setNarration(cbaTransaction.getNarration());
         mifosTransfer.setTransactionType(cbaTransaction.getAction().name());
 
@@ -957,7 +971,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return response;
         }
 
-        BigDecimal totalAmount = BigDecimal.valueOf(Precision.round(cbaTransaction.getAmount().doubleValue() + cbaTransaction.getCharge().doubleValue() + cbaTransaction.getVat().doubleValue(), 2));
+        BigDecimal totalAmount = BigDecimal.valueOf(Precision.round(cbaTransaction.getAmount().doubleValue()
+                + cbaTransaction.getCharge().doubleValue() + cbaTransaction.getVat().doubleValue(), 2));
         try {
             if (cbaTransaction.getAction().equals(CBAAction.DEPOSIT)) {
                 creditAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(), tranId,
@@ -1024,10 +1039,9 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         cbaTransaction.setAction(CBAAction.MOVE_GL_TO_GL);
         processCBATransactionGLDoubleEntryWithTransit(cbaTransaction);
 
-        if(cbaTransaction.getCharge().doubleValue() <= 0){
+        if (cbaTransaction.getCharge().doubleValue() <= 0) {
             return response;
         }
-
 
         log.info("applying charge for transaction on {}", cbaTransaction.getCustomerAccount());
         String chargeCollectionAccount = getEventAccountNumber("INCOME_".concat(cbaTransaction.getChannelEvent()));
@@ -1036,7 +1050,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         cbaTransaction.setCreditGLAccount(chargeCollectionAccount);
-        cbaTransaction.setAmount( cbaTransaction.getCharge());
+        cbaTransaction.setAmount(cbaTransaction.getCharge());
         processCBATransactionGLDoubleEntryWithTransit(cbaTransaction);
 
         log.info("applying VAT for transaction on {}", cbaTransaction.getCustomerAccount());
@@ -1046,7 +1060,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         cbaTransaction.setCreditGLAccount(vatCollectionAccount);
-        cbaTransaction.setAmount( cbaTransaction.getVat());
+        cbaTransaction.setAmount(cbaTransaction.getVat());
         processCBATransactionGLDoubleEntryWithTransit(cbaTransaction);
 
         /**
@@ -1058,7 +1072,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public ResponseEntity<?> processCBACustomerTransferTransactionWithDoubleEntryTransit( CBATransaction cbaTransaction) {
+    public ResponseEntity<?> processCBACustomerTransferTransactionWithDoubleEntryTransit(
+            CBATransaction cbaTransaction) {
         log.info("Processing CBA customer transfer entry transaction depositGL:{} from:{} to:{} using transit:{}",
                 cbaTransaction.getCustomerAccount(),
                 cbaTransaction.getDebitGLAccount(), cbaTransaction.getCreditGLAccount(),
@@ -1067,7 +1082,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         String creditAccount = cbaTransaction.getCreditGLAccount();
         BigDecimal amount = cbaTransaction.getAmount();
         String eventGL = cbaTransaction.getCustomerAccount();
-
 
         cbaTransaction.setAction(CBAAction.WITHDRAWAL);
         cbaTransaction.setCustomerAccount(debitAccount);
