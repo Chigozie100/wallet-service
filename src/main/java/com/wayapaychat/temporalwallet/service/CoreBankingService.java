@@ -48,14 +48,14 @@ public interface CoreBankingService {
 
     String getEventAccountNumber(String channelEventId);
 
-    Long logTransaction(String fromAccountNumber, String toAccountNumber, BigDecimal amount, BigDecimal chargeAmount, BigDecimal vatAmount,
+    Long logTransaction(String receiverName,String senderName,String fromAccountNumber, String toAccountNumber, BigDecimal amount, BigDecimal chargeAmount, BigDecimal vatAmount,
                                 String transCategory, String tranCrncy, String eventId, WalletTransStatus status);
 
     void updateTransactionLog(Long tranId, WalletTransStatus status);
 
     void addLien(WalletAccount account, BigDecimal amount);
 
-    void logNotification(String subject, CBAEntryTransaction transactionPojo, double currentBalance, String tranType);
+    void logNotification(String subject, String accountName, CBAEntryTransaction transactionPojo, double currentBalance, String tranType);
 
     ResponseEntity<?> securityCheckOwner(String accountNumber);
 

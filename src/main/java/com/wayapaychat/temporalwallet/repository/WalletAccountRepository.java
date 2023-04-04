@@ -1,11 +1,15 @@
 package com.wayapaychat.temporalwallet.repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
@@ -72,6 +76,13 @@ public interface WalletAccountRepository extends JpaRepository<WalletAccount, Lo
 
     @Query("SELECT sum(u.clr_bal_amt) FROM WalletAccount u WHERE u.del_flg = false")
     BigDecimal totalActiveAccount();
+
+    @Query("SELECT u FROM WalletAccount u  " + " WHERE u.del_flg = false"+ " AND u.rcre_time BETWEEN  (:fromtranDate)" + " AND (:totranDate)" + " order by u.rcre_time DESC ")
+	Page<WalletAccount> findByAllWalletAccountWithDateRange(Pageable pageable, LocalDate fromtranDate, LocalDate totranDate);
+
+    @Query("SELECT u FROM WalletAccount u  " + " WHERE u.del_flg = false AND " + "UPPER(u.acct_ownership) = UPPER(:value) OR " + " UPPER(u.product_type) = UPPER(:value)"+  " AND u.rcre_time BETWEEN  (:fromDate)" + " AND (:toDate)" + " order by u.rcre_time DESC ")
+	Page<WalletAccount> findByAllWalletAccountWithDateRangeAndTranTypeOR(Pageable pageable, @Param("value") String value, LocalDate fromDate, LocalDate toDate);
+
 
 
 }

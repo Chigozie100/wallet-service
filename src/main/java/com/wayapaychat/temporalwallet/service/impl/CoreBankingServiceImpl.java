@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -193,7 +194,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     accountCredit.getGl_code(), transactionPojo.getPaymentReference(),
                     String.valueOf(transactionPojo.getUserToken().getId()), transactionPojo.getUserToken().getEmail(),
                     transactionPojo.getTranPart(), transactionPojo.getTransactionCategory(),
-                    transactionPojo.getSenderName(), accountCredit.getAcct_name());
+                    transactionPojo.getSenderName(), transactionPojo.getReceiverName());
             walletTransactionRepository.saveAndFlush(tranCredit);
 
             double cumbalCrAmt = accountCredit.getCum_cr_amt() + transactionPojo.getAmount().doubleValue();
@@ -207,7 +208,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
             walletAccountRepository.saveAndFlush(accountCredit);
 
-            CompletableFuture.runAsync(() -> logNotification(Constant.CREDIT_TRANSACTION_ALERT,transactionPojo, accountCredit.getClr_bal_amt(), "CR"));
+            CompletableFuture.runAsync(() -> logNotification(Constant.CREDIT_TRANSACTION_ALERT, accountCredit.getAcct_name(), transactionPojo, accountCredit.getClr_bal_amt(), "CR"));
 
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.SUCCESSFUL_CREDIT.getValue()),
                     HttpStatus.ACCEPTED);
@@ -232,7 +233,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     accountDebit.getGl_code(), transactionPojo.getPaymentReference(),
                     String.valueOf(transactionPojo.getUserToken().getId()), transactionPojo.getUserToken().getEmail(),
                     transactionPojo.getTranPart(), transactionPojo.getTransactionCategory(),
-                    accountDebit.getAcct_name(), transactionPojo.getReceiverName());
+                    transactionPojo.getSenderName(), transactionPojo.getReceiverName());
             walletTransactionRepository.saveAndFlush(tranDebit);
 
             double cumbalDrAmt = accountDebit.getCum_dr_amt() + transactionPojo.getAmount().doubleValue();
@@ -254,7 +255,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
             walletAccountRepository.saveAndFlush(accountDebit);
 
-            CompletableFuture.runAsync(() -> logNotification(Constant.DEBIT_TRANSACTION_ALERT,transactionPojo, accountDebit.getClr_bal_amt(), "DR"));
+            CompletableFuture.runAsync(() -> logNotification(Constant.DEBIT_TRANSACTION_ALERT, accountDebit.getAcct_name(), transactionPojo, accountDebit.getClr_bal_amt(), "DR"));
 
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.SUCCESSFUL_DEBIT.getValue()),
                     HttpStatus.ACCEPTED);
@@ -265,10 +266,18 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
     }
 
+
     @Override
     public ResponseEntity<?> processTransaction(TransferTransactionDTO transferTransactionRequestData,
                                                 String channelEventId, HttpServletRequest request) {
         log.info("Processing transfer transaction {}", transferTransactionRequestData.toString());
+
+
+        if(Objects.isNull(transferTransactionRequestData.getBeneficiaryName()))
+            transferTransactionRequestData.setBeneficiaryName("");
+
+        if(Objects.isNull(transferTransactionRequestData.getSenderName()))
+            transferTransactionRequestData.setSenderName("");
 
         if (transferTransactionRequestData.getDebitAccountNumber()
                 .equals(transferTransactionRequestData.getBenefAccountNumber())) {
@@ -306,9 +315,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         BigDecimal chargeAmount = computeTransactionFee(transferTransactionRequestData.getDebitAccountNumber(),
                 transferTransactionRequestData.getAmount(), channelEventId);
         BigDecimal vatAmount = computeVatFee(chargeAmount, channelEventId);
-        String customerAccount = null;
+        String customerAccount;
+        String receiverName = transferTransactionRequestData.getBeneficiaryName();
+        String senderName = transferTransactionRequestData.getSenderName();
 
-        Long tranId = logTransaction(transferTransactionRequestData.getDebitAccountNumber(),
+        Long tranId = logTransaction(receiverName,senderName,transferTransactionRequestData.getDebitAccountNumber(),
                 transferTransactionRequestData.getBenefAccountNumber(),
                 transferTransactionRequestData.getAmount(), chargeAmount, vatAmount, transferTransactionRequestData.getTransactionCategory(),
                 transferTransactionRequestData.getTranCrncy(), channelEventId, WalletTransStatus.PENDING);
@@ -320,7 +331,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         if (transferTransactionRequestData.getDebitAccountNumber().length() > 10
                 && transferTransactionRequestData.getBenefAccountNumber().length() > 10) {
             response = processCBATransactionGLDoubleEntryWithTransit(
-                    new CBATransaction(userData, transferTransactionRequestData.getPaymentReference(), transitAccount,
+                    new CBATransaction(senderName,receiverName,userData, transferTransactionRequestData.getPaymentReference(), transitAccount,
                             transferTransactionRequestData.getBenefAccountNumber(),
                             transferTransactionRequestData.getDebitAccountNumber(), null,
                             transferTransactionRequestData.getTranNarration(),
@@ -332,7 +343,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         } else if (transferTransactionRequestData.getDebitAccountNumber().length() > 10
                 && transferTransactionRequestData.getBenefAccountNumber().length() == 10) {
             response = processCBACustomerDepositTransactionWithDoubleEntryTransit(
-                    new CBATransaction(userData, transferTransactionRequestData.getPaymentReference(), transitAccount,
+                    new CBATransaction(senderName,receiverName,userData, transferTransactionRequestData.getPaymentReference(), transitAccount,
                             customerDepositGL, transferTransactionRequestData.getDebitAccountNumber(),
                             transferTransactionRequestData.getBenefAccountNumber(),
                             transferTransactionRequestData.getTranNarration(),
@@ -345,7 +356,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                 && transferTransactionRequestData.getBenefAccountNumber().length() > 10) {
 
             response = processCBACustomerWithdrawTransactionWithDoubleEntryTransit(
-                    new CBATransaction(userData, transferTransactionRequestData.getPaymentReference(), transitAccount,
+                    new CBATransaction(senderName,receiverName,userData, transferTransactionRequestData.getPaymentReference(), transitAccount,
                             transferTransactionRequestData.getBenefAccountNumber(), customerDepositGL,
                             transferTransactionRequestData.getDebitAccountNumber(),
                             transferTransactionRequestData.getTranNarration(),
@@ -356,7 +367,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             customerAccount = transferTransactionRequestData.getDebitAccountNumber();
         } else {
             response = processCBACustomerTransferTransactionWithDoubleEntryTransit(
-                    new CBATransaction(userData, transferTransactionRequestData.getPaymentReference(), transitAccount,
+                    new CBATransaction(senderName,receiverName,userData, transferTransactionRequestData.getPaymentReference(), transitAccount,
                             transferTransactionRequestData.getBenefAccountNumber(), transferTransactionRequestData.getDebitAccountNumber(),
                             customerDepositGL,
                             transferTransactionRequestData.getTranNarration(),
@@ -495,7 +506,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public Long logTransaction(String fromAccountNumber, String toAccountNumber, BigDecimal amount, BigDecimal chargeAmount, BigDecimal vatAmount,
+    public Long logTransaction(String beneficiaryName,String senderName,String fromAccountNumber, String toAccountNumber, BigDecimal amount, BigDecimal chargeAmount, BigDecimal vatAmount,
                                String transCategory, String tranCrncy, String eventId, WalletTransStatus status) {
 
         String code = new Util().generateRandomNumber(9);
@@ -512,6 +523,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             walletTransAccount.setTranCrncy(tranCrncy);
             walletTransAccount.setEventId(eventId);
             walletTransAccount.setStatus(status);
+            walletTransAccount.setSenderName(senderName);
+            walletTransAccount.setBeneficiaryName(beneficiaryName);
             return walletTransAccountRepository.save(walletTransAccount).getId();
         } catch (CustomException ex) {
             log.info("logTransaction ::::" + ex.getMessage());
@@ -531,6 +544,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                 walletTransAccountRepository.save(walletTransAccount1);
             }
         } catch (CustomException ex) {
+            log.error("An error updateTransactionLog: {}",ex.getLocalizedMessage());
             ex.printStackTrace();
         }
     }
@@ -549,7 +563,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public void logNotification(String subject, CBAEntryTransaction transactionPojo, double currentBalance, String tranType) {
+    public void logNotification(String subject, String accountName, CBAEntryTransaction transactionPojo, double currentBalance, String tranType) {
         String tranDate = LocalDate.now().toString();
         log.info("subject= >" , subject);
 
@@ -589,7 +603,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             _email_message.append("\n");
             _email_message.append(String.format("Narration :%s ", transactionPojo.getTranNarration()));
 
-            customNotification.pushTranEMAIL(subject,systemToken, account.getCustName(),
+            customNotification.pushTranEMAIL(subject,systemToken, accountName,
                     account.getEmail(), _email_message.toString(), account.getUId(), String.valueOf(Precision.round(transactionPojo.getAmount().doubleValue(), 2)),
                     transactionPojo.getTranId(), tranDate, transactionPojo.getTranNarration(),account.getAccountNo(), transactionType.toUpperCase(),String.valueOf(Precision.round(currentBalance, 2)));
         }
@@ -611,7 +625,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             _sms_message.append("\n");
             _sms_message.append(String.format("Avail Bal: %s", Precision.round(currentBalance, 2)));
 
-            customNotification.pushWayaSMS(systemToken, account.getCustName(), account.getPhone(),
+            customNotification.pushWayaSMS(systemToken, accountName, account.getPhone(),
                     _sms_message.toString(), account.getUId(), account.getEmail());
         }
 
@@ -826,7 +840,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         try {
             response = debitAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(), tranId,
                     cbaTransaction.getPaymentReference(), tranCategory, getDebitAccountNumber(cbaTransaction),
-                    cbaTransaction.getNarration(), cbaTransaction.getAmount(), 1, tranType, "", ""));
+                    cbaTransaction.getNarration(), cbaTransaction.getAmount(), 1, tranType, cbaTransaction.getSenderName(), cbaTransaction.getReceiverName()));
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
@@ -840,7 +854,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         try {
             response = creditAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(), tranId,
                     cbaTransaction.getPaymentReference(), tranCategory, getCreditAccountNumber(cbaTransaction),
-                    cbaTransaction.getNarration(), cbaTransaction.getAmount(), 2, tranType, "", ""));
+                    cbaTransaction.getNarration(), cbaTransaction.getAmount(), 2, tranType, cbaTransaction.getSenderName(), cbaTransaction.getReceiverName()));
         } catch (Exception e) {
             e.printStackTrace();
             response = new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
@@ -948,11 +962,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             if (cbaTransaction.getAction().equals(CBAAction.DEPOSIT)) {
                 creditAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(), tranId,
                         cbaTransaction.getPaymentReference(), tranCategory, cbaTransaction.getCustomerAccount(),
-                        cbaTransaction.getNarration(), totalAmount, 1, tranType, "", ""));
+                        cbaTransaction.getNarration(), totalAmount, 1, tranType, cbaTransaction.getSenderName(), ""));
             } else {
                 response = debitAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(), tranId,
                         cbaTransaction.getPaymentReference(), tranCategory, cbaTransaction.getCustomerAccount(),
-                        cbaTransaction.getNarration(), totalAmount, 1, tranType, "", ""));
+                        cbaTransaction.getNarration(), totalAmount, 1, tranType, "", cbaTransaction.getReceiverName()));
             }
         } catch (Exception e) {
             e.printStackTrace();

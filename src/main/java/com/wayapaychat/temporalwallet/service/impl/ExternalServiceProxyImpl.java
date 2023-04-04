@@ -45,6 +45,8 @@ public class ExternalServiceProxyImpl {
 			kCard.put("ref", card.getReference());
 			kCard.put("userId", userId.toString());
 			kCard.put("walletAccountNo", card.getWalletAccounttNo());
+			kCard.put("senderName",card.getSenderName());
+			kCard.put("receiverName", card.getReceiverName());
 			ResponseEntity<?> resp = cardProxy.cardPayment(kCard, token);
 			return resp;
 		}else if(card.getType().equals("BANK")) {

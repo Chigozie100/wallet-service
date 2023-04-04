@@ -45,4 +45,10 @@ public class AdminWalletTransactionDTO {
 	@Size(min=3, max=50)
 	private String paymentReference;
 
+	@NotBlank(message = "Receiver name must not Null or Blank")
+	private String receiverName;
+
+	@NotBlank(message = "Sender name must not Null or Blank")
+	private String senderName;
+
 }

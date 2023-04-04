@@ -97,9 +97,11 @@ public class WalletTransaction {
     private String createdBy;
     
     private String createdEmail;
-    
+
+	@Column(name = "sender_name")
     private String senderName;
-    
+
+	@Column(name = "receiver_name")
     private String receiverName;
     
     private String transChannel;

@@ -14,12 +14,17 @@ public class CommissionTransferDTO {
 	
 	@NotNull(message = "Admin User Id must be Entered")
 	private Long userId;
-	
+
 	@NotBlank(message = "Account must not Null or Blank")
 	@Size(min=10, max=10, message = "Account must be 10 digit")
 	private String debitAccountNumber;
+
+	@NotBlank(message = "Receiver name must not Null or Blank")
+	private String receiverName;
+	
+	@NotBlank(message = "Sender Name must not Null or Blank")
+	private String senderName;
     
-	//@NotNull(message = "Account must be 10 digit")
 	@NotBlank(message = "Account must not Null or Blank")
 	@Size(min=10, max=10, message = "Account must be 10 digit")
     private String benefAccountNumber;

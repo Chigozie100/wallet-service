@@ -20,6 +20,9 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -1466,9 +1469,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 	}
 
 	public void securityCheck(long userId) {
-		MyData jwtUser = getEmailFromToken(userId);
+//		MyData jwtUser = getEmailFromToken(userId);
 		WalletUser user = walletUserRepository.findByUserId(userId);
-		if (!user.getEmailAddress().equals(jwtUser.getEmail()) || user.getUserId() != userId) {
+		if (user.getUserId() != userId) {
 			throw new CustomException("Your Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
 		}
 	}
@@ -2132,6 +2135,37 @@ public class UserAccountServiceImpl implements UserAccountService {
 			Provider provider = switchWalletService.getActiveProvider();
 			coreBankingService.externalCBACreateAccount(wallet.getUser(), wallet, provider);
 		}
+
+	}
+
+	@Override
+	public ApiResponse<?> getAllAccounts(int page, int size, String filter, LocalDate fromdate, LocalDate todate){
+		
+		Pageable pagable = PageRequest.of(page, size);
+		Map<String, Object> response = new HashMap<>();
+		Page<WalletAccount> accountsPage = null;
+
+		if (filter != null) {
+			// LocalDate fromtranDate, LocalDate totranDate
+			accountsPage = walletAccountRepository.findByAllWalletAccountWithDateRangeAndTranTypeOR(pagable,
+					filter, fromdate, todate);
+
+			System.out.println("walletTransactionPage2 " + accountsPage.getContent());
+		} else {
+			accountsPage = walletAccountRepository.findByAllWalletAccountWithDateRange(pagable, fromdate,
+					todate);
+		}
+
+		List<WalletAccount> account = accountsPage.getContent();
+		response.put("account", account);
+		response.put("currentPage", accountsPage.getNumber());
+		response.put("totalItems", accountsPage.getTotalElements());
+		response.put("totalPages", accountsPage.getTotalPages());
+
+		if (account.isEmpty()) {
+			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO RECORD FOUND", null);
+		}
+		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "ACCOUNT LIST SUCCESSFULLY", response);
 
 	}
  

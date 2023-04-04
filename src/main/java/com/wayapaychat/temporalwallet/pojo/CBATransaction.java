@@ -15,7 +15,11 @@ import lombok.ToString;
 @Data
 @ToString
 public class CBATransaction {
- 
+
+    private String senderName;
+
+    private String receiverName;
+
     private MyData userToken;
 
     private String paymentReference;

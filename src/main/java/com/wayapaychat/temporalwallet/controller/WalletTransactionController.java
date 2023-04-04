@@ -139,7 +139,7 @@ public class WalletTransactionController {
 					"NGN",
 					transfer.getTranNarration(),
 					transfer.getPaymentReference(),
-					"TRANSFER");
+					"TRANSFER",transfer.getReceiverName(),transfer.getSenderName());
 
 			return coreBankingService.processTransaction(data, EventCharge.WAYATRAN.name(), request);
 		}catch (CustomException ex){

@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.dto;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.math.BigDecimal;
@@ -35,5 +36,11 @@ public class TemporalToOfficialWalletDTO {
     @NotNull
     @Size(min=3, max=20)
     private String transactionCategory;
+
+    @NotBlank(message = "Sender Name must not be Null or Blank")
+    private String senderName;
+
+    @NotBlank(message = "Receiver Name must not be Null or Blank")
+    private String receiverName;
 
 }
