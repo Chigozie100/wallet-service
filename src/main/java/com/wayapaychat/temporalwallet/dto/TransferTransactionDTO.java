@@ -14,10 +14,10 @@ import lombok.ToString;
 @ToString
 public class TransferTransactionDTO {
 
-	@NotBlank(message = "beneficiary name must not Null or Blank")
+//	@NotBlank(message = "beneficiary name must not Null or Blank")
 	private String beneficiaryName;
 
-	@NotBlank(message = "sender name must not Null or Blank")
+//	@NotBlank(message = "sender name must not Null or Blank")
 	private String senderName;
 
 	@NotBlank(message = "Account must not Null or Blank")

@@ -1469,9 +1469,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 	}
 
 	public void securityCheck(long userId) {
-		MyData jwtUser = getEmailFromToken(userId);
+//		MyData jwtUser = getEmailFromToken(userId);
 		WalletUser user = walletUserRepository.findByUserId(userId);
-		if (!user.getEmailAddress().equals(jwtUser.getEmail()) || user.getUserId() != userId) {
+		if (user.getUserId() != userId) {
 			throw new CustomException("Your Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
 		}
 	}

@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -265,10 +266,18 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
     }
 
+
     @Override
     public ResponseEntity<?> processTransaction(TransferTransactionDTO transferTransactionRequestData,
                                                 String channelEventId, HttpServletRequest request) {
         log.info("Processing transfer transaction {}", transferTransactionRequestData.toString());
+
+
+        if(Objects.isNull(transferTransactionRequestData.getBeneficiaryName()))
+            transferTransactionRequestData.setBeneficiaryName("");
+
+        if(Objects.isNull(transferTransactionRequestData.getSenderName()))
+            transferTransactionRequestData.setSenderName("");
 
         if (transferTransactionRequestData.getDebitAccountNumber()
                 .equals(transferTransactionRequestData.getBenefAccountNumber())) {
