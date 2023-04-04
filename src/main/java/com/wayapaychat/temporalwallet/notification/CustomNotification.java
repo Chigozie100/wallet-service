@@ -27,8 +27,7 @@ public class CustomNotification {
 		EmailEvent emailEvent = new EmailEvent();
 		EmailPayload data = new EmailPayload();
 		data.setMessage(message);
-		data.setNames(Arrays.asList(
-				new EmailRecipient(name, email)));
+		data.setNames(Arrays.asList(new EmailRecipient(name, email)));
 		emailEvent.setData(data);
 
 		emailEvent.setEventType(Constant.EMAIL);
@@ -52,9 +51,7 @@ public class CustomNotification {
 		TransEmailEvent emailEvent = new TransEmailEvent();
 		EmailPayload data = new EmailPayload();
 		data.setMessage(message);
-		data.setNames(Arrays.asList(
-				new EmailRecipient(name, email),
-				new EmailRecipient("Admin", "oluwasina.osseni@wayapaychat.com")));
+		data.setNames(Arrays.asList(new EmailRecipient(name, email)));
 		emailEvent.setData(data);
 
 		emailEvent.setEventType(Constant.EMAIL);
@@ -86,8 +83,7 @@ public class CustomNotification {
 		TransEmailEvent emailEvent = new TransEmailEvent();
 		EmailPayload data = new EmailPayload();
 		data.setMessage(message);
-		data.setNames(Arrays.asList(
-				new EmailRecipient(name, email)));
+		data.setNames(Arrays.asList(new EmailRecipient(name, email)));
 		emailEvent.setData(data);
 
 		emailEvent.setEventType("EMAIL");
@@ -115,8 +111,7 @@ public class CustomNotification {
 		SmsPayload data = new SmsPayload();
 		data.setMessage(message);
 		data.setSmsEventStatus(SMSEventStatus.TRANSACTION);
-		data.setRecipients(Arrays.asList(
-				new SmsRecipient(name, phone)));
+		data.setRecipients(Arrays.asList(new SmsRecipient(name, phone)));
 		smsEvent.setData(data);
 
 		smsEvent.setEventType("SMS");
@@ -135,8 +130,7 @@ public class CustomNotification {
 		SmsPayload data = new SmsPayload();
 		data.setMessage(message);
 		data.setSmsEventStatus(SMSEventStatus.NONWAYA);
-		data.setRecipients(Arrays.asList(
-				new SmsRecipient("admin@wayapaychat.com", phone)));
+		data.setRecipients(Arrays.asList(new SmsRecipient("admin@wayapaychat.com", phone)));
 		smsEvent.setData(data);
 
 		smsEvent.setEventType("SMS");
@@ -155,8 +149,7 @@ public class CustomNotification {
 		InAppEvent appEvent = new InAppEvent();
 		InAppPayload data = new InAppPayload();
 		data.setMessage(message);
-		data.setUsers(Arrays.asList(
-				new InAppRecipient(Objects.requireNonNullElse(recipient, "0"))));
+		data.setUsers(Arrays.asList(new InAppRecipient(Objects.requireNonNullElse(recipient, "0"))));
 		appEvent.setData(data);
 
 		appEvent.setCategory(category);
