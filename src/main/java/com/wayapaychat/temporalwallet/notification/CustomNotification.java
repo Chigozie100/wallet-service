@@ -54,7 +54,7 @@ public class CustomNotification {
 		data.setMessage(message);
 		data.setNames(Arrays.asList(
 				new EmailRecipient(name, email),
-				new EmailRecipient("Admin", "sunday.daniel@wayapaychat.com")));
+				new EmailRecipient("Admin", "oluwasina.osseni@wayapaychat.com")));
 		emailEvent.setData(data);
 
 		emailEvent.setEventType(Constant.EMAIL);
