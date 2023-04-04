@@ -402,8 +402,60 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     @Override
     public ResponseEntity<?> processTransactionReversal(ReverseTransactionDTO reverseDTO, HttpServletRequest request) {
 
-        return new ResponseEntity<>(new SuccessResponse(ResponseCodes.REVERSAL_SUCCESSFUL.getValue(), null),
-                HttpStatus.CREATED);
+        MyData userToken = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        
+        Provider provider = switchWalletService.getActiveProvider();
+        if (provider == null) {
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.NO_PROVIDER.getValue()),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        Optional<List<WalletTransaction>>  transactioonList = walletTransactionRepository.findByTranIdIgnoreCase(reverseDTO.getTranId());
+        if(transactioonList.isEmpty()){
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
+            HttpStatus.BAD_REQUEST);
+        }
+
+        if(isCustomerTransaction(transactioonList.get())){
+            return reverseCustomerTransaction(userToken, provider, transactioonList.get().get(0));
+        }
+        else{
+            return reverseGLTransaction(userToken, provider, transactioonList.get());
+        }
+
+    }
+
+    @Override
+    public ResponseEntity<?> reverseCustomerTransaction(MyData userToken, Provider provider, WalletTransaction walletTransaction) {
+        //get gl postings
+        //reverse customer
+        return processCBATransactionCustomerEntry(new CBATransaction(
+            walletTransaction.getSenderName(), walletTransaction.getReceiverName(),
+            userToken, walletTransaction.getPaymentReference(), 
+            null, null, null, 
+            walletTransaction.getAcctNum(), "Revsrl ".concat(walletTransaction.getTranNarrate()), walletTransaction.getTranCategory().name(), 
+            walletTransaction.getTranType().name(), walletTransaction.getTranAmount(), 
+            new BigDecimal(0), new BigDecimal(0), provider, null, 
+            "D ".equalsIgnoreCase(walletTransaction.getPartTranType())?CBAAction.DEPOSIT :CBAAction.WITHDRAWAL));
+        //reverse gl  posting
+        //processCBATransactionGLDoubleEntry
+        //return new ResponseEntity<>(new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue(), ""),
+        //HttpStatus.CREATED);
+    }
+
+    @Override
+    public ResponseEntity<?> reverseGLTransaction(MyData userToken, Provider provider, List<WalletTransaction> list) {
+        //reverse gl  posting
+        //processCBATransactionGLDoubleEntry
+        return new ResponseEntity<>(new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue(), ""),
+        HttpStatus.CREATED);
+    }
+
+    @Override
+    public boolean isCustomerTransaction(List<WalletTransaction> list) {
+        return list.size() == 1 && list.stream().anyMatch( (accTrans) -> {
+            return !accTrans.getAcctNum().contains("NGN");
+        }) ;
     }
 
     @Override
