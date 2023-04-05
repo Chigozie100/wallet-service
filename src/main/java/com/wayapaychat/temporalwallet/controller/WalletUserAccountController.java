@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import javax.validation.Valid;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wayapaychat.temporalwallet.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -228,7 +229,7 @@ public ResponseEntity<?> createNubbanAccountAuto() {
     @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
 	@ApiOperation(value = "Get Wallet Default Account", tags = { "USER-ACCOUNT-WALLET" })
     @GetMapping(path = "/default/{user_id}")
-    public ResponseEntity<?> getAcctDefault(@PathVariable Long user_id) {
+    public ResponseEntity<?> getAcctDefault(@PathVariable Long user_id) throws JsonProcessingException {
         return userAccountService.getAccountDefault(user_id);
     }
 	
