@@ -440,7 +440,9 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         log.info("reverseCustomerTransaction account:{} amount:{} type:{} ", 
                 walletTransaction.getAcctNum(), walletTransaction.getTranAmount(), walletTransaction.getTranType());
         // reverse customer transaction
-        ResponseEntity<?> response = processCBATransactionCustomerEntry(new CBATransaction(
+        CBATransaction reversalTransaction = null;
+        try {
+            reversalTransaction = new CBATransaction(
                 walletTransaction.getSenderName(), walletTransaction.getReceiverName(),
                 userToken, walletTransaction.getPaymentReference(),
                 null, null, null,
@@ -449,7 +451,13 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                 walletTransaction.getTranType().name(), walletTransaction.getTranAmount(),
                 new BigDecimal(0), new BigDecimal(0), provider, null,
                 Long.valueOf(walletTransaction.getRelatedTransId()),
-                "D ".equalsIgnoreCase(walletTransaction.getPartTranType()) ? CBAAction.DEPOSIT : CBAAction.WITHDRAWAL));
+                "D".equalsIgnoreCase(walletTransaction.getPartTranType()) ? CBAAction.DEPOSIT : CBAAction.WITHDRAWAL);
+        } catch (Exception e) {
+           e.printStackTrace();
+        }
+
+        
+        ResponseEntity<?> response = processCBATransactionCustomerEntry(reversalTransaction);
 
         if (!response.getStatusCode().is2xxSuccessful()) {
             return response;
