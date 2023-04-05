@@ -623,7 +623,7 @@ public class AdminController {
     @PostMapping("/transaction/reverse")
     public ResponseEntity<?> PaymentReversal(HttpServletRequest request,
             @RequestBody() ReverseTransactionDTO reverseDto) throws ParseException {
-        return transAccountService.TranReversePayment(request, reverseDto);
+        return coreBankingService.processTransactionReversal(reverseDto, request);
     }
 
     @ApiImplicitParams({

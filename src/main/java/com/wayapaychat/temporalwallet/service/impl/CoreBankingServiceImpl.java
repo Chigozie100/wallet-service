@@ -408,6 +408,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     public ResponseEntity<?> processTransactionReversal(ReverseTransactionDTO reverseDTO, HttpServletRequest request) {
 
         MyData userToken = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (ObjectUtils.isEmpty(userToken)) {
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_TOKEN.getValue()),
+                    HttpStatus.BAD_REQUEST);
+        }
 
         Provider provider = switchWalletService.getActiveProvider();
         if (provider == null) {
