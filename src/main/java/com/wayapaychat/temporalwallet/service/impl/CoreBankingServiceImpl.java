@@ -406,7 +406,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     @Override
     public ResponseEntity<?> processTransactionReversal(ReverseTransactionDTO reverseDTO, HttpServletRequest request) {
-
+        log.info("processTransactionReversal TranId:{} ", reverseDTO.getTranId());
         MyData userToken = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (ObjectUtils.isEmpty(userToken)) {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_TOKEN.getValue()),
@@ -437,7 +437,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     @Override
     public ResponseEntity<?> reverseCustomerTransaction(MyData userToken, Provider provider,
             WalletTransaction walletTransaction) {
-
+        log.info("reverseCustomerTransaction account:{} amount:{} type:{} ", 
+                walletTransaction.getAcctNum(), walletTransaction.getTranAmount(), walletTransaction.getTranType());
         // reverse customer transaction
         ResponseEntity<?> response = processCBATransactionCustomerEntry(new CBATransaction(
                 walletTransaction.getSenderName(), walletTransaction.getReceiverName(),
@@ -473,8 +474,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     @Override
     public ResponseEntity<?> reverseGLTransaction(MyData userToken, Provider provider,
             List<WalletTransaction> walletTransaction) {
+        log.info("reverseGLTransaction account:{} amount:{} type:{} ", 
+                        walletTransaction.get(0).getAcctNum(), walletTransaction.get(0).getTranAmount(), walletTransaction.get(0).getTranType());
 
         if (walletTransaction.size() != 2) {
+            log.error("Invalid  GL Posting or already reversed");
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
