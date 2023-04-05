@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import org.springframework.http.ResponseEntity;
@@ -70,7 +71,7 @@ public interface UserAccountService {
 
 	ResponseEntity<?> nameEnquiry(String accountNo);
 	
-	ResponseEntity<?> getAccountDefault(Long user_id);
+	ResponseEntity<?> getAccountDefault(Long user_id) throws JsonProcessingException;
 	
 	ResponseEntity<?> searchAccount(String search);
 	
