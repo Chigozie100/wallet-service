@@ -48,7 +48,7 @@ public class CBATransaction {
 
     private String channelEvent;
 
-    private Long sessionID;
+    private String sessionID;
 
     private CBAAction action;
 

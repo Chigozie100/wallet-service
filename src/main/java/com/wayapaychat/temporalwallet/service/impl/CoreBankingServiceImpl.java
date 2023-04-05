@@ -341,7 +341,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transferTransactionRequestData.getTransactionCategory(),
                             transferTransactionRequestData.getTranType(),
                             transferTransactionRequestData.getAmount(),
-                            chargeAmount, vatAmount, provider, channelEventId, tranId, CBAAction.MOVE_GL_TO_GL));
+                            chargeAmount, vatAmount, provider, channelEventId, String.valueOf(tranId), CBAAction.MOVE_GL_TO_GL));
             customerAccount = transferTransactionRequestData.getDebitAccountNumber();
         } else if (transferTransactionRequestData.getDebitAccountNumber().length() > 10
                 && transferTransactionRequestData.getBenefAccountNumber().length() == 10) {
@@ -354,7 +354,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transferTransactionRequestData.getTransactionCategory(),
                             transferTransactionRequestData.getTranType(),
                             transferTransactionRequestData.getAmount(),
-                            BigDecimal.valueOf(0), BigDecimal.valueOf(0), provider, channelEventId, tranId,
+                            BigDecimal.valueOf(0), BigDecimal.valueOf(0), provider, channelEventId, String.valueOf(tranId),
                             CBAAction.DEPOSIT));
             customerAccount = transferTransactionRequestData.getBenefAccountNumber();
         } else if (transferTransactionRequestData.getDebitAccountNumber().length() == 10
@@ -369,7 +369,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transferTransactionRequestData.getTransactionCategory(),
                             transferTransactionRequestData.getTranType(),
                             transferTransactionRequestData.getAmount(),
-                            chargeAmount, vatAmount, provider, channelEventId, tranId, CBAAction.WITHDRAWAL));
+                            chargeAmount, vatAmount, provider, channelEventId, String.valueOf(tranId), CBAAction.WITHDRAWAL));
             customerAccount = transferTransactionRequestData.getDebitAccountNumber();
         } else {
             response = processCBACustomerTransferTransactionWithDoubleEntryTransit(
@@ -382,7 +382,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transferTransactionRequestData.getTransactionCategory(),
                             transferTransactionRequestData.getTranType(),
                             transferTransactionRequestData.getAmount(),
-                            chargeAmount, vatAmount, provider, channelEventId, tranId,
+                            chargeAmount, vatAmount, provider, channelEventId, String.valueOf(tranId),
                             CBAAction.MOVE_CUSTOMER_TO_CUSTOMER));
             customerAccount = transferTransactionRequestData.getDebitAccountNumber();
         }
@@ -440,9 +440,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         log.info("reverseCustomerTransaction account:{} amount:{} type:{} ", 
                 walletTransaction.getAcctNum(), walletTransaction.getTranAmount(), walletTransaction.getTranType());
         // reverse customer transaction
-        CBATransaction reversalTransaction = null;
-        try {
-            reversalTransaction = new CBATransaction(
+        CBATransaction reversalTransaction = new CBATransaction(
                 walletTransaction.getSenderName(), walletTransaction.getReceiverName(),
                 userToken, walletTransaction.getPaymentReference(),
                 null, null, null,
@@ -450,15 +448,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                 walletTransaction.getTranCategory().name(),
                 walletTransaction.getTranType().name(), walletTransaction.getTranAmount(),
                 new BigDecimal(0), new BigDecimal(0), provider, null,
-                Long.valueOf(walletTransaction.getRelatedTransId()),
+                walletTransaction.getRelatedTransId(),
                 "D".equalsIgnoreCase(walletTransaction.getPartTranType()) ? CBAAction.DEPOSIT : CBAAction.WITHDRAWAL);
-        } catch (Exception e) {
-           e.printStackTrace();
-        }
-
         
         ResponseEntity<?> response = processCBATransactionCustomerEntry(reversalTransaction);
-
         if (!response.getStatusCode().is2xxSuccessful()) {
             return response;
         }
@@ -499,7 +492,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                 walletTransaction.get(0).getTranCategory().name(),
                 walletTransaction.get(0).getTranType().name(), walletTransaction.get(0).getTranAmount(),
                 new BigDecimal(0), new BigDecimal(0), provider, null,
-                Long.valueOf(walletTransaction.get(0).getRelatedTransId()), CBAAction.MOVE_GL_TO_GL);
+                walletTransaction.get(0).getRelatedTransId(), CBAAction.MOVE_GL_TO_GL);
 
         if ("C".equalsIgnoreCase(walletTransaction.get(0).getPartTranType())
                 && "D".equalsIgnoreCase(walletTransaction.get(1).getPartTranType())) {
@@ -967,7 +960,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         try {
             response = debitAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(),
-                    Long.toString(cbaTransaction.getSessionID()), tranId,
+                    cbaTransaction.getSessionID(), tranId,
                     cbaTransaction.getPaymentReference(), tranCategory, getDebitAccountNumber(cbaTransaction),
                     cbaTransaction.getNarration(), cbaTransaction.getAmount(), 1, tranType,
                     cbaTransaction.getSenderName(), cbaTransaction.getReceiverName()));
@@ -983,7 +976,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         try {
             response = creditAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(),
-                    Long.toString(cbaTransaction.getSessionID()), tranId,
+                    cbaTransaction.getSessionID(), tranId,
                     cbaTransaction.getPaymentReference(), tranCategory, getCreditAccountNumber(cbaTransaction),
                     cbaTransaction.getNarration(), cbaTransaction.getAmount(), 2, tranType,
                     cbaTransaction.getSenderName(), cbaTransaction.getReceiverName()));
@@ -999,7 +992,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             cbaTransaction.setNarration("Revesal: ".concat(cbaTransaction.getNarration()));
             processExternalCBATransactionGLDoubleEntry(cbaTransaction, true);
             creditAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(),
-                    Long.toString(cbaTransaction.getSessionID()), tranId,
+                    cbaTransaction.getSessionID(), tranId,
                     cbaTransaction.getPaymentReference(), tranCategory, getDebitAccountNumber(cbaTransaction),
                     cbaTransaction.getNarration(), cbaTransaction.getAmount(), 2, tranType, "", ""));
         }
@@ -1096,12 +1089,12 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         try {
             if (cbaTransaction.getAction().equals(CBAAction.DEPOSIT)) {
                 creditAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(),
-                        Long.toString(cbaTransaction.getSessionID()), tranId,
+                        cbaTransaction.getSessionID(), tranId,
                         cbaTransaction.getPaymentReference(), tranCategory, cbaTransaction.getCustomerAccount(),
                         cbaTransaction.getNarration(), totalAmount, 1, tranType, cbaTransaction.getSenderName(), ""));
             } else {
                 response = debitAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(),
-                        Long.toString(cbaTransaction.getSessionID()), tranId,
+                        cbaTransaction.getSessionID(), tranId,
                         cbaTransaction.getPaymentReference(), tranCategory, cbaTransaction.getCustomerAccount(),
                         cbaTransaction.getNarration(), totalAmount, 1, tranType, "", cbaTransaction.getReceiverName()));
             }
