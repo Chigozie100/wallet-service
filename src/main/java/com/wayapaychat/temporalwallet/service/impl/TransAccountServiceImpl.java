@@ -2099,12 +2099,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String receiverName = creditMerchantAcct.getAcct_name();
 
 			String tranNarrate = "WALLET-" + tranNarration;
-			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
+			WalletTransaction tranDebit = new WalletTransaction("", tranId, accountDebit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,
 					n, tranCategory, senderName, receiverName);
 
 			n = n + 1;
-			WalletTransaction tranCreditMerhAcct = new WalletTransaction(tranId, creditMerchantAcct.getAccountNo(),
+			WalletTransaction tranCreditMerhAcct = new WalletTransaction("", tranId, creditMerchantAcct.getAccountNo(),
 					merchantAmount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "C", creditMerchantAcct.getGl_code(), paymentRef, userId,
 					email,
@@ -2112,7 +2112,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 			log.info("TRANSACTION CREATION DEBIT: {} WITH CREDIT: {}", tranDebit.toString(),
 					tranCreditMerhAcct.toString());
 
-			WalletTransaction tranCreditWayaComm = new WalletTransaction(tranId,
+			WalletTransaction tranCreditWayaComm = new WalletTransaction("", tranId,
 					creditWayaCommissionAcct.getAccountNo(), wayaCommAmount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "C", creditWayaCommissionAcct.getGl_code(), paymentRef,
 					userId, email,
@@ -2375,12 +2375,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String receiverName = accountCredit.getAcct_name();
 
 			String tranNarrate = "WALLET-" + tranNarration;
-			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
+			WalletTransaction tranDebit = new WalletTransaction("", tranId, accountDebit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,
 					n, tranCategory, senderName, receiverName);
 
 			n = n + 1;
-			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
+			WalletTransaction tranCredit = new WalletTransaction("", tranId, accountCredit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email,
 					n, tranCategory, senderName, receiverName);
 			log.info("TRANSACTION CREATION DEBIT: {} WITH CREDIT: {}", tranDebit.toString(), tranCredit.toString());
@@ -2780,12 +2780,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String receiverName = accountCredit.getAcct_name();
 
 			String tranNarrate = "WALLET-" + tranNarration;
-			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
+			WalletTransaction tranDebit = new WalletTransaction("", tranId, accountDebit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,
 					n, tranCategory, senderName, receiverName);
 
 			n = n + 1;
-			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
+			WalletTransaction tranCredit = new WalletTransaction("", tranId, accountCredit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email,
 					n, tranCategory, senderName, receiverName);
 			log.info("TRANSACTION CREATION DEBIT: {} WITH CREDIT: {}", tranDebit.toString(), tranCredit.toString());
@@ -3021,12 +3021,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String receiverName = accountCredit.getAcct_name();
 
 			String tranNarrate = "WALLET-" + tranNarration;
-			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
+			WalletTransaction tranDebit = new WalletTransaction("", tranId, accountDebit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,
 					n, tranCategory, senderName, receiverName);
 
 			n = n + 1;
-			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
+			WalletTransaction tranCredit = new WalletTransaction("", tranId, accountCredit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email,
 					n, tranCategory, senderName, receiverName);
 			log.info("TRANSACTION CREATION DEBIT: {} WITH CREDIT: {}", tranDebit.toString(), tranCredit.toString());
@@ -3301,12 +3301,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 			String receiverName = accountCredit.getAcct_name();
 
 			String tranNarrate = "WALLET-" + tranNarration;
-			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
+			WalletTransaction tranDebit = new WalletTransaction("", tranId, accountDebit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,
 					n, tranCategory, senderName, receiverName);
 
 			n = n + 1;
-			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
+			WalletTransaction tranCredit = new WalletTransaction("", tranId, accountCredit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email,
 					n, tranCategory, senderName, receiverName);
 			log.info("TRANSACTION CREATION DEBIT: {} WITH CREDIT: {}", tranDebit.toString(), tranCredit.toString());
@@ -3725,12 +3725,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 			// String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
 
 			String tranNarrate = "WALLET-" + tranNarration + " TO:" + bk;
-			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
+			WalletTransaction tranDebit = new WalletTransaction("", tranId, accountDebit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,
 					n, tranCategory, senderName, receiverName);
 
 			n = n + 1;
-			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
+			WalletTransaction tranCredit = new WalletTransaction("", tranId, accountCredit.getAccountNo(), amount, tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email,
 					n, tranCategory, senderName, receiverName);
 
@@ -3936,14 +3936,14 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 			int n = 1;
 			String tranNarrate = "WALLET-" + "transaction charges" + bk;
-			WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), chargesAmount,
+			WalletTransaction tranDebit = new WalletTransaction("", tranId, accountDebit.getAccountNo(), chargesAmount,
 					tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,
 					n, tranCategory, senderName, receiverName);
 			System.out.println("tranDebit  transaction charges ==: : " + tranDebit);
 
 			n = n + 1;
-			WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), chargesAmount,
+			WalletTransaction tranCredit = new WalletTransaction("", tranId, accountCredit.getAccountNo(), chargesAmount,
 					tranType,
 					tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email,
 					n, tranCategory, senderName, receiverName);

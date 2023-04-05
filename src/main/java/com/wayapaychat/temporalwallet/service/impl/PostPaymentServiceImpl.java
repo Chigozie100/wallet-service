@@ -396,13 +396,13 @@ public class PostPaymentServiceImpl implements IPostPaymentService {
 
     private void doDebitAndCredit(String tranId, WalletAccount accountDebit, WalletAccount accountCredit, BigDecimal amount, TransactionTypeEnum tranType, String tranCrncy, CategoryType tranCategory, String paymentRef, String senderName, String receiverName, String tranNarrate, int n, String userId, String email){
 
-        WalletTransaction tranDebit = new WalletTransaction(tranId, accountDebit.getAccountNo(), amount, tranType,
+        WalletTransaction tranDebit = new WalletTransaction("", tranId, accountDebit.getAccountNo(), amount, tranType,
                 tranNarrate, LocalDate.now(), tranCrncy, "D", accountDebit.getGl_code(), paymentRef, userId, email,
                 n, tranCategory, senderName, receiverName);
 
         n = n + 1;
 
-        WalletTransaction tranCredit = new WalletTransaction(tranId, accountCredit.getAccountNo(), amount, tranType,
+        WalletTransaction tranCredit = new WalletTransaction("", tranId, accountCredit.getAccountNo(), amount, tranType,
                 tranNarrate, LocalDate.now(), tranCrncy, "C", accountCredit.getGl_code(), paymentRef, userId, email,
                 n, tranCategory, senderName, receiverName);
         walletTransactionRepository.saveAndFlush(tranDebit);
