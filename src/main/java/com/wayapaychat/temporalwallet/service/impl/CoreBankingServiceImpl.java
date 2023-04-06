@@ -457,7 +457,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         Optional<List<WalletTransaction>> transactionLists = walletTransactionRepository
-                .findByTranIdIgnoreCase(walletTransaction.getTranId());
+                .findByRelatedTrans(walletTransaction.getRelatedTransId());
 
         Map<String, List<WalletTransaction>> glPostings = transactionLists.get().stream()
                 .collect(
@@ -694,7 +694,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         String tranDate = LocalDate.now().toString();
         if (transactionPojo.getAccountNo().contains("NGN"))
-            subject = "GL Posting";
+            subject = "GL Posting ".concat(subject);
 
         StringBuilder transactionType = new StringBuilder();
         if ("CR".equalsIgnoreCase(tranType))
