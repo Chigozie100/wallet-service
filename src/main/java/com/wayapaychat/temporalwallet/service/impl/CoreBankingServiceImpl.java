@@ -341,7 +341,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transferTransactionRequestData.getTransactionCategory(),
                             transferTransactionRequestData.getTranType(),
                             transferTransactionRequestData.getAmount(),
-                            chargeAmount, vatAmount, provider, channelEventId, String.valueOf(tranId), CBAAction.MOVE_GL_TO_GL));
+                            chargeAmount, vatAmount, provider, channelEventId, String.valueOf(tranId),
+                            CBAAction.MOVE_GL_TO_GL));
             customerAccount = transferTransactionRequestData.getDebitAccountNumber();
         } else if (transferTransactionRequestData.getDebitAccountNumber().length() > 10
                 && transferTransactionRequestData.getBenefAccountNumber().length() == 10) {
@@ -354,7 +355,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transferTransactionRequestData.getTransactionCategory(),
                             transferTransactionRequestData.getTranType(),
                             transferTransactionRequestData.getAmount(),
-                            BigDecimal.valueOf(0), BigDecimal.valueOf(0), provider, channelEventId, String.valueOf(tranId),
+                            BigDecimal.valueOf(0), BigDecimal.valueOf(0), provider, channelEventId,
+                            String.valueOf(tranId),
                             CBAAction.DEPOSIT));
             customerAccount = transferTransactionRequestData.getBenefAccountNumber();
         } else if (transferTransactionRequestData.getDebitAccountNumber().length() == 10
@@ -369,7 +371,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transferTransactionRequestData.getTransactionCategory(),
                             transferTransactionRequestData.getTranType(),
                             transferTransactionRequestData.getAmount(),
-                            chargeAmount, vatAmount, provider, channelEventId, String.valueOf(tranId), CBAAction.WITHDRAWAL));
+                            chargeAmount, vatAmount, provider, channelEventId, String.valueOf(tranId),
+                            CBAAction.WITHDRAWAL));
             customerAccount = transferTransactionRequestData.getDebitAccountNumber();
         } else {
             response = processCBACustomerTransferTransactionWithDoubleEntryTransit(
@@ -426,11 +429,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     HttpStatus.BAD_REQUEST);
         }
 
-        if(!"D".equalsIgnoreCase(transactioonList.get().get(0).getPartTranType())){
-            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.TRANSACTION_NOT_SUPPORTED.getValue()),
-                    HttpStatus.BAD_REQUEST);
-        }
-
         if (isCustomerTransaction(transactioonList.get())) {
             return reverseCustomerTransaction(userToken, provider, transactioonList.get().get(0));
         } else {
@@ -442,8 +440,14 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     @Override
     public ResponseEntity<?> reverseCustomerTransaction(MyData userToken, Provider provider,
             WalletTransaction walletTransaction) {
-        log.info("reverseCustomerTransaction account:{} amount:{} type:{} ", 
+        log.info("reverseCustomerTransaction account:{} amount:{} type:{} ",
                 walletTransaction.getAcctNum(), walletTransaction.getTranAmount(), walletTransaction.getTranType());
+
+        if (!"D".equalsIgnoreCase(walletTransaction.getPartTranType())) {
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.TRANSACTION_NOT_SUPPORTED.getValue()),
+                    HttpStatus.BAD_REQUEST);
+        }
+
         // reverse customer transaction
         CBATransaction reversalTransaction = new CBATransaction(
                 walletTransaction.getSenderName(), walletTransaction.getReceiverName(),
@@ -455,7 +459,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                 new BigDecimal(0), new BigDecimal(0), provider, null,
                 walletTransaction.getRelatedTransId(),
                 "D".equalsIgnoreCase(walletTransaction.getPartTranType()) ? CBAAction.DEPOSIT : CBAAction.WITHDRAWAL);
-        
+
         ResponseEntity<?> response = processCBATransactionCustomerEntry(reversalTransaction);
         if (!response.getStatusCode().is2xxSuccessful() || ObjectUtils.isEmpty(walletTransaction.getRelatedTransId())) {
             return response;
@@ -463,7 +467,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         Optional<List<WalletTransaction>> transactionLists = walletTransactionRepository
                 .findByRelatedTrans(walletTransaction.getRelatedTransId());
-
         Map<String, List<WalletTransaction>> glPostings = transactionLists.get().stream()
                 .collect(
                         Collectors.groupingBy(WalletTransaction::getTranId));
@@ -480,8 +483,9 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     @Override
     public ResponseEntity<?> reverseGLTransaction(MyData userToken, Provider provider,
             List<WalletTransaction> walletTransaction) {
-        log.info("reverseGLTransaction account:{} amount:{} type:{} ", 
-                        walletTransaction.get(0).getAcctNum(), walletTransaction.get(0).getTranAmount(), walletTransaction.get(0).getTranType());
+        log.info("reverseGLTransaction account:{} amount:{} type:{} ",
+                walletTransaction.get(0).getAcctNum(), walletTransaction.get(0).getTranAmount(),
+                walletTransaction.get(0).getTranType());
 
         if (walletTransaction.size() != 2) {
             log.error("Invalid  GL Posting or already reversed");
