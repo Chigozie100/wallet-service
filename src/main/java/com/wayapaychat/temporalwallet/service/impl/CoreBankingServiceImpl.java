@@ -1003,7 +1003,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             creditAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(),
                     cbaTransaction.getSessionID(), tranId,
                     cbaTransaction.getPaymentReference(), tranCategory, getDebitAccountNumber(cbaTransaction),
-                    cbaTransaction.getNarration(), cbaTransaction.getAmount(), 2, tranType, "", ""));
+                    cbaTransaction.getNarration(), cbaTransaction.getAmount(), 2, tranType, cbaTransaction.getSenderName(), cbaTransaction.getReceiverName()));
         }
 
         return response;
@@ -1100,12 +1100,12 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                 creditAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(),
                         cbaTransaction.getSessionID(), tranId,
                         cbaTransaction.getPaymentReference(), tranCategory, cbaTransaction.getCustomerAccount(),
-                        cbaTransaction.getNarration(), totalAmount, 1, tranType, cbaTransaction.getSenderName(), ""));
+                        cbaTransaction.getNarration(), totalAmount, 1, tranType, cbaTransaction.getSenderName(), cbaTransaction.getReceiverName()));
             } else {
                 response = debitAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(),
                         cbaTransaction.getSessionID(), tranId,
                         cbaTransaction.getPaymentReference(), tranCategory, cbaTransaction.getCustomerAccount(),
-                        cbaTransaction.getNarration(), totalAmount, 1, tranType, "", cbaTransaction.getReceiverName()));
+                        cbaTransaction.getNarration(), totalAmount, 1, tranType, cbaTransaction.getSenderName(), cbaTransaction.getReceiverName()));
             }
         } catch (Exception e) {
             e.printStackTrace();
