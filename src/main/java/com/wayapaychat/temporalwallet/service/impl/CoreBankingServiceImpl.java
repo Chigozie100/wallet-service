@@ -452,7 +452,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                 "D".equalsIgnoreCase(walletTransaction.getPartTranType()) ? CBAAction.DEPOSIT : CBAAction.WITHDRAWAL);
         
         ResponseEntity<?> response = processCBATransactionCustomerEntry(reversalTransaction);
-        if (!response.getStatusCode().is2xxSuccessful()) {
+        if (!response.getStatusCode().is2xxSuccessful() || ObjectUtils.isEmpty(walletTransaction.getRelatedTransId())) {
             return response;
         }
 
