@@ -426,6 +426,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     HttpStatus.BAD_REQUEST);
         }
 
+        if(!"D".equalsIgnoreCase(transactioonList.get().get(0).getPartTranType())){
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.TRANSACTION_NOT_SUPPORTED.getValue()),
+                    HttpStatus.BAD_REQUEST);
+        }
+
         if (isCustomerTransaction(transactioonList.get())) {
             return reverseCustomerTransaction(userToken, provider, transactioonList.get().get(0));
         } else {
