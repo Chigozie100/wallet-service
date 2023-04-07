@@ -45,4 +45,10 @@ public class OfficeTransferDTO {
 	@Size(min = 3, max = 50, message = "paymentReference must be aleast 3 alphanumeric")
 	private String paymentReference;
 
+	@NotBlank(message = "Receiver name must not Null or Blank")
+	private String receiverName;
+
+	@NotBlank(message = "Sender Name must not Null or Blank")
+	private String senderName;
+
 }

@@ -48,6 +48,12 @@ public class TransferSimulationDTO {
     @Size(min=3, max=50, message = "Transaction Category must be aleast 3 alphanumeric")
     private String transactionCategory;
 
+    @NotBlank(message = "Sender Name must not be Null Or Blank")
+    private String senderName;
+
+    @NotBlank(message = "Receiver name must not be Null or Blank")
+    private String receiverName;
+
     public TransferSimulationDTO(
             String debitAccountNumber,
             String benefAccountNumber,
@@ -56,7 +62,9 @@ public class TransferSimulationDTO {
             String tranCrncy,
             String tranNarration,
             String paymentReference,
-            String transactionCategory) {
+            String transactionCategory,
+            String receiverName,
+            String senderName) {
         super();
         this.debitAccountNumber = debitAccountNumber;
         this.benefAccountNumber = benefAccountNumber;
@@ -66,5 +74,7 @@ public class TransferSimulationDTO {
         this.tranNarration = tranNarration;
         this.paymentReference = paymentReference;
         this.transactionCategory = transactionCategory;
+        this.receiverName = receiverName;
+        this.senderName = senderName;
     }
 }

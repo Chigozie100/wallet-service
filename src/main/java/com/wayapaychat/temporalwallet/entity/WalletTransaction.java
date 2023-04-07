@@ -97,9 +97,11 @@ public class WalletTransaction {
     private String createdBy;
     
     private String createdEmail;
-    
+
+	@Column(name = "sender_name")
     private String senderName;
-    
+
+	@Column(name = "receiver_name")
     private String receiverName;
     
     private String transChannel;
@@ -155,7 +157,7 @@ public class WalletTransaction {
 		this.receiverName = receiverName;
 	}
 	
-	public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
+	public WalletTransaction(@NotNull String relatedTransId, @NotNull String tranId, @NotNull String acctNum,
 			@NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType, 
 			@NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
 			@NotNull String partTranType, String tranGL,String paymentReference, 
@@ -179,6 +181,7 @@ public class WalletTransaction {
 		this.tranCategory = tranCategory;
 		this.senderName = senderName;
 		this.receiverName = receiverName;
+		this.relatedTransId = relatedTransId;
 	}
 	
 	public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,

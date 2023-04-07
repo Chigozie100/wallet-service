@@ -32,5 +32,11 @@ public class UserTransactionDTO {
 	@Min(value = 1, message = "Amount must be greater than zero")
 	private BigDecimal amount;
 
+	@NotBlank(message = "Sender Name Cannot be blank")
+	private String senderName;
+
+	@NotBlank(message = "Receiver Name Cannot be blank")
+	private String receiverName;
+
 
 }

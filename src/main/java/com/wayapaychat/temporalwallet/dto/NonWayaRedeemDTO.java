@@ -35,12 +35,18 @@ public class NonWayaRedeemDTO {
 	@Size(min=3, max=10, message = "Transaction Status must be between 1 to 20 digit")
     private String tranStatus;
 
+	@NotBlank(message = "Receiver Name can not be Null Or Blank")
+	private String receiverName;
+
+	@NotBlank(message = "Sender Name can not be Blank or Null")
+	private String senderName;
+
 	public NonWayaRedeemDTO(
 			Long merchantId,
 			BigDecimal amount,
 			String tranCrncy,
 			String token,
-			String tranStatus) {
+			String tranStatus,String receiverName, String senderName) {
 		super();
 		//this.emailOrPhoneNo = emailOrPhoneNo;
 		this.merchantId = merchantId;
@@ -48,6 +54,8 @@ public class NonWayaRedeemDTO {
 		this.tranCrncy = tranCrncy;
 		this.token = token;
 		this.tranStatus = tranStatus;
+		this.receiverName = receiverName;
+		this.senderName = senderName;
 	}
 
 	public NonWayaRedeemDTO() {

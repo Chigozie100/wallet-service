@@ -11,30 +11,16 @@ import lombok.Data;
 
 @Data
 public class NonWayaPaymentDTO {
-	
-	/*@NotNull
-	@Size(min=10, max=10)
-    private String customerDebitAccountNo;
-   
-	@NotNull
-    private BigDecimal amount;
-    
-	@NotNull
-	@Size(min=3, max=5)
-    private String tranCrncy;
-	
-	@NotNull
-	@Size(min=5, max=50)
-    private String tranNarration;
-	
-	@NotNull
-	@Size(min=3, max=50)
-	private String paymentReference;
-	*/
-	
+
 	@NotBlank(message = "Customer Account must not Null or Blank")
 	@Size(min=10, max=10, message = "Customer Account must be 10 digit")
-    private String customerDebitAccountNo;
+	private String customerDebitAccountNo;
+
+	@NotBlank(message = "Sender Name must not Null or Blank")
+	private String senderName;
+	
+	@NotBlank(message = "Receiver Name must not Null or Blank")
+    private String receiverName;
 	
 	@NotBlank(message = "EmailOrPhone must not be Null or Blank")
 	@Size(min=1, max=50, message = "EmailOrPhone must be between 1 to 50 digit")

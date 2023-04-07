@@ -3,6 +3,7 @@ package com.wayapaychat.temporalwallet.dto;
 import java.math.BigDecimal;
 
 import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -37,5 +38,11 @@ public class AdminUserTransferDTO {
 	@NotNull
 	@Size(min=3, max=50)
 	private String paymentReference;
+
+	@NotBlank(message = "Sender Name must not be Blank or Null")
+	private String senderName;
+
+	@NotBlank(message = "Receiver Name can not be Blank or Null")
+	private String receiverName;
 
 }

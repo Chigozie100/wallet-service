@@ -5,17 +5,22 @@ import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.entity.Provider;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
+import com.wayapaychat.temporalwallet.entity.WalletTransaction;
 import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.enumm.WalletTransStatus;
 import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
 import com.wayapaychat.temporalwallet.pojo.CBATransaction;
+import com.wayapaychat.temporalwallet.pojo.MyData;
+
 import java.math.BigDecimal;
+import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.http.ResponseEntity;
 
 public interface CoreBankingService {
+
     ResponseEntity<?> externalCBACreateAccount(WalletUser userInfo, WalletAccount sAcct, Provider provider);
 
     ResponseEntity<?> createAccount(WalletUser userInfo, WalletAccount sAcct);
@@ -46,9 +51,15 @@ public interface CoreBankingService {
 
     ResponseEntity<?> processTransactionReversal(ReverseTransactionDTO reverseDTO, HttpServletRequest request);
 
+    ResponseEntity<?> reverseCustomerTransaction(MyData userToken, Provider provider, WalletTransaction walletTransaction);
+
+    ResponseEntity<?> reverseGLTransaction(MyData userToken, Provider provider, List<WalletTransaction> list);
+
+    boolean isCustomerTransaction(List<WalletTransaction> list);
+
     String getEventAccountNumber(String channelEventId);
 
-    Long logTransaction(String fromAccountNumber, String toAccountNumber, BigDecimal amount, BigDecimal chargeAmount, BigDecimal vatAmount,
+    Long logTransaction(String receiverName,String senderName,String fromAccountNumber, String toAccountNumber, BigDecimal amount, BigDecimal chargeAmount, BigDecimal vatAmount,
                                 String transCategory, String tranCrncy, String eventId, WalletTransStatus status);
 
     void updateTransactionLog(Long tranId, WalletTransStatus status);
@@ -66,4 +77,5 @@ public interface CoreBankingService {
     BigDecimal computeTransactionFee(String accountNumber, BigDecimal amount,  String eventId);
 
     BigDecimal computeVatFee(BigDecimal fee,  String eventId);
+
 }

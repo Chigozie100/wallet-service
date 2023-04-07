@@ -36,6 +36,12 @@ public class BulkTransactionCreationDTO {
 	@NotBlank(message = "Office Account Number Cannot be blank")
 	private String officeAccountNo;
 
+	@NotBlank(message = "Sender Name can not be Null or Blank")
+	private String senderName;
+
+	@NotBlank(message = "Receiver Name can not be Null or Blank")
+	private String receiverName;
+
 	public BulkTransactionCreationDTO(
 			@NotEmpty(message = "List Should Not be Empty") Set<@Valid UserTransactionDTO> usersList,
 			@NotBlank(message = "tranType must not Null or Blank") String tranType,

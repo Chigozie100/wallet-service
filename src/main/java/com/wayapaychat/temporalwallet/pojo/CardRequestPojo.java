@@ -21,4 +21,7 @@ public class CardRequestPojo {
 	
 	private String type;
 
+	private String receiverName;
+	private String senderName;
+
 }

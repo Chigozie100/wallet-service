@@ -1,10 +1,12 @@
 package com.wayapaychat.temporalwallet.service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import org.springframework.http.ResponseEntity;
@@ -69,7 +71,7 @@ public interface UserAccountService {
 
 	ResponseEntity<?> nameEnquiry(String accountNo);
 	
-	ResponseEntity<?> getAccountDefault(Long user_id);
+	ResponseEntity<?> getAccountDefault(Long user_id) throws JsonProcessingException;
 	
 	ResponseEntity<?> searchAccount(String search);
 	
@@ -130,5 +132,7 @@ public interface UserAccountService {
     void setupSystemUser();
 
     void setupExternalCBA();
+
+    ApiResponse<?> getAllAccounts(int page, int size, String filter, LocalDate fromdate, LocalDate todate);
 
 }

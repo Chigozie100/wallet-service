@@ -23,6 +23,12 @@ spec:
   selector:
     matchLabels:
       app: waya-repository
+  minReadySeconds: 240
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
   template:
     metadata:
       labels:
@@ -41,6 +47,10 @@ spec:
         envFrom:
         - configMapRef:
             name: common-services-config
+        # readinessProbe:
+        #   httpGet: 
+        #     path: /v2/api-docs
+        #     port: 80
         ports: 
         - name: http
           containerPort: 80 

@@ -1,5 +1,7 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.*;
@@ -20,11 +22,15 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
@@ -55,6 +61,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 	private final UserPricingService userPricingService;
 	private final CoreBankingService coreBankingService;
 	private final SwitchWalletService switchWalletService;
+	@Autowired
+	private ObjectMapper objectMapper;
 
 	@Value("${waya.wallet.productcode}")
 	private String wayaProduct;
@@ -1461,16 +1469,17 @@ public class UserAccountServiceImpl implements UserAccountService {
 			WalletUser xUser = walletUserRepository.findByAccount(walletAccount);
 			securityCheck(Long.valueOf(xUser.getUserId()));
 		} catch (CustomException ex) {
-			throw new CustomException("Your Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
+			throw new CustomException("You Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
 		}
 	}
 
 	public void securityCheck(long userId) {
-		MyData jwtUser = getEmailFromToken(userId);
 		WalletUser user = walletUserRepository.findByUserId(userId);
-		if (!user.getEmailAddress().equals(jwtUser.getEmail()) || user.getUserId() != userId) {
-			throw new CustomException("Your Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
-		}
+		if(Objects.isNull(user))
+			throw new CustomException("You Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
+
+		if(user.getUserId() != userId)
+			throw new CustomException("You Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
 	}
 
 	@Override
@@ -1505,7 +1514,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 		return new ResponseEntity<>(new SuccessResponse("Wallet Commissions", account), HttpStatus.OK);
 	}
 
-	public ResponseEntity<?> getAccountDetails(String accountNo, Boolean isAdmin) throws Exception {
+	@Override
+	public ResponseEntity<?> getAccountDetails(String accountNo, Boolean isAdmin) {
 		if (!isAdmin) {
 			securityWtihAccountNo(accountNo);
 		}
@@ -1515,25 +1525,43 @@ public class UserAccountServiceImpl implements UserAccountService {
 			if (!account.isPresent()) {
 				return new ResponseEntity<>(new ErrorResponse("Unable to fetch account"), HttpStatus.BAD_REQUEST);
 			}
-			return new ResponseEntity<>(new SuccessResponse("Wallet", account), HttpStatus.OK);
+			return new ResponseEntity<>(new SuccessResponse("Wallet", account.get()), HttpStatus.OK);
 		} catch (Exception ex) {
-			throw new Exception(ex.getMessage());
+			log.error("An error getAccountDetails: {}",ex.getLocalizedMessage());
+			String customException;
+			if(ex instanceof CustomException){
+				customException =  objectMapper.convertValue(ex.getLocalizedMessage(),String.class);
+				return new ResponseEntity<>(new ErrorResponse(customException),HttpStatus.BAD_REQUEST);
+			}else {
+				return new ResponseEntity<>(new ErrorResponse("Unable to fetch your default account, try again later"),HttpStatus.BAD_REQUEST);
+			}
 		}
 	}
 
 	@Override
 	public ResponseEntity<?> getAccountDefault(Long user_id) {
-		securityCheck(user_id);
-		WalletUser user = walletUserRepository.findByUserId(user_id);
-		if (user == null) {
-			return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
-		}
+		try {
+			securityCheck(user_id);
+			WalletUser user = walletUserRepository.findByUserId(user_id);
+			if (user == null) {
+				return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
+			}
 
-		Optional<WalletAccount> account = walletAccountRepository.findByDefaultAccount(user);
-		if (!account.isPresent()) {
-			return new ResponseEntity<>(new ErrorResponse("Unable to fetch default account"), HttpStatus.BAD_REQUEST);
+			Optional<WalletAccount> account = walletAccountRepository.findByDefaultAccount(user);
+			if (!account.isPresent()) {
+				return new ResponseEntity<>(new ErrorResponse("Unable to fetch default account"), HttpStatus.BAD_REQUEST);
+			}
+			return new ResponseEntity<>(new SuccessResponse("Wallet Default", account.get()), HttpStatus.OK);
+		}catch (Exception ex) {
+			log.error("An error getAccountDefault: {}",ex.getLocalizedMessage());
+			String customException;
+			if(ex instanceof CustomException){
+				 customException =  objectMapper.convertValue(ex.getLocalizedMessage(),String.class);
+				return new ResponseEntity<>(new ErrorResponse(customException),HttpStatus.BAD_REQUEST);
+			}else {
+				return new ResponseEntity<>(new ErrorResponse("Unable to fetch your default account, try again later"),HttpStatus.BAD_REQUEST);
+			}
 		}
-		return new ResponseEntity<>(new SuccessResponse("Wallet Default", account), HttpStatus.OK);
 	}
 
 	public ResponseEntity<?> searchAccount(String search) {
@@ -2132,6 +2160,37 @@ public class UserAccountServiceImpl implements UserAccountService {
 			Provider provider = switchWalletService.getActiveProvider();
 			coreBankingService.externalCBACreateAccount(wallet.getUser(), wallet, provider);
 		}
+
+	}
+
+	@Override
+	public ApiResponse<?> getAllAccounts(int page, int size, String filter, LocalDate fromdate, LocalDate todate){
+		
+		Pageable pagable = PageRequest.of(page, size);
+		Map<String, Object> response = new HashMap<>();
+		Page<WalletAccount> accountsPage = null;
+
+		if (filter != null) {
+			// LocalDate fromtranDate, LocalDate totranDate
+			accountsPage = walletAccountRepository.findByAllWalletAccountWithDateRangeAndTranTypeOR(pagable,
+					filter, fromdate, todate);
+
+			System.out.println("walletTransactionPage2 " + accountsPage.getContent());
+		} else {
+			accountsPage = walletAccountRepository.findByAllWalletAccountWithDateRange(pagable, fromdate,
+					todate);
+		}
+
+		List<WalletAccount> account = accountsPage.getContent();
+		response.put("account", account);
+		response.put("currentPage", accountsPage.getNumber());
+		response.put("totalItems", accountsPage.getTotalElements());
+		response.put("totalPages", accountsPage.getTotalPages());
+
+		if (account.isEmpty()) {
+			return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO RECORD FOUND", null);
+		}
+		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "ACCOUNT LIST SUCCESSFULLY", response);
 
 	}
  
