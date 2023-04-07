@@ -533,10 +533,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         .filter( accTrans -> !accTrans.getAcctNum().contains("NGN") ).collect(Collectors.toList());
 
         List<WalletTransaction> glWalletTransaction = transactioonList.get().stream()
-        .filter( accTrans -> !accTrans.getAcctNum().contains("NGN") ).collect(Collectors.toList());
+        .filter( accTrans -> accTrans.getAcctNum().contains("NGN") ).collect(Collectors.toList());
 
-        if(customerWalletTransaction.size() != 1 &&
-                glWalletTransaction.size() %2  != 0 && glWalletTransaction.size() <= 12 ){
+        if(customerWalletTransaction.size() != 1 ||
+                (glWalletTransaction.size() %2  != 0 && glWalletTransaction.size() <= 12 )){
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.TRANSACTION_NOT_SUPPORTED.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
