@@ -209,7 +209,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
             walletAccountRepository.saveAndFlush(accountCredit);
 
-            CompletableFuture.runAsync(() -> logNotification(Constant.CREDIT_TRANSACTION_ALERT,
+            CompletableFuture.runAsync(() -> sendTransactionNotification(Constant.CREDIT_TRANSACTION_ALERT,
                     accountCredit.getAcct_name(), transactionPojo, accountCredit.getClr_bal_amt(), "CR"));
 
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.SUCCESSFUL_CREDIT.getValue()),
@@ -258,7 +258,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
             walletAccountRepository.saveAndFlush(accountDebit);
 
-            CompletableFuture.runAsync(() -> logNotification(Constant.DEBIT_TRANSACTION_ALERT,
+            CompletableFuture.runAsync(() -> sendTransactionNotification(Constant.DEBIT_TRANSACTION_ALERT,
                     accountDebit.getAcct_name(), transactionPojo, accountDebit.getClr_bal_amt(), "DR"));
 
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.SUCCESSFUL_DEBIT.getValue()),
@@ -726,7 +726,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     @Override
-    public void logNotification(String subject, String accountName, CBAEntryTransaction transactionPojo,
+    public void sendTransactionNotification(String subject, String accountName, CBAEntryTransaction transactionPojo,
             double currentBalance, String tranType) {
 
         AccountSumary account = tempwallet.getAccountSumaryLookUp(transactionPojo.getAccountNo());
