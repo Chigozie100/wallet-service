@@ -24,9 +24,11 @@ import com.wayapaychat.temporalwallet.response.ApiResponse;
 
 public interface TransAccountService {
 
-	ResponseEntity<?> adminTransferForUser(HttpServletRequest request, String command, AdminUserTransferDTO adminTranser);
+	ResponseEntity<?> adminTransferForUser(HttpServletRequest request, String command,
+			AdminUserTransferDTO adminTranser);
 
-	ResponseEntity<?> cashTransferByAdmin(HttpServletRequest request, String command, WalletAdminTransferDTO adminTranser);
+	ResponseEntity<?> cashTransferByAdmin(HttpServletRequest request, String command,
+			WalletAdminTransferDTO adminTranser);
 
 	ApiResponse<Page<WalletTransaction>> findAllTransaction(int page, int size);
 
@@ -38,7 +40,8 @@ public interface TransAccountService {
 
 	ApiResponse<Page<WalletTransaction>> findByAccountNumber(int page, int size, String accountNumber);
 
-	ResponseEntity<?> makeWalletTransaction(HttpServletRequest request, String command, TransferTransactionDTO transactionPojo);
+	ResponseEntity<?> makeWalletTransaction(HttpServletRequest request, String command,
+			TransferTransactionDTO transactionPojo);
 
 	ResponseEntity<?> sendMoney(HttpServletRequest request, TransferTransactionDTO transfer);
 
@@ -54,7 +57,8 @@ public interface TransAccountService {
 
 	ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer, boolean isMifos);
 
-	ResponseEntity<?> OfficialUserTransferSystemSwitch(Map<String, String > mapp, String token, HttpServletRequest request, OfficeUserTransferDTO transfer);
+	ResponseEntity<?> OfficialUserTransferSystemSwitch(Map<String, String> mapp, String token,
+			HttpServletRequest request, OfficeUserTransferDTO transfer);
 
 	ResponseEntity<?> OfficialUserTransferMultiple(HttpServletRequest request, List<OfficeUserTransferDTO> transfer);
 
@@ -81,26 +85,25 @@ public interface TransAccountService {
 	ResponseEntity<?> EventReversePaymentRequest(HttpServletRequest request, EventPaymentRequestReversal eventPay);
 
 	ResponseEntity<?> EventTransferPayment(HttpServletRequest request, EventPaymentDTO eventPay, boolean isMifos);
-
-	ResponseEntity<?> EventPaymentSettlement(HttpServletRequest request, EventPaymentSettlementDTO eventPay);
-
-	
+  
 	ResponseEntity<?> EventOfficePayment(HttpServletRequest request, EventOfficePaymentDTO eventPay);
 
 	ResponseEntity<?> TemporalWalletToOfficialWallet(HttpServletRequest request, TemporalToOfficialWalletDTO transfer);
 
-	ResponseEntity<?> TemporalWalletToOfficialWalletMutiple(HttpServletRequest request, List<TemporalToOfficialWalletDTO> transfer);
-
+	ResponseEntity<?> TemporalWalletToOfficialWalletMutiple(HttpServletRequest request,
+			List<TemporalToOfficialWalletDTO> transfer);
 
 	ApiResponse<?> EventBuySellPayment(HttpServletRequest request, WayaTradeDTO eventPay);
 
 	ResponseEntity<?> EventCommissionPayment(HttpServletRequest request, EventPaymentDTO eventPay);
 
-	ResponseEntity<?>  sendMoneyCharge(HttpServletRequest request, WalletTransactionChargeDTO transfer);
+	ResponseEntity<?> sendMoneyCharge(HttpServletRequest request, WalletTransactionChargeDTO transfer);
 
-	ResponseEntity<?> TranReversePayment(HttpServletRequest request, ReverseTransactionDTO reverseDto) throws ParseException;
+	ResponseEntity<?> TranReversePayment(HttpServletRequest request, ReverseTransactionDTO reverseDto)
+			throws ParseException;
 
-	ResponseEntity<?> TranReversePaymentRevised(HttpServletRequest request, ReverseTransactionDTO reverseDto) throws ParseException;
+	ResponseEntity<?> TranReversePaymentRevised(HttpServletRequest request, ReverseTransactionDTO reverseDto)
+			throws ParseException;
 
 	ApiResponse<?> VirtuPaymentReverse(HttpServletRequest request, ReversePaymentDTO reverseDto) throws ParseException;
 
@@ -116,10 +119,8 @@ public interface TransAccountService {
 
 	ApiResponse<?> getAllTransactions(int page, int size, String filter, LocalDate fromdate, LocalDate todate);
 
-	ApiResponse<?> getAllTransactionsByAccountNo(int page, int size, String filter, LocalDate fromdate, LocalDate todate, String accountNo);
-
-
-
+	ApiResponse<?> getAllTransactionsByAccountNo(int page, int size, String filter, LocalDate fromdate,
+			LocalDate todate, String accountNo);
 
 	ApiResponse<?> TranALLReverseReport();
 
@@ -135,15 +136,16 @@ public interface TransAccountService {
 
 	ResponseEntity<?> BankTransferPaymentOfficial(HttpServletRequest request, BankPaymentOfficialDTO transfer);
 
-	ResponseEntity<?> BankTransferPaymentOfficialMultiple(HttpServletRequest request, List<BankPaymentOfficialDTO> transfer);
+	ResponseEntity<?> BankTransferPaymentOfficialMultiple(HttpServletRequest request,
+			List<BankPaymentOfficialDTO> transfer);
 
 	ResponseEntity<?> EventNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer);
 
 	ResponseEntity<?> EventNonPaymentMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer);
 
-	ResponseEntity<?> getListOfNonWayaTransfers(HttpServletRequest request, String userId, int page, int  size);
+	ResponseEntity<?> getListOfNonWayaTransfers(HttpServletRequest request, String userId, int page, int size);
 
-	ResponseEntity<?> listOfNonWayaTransfers(HttpServletRequest request, int page, int  size);
+	ResponseEntity<?> listOfNonWayaTransfers(HttpServletRequest request, int page, int size);
 
 	ResponseEntity<?> EventNonRedeem(HttpServletRequest request, NonWayaPaymentDTO transfer);
 
@@ -155,16 +157,15 @@ public interface TransAccountService {
 
 	ApiResponse<?> CommissionPaymentHistory();
 
-
-
 	ResponseEntity<?> TransferNonPaymentMultiple(HttpServletRequest request, List<NonWayaPaymentDTO> transfer);
 
 	ResponseEntity<?> TransferNonPaymentMultipleUpload(HttpServletRequest request, MultipartFile file);
 
-	ResponseEntity<?> TransferNonPaymentSingleWayaOfficial(HttpServletRequest request, NonWayaPaymentMultipleOfficialDTO transfer);
+	ResponseEntity<?> TransferNonPaymentSingleWayaOfficial(HttpServletRequest request,
+			NonWayaPaymentMultipleOfficialDTO transfer);
 
-
-	ResponseEntity<?> TransferNonPaymentMultipleWayaOfficial(HttpServletRequest request, List<NonWayaPaymentMultipleOfficialDTO> transfer);
+	ResponseEntity<?> TransferNonPaymentMultipleWayaOfficial(HttpServletRequest request,
+			List<NonWayaPaymentMultipleOfficialDTO> transfer);
 
 	ResponseEntity<?> TransferNonPaymentWayaOfficialExcel(HttpServletRequest request, MultipartFile file);
 
@@ -173,46 +174,54 @@ public interface TransAccountService {
 	ResponseEntity<?> NonWayaPaymentRedeem(HttpServletRequest request, NonWayaRedeemDTO transfer);
 
 	ResponseEntity<?> NonWayaRedeemPIN(HttpServletRequest request, NonWayaPayPIN transfer);
-	
+
 	ResponseEntity<?> WayaQRCodePayment(HttpServletRequest request, WayaPaymentQRCode transfer);
-	
+
 	ResponseEntity<?> WayaQRCodePaymentRedeem(HttpServletRequest request, WayaRedeemQRCode transfer);
-	
+
 	ResponseEntity<?> WayaPaymentRequestUsertoUser(HttpServletRequest request, WayaPaymentRequest transfer);
-	
-    ResponseEntity<?> PostOTPGenerate(HttpServletRequest request, String emailPhone);
-	
+
+	ResponseEntity<?> PostOTPGenerate(HttpServletRequest request, String emailPhone);
+
 	ResponseEntity<?> PostOTPVerify(HttpServletRequest request, WalletRequestOTP transfer);
 
-	ResponseEntity<?>  getPendingNoneWayaPaymentRequest(String userId);
+	ResponseEntity<?> getPendingNoneWayaPaymentRequest(String userId);
 
-	ResponseEntity<?>  getPayoutNoneWayaPaymentRequest(String userId);
+	ResponseEntity<?> getPayoutNoneWayaPaymentRequest(String userId);
 
-	ResponseEntity<?>  getReservedNoneWayaPaymentRequest(String userId);
+	ResponseEntity<?> getReservedNoneWayaPaymentRequest(String userId);
 
-	ResponseEntity<?>  getTotalNoneWayaPaymentRequest(String userId);
+	ResponseEntity<?> getTotalNoneWayaPaymentRequest(String userId);
 
-	ResponseEntity<?>  getExpierdNoneWayaPaymentRequest(String userId);
+	ResponseEntity<?> getExpierdNoneWayaPaymentRequest(String userId);
 
-	ResponseEntity<?>  getTotalNoneWayaPaymentRequestAmount(String userId);
-	ResponseEntity<?>  getReservedNoneWayaPaymentRequestAmount(String userId);
-	ResponseEntity<?>  getPayoutNoneWayaPaymentRequestAmount(String userId);
-	ResponseEntity<?>  getPendingNoneWayaPaymentRequestAmount(String userId);
-	ResponseEntity<?>  getExpierdNoneWayaPaymentRequestAmount(String userId);
+	ResponseEntity<?> getTotalNoneWayaPaymentRequestAmount(String userId);
 
-	ResponseEntity<?>  debitTransactionAmount();
-	ResponseEntity<?>  creditTransactionAmount();
-	ResponseEntity<?>  debitAndCreditTransactionAmount();
-	ResponseEntity<?>  debitTransactionAmountOffical();
-	ResponseEntity<?>  creditTransactionAmountOffical();
-	ResponseEntity<?>  debitAndCreditTransactionAmountOfficial();
+	ResponseEntity<?> getReservedNoneWayaPaymentRequestAmount(String userId);
+
+	ResponseEntity<?> getPayoutNoneWayaPaymentRequestAmount(String userId);
+
+	ResponseEntity<?> getPendingNoneWayaPaymentRequestAmount(String userId);
+
+	ResponseEntity<?> getExpierdNoneWayaPaymentRequestAmount(String userId);
+
+	ResponseEntity<?> debitTransactionAmount();
+
+	ResponseEntity<?> creditTransactionAmount();
+
+	ResponseEntity<?> debitAndCreditTransactionAmount();
+
+	ResponseEntity<?> debitTransactionAmountOffical();
+
+	ResponseEntity<?> creditTransactionAmountOffical();
+
+	ResponseEntity<?> debitAndCreditTransactionAmountOfficial();
 
 	BigDecimal computeTransFee(String accountDebit, BigDecimal amount, String eventId);
 
+	ResponseEntity<?> getSingleAccountByEventID(String eventId);
 
-	ResponseEntity<?>  getSingleAccountByEventID(String eventId);
+	WalletAccount findByEmailOrPhoneNumberOrId(Boolean isAccountNumber, String value, String userId, String accountNo);
 
-	WalletAccount findByEmailOrPhoneNumberOrId(Boolean isAccountNumber, String value,String userId, String accountNo);
-
-	ApiResponse<?> OfficialAccountReports(int page, int size,LocalDate fromdate, LocalDate todate,  String fillter);
+	ApiResponse<?> OfficialAccountReports(int page, int size, LocalDate fromdate, LocalDate todate, String fillter);
 }

@@ -31,13 +31,13 @@ public interface CoreBankingService {
 
     ResponseEntity<?> debitAccount(CBAEntryTransaction transactionPojo);
 
+    ResponseEntity<?> processExternalCBATransactionCustomerEntry(CBATransaction cbaTransaction);
+
     ResponseEntity<?> processExternalCBATransactionGLDoubleEntry(CBATransaction cbaTransaction, boolean reversal);
 
     ResponseEntity<?> processCBATransactionGLDoubleEntry(CBATransaction cbaTransaction);
 
     ResponseEntity<?> processCBATransactionGLDoubleEntryWithTransit(CBATransaction cbaTransaction);
-
-    ResponseEntity<?> processExternalCBATransactionCustomerEntry(CBATransaction cbaTransaction);
 
     ResponseEntity<?> processCBATransactionCustomerEntry(CBATransaction cbaTransaction);
 
@@ -50,6 +50,8 @@ public interface CoreBankingService {
     ResponseEntity<?> processTransaction(TransferTransactionDTO transferTransactionDTO, String channelEventId, HttpServletRequest request);
 
     ResponseEntity<?> processTransactionReversal(ReverseTransactionDTO reverseDTO, HttpServletRequest request);
+
+    ResponseEntity<?> processCustomerTransactionReversalByRef(ReverseTransactionDTO reverseDTO, HttpServletRequest request);
 
     ResponseEntity<?> reverseCustomerTransaction(MyData userToken, Provider provider, WalletTransaction walletTransaction);
 
@@ -64,9 +66,9 @@ public interface CoreBankingService {
 
     void updateTransactionLog(Long tranId, WalletTransStatus status);
 
-    void addLien(WalletAccount account, BigDecimal amount);
+    void sendTransactionNotification(String subject, String accountName, CBAEntryTransaction transactionPojo, double currentBalance, String tranType);
 
-    void logNotification(String subject, String accountName, CBAEntryTransaction transactionPojo, double currentBalance, String tranType);
+    void addLien(WalletAccount account, BigDecimal amount);
 
     ResponseEntity<?> securityCheckOwner(String accountNumber);
 

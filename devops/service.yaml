@@ -23,7 +23,7 @@ spec:
   selector:
     matchLabels:
       app: waya-repository
-  minReadySeconds: 240
+  minReadySeconds: 320
   strategy:
     type: RollingUpdate
     rollingUpdate:

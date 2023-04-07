@@ -334,31 +334,7 @@ public class WalletTransactionController {
 
 	}
 
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-	@ApiOperation(value = "Event and Service Payment for Merchant Settlement", notes = "Transfer amount from one wallet to another wallet", tags = {
-			"TRANSACTION-WALLET" })
-	@PostMapping("/event/charge/payment-merchant-settlement")
-	public ResponseEntity<?> EventPaymentSettlement(HttpServletRequest request, @RequestBody() EventPaymentSettlementDTO walletDto) {
-		return transAccountService.EventPaymentSettlement(request, walletDto);
 
-	}
-
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-	@ApiOperation(value = "Trade and Service Payment", notes = "Transfer amount from one wallet to another wallet", tags = {
-			"TRANSACTION-WALLET" })
-	@PostMapping("/event/trade/payment")
-	public ResponseEntity<?> BuySellPayment(HttpServletRequest request, @RequestBody() WayaTradeDTO walletDto) {
-
-
-
-		ApiResponse<?> res = transAccountService.EventBuySellPayment(request, walletDto);
-		if (!res.getStatus()) {
-			return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
-		}
-		return new ResponseEntity<>(res, HttpStatus.OK);
-	}
 
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
