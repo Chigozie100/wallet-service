@@ -454,8 +454,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                 userToken, walletTransaction.getPaymentReference(),
                 null, null, null,
                 walletTransaction.getAcctNum(), "Revsrl ".concat(walletTransaction.getTranNarrate()),
-                walletTransaction.getTranCategory().name(),
-                walletTransaction.getTranType().name(), walletTransaction.getTranAmount(),
+                CategoryType.REVERSAL.name(),
+                TransactionTypeEnum.TRANSFER.name(), walletTransaction.getTranAmount(),
                 new BigDecimal(0), new BigDecimal(0), provider, null,
                 walletTransaction.getRelatedTransId(),
                 "D".equalsIgnoreCase(walletTransaction.getPartTranType()) ? CBAAction.DEPOSIT : CBAAction.WITHDRAWAL);
