@@ -55,6 +55,8 @@ public interface CoreBankingService {
 
     ResponseEntity<?> reverseGLTransaction(MyData userToken, Provider provider, List<WalletTransaction> list);
 
+    ResponseEntity<?> processCustomerTransactionReversalByRef(ReverseTransactionDTO reverseDTO, HttpServletRequest request);
+
     boolean isCustomerTransaction(List<WalletTransaction> list);
 
     String getEventAccountNumber(String channelEventId);

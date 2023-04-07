@@ -31,7 +31,6 @@ import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
 import com.wayapaychat.temporalwallet.pojo.CBATransaction;
 import com.wayapaychat.temporalwallet.pojo.CreateAccountData;
-import com.wayapaychat.temporalwallet.pojo.GLPosting;
 import com.wayapaychat.temporalwallet.pojo.MyData;
 import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
 import com.wayapaychat.temporalwallet.repository.UserPricingRepository;
@@ -430,7 +429,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         if (isCustomerTransaction(transactioonList.get())) {
-            return reverseCustomerTransaction(userToken, provider, transactioonList.get().get(0));
+            reverseDTO.setTranId(transactioonList.get().get(0).getPaymentReference());
+            return processCustomerTransactionReversalByRef(reverseDTO, request);
         } else {
             return reverseGLTransaction(userToken, provider, transactioonList.get());
         }
@@ -460,24 +460,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                 walletTransaction.getRelatedTransId(),
                 "D".equalsIgnoreCase(walletTransaction.getPartTranType()) ? CBAAction.DEPOSIT : CBAAction.WITHDRAWAL);
 
-        ResponseEntity<?> response = processCBATransactionCustomerEntry(reversalTransaction);
-        if (!response.getStatusCode().is2xxSuccessful() || ObjectUtils.isEmpty(walletTransaction.getRelatedTransId())) {
-            return response;
-        }
-
-        Optional<List<WalletTransaction>> transactionLists = walletTransactionRepository
-                .findByRelatedTrans(walletTransaction.getRelatedTransId());
-        Map<String, List<WalletTransaction>> glPostings = transactionLists.get().stream()
-                .collect(
-                        Collectors.groupingBy(WalletTransaction::getTranId));
-
-        for (Map.Entry<String, List<WalletTransaction>> glPosting : glPostings.entrySet()) {
-            if (glPosting.getValue().size() != 2)
-                continue;
-            response = reverseGLTransaction(userToken, provider, glPosting.getValue());
-        }
-
-        return response;
+        return processCBATransactionCustomerEntry(reversalTransaction);
+ 
     }
 
     @Override
@@ -521,6 +505,60 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         return list.size() == 1 && list.stream().anyMatch((accTrans) -> {
             return !accTrans.getAcctNum().contains("NGN");
         });
+    }
+
+    @Override
+    public ResponseEntity<?> processCustomerTransactionReversalByRef(ReverseTransactionDTO reverseDTO, HttpServletRequest request) {
+        log.info("processTransactionReversal TranId:{} ", reverseDTO.getTranId());
+        MyData userToken = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (ObjectUtils.isEmpty(userToken)) {
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_TOKEN.getValue()),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        Provider provider = switchWalletService.getActiveProvider();
+        if (provider == null) {
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.NO_PROVIDER.getValue()),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        Optional<List<WalletTransaction>> transactioonList = walletTransactionRepository
+                .findByReference(reverseDTO.getTranId());
+        if (transactioonList.isEmpty()) {
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        List<WalletTransaction> customerWalletTransaction = transactioonList.get().stream()
+        .filter( accTrans -> !accTrans.getAcctNum().contains("NGN") ).collect(Collectors.toList());
+
+        List<WalletTransaction> glWalletTransaction = transactioonList.get().stream()
+        .filter( accTrans -> !accTrans.getAcctNum().contains("NGN") ).collect(Collectors.toList());
+
+        if(customerWalletTransaction.size() != 1 &&
+                glWalletTransaction.size() %2  != 0 && glWalletTransaction.size() <= 12 ){
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.TRANSACTION_NOT_SUPPORTED.getValue()),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        ResponseEntity<?> response = reverseCustomerTransaction(userToken, provider, 
+                            customerWalletTransaction.get(0));
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            return response;
+        }
+
+        Map<String, List<WalletTransaction>> glPostings = glWalletTransaction.stream()
+        .collect(Collectors.groupingBy(WalletTransaction::getTranId));
+            
+        for (Map.Entry<String, List<WalletTransaction>> glPosting : glPostings.entrySet()) {
+            if (glPosting.getValue().size() != 2)
+                continue;
+            response = reverseGLTransaction(userToken, provider, glPosting.getValue());
+        }
+
+        return response;
+     
+            
     }
 
     @Override
