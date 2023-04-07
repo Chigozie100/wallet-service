@@ -551,8 +551,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         .collect(Collectors.groupingBy(WalletTransaction::getTranId));
             
         for (Map.Entry<String, List<WalletTransaction>> glPosting : glPostings.entrySet()) {
-            if (glPosting.getValue().size() != 2)
+            if (glPosting.getValue().size() != 2){
+                log.info("invalid GL Transaction:{} ", glPosting.getValue());
                 continue;
+            }
             response = reverseGLTransaction(userToken, provider, glPosting.getValue());
         }
 
