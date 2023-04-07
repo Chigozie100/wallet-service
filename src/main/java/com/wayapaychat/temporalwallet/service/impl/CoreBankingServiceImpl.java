@@ -140,7 +140,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return response;
         }
 
-        return new ResponseEntity<>(new ErrorResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue()),
+        return new ResponseEntity<>(new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue()),
                 HttpStatus.ACCEPTED);
     }
 
@@ -1109,7 +1109,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return response;
         }
 
-        return new ResponseEntity<>(new ErrorResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue()),
+        return new ResponseEntity<>(new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue()),
                 HttpStatus.ACCEPTED);
     }
 
