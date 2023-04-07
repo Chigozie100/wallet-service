@@ -2124,35 +2124,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 	}
 
 	@Override
-	public ResponseEntity<?> TranReversePayment(HttpServletRequest request, ReverseTransactionDTO reverseDto)
-			throws ParseException {
-		Provider provider = switchWalletService.getActiveProvider();
-		if (provider == null) {
-			return new ResponseEntity<>(new ErrorResponse("NO PROVIDER SWITCHED"), HttpStatus.BAD_REQUEST);
-		}
-		log.info("WALLET PROVIDER: " + provider.getName());
-		switch (provider.getName()) {
-			case ProviderType.MIFOS:
-				return ReversePayment(request, reverseDto);
-			case ProviderType.TEMPORAL:
-				return ReversePayment(request, reverseDto);
-			default:
-				return ReversePayment(request, reverseDto);
-		}
-	}
-
-	public ResponseEntity<?> ReversePayment(HttpServletRequest request, ReverseTransactionDTO reverseDto)
-			throws ParseException {
-
-		return coreBankingService.processTransactionReversal(reverseDto, request);
-
-	}
-
-	public ResponseEntity<?> TranReversePaymentRevised(HttpServletRequest request, ReverseTransactionDTO reverseDto) {
-		return coreBankingService.processTransactionReversal(reverseDto, request);
-	}
-
-	@Override
 	public ApiResponse<?> TranRevALLReport(Date fromdate, Date todate) {
 		LocalDate fromDate = fromdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 		LocalDate toDate = todate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();

@@ -628,16 +628,6 @@ public class AdminController {
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-    @ApiOperation(value = "Admin Transaction Reversal for faild transactions", notes = "Transfer amount from one wallet to another wallet", tags = {
-            "ADMIN" })
-    @PostMapping("/transaction/reverse-failed-transaction")
-    public ResponseEntity<?> PaymentReversalRevised(HttpServletRequest request,
-            @RequestBody() ReverseTransactionDTO reverseDto) throws ParseException {
-        return transAccountService.TranReversePaymentRevised(request, reverseDto);
-    }
-
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "get official account by event id  ", notes = "get official account by event id", tags = {
             "ADMIN" })
     @GetMapping("/offical-account/{eventID}")
