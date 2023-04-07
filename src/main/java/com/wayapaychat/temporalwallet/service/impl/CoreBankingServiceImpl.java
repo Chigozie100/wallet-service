@@ -509,7 +509,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     @Override
     public ResponseEntity<?> processCustomerTransactionReversalByRef(ReverseTransactionDTO reverseDTO, HttpServletRequest request) {
-        log.info("processTransactionReversal TranId:{} ", reverseDTO.getTranId());
+        log.info("processCustomerTransactionReversalByRef TranId:{} ", reverseDTO.getTranId());
         MyData userToken = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (ObjectUtils.isEmpty(userToken)) {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_TOKEN.getValue()),
@@ -983,7 +983,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return response;
         }
 
-        return new ResponseEntity<>(new ErrorResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue()),
+        return new ResponseEntity<>(new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue()),
                 HttpStatus.ACCEPTED);
     }
 
