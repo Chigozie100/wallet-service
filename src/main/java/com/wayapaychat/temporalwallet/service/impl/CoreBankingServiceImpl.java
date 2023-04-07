@@ -482,8 +482,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                 userToken, walletTransaction.get(0).getPaymentReference(),
                 null, null, null,
                 walletTransaction.get(0).getAcctNum(), "Revsrl ".concat(walletTransaction.get(0).getTranNarrate()),
-                walletTransaction.get(0).getTranCategory().name(),
-                walletTransaction.get(0).getTranType().name(), walletTransaction.get(0).getTranAmount(),
+                CategoryType.REVERSAL.name(),
+                TransactionTypeEnum.TRANSFER.name(), walletTransaction.get(0).getTranAmount(),
                 new BigDecimal(0), new BigDecimal(0), provider, null,
                 walletTransaction.get(0).getRelatedTransId(), CBAAction.MOVE_GL_TO_GL);
 
