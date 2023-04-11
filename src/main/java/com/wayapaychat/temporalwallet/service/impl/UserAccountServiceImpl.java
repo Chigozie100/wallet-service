@@ -63,6 +63,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 	private final SwitchWalletService switchWalletService;
 	@Autowired
 	private ObjectMapper objectMapper;
+        @Autowired
+        TransactionPropertyRepository transactionPropertyRepo;
 
 	@Value("${waya.wallet.productcode}")
 	private String wayaProduct;
@@ -2193,5 +2195,42 @@ public class UserAccountServiceImpl implements UserAccountService {
 		return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "ACCOUNT LIST SUCCESSFULLY", response);
 
 	}
+        
+         @Override
+    public ApiResponse<?> toggleTransactionType(long userId, String type) {
+        try {
+            TranasctionPropertie toogle = new TranasctionPropertie();
+            int uId = (int) userId;
+            UserDetailPojo user = authService.AuthUser(uId);
+            if (user == null) {
+                return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "Auth User ID does not exists", null);
+            }
+            TranasctionPropertie getUSer = transactionPropertyRepo.findUserById(userId);
+            if (getUSer != null) {
+                if (type.contains("Bills")) {
+                    getUSer.setBillsPayment(!getUSer.isBillsPayment());
+                    transactionPropertyRepo.save(getUSer);
+                }
+                if (type.contains("Deposit")) {
+                    getUSer.setDeposit(!getUSer.isDeposit());
+                    transactionPropertyRepo.save(getUSer);
+                }
+                if (type.contains("Withrawal")) {
+                    getUSer.setWithdrawal(!getUSer.isWithdrawal());
+                    transactionPropertyRepo.save(getUSer);
+                }
+            }
+            toogle.setUserId(userId);
+            toogle.isBillsPayment();
+            toogle.isDeposit();
+            toogle.isWithdrawal();
+            transactionPropertyRepo.save(toogle);
+
+            return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "User transaction property toggled off successfully", null);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+            return new ApiResponse<>(false, ApiResponse.Code.UNKNOWN_ERROR, "Error occurred. Try again", null);
+        }
+    }
  
 }
