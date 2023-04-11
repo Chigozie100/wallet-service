@@ -42,7 +42,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/temporal-service?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
     username: postgres
-    password: postgres
+    password: flints11
     driver-class-name: org.postgresql.Driver
   hikari:
     minimumIdle: 2
