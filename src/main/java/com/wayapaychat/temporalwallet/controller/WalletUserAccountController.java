@@ -313,7 +313,7 @@ public class WalletUserAccountController {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
-    @ApiOperation(value = "Toggle user transaction property")
+    @ApiOperation(value = "Toggle transaction property per user")
     @PostMapping("/toggle/{userId}")
     public ApiResponse<?> toggleTransactionProperty(@PathVariable("userId") long userId,
             @RequestParam("type") String type) {
