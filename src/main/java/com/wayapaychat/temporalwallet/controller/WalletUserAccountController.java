@@ -314,7 +314,7 @@ public class WalletUserAccountController {
     }
 
     @ApiOperation(value = "Toggle user transaction property")
-    @PostMapping("/toggle/{toggle}/{userId}")
+    @PostMapping("/toggle/{userId}")
     public ApiResponse<?> toggleTransactionProperty(@PathVariable("userId") long userId,
             @RequestParam("type") String type) {
         return userAccountService.toggleTransactionType(userId, type);
