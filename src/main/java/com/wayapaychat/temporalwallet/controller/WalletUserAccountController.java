@@ -320,4 +320,10 @@ public class WalletUserAccountController {
         return userAccountService.toggleTransactionType(userId, type);
     }
 
+    @ApiOperation(value = "Toggle transaction property per user")
+    @GetMapping("/trans-type/status/{userId}")
+    public ApiResponse<?> transactionPropertyStatus(@PathVariable("userId") long userId) {
+        return userAccountService.transTypeStatus(userId);
+    }
+
 }
