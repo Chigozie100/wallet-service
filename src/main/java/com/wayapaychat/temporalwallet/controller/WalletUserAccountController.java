@@ -313,11 +313,21 @@ public class WalletUserAccountController {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
+     @ApiImplicitParams({
+        @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Toggle transaction property per user")
     @PostMapping("/toggle/{userId}")
     public ApiResponse<?> toggleTransactionProperty(@PathVariable("userId") long userId,
             @RequestParam("type") String type) {
         return userAccountService.toggleTransactionType(userId, type);
+    }
+
+     @ApiImplicitParams({
+        @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
+    @ApiOperation(value = "Toggle transaction property per user")
+    @GetMapping("/trans-type/status/{userId}")
+    public ApiResponse<?> transactionPropertyStatus(@PathVariable("userId") long userId) {
+        return userAccountService.transTypeStatus(userId);
     }
 
 }
