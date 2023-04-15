@@ -17,7 +17,7 @@ import com.wayapaychat.temporalwallet.entity.TranasctionPropertie;
 @Repository
 public interface TransactionPropertyRepository extends JpaRepository<TranasctionPropertie, Long>{
     
-    @Query("select q from TranasctionPropertie q where q.userId =: userId")
+//    @Query("select q from TranasctionPropertie q where q.userId =: userId")
     TranasctionPropertie findUserById(long userId);
     
 }
