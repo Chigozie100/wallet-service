@@ -135,7 +135,7 @@ public interface UserAccountService {
 
     ApiResponse<?> getAllAccounts(int page, int size, String filter, LocalDate fromdate, LocalDate todate);
 
-    ApiResponse<?> toggleTransactionType(long userId, String type);
+    ApiResponse<?> toggleTransactionType(long userId, String type, String token);
 
     ApiResponse<?> transTypeStatus(long userId);
 }
