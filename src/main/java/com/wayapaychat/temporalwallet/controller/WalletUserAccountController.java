@@ -27,6 +27,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.RequestHeader;
 
 @RestController
 @RequestMapping("/api/v1/wallet")
@@ -313,16 +314,14 @@ public class WalletUserAccountController {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
-     @ApiImplicitParams({
-        @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
-    @ApiOperation(value = "Toggle transaction property per user")
+   @ApiOperation(value = "Toggle transaction property per user")
     @PostMapping("/toggle/{userId}")
     public ApiResponse<?> toggleTransactionProperty(@PathVariable("userId") long userId,
-            @RequestParam("type") String type) {
-        return userAccountService.toggleTransactionType(userId, type);
+            @RequestParam("type") String type, @RequestHeader("Authorization") String token) {
+        return userAccountService.toggleTransactionType(userId, type, token);
     }
 
-     @ApiImplicitParams({
+    @ApiImplicitParams({
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Toggle transaction property per user")
     @GetMapping("/trans-type/status/{userId}")
