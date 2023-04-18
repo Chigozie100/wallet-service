@@ -65,6 +65,10 @@ public interface TransAccountService {
 	ResponseEntity<?> createBulkTransaction(HttpServletRequest request, BulkTransactionCreationDTO bulk);
 
 	ResponseEntity<?> createBulkExcelTrans(HttpServletRequest request, MultipartFile file);
+        
+        ResponseEntity<?> createBulkDebitTransaction(HttpServletRequest request, BulkTransactionCreationDTO bulk);
+
+	ResponseEntity<?> createBulkDebitExcelTrans(HttpServletRequest request, MultipartFile file);
 
 	ApiResponse<?> AdminsendMoney(HttpServletRequest request, AdminLocalTransferDTO transfer);
 
