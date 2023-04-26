@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface WalletTransAccountRepository extends JpaRepository<WalletTransAccount, Long> {
 
-    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.transactionType = 'BILLSPAYMENT' ")
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'BILLS_PAYMENT' ")
     BigDecimal findByAllBillsTransaction();
 
     @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'NIP_PAYOUT' ")
