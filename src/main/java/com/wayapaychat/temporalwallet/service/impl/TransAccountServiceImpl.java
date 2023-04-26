@@ -3067,7 +3067,7 @@ public class TransAccountServiceImpl implements TransAccountService {
     @Override
     public ResponseEntity<?> categoryBasedTransactionAnalysis() {
 
-        BigDecimal billsPaymentCount = walletTransAccountRepo.findByAllOutboundExternalTransaction();
+        BigDecimal billsPaymentCount = walletTransAccountRepo.findByAllBillsTransaction();
         BigDecimal totalOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction();
         BigDecimal totalPaystack = walletTransAccountRepo.findByAllPaystackTransaction();
         BigDecimal totalNipInbound = walletTransAccountRepo.findByAllInboundTransaction();
@@ -3082,6 +3082,16 @@ public class TransAccountServiceImpl implements TransAccountService {
 
     @Override
     public ResponseEntity<?> overallBasedTransactionAnalysis() {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+
+        BigDecimal totalTransaction = walletTransAccountRepo.totalTransactionAmount();
+        BigDecimal totalRevenue = walletTransAccountRepo.totalRevenueAmount();
+        BigDecimal totalIncome = walletTransAccountRepo.findByAllInboundTransaction();
+
+        Map<String, BigDecimal> response = new HashMap<>();
+        response.put("totalTransaction", totalTransaction);
+        response.put("totalRevenue", totalRevenue);
+        response.put("totalIncome", totalIncome);
+        return new ResponseEntity<>(new SuccessResponse("SUCCESS", response), HttpStatus.OK);
+    
     }
 }
