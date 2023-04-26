@@ -328,5 +328,18 @@ public class WalletUserAccountController {
     public ApiResponse<?> transactionPropertyStatus(@PathVariable("userId") long userId) {
         return userAccountService.transTypeStatus(userId);
     }
+    
+     @ApiImplicitParams({
+        @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
+    @ApiOperation(value = "Transaction Analysis for User", tags = {"USER-ACCOUNT-WALLET"})
+    @GetMapping(path = "/analysis/transaction/{user_id}")
+    public ResponseEntity<?> userTransactionAnalysis(@PathVariable Long user_id) {
+        // check if the userI passed is same with token
+        ApiResponse<?> res = userAccountService.totalTransactionByUserId(user_id);
+        if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
 
 }

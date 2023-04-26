@@ -138,4 +138,6 @@ public interface UserAccountService {
     ApiResponse<?> toggleTransactionType(long userId, String type, String token);
 
     ApiResponse<?> transTypeStatus(long userId);
+    
+    ApiResponse<?> totalTransactionByUserId(Long user_id);
 }

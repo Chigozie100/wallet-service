@@ -69,6 +69,8 @@ public class UserAccountServiceImpl implements UserAccountService {
     TransactionPropertyRepository transactionPropertyRepo;
     @Autowired
     AuthProxy authProxy;
+    @Autowired
+    WalletTransAccountRepository walletTransAccountRepo;
 
     @Value("${waya.wallet.productcode}")
     private String wayaProduct;
@@ -1353,7 +1355,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     @Override
     public ResponseEntity<?> getUserAccountList(long userId) {
-        
+
         UserIdentityData _userToken = (UserIdentityData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         MyData tokenData = MyData.newInstance(_userToken);
 
@@ -2124,7 +2126,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     public ResponseEntity<?> securityCheckOwner(String accountNumber) {
-        log.info("securityCheck Ownership:: " + accountNumber); 
+        log.info("securityCheck Ownership:: " + accountNumber);
         UserIdentityData _userToken = (UserIdentityData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         MyData userToken = MyData.newInstance(_userToken);
         if (userToken == null) {
@@ -2251,6 +2253,27 @@ public class UserAccountServiceImpl implements UserAccountService {
             return new ApiResponse<>(false, ApiResponse.Code.UNKNOWN_ERROR, "Error occurred. Try again", null);
 
         }
+    }
+
+    @Override
+    public ApiResponse<?> totalTransactionByUserId(Long user_id) {
+//        securityCheck(user_id);
+        WalletUser user = walletUserRepository.findByUserId(user_id);
+        if (user == null) {
+            return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "USER ID DOES NOT EXIST", null);
+        }
+        List<WalletAccount> accountList = walletAccountRepository.findByUser(user);
+        if (accountList.isEmpty()) {
+            return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO ACCOUNT FOR USER ID", null);
+        }
+        Map<String, BigDecimal> response = new HashMap<>();
+        BigDecimal totalTrans = BigDecimal.ZERO;
+        for (WalletAccount acct : accountList) {
+            BigDecimal account = walletTransAccountRepo.findByAllTransactionByUser(acct.getAccountNo());
+            totalTrans.add(account);
+        }
+        response.put("totalTransaction", totalTrans);
+        return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "User TRANSACTION", response);
     }
 
 }
