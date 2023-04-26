@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.util;
 
+import com.waya.security.auth.pojo.UserIdentityData;
 import com.wayapaychat.temporalwallet.SpringApplicationContext;
 import com.wayapaychat.temporalwallet.dto.AuthData;
 import com.wayapaychat.temporalwallet.entity.WalletUser;
@@ -30,22 +31,19 @@ public class Util {
     private final String SECRET_KEY = "PEAL33550099GOEScatriiendKETTLE001UNITED";
     private final String SALT = "stdsxcitymanjoehhhhh!!!!waya";
 
-
-    public static String generateWayaVirtualAccount(){
+    public static String generateWayaVirtualAccount() {
         Random rand = new Random();
         int num = rand.nextInt(9000000) + 1000;
         return Constant.WAYABANK_PREFIX.concat(String.valueOf(num));
     }
 
-
-
-    public static String generateNuban(String financialInstitutionCode, String accountType){
+    public static String generateNuban(String financialInstitutionCode, String accountType) {
         String nuban = "";
         try {
 
             // It will generate 8 digit random Number from 0 to 99999999 And format as
             String nineDigits;
-            //String prefixType;
+            // String prefixType;
 
             // It will generate 8 digit random Number from 0 to 99999999 And format as
             // String
@@ -61,7 +59,7 @@ public class Util {
                     break;
                 case "loan":
                     accountType = "9";
-                    nineDigits = accountType + String.format("%02d", rnd.nextInt(99)) +"999999";
+                    nineDigits = accountType + String.format("%02d", rnd.nextInt(99)) + "999999";
                     break;
                 case "current 2":
                     accountType = "8";
@@ -114,8 +112,8 @@ public class Util {
                     + numbers[5] * 3 + numbers[6] * 3 + numbers[7] * 7 + numbers[8] * 3 + numbers[9] * 3
                     + numbers[10] * 7 + numbers[11] * 3 + numbers[12] * 3 + numbers[13] * 7 + numbers[14] * 3;
 
-            String  checkDigit;
-            if(checkDigitSum % 10 == 0) {
+            String checkDigit;
+            if (checkDigitSum % 10 == 0) {
                 checkDigit = String.valueOf(0);
             } else {
                 checkDigit = String.valueOf(10 - (checkDigitSum % 10));
@@ -126,7 +124,7 @@ public class Util {
             System.out.println("Nuban Account = " + nuban);
 
         } catch (Exception e) {
-            throw new CustomException("Inside create nuban account" + e.getMessage(),HttpStatus.EXPECTATION_FAILED);
+            throw new CustomException("Inside create nuban account" + e.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
         return nuban;
 
@@ -145,27 +143,25 @@ public class Util {
                         StringBuilder::append)
                 .toString();
     }
+
     public int generateRandomNumber(int max, int min) {
         return (int) (Math.random() * (max - min + 1) + min);
     }
-
 
     public static String WayaEncrypt(String pText) throws Exception {
         String authHash = Base64Utils.encodeToString(pText.getBytes(StandardCharsets.UTF_8));
         return authHash;
     }
+
     public static String WayaDecrypt(String encryptText) throws Exception {
         byte[] asBytes = Base64Utils.decodeFromString(encryptText);
         String output = new String(asBytes);
         return output;
     }
 
-
-
-
     public String encrypt(String strToEncrypt) {
         try {
-            byte[] iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+            byte[] iv = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             IvParameterSpec ivspec = new IvParameterSpec(iv);
 
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
@@ -184,7 +180,7 @@ public class Util {
 
     public String decrypt(String strToDecrypt) {
         try {
-            byte[] iv = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+            byte[] iv = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
             IvParameterSpec ivspec = new IvParameterSpec(iv);
 
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
@@ -201,49 +197,42 @@ public class Util {
         return null;
     }
 
-    public static BigDecimal computePercentage(BigDecimal amount, BigDecimal percentageValue){
+    public static BigDecimal computePercentage(BigDecimal amount, BigDecimal percentageValue) {
         BigDecimal per = BigDecimal.valueOf(percentageValue.doubleValue() / 100);
         return BigDecimal.valueOf(per.doubleValue() * amount.doubleValue());
     }
 
-    public static ArrayList<Map<String, String>> products(){
+    public static ArrayList<Map<String, String>> products() {
 
         ArrayList<Map<String, String>> list = new ArrayList<>();
 
         Map<String, String> map = new HashMap<>();
-        map.put("Virtual Account Issuance","VIRTUALACCOUNTISS");
-        map.put("Funding via card","PAYSTACK");
-        map.put("Funding via bank account","PAYSTK");
-        map.put("Funding via Bank Transfer","PAYSTK");
-        map.put("Internal Bank Transfer","WAYATRAN");
-        map.put("External Bank Transfer","BANKPMT");
-        map.put("Sms Alert","SMSCHG");
-        map.put("Bills Payment","AITCOL");
+        map.put("Virtual Account Issuance", "VIRTUALACCOUNTISS");
+        map.put("Funding via card", "PAYSTACK");
+        map.put("Funding via bank account", "PAYSTK");
+        map.put("Funding via Bank Transfer", "PAYSTK");
+        map.put("Internal Bank Transfer", "WAYATRAN");
+        map.put("External Bank Transfer", "BANKPMT");
+        map.put("Sms Alert", "SMSCHG");
+        map.put("Bills Payment", "AITCOL");
 
         list.add(map);
         return list;
     }
 
+    public static WalletUser checkOwner() {
 
+        WalletUserRepository walletUserRepo = ((WalletUserRepository) SpringApplicationContext
+                .getBean("walletUserRepository"));
 
+        UserIdentityData _userToken = (UserIdentityData) SecurityContextHolder.getContext().getAuthentication()
+                .getPrincipal();
+        MyData jwtUser = MyData.newInstance(_userToken);
 
-    public static WalletUser checkOwner(){
-    
-       WalletUserRepository walletUserRepo = ((WalletUserRepository) SpringApplicationContext.getBean("walletUserRepository"));
-        
-       Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-       MyData jwtUser = (MyData) auth.getPrincipal();
-       
-       WalletUser user = walletUserRepo.findByEmailAddress(jwtUser.getEmail());
+        WalletUser user = walletUserRepo.findByEmailAddress(jwtUser.getEmail());
 
-        System.out.println("auth.getPrincipal()=> "+jwtUser.getEmail() );
-
-       // send to auth:service
-       // get user
-
-       return user;
+        return user;
 
     }
-
 
 }

@@ -1,6 +1,7 @@
 package com.wayapaychat.temporalwallet;
 
 //import com.wayapaychat.temporalwallet.config.LoggableDispatcherServlet;
+import com.waya.security.auth.annotation.EnableWayaAuthAuditApi;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
@@ -16,6 +17,7 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 @SpringBootApplication
 @EnableSwagger2
 @EnableDiscoveryClient
+@EnableWayaAuthAuditApi
 @EnableFeignClients
 @EnableScheduling
 @EnableCaching
@@ -24,11 +26,7 @@ public class TemporalWalletApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(TemporalWalletApplication.class, args);
 	}
-	
-	@Bean
-    public SpringApplicationContext springApplicationContext() {
-        return new SpringApplicationContext();
-    }
+
 
 	@Bean
     RestTemplate restTemplate(){
