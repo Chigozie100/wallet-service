@@ -11,14 +11,23 @@ public interface WalletTransAccountRepository extends JpaRepository<WalletTransA
 
     @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'BILLSPAYMENT' ")
     BigDecimal findByAllBillsTransaction();
-    
+
     @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'NIP_PAYOUT' ")
     BigDecimal findByAllOutboundExternalTransaction();
-    
-    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u " + "WHERE u. = 'D'" + " AND u.del_flg = false")
+
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'NIP_FUNDING' ")
     BigDecimal findByAllOutboundInternalTransaction();
-    
-    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u " + "WHERE u. = 'D'" + " AND u.del_flg = false")
+
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'NIP_FUNDING' ")
     BigDecimal findByAllInboundTransaction();
+
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u ")
+    BigDecimal totalTransactionAmount();
+
+    @Query("SELECT sum(u.chargeAmount) FROM WalletTransAccount u ")
+    BigDecimal totalRevenueAmount();
+    
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'PAYSTACK_PAYOUT' ")
+    BigDecimal findByAllPaystackTransaction();
 
 }
