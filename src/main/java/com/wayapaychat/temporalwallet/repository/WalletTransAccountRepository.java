@@ -9,13 +9,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface WalletTransAccountRepository extends JpaRepository<WalletTransAccount, Long> {
 
-    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'BILLS_PAYMENT' ")
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.transactionType = 'BILLS_PAYMENT' ")
     BigDecimal findByAllBillsTransaction();
 
     @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'NIP_PAYOUT' ")
     BigDecimal findByAllOutboundExternalTransaction();
 
-    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'NIP_FUNDING' ")
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'WAYATRAN' ")
     BigDecimal findByAllOutboundInternalTransaction();
 
     @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'NIP_FUNDING' ")
@@ -27,7 +27,11 @@ public interface WalletTransAccountRepository extends JpaRepository<WalletTransA
     @Query("SELECT sum(u.chargeAmount) FROM WalletTransAccount u ")
     BigDecimal totalRevenueAmount();
     
-    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'PAYSTACK_PAYOUT' ")
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'PAYSTACK_FUNDING' ")
     BigDecimal findByAllPaystackTransaction();
-
+    
+    
+  @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.creditAccountNumber := accountNumber "
+          + " OR u.debitAccountNumber :=accountNumber")
+    BigDecimal findByAllTransactionByUser(String accountNumber);
 }
