@@ -3014,13 +3014,14 @@ public class TransAccountServiceImpl implements TransAccountService {
         String reference;
         reference = tempwallet.TransactionGenerate();
         ResponseEntity<?> debitResponse = null;
+
         try {
 
             for (UserTransactionDTO mUser : usersList) {
 
                 debitResponse = coreBankingService.processTransaction(
                         new TransferTransactionDTO(mUser.getCustomerAccountNo(), creditAcctNo, mUser.getAmount(),
-                                TransactionTypeEnum.TRANSFER.getValue(), "NGN", "Builk Account Creation",
+                                TransactionTypeEnum.TRANSFER.getValue(), "NGN", "Bulk Debit",
                                 reference, CategoryType.TRANSFER.getValue(), mUser.getReceiverName(),
                                 mUser.getSenderName()),
                         "WAYATRAN", request);
@@ -3032,8 +3033,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         }
         return debitResponse;
     }
-    
-    
+
     public ResponseEntity<?> createDebitExcelTransaction(HttpServletRequest request,
             Set<ExcelTransactionCreationDTO> transList) {
 
@@ -3057,4 +3057,27 @@ public class TransAccountServiceImpl implements TransAccountService {
         return debitResponse;
     }
 
+    public ResponseEntity<?> totalBills() {
+        // WalletTransactionRepository
+        BigDecimal count = walletTransactionRepository.findByAllDTransaction();
+        Map<String, BigDecimal> amount = new HashMap<>();
+        amount.put("amount", count);
+        return new ResponseEntity<>(new SuccessResponse("SUCCESS", amount), HttpStatus.OK);
+    }
+
+    public ResponseEntity<?> totalOutboundExternal() {
+        // WalletTransactionRepository
+        BigDecimal count = walletTransactionRepository.findByAllDTransaction();
+        Map<String, BigDecimal> amount = new HashMap<>();
+        amount.put("amount", count);
+        return new ResponseEntity<>(new SuccessResponse("SUCCESS", amount), HttpStatus.OK);
+    }
+
+    public ResponseEntity<?> totalInboundExternal() {
+        // WalletTransactionRepository
+        BigDecimal count = walletTransactionRepository.findByAllDTransaction();
+        Map<String, BigDecimal> amount = new HashMap<>();
+        amount.put("amount", count);
+        return new ResponseEntity<>(new SuccessResponse("SUCCESS", amount), HttpStatus.OK);
+    }
 }
