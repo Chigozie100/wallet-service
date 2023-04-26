@@ -2,6 +2,8 @@ package com.wayapaychat.temporalwallet.pojo;
 
 import java.util.List;
 
+import com.waya.security.auth.pojo.UserIdentityData;
+
 import lombok.*;
 
 @Data
@@ -10,7 +12,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString
-public class MyData {
+public class MyData extends UserIdentityData {
 	
 	private Long id;
     private String email;
