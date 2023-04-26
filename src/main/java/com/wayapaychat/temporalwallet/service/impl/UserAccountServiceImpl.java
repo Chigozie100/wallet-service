@@ -2255,6 +2255,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
     }
 
+    @Override
     public ApiResponse<?> totalTransactionByUserId(Long user_id) {
 //        securityCheck(user_id);
         WalletUser user = walletUserRepository.findByUserId(user_id);

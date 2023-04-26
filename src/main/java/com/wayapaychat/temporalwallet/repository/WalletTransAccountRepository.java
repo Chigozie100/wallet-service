@@ -31,7 +31,7 @@ public interface WalletTransAccountRepository extends JpaRepository<WalletTransA
     BigDecimal findByAllPaystackTransaction();
     
     
-  @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.creditAccountNumber := accountNumber "
-          + " OR u.debitAccountNumber :=accountNumber")
+  @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.creditAccountNumber =: accountNumber "
+          + " OR u.debitAccountNumber =: accountNumber")
     BigDecimal findByAllTransactionByUser(String accountNumber);
 }
