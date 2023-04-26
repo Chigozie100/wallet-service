@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.waya.security.auth.pojo.UserIdentityData;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.AccountSumary;
 import com.wayapaychat.temporalwallet.dto.ExternalCBAResponse;
@@ -409,7 +410,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     @Override
     public ResponseEntity<?> processTransactionReversal(ReverseTransactionDTO reverseDTO, HttpServletRequest request) {
         log.info("processTransactionReversal TranId:{} ", reverseDTO.getTranId());
-        MyData userToken = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserIdentityData _userToken = (UserIdentityData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        MyData userToken = MyData.newInstance(_userToken);
         if (ObjectUtils.isEmpty(userToken)) {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_TOKEN.getValue()),
                     HttpStatus.BAD_REQUEST);
@@ -510,7 +512,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     @Override
     public ResponseEntity<?> processCustomerTransactionReversalByRef(ReverseTransactionDTO reverseDTO, HttpServletRequest request) {
         log.info("processCustomerTransactionReversalByRef TranId:{} ", reverseDTO.getTranId());
-        MyData userToken = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserIdentityData _userToken = (UserIdentityData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        MyData userToken = MyData.newInstance(_userToken);
         if (ObjectUtils.isEmpty(userToken)) {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_TOKEN.getValue()),
                     HttpStatus.BAD_REQUEST);
@@ -799,7 +802,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     @Override
     public ResponseEntity<?> securityCheckOwner(String accountNumber) {
         log.info("securityCheck Ownership:: " + accountNumber);
-        MyData userToken = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserIdentityData _userToken = (UserIdentityData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        MyData userToken = MyData.newInstance(_userToken);
         if (userToken == null) {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_TOKEN.getValue()),
                     HttpStatus.BAD_REQUEST);
@@ -832,7 +836,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     @Override
     public ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount, HttpServletRequest request) {
         log.info("securityCheck to debit account{} amount{}", accountNumber, amount);
-        MyData userToken = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserIdentityData _userToken = (UserIdentityData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        MyData userToken = MyData.newInstance(_userToken);
         if (userToken == null) {
             log.error("token validation failed for debiting account{} with amount{}", accountNumber, amount);
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_TOKEN.getValue()),

@@ -42,6 +42,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.waya.security.auth.pojo.UserIdentityData;
 import com.wayapaychat.temporalwallet.config.SecurityConstants;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.exception.CustomException;
@@ -553,7 +554,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 
     @Override
     public ResponseEntity<?> transferToNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer) {
-        MyData userToken = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        
+        UserIdentityData _userToken = (UserIdentityData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        MyData userToken = MyData.newInstance(_userToken);
 
         String nonWayaDisbursementAccount = coreBankingService.getEventAccountNumber("DISBURSE_NONWAYAPT");
         ResponseEntity<?> debitResponse = coreBankingService.processTransaction(new TransferTransactionDTO(
@@ -1081,7 +1084,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 
         log.info("BankTransferPayment :: " + transfer);
 
-        MyData userToken = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UserIdentityData _userToken = (UserIdentityData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        MyData userToken = MyData.newInstance(_userToken);
 
         String wayaDisbursementAccount = coreBankingService
                 .getEventAccountNumber(EventCharge.DISBURS_.name().concat(transfer.getEventId()));

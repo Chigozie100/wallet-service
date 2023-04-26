@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.waya.security.auth.pojo.UserIdentityData;
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.*;
@@ -1352,7 +1353,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     @Override
     public ResponseEntity<?> getUserAccountList(long userId) {
-        MyData tokenData = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        
+        UserIdentityData _userToken = (UserIdentityData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        MyData tokenData = MyData.newInstance(_userToken);
+
         if (tokenData == null) {
             return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
         }
@@ -1462,8 +1466,8 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     private MyData getEmailFromToken(long userId) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return (MyData) auth.getPrincipal();
+        UserIdentityData _userToken = (UserIdentityData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return MyData.newInstance(_userToken);
     }
 
     private void securityWtihAccountNo(String accountNo) {
@@ -2120,8 +2124,9 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     public ResponseEntity<?> securityCheckOwner(String accountNumber) {
-        log.info("securityCheck Ownership:: " + accountNumber);
-        MyData userToken = (MyData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        log.info("securityCheck Ownership:: " + accountNumber); 
+        UserIdentityData _userToken = (UserIdentityData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        MyData userToken = MyData.newInstance(_userToken);
         if (userToken == null) {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_TOKEN.getValue()),
                     HttpStatus.BAD_REQUEST);
