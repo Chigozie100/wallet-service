@@ -83,6 +83,7 @@ public class TransAccountServiceImpl implements TransAccountService {
     private final MifosWalletProxy mifosWalletProxy;
     private final CoreBankingService coreBankingService;
     private final ModelMapper modelMapper;
+    private final WalletTransAccountRepository walletTransAccountRepo;
 
     @Autowired
     public TransAccountServiceImpl(WalletUserRepository walletUserRepository,
@@ -95,7 +96,8 @@ public class TransAccountServiceImpl implements TransAccountService {
             WalletQRCodePaymentRepository walletQRCodePaymentRepo,
             WalletPaymentRequestRepository walletPaymentRequestRepo,
             AuthProxy authProxy, UserAccountService userAccountService, UserPricingRepository userPricingRepository,
-            MifosWalletProxy mifosWalletProxy, CoreBankingService coreBankingService, ModelMapper modelMapper) {
+            MifosWalletProxy mifosWalletProxy, CoreBankingService coreBankingService, ModelMapper modelMapper,
+            WalletTransAccountRepository walletTransAccountRepo) {
         this.walletUserRepository = walletUserRepository;
         this.walletAccountRepository = walletAccountRepository;
         this.walletAcountVirtualRepository = walletAcountVirtualRepository;
@@ -117,6 +119,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         this.coreBankingService = coreBankingService;
         this.mifosWalletProxy = mifosWalletProxy;
         this.modelMapper = modelMapper;
+        this.walletTransAccountRepo = walletTransAccountRepo;
     }
 
     @Override
@@ -554,7 +557,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
     @Override
     public ResponseEntity<?> transferToNonPayment(HttpServletRequest request, NonWayaPaymentDTO transfer) {
-        
+
         UserIdentityData _userToken = (UserIdentityData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         MyData userToken = MyData.newInstance(_userToken);
 
@@ -3018,13 +3021,14 @@ public class TransAccountServiceImpl implements TransAccountService {
         String reference;
         reference = tempwallet.TransactionGenerate();
         ResponseEntity<?> debitResponse = null;
+
         try {
 
             for (UserTransactionDTO mUser : usersList) {
 
                 debitResponse = coreBankingService.processTransaction(
                         new TransferTransactionDTO(mUser.getCustomerAccountNo(), creditAcctNo, mUser.getAmount(),
-                                TransactionTypeEnum.TRANSFER.getValue(), "NGN", "Builk Account Creation",
+                                TransactionTypeEnum.TRANSFER.getValue(), "NGN", "Bulk Debit",
                                 reference, CategoryType.TRANSFER.getValue(), mUser.getReceiverName(),
                                 mUser.getSenderName()),
                         "WAYATRAN", request);
@@ -3036,8 +3040,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         }
         return debitResponse;
     }
-    
-    
+
     public ResponseEntity<?> createDebitExcelTransaction(HttpServletRequest request,
             Set<ExcelTransactionCreationDTO> transList) {
 
@@ -3061,4 +3064,34 @@ public class TransAccountServiceImpl implements TransAccountService {
         return debitResponse;
     }
 
+    @Override
+    public ResponseEntity<?> categoryBasedTransactionAnalysis() {
+
+        BigDecimal billsPaymentCount = walletTransAccountRepo.findByAllBillsTransaction();
+        BigDecimal totalOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction();
+        BigDecimal totalPaystack = walletTransAccountRepo.findByAllPaystackTransaction();
+        BigDecimal totalNipInbound = walletTransAccountRepo.findByAllInboundTransaction();
+
+        Map<String, BigDecimal> response = new HashMap<>();
+        response.put("billsPaymentTrans", billsPaymentCount);
+        response.put("outboundExternalTrans", totalOutboundExternal);
+        response.put("totalPaystackTrans", totalPaystack);
+        response.put("nipInbountTrans", totalNipInbound);
+        return new ResponseEntity<>(new SuccessResponse("SUCCESS", response), HttpStatus.OK);
+    }
+
+    @Override
+    public ResponseEntity<?> overallBasedTransactionAnalysis() {
+
+        BigDecimal totalTransaction = walletTransAccountRepo.totalTransactionAmount();
+        BigDecimal totalRevenue = walletTransAccountRepo.totalRevenueAmount();
+        BigDecimal totalIncome = walletTransAccountRepo.findByAllInboundTransaction();
+
+        Map<String, BigDecimal> response = new HashMap<>();
+        response.put("totalTransaction", totalTransaction);
+        response.put("totalRevenue", totalRevenue);
+        response.put("totalIncome", totalIncome);
+        return new ResponseEntity<>(new SuccessResponse("SUCCESS", response), HttpStatus.OK);
+    
+    }
 }

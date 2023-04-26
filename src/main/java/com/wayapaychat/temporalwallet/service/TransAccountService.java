@@ -222,4 +222,11 @@ public interface TransAccountService {
 	WalletAccount findByEmailOrPhoneNumberOrId(Boolean isAccountNumber, String value, String userId, String accountNo);
 
 	ApiResponse<?> OfficialAccountReports(int page, int size, LocalDate fromdate, LocalDate todate, String fillter);
+        
+        ResponseEntity<?> categoryBasedTransactionAnalysis();
+        
+        ResponseEntity<?> overallBasedTransactionAnalysis();
+        
+        
+
 }
