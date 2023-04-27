@@ -2268,11 +2268,25 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
         Map<String, BigDecimal> response = new HashMap<>();
         BigDecimal totalTrans = BigDecimal.ZERO;
+        BigDecimal totalrevenue = BigDecimal.ZERO;
+        BigDecimal totalInbound = BigDecimal.ZERO;
         for (WalletAccount acct : accountList) {
-            BigDecimal account = walletTransAccountRepo.findByAllTransactionByUser(acct.getAccountNo());
-            totalTrans.add(account);
+            //all account Transactions
+            BigDecimal allTrans = walletTransAccountRepo.findByAllTransactionByUser(acct.getAccountNo());
+            totalTrans.add(allTrans);
+
+            //all revenue on customer
+            BigDecimal revenue = walletTransAccountRepo.totalRevenueAmountByUser(acct.getAccountNo());
+            totalrevenue.add(revenue);
+
+            //total oubound
+            //total inbound
+            BigDecimal totalNipInbound = walletTransAccountRepo.findNipInboundByUser(acct.getAccountNo());
+            totalInbound.add(totalNipInbound);
         }
         response.put("totalTransaction", totalTrans);
+        response.put("totalrevenue", totalrevenue);
+        response.put("totalInbound", totalInbound);
         return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "User TRANSACTION", response);
     }
 
