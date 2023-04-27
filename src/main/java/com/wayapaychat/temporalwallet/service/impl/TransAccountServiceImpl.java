@@ -3069,17 +3069,17 @@ public class TransAccountServiceImpl implements TransAccountService {
 
         BigDecimal billsPayment = walletTransAccountRepo.findByAllBillsTransaction();
         BigDecimal totalOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction();
+        BigDecimal totalOutboundInternal = walletTransAccountRepo.findByAllOutboundInternalTransaction();
         BigDecimal totalPaystack = walletTransAccountRepo.findByAllPaystackTransaction();
         BigDecimal totalNipInbound = walletTransAccountRepo.findByAllInboundTransaction();
-
-       
 
         Map<String, BigDecimal> response = new HashMap<>();
         response.put("billsPaymentTrans", billsPayment);
         response.put("outboundExternalTrans", totalOutboundExternal);
+        response.put("outboundInternalTrans", totalOutboundInternal);
         response.put("totalPaystackTrans", totalPaystack);
         response.put("nipInbountTrans", totalNipInbound);
-        
+
         return new ResponseEntity<>(new SuccessResponse("SUCCESS", response), HttpStatus.OK);
     }
 
@@ -3089,11 +3089,16 @@ public class TransAccountServiceImpl implements TransAccountService {
         BigDecimal totalTransaction = walletTransAccountRepo.totalTransactionAmount();
         BigDecimal totalRevenue = walletTransAccountRepo.totalRevenueAmount();
         BigDecimal totalIncome = walletTransAccountRepo.findByAllInboundTransaction();
+        BigDecimal totalOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction();
+        BigDecimal totalOuboundInternal = walletTransAccountRepo.findByAllOutboundInternalTransaction();
+
+        BigDecimal totalOutgoing = totalOutboundExternal.add(totalOuboundInternal);
 
         Map<String, BigDecimal> response = new HashMap<>();
         response.put("totalTransaction", totalTransaction);
         response.put("totalRevenue", totalRevenue);
         response.put("totalIncome", totalIncome);
+        response.put("totalOutgoing", totalOutgoing);
         return new ResponseEntity<>(new SuccessResponse("SUCCESS", response), HttpStatus.OK);
 
     }
