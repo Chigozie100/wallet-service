@@ -3071,6 +3071,8 @@ public class TransAccountServiceImpl implements TransAccountService {
         BigDecimal totalOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction();
         BigDecimal totalPaystack = walletTransAccountRepo.findByAllPaystackTransaction();
         BigDecimal totalNipInbound = walletTransAccountRepo.findByAllInboundTransaction();
+        
+        long count totalNipInbound = 
 
         Map<String, BigDecimal> response = new HashMap<>();
         response.put("billsPaymentTrans", billsPaymentCount);
