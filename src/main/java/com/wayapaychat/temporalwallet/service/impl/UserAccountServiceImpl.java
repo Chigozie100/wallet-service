@@ -2271,13 +2271,10 @@ public class UserAccountServiceImpl implements UserAccountService {
             Map<String, BigDecimal> response = new HashMap<>();
             BigDecimal totalTrans = BigDecimal.ZERO;
             BigDecimal totalrevenue = BigDecimal.ZERO;
-            BigDecimal totalInbound = BigDecimal.ZERO;
+            BigDecimal totalIncoming = BigDecimal.ZERO;
+            BigDecimal totalOutgoing = BigDecimal.ZERO;
             log.info("Account list {}", accountList);
             for (WalletAccount acct : accountList) {
-                //all account Transactions
-//                BigDecimal allTrans = walletTransAccountRepo.findByAllTransactionByUser(acct.getAccountNo());
-//                totalTrans.add(allTrans);
-
                 //all revenue on customer
                 log.info("Get customer revenue:: {}", acct.getAccountNo());
                 BigDecimal revenue = walletTransAccountRepo.totalRevenueAmountByUser(acct.getAccountNo());
@@ -2285,14 +2282,19 @@ public class UserAccountServiceImpl implements UserAccountService {
                 totalrevenue = totalrevenue.add(revenue == null ? BigDecimal.ZERO : revenue);
                 log.info("total customer revenue:: {}", totalrevenue);
 
-                //total oubound
-                //total inbound
-                BigDecimal totalNipInbound = walletTransAccountRepo.findNipInboundByUser(acct.getAccountNo());
-               totalInbound = totalInbound.add(totalNipInbound);
+                //total outgoing
+                BigDecimal outgoing = walletAccountRepository.totalOutgoinTransByUser(acct.getAccountNo());
+                totalOutgoing = totalIncoming.add(outgoing);
+                //total incoming
+                BigDecimal incoming = walletAccountRepository.totalIncomingTransByUser(acct.getAccountNo());
+                totalIncoming = totalIncoming.add(incoming);
+
+                totalTrans = totalOutgoing.add(totalIncoming);
             }
-//            response.put("totalTransaction", totalTrans);
+            response.put("totalTransaction", totalTrans);
             response.put("totalrevenue", totalrevenue);
-            response.put("totalInbound", totalInbound);
+            response.put("totalIncoming", totalIncoming);
+            response.put("totalOutgoing", totalOutgoing);
             return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "User TRANSACTION", response);
         } catch (Exception ex) {
             log.error(ex.getMessage());
