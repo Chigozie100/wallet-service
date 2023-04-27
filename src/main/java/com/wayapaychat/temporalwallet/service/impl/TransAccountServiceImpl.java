@@ -3067,18 +3067,19 @@ public class TransAccountServiceImpl implements TransAccountService {
     @Override
     public ResponseEntity<?> categoryBasedTransactionAnalysis() {
 
-        BigDecimal billsPaymentCount = walletTransAccountRepo.findByAllBillsTransaction();
+        BigDecimal billsPayment = walletTransAccountRepo.findByAllBillsTransaction();
         BigDecimal totalOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction();
         BigDecimal totalPaystack = walletTransAccountRepo.findByAllPaystackTransaction();
         BigDecimal totalNipInbound = walletTransAccountRepo.findByAllInboundTransaction();
-        
-        long count totalNipInbound = 
+
+       
 
         Map<String, BigDecimal> response = new HashMap<>();
-        response.put("billsPaymentTrans", billsPaymentCount);
+        response.put("billsPaymentTrans", billsPayment);
         response.put("outboundExternalTrans", totalOutboundExternal);
         response.put("totalPaystackTrans", totalPaystack);
         response.put("nipInbountTrans", totalNipInbound);
+        
         return new ResponseEntity<>(new SuccessResponse("SUCCESS", response), HttpStatus.OK);
     }
 
@@ -3094,6 +3095,6 @@ public class TransAccountServiceImpl implements TransAccountService {
         response.put("totalRevenue", totalRevenue);
         response.put("totalIncome", totalIncome);
         return new ResponseEntity<>(new SuccessResponse("SUCCESS", response), HttpStatus.OK);
-    
+
     }
 }
