@@ -2285,6 +2285,8 @@ public class UserAccountServiceImpl implements UserAccountService {
             totalInbound.add(totalNipInbound);
         }
         response.put("totalTransaction", totalTrans);
+        response.put("totalrevenue", totalrevenue);
+        response.put("totalInbound", totalInbound);
         return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "User TRANSACTION", response);
     }
 
