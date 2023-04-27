@@ -48,4 +48,12 @@ public interface WalletTransAccountRepository extends JpaRepository<WalletTransA
             + " AND u.eventId = 'QUICKTELLER' "
             + " OR u.eventId = 'BAXI' ")
     BigDecimal findNipInboundByUser(String accountNumber);
+    
+    
+    @Query("SELECT sum(u.chargeAmount) FROM WalletTransAccount u WHERE u.debitAccountNumber = (:accountNumber) ")
+    BigDecimal totalRevenueAmountByUser(String accountNumber);
+    
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'NIP_FUNDING' "
+            + "AND u.creditAccountNumber = (:accountNumber) ")
+    BigDecimal findByAllInboundTransactionByUser(String accountNumber);
 }
