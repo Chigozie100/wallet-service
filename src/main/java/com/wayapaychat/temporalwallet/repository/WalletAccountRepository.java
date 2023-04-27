@@ -17,8 +17,8 @@ import com.wayapaychat.temporalwallet.entity.WalletUser;
 
 @Repository
 public interface WalletAccountRepository extends JpaRepository<WalletAccount, Long> {
-	
-	WalletAccount findByAccountNo(String accountNo);
+
+    WalletAccount findByAccountNo(String accountNo);
 
     WalletAccount findByNubanAccountNo(String nubanAccountNo);
 
@@ -26,42 +26,40 @@ public interface WalletAccountRepository extends JpaRepository<WalletAccount, Lo
     List<WalletAccount> findByAllNonNubanAccount();
 
     List<WalletAccount> findByUser(WalletUser user);
-    
+
     @Query("SELECT u FROM WalletAccount u WHERE u.acct_name LIKE ('%COMMISSION%')" + " AND u.user = (:user)")
     Optional<WalletAccount> findByAccountUser(WalletUser user);
-    
+
     @Query("SELECT u FROM WalletAccount u WHERE u.bacid = (:placeholder)" + " AND u.acct_crncy_code = (:crncycode)" + " AND u.sol_id = (:solid)")
     Optional<WalletAccount> findByUserPlaceholder(String placeholder, String crncycode, String solid);
-    
+
     @Query("SELECT u FROM WalletAccount u WHERE u.product_code = (:productCode)" + " AND u.acct_name LIKE ('%COMMISSION%')")
     Optional<WalletAccount> findByProductCode(String productCode);
-    
+
     @Query("SELECT u FROM WalletAccount u WHERE u.product_code = (:productCode)" + " AND u.acct_name LIKE ('%COMMISSION%')" + " AND u.accountNo = (:account)")
     Optional<WalletAccount> findByAccountProductCode(String productCode, String account);
 
     @Query("SELECT u FROM WalletAccount u WHERE  u.accountNo = (:account) AND u.del_flg = false")
     Optional<WalletAccount> findByAccount(String account);
-    
+
     @Query("SELECT u FROM WalletAccount u WHERE u.user = (:user)" + " AND u.walletDefault = true")
     Optional<WalletAccount> findByDefaultAccount(WalletUser user);
-    
+
     @Query("SELECT u FROM WalletAccount u WHERE u.product_type = ('OAB')" + " AND u.del_flg = false" + " AND u.user = (:user)")
     List<WalletAccount> findByWayaAccountByCifId(WalletUser user);
-    
+
     @Query("SELECT u FROM WalletAccount u WHERE u.product_type != ('OAB')" + " AND u.del_flg = false" + " AND u.accountNo NOT LIKE ('7%')" + " AND u.user = (:user)")
     List<WalletAccount> findByWalletAccountByCifId(WalletUser user);
 
     @Query("SELECT u FROM WalletAccount u WHERE u.product_type = ('OAB')" + " AND u.del_flg = false")
     List<WalletAccount> findByWayaAccount();
-    
+
     @Query("SELECT u FROM WalletAccount u WHERE u.product_type != ('OAB')" + " AND u.del_flg = false" + " AND u.accountNo NOT LIKE ('7%')")
     List<WalletAccount> findByWalletAccount();
- 
-    
+
     @Query("SELECT u FROM WalletAccount u WHERE u.accountNo LIKE ('7%')" + " AND u.product_type != ('OAB')" + " AND u.del_flg = false")
     List<WalletAccount> findBySimulatedAccount();
-    
-    
+
     @Query("SELECT u FROM WalletAccount u WHERE u.product_code = (:productCode)" + " AND u.acct_name LIKE ('%COMMISSION%')")
     List<WalletAccount> findByProductList(String productCode);
 
@@ -77,12 +75,16 @@ public interface WalletAccountRepository extends JpaRepository<WalletAccount, Lo
     @Query("SELECT sum(u.clr_bal_amt) FROM WalletAccount u WHERE u.del_flg = false")
     BigDecimal totalActiveAccount();
 
-    @Query("SELECT u FROM WalletAccount u  " + " WHERE u.del_flg = false"+ " AND u.rcre_time BETWEEN  (:fromtranDate)" + " AND (:totranDate)" + " order by u.rcre_time DESC ")
-	Page<WalletAccount> findByAllWalletAccountWithDateRange(Pageable pageable, LocalDate fromtranDate, LocalDate totranDate);
+    @Query("SELECT u FROM WalletAccount u  " + " WHERE u.del_flg = false" + " AND u.rcre_time BETWEEN  (:fromtranDate)" + " AND (:totranDate)" + " order by u.rcre_time DESC ")
+    Page<WalletAccount> findByAllWalletAccountWithDateRange(Pageable pageable, LocalDate fromtranDate, LocalDate totranDate);
 
-    @Query("SELECT u FROM WalletAccount u  " + " WHERE u.del_flg = false AND " + "UPPER(u.acct_ownership) = UPPER(:value) OR " + " UPPER(u.product_type) = UPPER(:value)"+  " AND u.rcre_time BETWEEN  (:fromDate)" + " AND (:toDate)" + " order by u.rcre_time DESC ")
-	Page<WalletAccount> findByAllWalletAccountWithDateRangeAndTranTypeOR(Pageable pageable, @Param("value") String value, LocalDate fromDate, LocalDate toDate);
+    @Query("SELECT u FROM WalletAccount u  " + " WHERE u.del_flg = false AND " + "UPPER(u.acct_ownership) = UPPER(:value) OR " + " UPPER(u.product_type) = UPPER(:value)" + " AND u.rcre_time BETWEEN  (:fromDate)" + " AND (:toDate)" + " order by u.rcre_time DESC ")
+    Page<WalletAccount> findByAllWalletAccountWithDateRangeAndTranTypeOR(Pageable pageable, @Param("value") String value, LocalDate fromDate, LocalDate toDate);
 
+    @Query("SELECT sum(u.cum_dr_amt) FROM WalletAccount u WHERE u.accountNo = :account")
+    BigDecimal totalOutgoinTransByUser(String account);
 
+    @Query("SELECT sum(u.cum_cr_amt) FROM WalletAccount u WHERE u.accountNo = :account")
+    BigDecimal totalIncomingTransByUser(String account);
 
 }
