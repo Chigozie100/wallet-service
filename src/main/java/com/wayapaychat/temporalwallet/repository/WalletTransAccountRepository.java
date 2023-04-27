@@ -9,7 +9,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface WalletTransAccountRepository extends JpaRepository<WalletTransAccount, Long> {
 
-    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.transactionType = 'BILLS_PAYMENT' ")
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'QUICKTELLER' "
+            + " OR u.eventId = 'BAXI' ")
     BigDecimal findByAllBillsTransaction();
 
     @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'NIP_PAYOUT' ")
@@ -26,12 +27,15 @@ public interface WalletTransAccountRepository extends JpaRepository<WalletTransA
 
     @Query("SELECT sum(u.chargeAmount) FROM WalletTransAccount u ")
     BigDecimal totalRevenueAmount();
-    
+
     @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'PAYSTACK_FUNDING' ")
     BigDecimal findByAllPaystackTransaction();
-    
-    
-  @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.creditAccountNumber =: accountNumber "
-          + " OR u.debitAccountNumber =: accountNumber")
+
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.creditAccountNumber = (:accountNumber) "
+            + " OR u.debitAccountNumber = (:accountNumber)")
     BigDecimal findByAllTransactionByUser(String accountNumber);
+
+    @Query("SELECT count(u.id) FROM WalletTransAccount u WHERE u.eventId = 'QUICKTELLER' "
+            + " OR u.eventId = 'BAXI' ")
+    long countBillsTransaction();
 }
