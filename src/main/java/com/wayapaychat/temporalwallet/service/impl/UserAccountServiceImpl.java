@@ -2258,36 +2258,42 @@ public class UserAccountServiceImpl implements UserAccountService {
     @Override
     public ApiResponse<?> totalTransactionByUserId(Long user_id) {
 //        securityCheck(user_id);
-        WalletUser user = walletUserRepository.findByUserId(user_id);
-        if (user == null) {
-            return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "USER ID DOES NOT EXIST", null);
-        }
-        List<WalletAccount> accountList = walletAccountRepository.findByUser(user);
-        if (accountList.isEmpty()) {
-            return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO ACCOUNT FOR USER ID", null);
-        }
-        Map<String, BigDecimal> response = new HashMap<>();
-        BigDecimal totalTrans = BigDecimal.ZERO;
-        BigDecimal totalrevenue = BigDecimal.ZERO;
-        BigDecimal totalInbound = BigDecimal.ZERO;
-        for (WalletAccount acct : accountList) {
-            //all account Transactions
-            BigDecimal allTrans = walletTransAccountRepo.findByAllTransactionByUser(acct.getAccountNo());
-            totalTrans.add(allTrans);
+        try {
+            WalletUser user = walletUserRepository.findByUserId(user_id);
+            if (user == null) {
+                return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "USER ID DOES NOT EXIST", null);
+            }
+            List<WalletAccount> accountList = walletAccountRepository.findByUser(user);
+            if (accountList.isEmpty()) {
+                return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO ACCOUNT FOR USER ID", null);
+            }
+            Map<String, BigDecimal> response = new HashMap<>();
+            BigDecimal totalTrans = BigDecimal.ZERO;
+            BigDecimal totalrevenue = BigDecimal.ZERO;
+            BigDecimal totalInbound = BigDecimal.ZERO;
+            for (WalletAccount acct : accountList) {
+                //all account Transactions
+//                BigDecimal allTrans = walletTransAccountRepo.findByAllTransactionByUser(acct.getAccountNo());
+//                totalTrans.add(allTrans);
 
-            //all revenue on customer
-            BigDecimal revenue = walletTransAccountRepo.totalRevenueAmountByUser(acct.getAccountNo());
-            totalrevenue.add(revenue);
+                //all revenue on customer
+                BigDecimal revenue = walletTransAccountRepo.totalRevenueAmountByUser(acct.getAccountNo());
+                totalrevenue.add(revenue);
 
-            //total oubound
-            //total inbound
-            BigDecimal totalNipInbound = walletTransAccountRepo.findNipInboundByUser(acct.getAccountNo());
-            totalInbound.add(totalNipInbound);
+                //total oubound
+                //total inbound
+                BigDecimal totalNipInbound = walletTransAccountRepo.findNipInboundByUser(acct.getAccountNo());
+                totalInbound.add(totalNipInbound);
+            }
+//            response.put("totalTransaction", totalTrans);
+            response.put("totalrevenue", totalrevenue);
+            response.put("totalInbound", totalInbound);
+            return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "User TRANSACTION", response);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+            return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, ex.getMessage(), null);
+
         }
-        response.put("totalTransaction", totalTrans);
-        response.put("totalrevenue", totalrevenue);
-        response.put("totalInbound", totalInbound);
-        return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "User TRANSACTION", response);
     }
 
 }
