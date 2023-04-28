@@ -67,13 +67,13 @@ public interface WalletTransAccountRepository extends JpaRepository<WalletTransA
             + "u.status = 'SUCCESSFUL' ")
     BigDecimal findByAllInboundTransactionByUser(String accountNumber);
 
-    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u. = 'QUICKTELLER' "
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'QUICKTELLER' "
             + " OR u.eventId = 'BAXI' AND u.status = 'SUCCESSFUL' AND u.createdAt BETWEEN  "
             + "(:fromtranDate) AND (:totranDate) ")
     BigDecimal findByAllBillsTransactionByDate(LocalDate fromtranDate, LocalDate totranDate);
     
     
-    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u. = 'QUICKTELLER' "
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'QUICKTELLER' "
             + " OR u.eventId = 'BAXI' AND u.status = 'SUCCESSFUL' AND u.createdAt BETWEEN  "
             + "(:fromtranDate) AND (:totranDate) ")
     BigDecimal findByAllOutboundExternalTransaction(LocalDate fromtranDate, LocalDate totranDate);
