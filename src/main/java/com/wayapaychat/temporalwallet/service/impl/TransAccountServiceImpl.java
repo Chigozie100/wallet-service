@@ -54,6 +54,7 @@ import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.proxy.AuthProxy;
+import com.wayapaychat.temporalwallet.response.Analysis;
 
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
@@ -3066,12 +3067,15 @@ public class TransAccountServiceImpl implements TransAccountService {
 
     @Override
     public ResponseEntity<?> categoryBasedTransactionAnalysis() {
-
+        Analysis analysis = new Analysis();
         BigDecimal billsPayment = walletTransAccountRepo.findByAllBillsTransaction();
         BigDecimal totalOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction();
         BigDecimal totalOutboundInternal = walletTransAccountRepo.findByAllOutboundInternalTransaction();
         BigDecimal totalPaystack = walletTransAccountRepo.findByAllPaystackTransaction();
         BigDecimal totalNipInbound = walletTransAccountRepo.findByAllInboundTransaction();
+
+        //count
+        long billsCount = walletTransAccountRepo.countBillsTransaction();
 
         Map<String, BigDecimal> response = new HashMap<>();
         response.put("billsPaymentTrans", billsPayment);
@@ -3079,6 +3083,12 @@ public class TransAccountServiceImpl implements TransAccountService {
         response.put("outboundInternalTrans", totalOutboundInternal);
         response.put("totalPaystackTrans", totalPaystack);
         response.put("nipInbountTrans", totalNipInbound);
+
+        Map<String, String> countresponse = new HashMap<>();
+        countresponse.put("billsCount", String.valueOf(billsCount));
+
+        analysis.setSumResponse(response);
+        analysis.setCountResponse(countresponse);
 
         return new ResponseEntity<>(new SuccessResponse("SUCCESS", response), HttpStatus.OK);
     }
@@ -3101,5 +3111,10 @@ public class TransAccountServiceImpl implements TransAccountService {
         response.put("totalOutgoing", totalOutgoing);
         return new ResponseEntity<>(new SuccessResponse("SUCCESS", response), HttpStatus.OK);
 
+    }
+
+    @Override
+    public ResponseEntity<?> transactionAnalysisFilterDate(LocalDate fromdate, LocalDate todate) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 }
