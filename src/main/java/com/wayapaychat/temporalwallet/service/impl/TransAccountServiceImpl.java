@@ -3090,7 +3090,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         analysis.setSumResponse(response);
         analysis.setCountResponse(countresponse);
 
-        return new ResponseEntity<>(new SuccessResponse("SUCCESS", response), HttpStatus.OK);
+        return new ResponseEntity<>(new SuccessResponse("SUCCESS", analysis), HttpStatus.OK);
     }
 
     @Override
