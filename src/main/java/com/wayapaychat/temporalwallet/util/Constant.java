@@ -77,6 +77,8 @@ public class Constant {
 
     public static final String REDEEM_NON_WAYA_TRANSACTION_ALERT = "Redeem None Waya Transaction Alert";
     public static final String TRADE_TRANSACTION_ALERT = "Trade Transaction Alert";
+    
+    public static final String STATEMENT_REPORTING = "Transaction Reporting";
 
 
 }

@@ -33,56 +33,56 @@ import lombok.ToString;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "m_wallet_transaction" , uniqueConstraints = {
-        @UniqueConstraint(name = "UniqueTranIdAndAcctNumberAndDelFlgAndDate", 
-        		columnNames = {"tranId", "acctNum", "del_flg","tranDate","tranPart"})})
+@Table(name = "m_wallet_transaction", uniqueConstraints = {
+    @UniqueConstraint(name = "UniqueTranIdAndAcctNumberAndDelFlgAndDate",
+            columnNames = {"tranId", "acctNum", "del_flg", "tranDate", "tranPart"})})
 public class WalletTransaction {
-	
-	@Id
+
+    @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(unique = true, nullable = false)
     private Long id;
-	
-	private boolean del_flg;
 
-	private boolean posted_flg;
-	
-	@NotNull
-	private String tranId;
-    
-	@NotNull
+    private boolean del_flg;
+
+    private boolean posted_flg;
+
+    @NotNull
+    private String tranId;
+
+    @NotNull
     private String acctNum;
-    
+
     @NotNull
     private BigDecimal tranAmount;
-    
+
     @NotNull
-	@Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.STRING)
     private TransactionTypeEnum tranType;
-    
+
     @NotNull
     private String partTranType;
-    
+
     @NotNull
     private String tranNarrate;
-    
+
     @NotNull
     private LocalDate tranDate;
-    
+
     @Column(nullable = false)
     private String tranCrncyCode;
-    
+
     @Column(nullable = true)
     private String paymentReference;
-    
+
     @Column(nullable = false)
     private String tranGL;
-    
+
     @Column(nullable = true)
     private Integer tranPart;
-    
-	private String relatedTransId;
-    
+
+    private String relatedTransId;
+
     @CreationTimestamp
     @ApiModelProperty(hidden = true)
     private LocalDateTime createdAt;
@@ -90,125 +90,123 @@ public class WalletTransaction {
     @CreationTimestamp
     @ApiModelProperty(hidden = true)
     private LocalDateTime updatedAt;
-    
+
     @Enumerated(EnumType.STRING)
     private CategoryType tranCategory;
-    
+
     private String createdBy;
-    
+
     private String createdEmail;
 
-	@Column(name = "sender_name")
+    @Column(name = "sender_name")
     private String senderName;
 
-	@Column(name = "receiver_name")
+    @Column(name = "receiver_name")
     private String receiverName;
-    
+
     private String transChannel;
-    
+
     private boolean channel_flg = false;
 
-	public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
-			@NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType, 
-			@NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
-			@NotNull String partTranType, String tranGL,String paymentReference, 
-			String createdBy, String createdEmail,Integer tranPart) {
-		super();
-		this.del_flg = false;
-		this.posted_flg = true;
-		this.tranId = tranId;
-		this.acctNum = acctNum;
-		this.tranAmount = tranAmount;
-		this.tranType = tranType;
-		this.tranNarrate = tranNarrate;
-		this.tranDate = tranDate;
-		this.tranCrncyCode = tranCrncyCode;
-		this.partTranType = partTranType;
-		this.tranGL = tranGL;
-		this.paymentReference = paymentReference;
-		this.createdBy = createdBy;
-		this.createdEmail = createdEmail;
-		this.tranPart = tranPart;
+    public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
+            @NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType,
+            @NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
+            @NotNull String partTranType, String tranGL, String paymentReference,
+            String createdBy, String createdEmail, Integer tranPart) {
+        super();
+        this.del_flg = false;
+        this.posted_flg = true;
+        this.tranId = tranId;
+        this.acctNum = acctNum;
+        this.tranAmount = tranAmount;
+        this.tranType = tranType;
+        this.tranNarrate = tranNarrate;
+        this.tranDate = tranDate;
+        this.tranCrncyCode = tranCrncyCode;
+        this.partTranType = partTranType;
+        this.tranGL = tranGL;
+        this.paymentReference = paymentReference;
+        this.createdBy = createdBy;
+        this.createdEmail = createdEmail;
+        this.tranPart = tranPart;
 
-	}
+    }
 
-	public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
-							 @NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType,
-							 @NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
-							 @NotNull String partTranType, String tranGL,String paymentReference,
-							 String createdBy, String createdEmail,Integer tranPart,String senderName, String receiverName) {
-		super();
-		this.del_flg = false;
-		this.posted_flg = true;
-		this.tranId = tranId;
-		this.acctNum = acctNum;
-		this.tranAmount = tranAmount;
-		this.tranType = tranType;
-		this.tranNarrate = tranNarrate;
-		this.tranDate = tranDate;
-		this.tranCrncyCode = tranCrncyCode;
-		this.partTranType = partTranType;
-		this.tranGL = tranGL;
-		this.paymentReference = paymentReference;
-		this.createdBy = createdBy;
-		this.createdEmail = createdEmail;
-		this.tranPart = tranPart;
-		this.senderName = senderName;
-		this.receiverName = receiverName;
-	}
-	
-	public WalletTransaction(@NotNull String relatedTransId, @NotNull String tranId, @NotNull String acctNum,
-			@NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType, 
-			@NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
-			@NotNull String partTranType, String tranGL,String paymentReference, 
-			String createdBy, String createdEmail,Integer tranPart, CategoryType tranCategory,String senderName, String receiverName) {
-		super();
-		this.del_flg = false;
-		this.posted_flg = true;
-		this.tranId = tranId;
-		this.acctNum = acctNum;
-		this.tranAmount = tranAmount;
-		this.tranType = tranType;
-		this.tranNarrate = tranNarrate;
-		this.tranDate = tranDate;
-		this.tranCrncyCode = tranCrncyCode;
-		this.partTranType = partTranType;
-		this.tranGL = tranGL;
-		this.paymentReference = paymentReference;
-		this.createdBy = createdBy;
-		this.createdEmail = createdEmail;
-		this.tranPart = tranPart;
-		this.tranCategory = tranCategory;
-		this.senderName = senderName;
-		this.receiverName = receiverName;
-		this.relatedTransId = relatedTransId;
-	}
-	
-	public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
-			@NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType, 
-			@NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
-			@NotNull String partTranType, String tranGL, String paymentReference, String relatedTransId,
-			String createdBy, String createdEmail,Integer tranPart, CategoryType tranCategory) {
-		super();
-		this.del_flg = false;
-		this.posted_flg = true;
-		this.tranId = tranId;
-		this.acctNum = acctNum;
-		this.tranAmount = tranAmount;
-		this.tranType = tranType;
-		this.tranNarrate = tranNarrate;
-		this.tranDate = tranDate;
-		this.tranCrncyCode = tranCrncyCode;
-		this.partTranType = partTranType;
-		this.tranGL = tranGL;
-		this.paymentReference = paymentReference;
-		this.relatedTransId = relatedTransId;
-		this.createdBy = createdBy;
-		this.createdEmail = createdEmail;
-		this.tranPart = tranPart;
-		this.tranCategory = tranCategory;
-	}
-    
-    
+    public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
+            @NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType,
+            @NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
+            @NotNull String partTranType, String tranGL, String paymentReference,
+            String createdBy, String createdEmail, Integer tranPart, String senderName, String receiverName) {
+        super();
+        this.del_flg = false;
+        this.posted_flg = true;
+        this.tranId = tranId;
+        this.acctNum = acctNum;
+        this.tranAmount = tranAmount;
+        this.tranType = tranType;
+        this.tranNarrate = tranNarrate;
+        this.tranDate = tranDate;
+        this.tranCrncyCode = tranCrncyCode;
+        this.partTranType = partTranType;
+        this.tranGL = tranGL;
+        this.paymentReference = paymentReference;
+        this.createdBy = createdBy;
+        this.createdEmail = createdEmail;
+        this.tranPart = tranPart;
+        this.senderName = senderName;
+        this.receiverName = receiverName;
+    }
+
+    public WalletTransaction(@NotNull String relatedTransId, @NotNull String tranId, @NotNull String acctNum,
+            @NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType,
+            @NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
+            @NotNull String partTranType, String tranGL, String paymentReference,
+            String createdBy, String createdEmail, Integer tranPart, CategoryType tranCategory, String senderName, String receiverName) {
+        super();
+        this.del_flg = false;
+        this.posted_flg = true;
+        this.tranId = tranId;
+        this.acctNum = acctNum;
+        this.tranAmount = tranAmount;
+        this.tranType = tranType;
+        this.tranNarrate = tranNarrate;
+        this.tranDate = tranDate;
+        this.tranCrncyCode = tranCrncyCode;
+        this.partTranType = partTranType;
+        this.tranGL = tranGL;
+        this.paymentReference = paymentReference;
+        this.createdBy = createdBy;
+        this.createdEmail = createdEmail;
+        this.tranPart = tranPart;
+        this.tranCategory = tranCategory;
+        this.senderName = senderName;
+        this.receiverName = receiverName;
+        this.relatedTransId = relatedTransId;
+    }
+
+    public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
+            @NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType,
+            @NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
+            @NotNull String partTranType, String tranGL, String paymentReference, String relatedTransId,
+            String createdBy, String createdEmail, Integer tranPart, CategoryType tranCategory) {
+        super();
+        this.del_flg = false;
+        this.posted_flg = true;
+        this.tranId = tranId;
+        this.acctNum = acctNum;
+        this.tranAmount = tranAmount;
+        this.tranType = tranType;
+        this.tranNarrate = tranNarrate;
+        this.tranDate = tranDate;
+        this.tranCrncyCode = tranCrncyCode;
+        this.partTranType = partTranType;
+        this.tranGL = tranGL;
+        this.paymentReference = paymentReference;
+        this.relatedTransId = relatedTransId;
+        this.createdBy = createdBy;
+        this.createdEmail = createdEmail;
+        this.tranPart = tranPart;
+        this.tranCategory = tranCategory;
+    }
 
 }
