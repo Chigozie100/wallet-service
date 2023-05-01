@@ -38,4 +38,8 @@ public interface AuthProxy {
 
     @PostMapping("/auth/login")
     TokenCheckResponse getToken(@RequestBody HashMap request);
+    
+    @GetMapping("/user/{id}")
+    TokenCheckResponse getUserById(@PathVariable("id") long id, @RequestHeader("Authorization") String token);
+
 }

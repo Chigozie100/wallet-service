@@ -2,6 +2,9 @@ package com.wayapaychat.temporalwallet.pojo;
 
 import java.util.List;
 
+import org.springframework.beans.BeanUtils;
+import com.waya.security.auth.pojo.UserIdentityData;
+
 import lombok.*;
 
 @Data
@@ -30,6 +33,11 @@ public class MyData {
     private String token;
     public MyData(String email) {
     	this.email = email;
+    }
+    public static MyData newInstance(UserIdentityData _userData) {
+        MyData myData = new MyData();
+        BeanUtils.copyProperties(_userData, myData);
+        return myData;
     }
 
 }

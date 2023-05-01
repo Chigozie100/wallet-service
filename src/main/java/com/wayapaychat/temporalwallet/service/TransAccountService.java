@@ -65,6 +65,10 @@ public interface TransAccountService {
 	ResponseEntity<?> createBulkTransaction(HttpServletRequest request, BulkTransactionCreationDTO bulk);
 
 	ResponseEntity<?> createBulkExcelTrans(HttpServletRequest request, MultipartFile file);
+        
+        ResponseEntity<?> createBulkDebitTransaction(HttpServletRequest request, BulkTransactionCreationDTO bulk);
+
+	ResponseEntity<?> createBulkDebitExcelTrans(HttpServletRequest request, MultipartFile file);
 
 	ApiResponse<?> AdminsendMoney(HttpServletRequest request, AdminLocalTransferDTO transfer);
 
@@ -218,4 +222,14 @@ public interface TransAccountService {
 	WalletAccount findByEmailOrPhoneNumberOrId(Boolean isAccountNumber, String value, String userId, String accountNo);
 
 	ApiResponse<?> OfficialAccountReports(int page, int size, LocalDate fromdate, LocalDate todate, String fillter);
+        
+        ResponseEntity<?> categoryBasedTransactionAnalysis();
+        
+        ResponseEntity<?> overallBasedTransactionAnalysis();
+        
+        
+        ResponseEntity<?> transactionAnalysisFilterDate(LocalDate fromdate, LocalDate todate);
+        
+        
+
 }

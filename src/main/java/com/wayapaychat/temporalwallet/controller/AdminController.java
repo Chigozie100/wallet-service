@@ -548,8 +548,8 @@ public class AdminController {
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Waya Admin to create multiple transaction", notes = "Transfer amount from one wallet to another wallet", tags = {
             "ADMIN" })
-    @PostMapping("/transfer/bulk-transaction")
-    public ResponseEntity<?> createBulkTrans(HttpServletRequest request,
+    @PostMapping("/credit/bulk-transaction")
+    public ResponseEntity<?> createCreditBulkTrans(HttpServletRequest request,
             @Valid @RequestBody BulkTransactionCreationDTO userList) {
         ResponseEntity<?> res = transAccountService.createBulkTransaction(request, userList);
         if (!res.getStatusCode().is2xxSuccessful()) {
@@ -563,8 +563,8 @@ public class AdminController {
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Waya Admin to create multiple transaction", notes = "Transfer amount from one wallet to another wallet", tags = {
             "ADMIN" })
-    @PostMapping(path = "/transfer/bulk-transaction-excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> createBulkTransExcel(HttpServletRequest request, @RequestPart("file") MultipartFile file) {
+    @PostMapping(path = "/credit/bulk-transaction-excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> createCreditBulkTransExcel(HttpServletRequest request, @RequestPart("file") MultipartFile file) {
         ResponseEntity<?> res = transAccountService.createBulkExcelTrans(request, file);
         if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
@@ -573,6 +573,36 @@ public class AdminController {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
+     @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Waya Admin to create multiple transaction", notes = "Transfer amount from one wallet to another wallet", tags = {
+            "ADMIN" })
+    @PostMapping("/debit/bulk-transaction")
+    public ResponseEntity<?> createDebitBulkTrans(HttpServletRequest request,
+            @Valid @RequestBody BulkTransactionCreationDTO userList) {
+        ResponseEntity<?> res = transAccountService.createBulkDebitTransaction(request, userList);
+        if (!res.getStatusCode().is2xxSuccessful()) {
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+        log.info("Send Money: {}", userList);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Waya Admin to create multiple debit transaction", notes = "Transfer amount from one wallet to another wallet", tags = {
+            "ADMIN" })
+    @PostMapping(path = "/debit/bulk-transaction-excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> createDebitBulkTransExcel(HttpServletRequest request, @RequestPart("file") MultipartFile file) {
+        ResponseEntity<?> res = transAccountService.createBulkDebitExcelTrans(request, file);
+        if (!res.getStatusCode().is2xxSuccessful()) {
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+        log.info("Send Money: {}", file);
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+    
+    
     @ApiOperation(value = "For Admin to view all waya transaction", notes = "To view all transaction for wallet/waya", tags = {
             "ADMIN" })
     @GetMapping("/admin/statement/{acctNo}")

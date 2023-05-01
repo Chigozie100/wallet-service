@@ -23,7 +23,6 @@ spec:
   selector:
     matchLabels:
       app: waya-repository
-  minReadySeconds: 320
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -43,14 +42,13 @@ spec:
             cpu: "49m"
           limits:
             memory: "500Mi"
-            cpu: "300m"
         envFrom:
         - configMapRef:
             name: common-services-config
-        # readinessProbe:
-        #   httpGet: 
-        #     path: /v2/api-docs
-        #     port: 80
+        readinessProbe:
+          httpGet: 
+            path: /swagger-resources
+            port: 80
         ports: 
         - name: http
           containerPort: 80 
