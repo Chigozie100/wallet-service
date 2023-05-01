@@ -472,8 +472,14 @@ public class UserAccountServiceImpl implements UserAccountService {
     public ResponseEntity<?> createUserAccount(WalletUserDTO user) {
         log.info(" ###################### CALL TO CREATE WALLET ##################" + user);
         WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
+        List<WalletAccount> existingWallets = null;
+
         if (existingUser != null) {
-            return new ResponseEntity<>(new ErrorResponse("Wallet User already exists"), HttpStatus.BAD_REQUEST);
+            existingWallets = existingUser.getAccount();
+        }
+
+        if (ObjectUtils.isNotEmpty(existingWallets)) {
+            return new ResponseEntity<>(new ErrorResponse("Wallet already exists"), HttpStatus.BAD_REQUEST);
         }
 
         int userId = user.getUserId().intValue();
