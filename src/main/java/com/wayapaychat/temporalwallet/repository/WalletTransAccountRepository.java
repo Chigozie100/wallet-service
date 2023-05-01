@@ -52,19 +52,19 @@ public interface WalletTransAccountRepository extends JpaRepository<WalletTransA
             + "u.status = 'SUCCESSFUL' ")
     long countBillsTransaction();
 
-    @Query("SELECT ount(u.id) FROM WalletTransAccount u WHERE u.eventId = 'NIP_FUNDING' AND "
+    @Query("SELECT count(u.id) FROM WalletTransAccount u WHERE u.eventId = 'NIP_FUNDING' AND "
             + "u.status = 'SUCCESSFUL' ")
     long nipInboundCount();
 
-    @Query("SELECT ount(u.id) FROM WalletTransAccount u WHERE u.eventId = 'NIP_PAYOUT' AND "
+    @Query("SELECT count(u.id) FROM WalletTransAccount u WHERE u.eventId = 'NIP_PAYOUT' AND "
             + "u.status = 'SUCCESSFUL' ")
     long nipOutboundExternalCount();
 
-    @Query("SELECT ount(u.id) FROM WalletTransAccount u WHERE u.eventId = 'WAYATRAN' AND "
+    @Query("SELECT count(u.id) FROM WalletTransAccount u WHERE u.eventId = 'WAYATRAN' AND "
             + "u.status = 'SUCCESSFUL' ")
     long nipOutboundInternalCount();
 
-    @Query("SELECT ount(u.id) FROM WalletTransAccount u WHERE u.eventId = 'PAYSTACK_FUNDING' AND "
+    @Query("SELECT count(u.id) FROM WalletTransAccount u WHERE u.eventId = 'PAYSTACK_FUNDING' AND "
             + "u.status = 'SUCCESSFUL' ")
     long payStackCount();
 
