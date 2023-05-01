@@ -574,7 +574,8 @@ public class AdminController {
     }
 
      @ApiImplicitParams({
-            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true),
+            @ApiImplicitParam(name = "pin", value = "pin", paramType = "header", required = true)})
     @ApiOperation(value = "Waya Admin to create multiple transaction", notes = "Transfer amount from one wallet to another wallet", tags = {
             "ADMIN" })
     @PostMapping("/debit/bulk-transaction")
@@ -589,7 +590,9 @@ public class AdminController {
     }
 
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true),
+            @ApiImplicitParam(name = "pin", value = "pin", paramType = "header", required = true)
+             })
     @ApiOperation(value = "Waya Admin to create multiple debit transaction", notes = "Transfer amount from one wallet to another wallet", tags = {
             "ADMIN" })
     @PostMapping(path = "/debit/bulk-transaction-excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)

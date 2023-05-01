@@ -69,6 +69,7 @@ import com.wayapaychat.temporalwallet.enumm.WalletTransStatus;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.notification.CustomNotification;
+import com.wayapaychat.temporalwallet.pojo.TransactionReport;
 
 @Service
 @Slf4j
@@ -85,6 +86,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     private final UserPricingRepository userPricingRepository;
     private final TransactionCountService transactionCountService;
     private final TokenImpl tokenImpl;
+    private final KafkaMessageProducer kafkaMessageProducer;
 
     @Autowired
     public CoreBankingServiceImpl(SwitchWalletService switchWalletService,
@@ -92,7 +94,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             WalletEventRepository walletEventRepository, WalletTransactionRepository walletTransactionRepository,
             MifosWalletProxy mifosWalletProxy, TemporalWalletDAO tempwallet, CustomNotification customNotification,
             UserPricingRepository userPricingRepository, TransactionCountService transactionCountService,
-            TokenImpl tokenImpl) {
+            TokenImpl tokenImpl, KafkaMessageProducer kafkaMessageProducer) {
         this.switchWalletService = switchWalletService;
         this.walletTransAccountRepository = walletTransAccountRepository;
         this.walletAccountRepository = walletAccountRepository;
@@ -104,6 +106,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         this.userPricingRepository = userPricingRepository;
         this.transactionCountService = transactionCountService;
         this.tokenImpl = tokenImpl;
+        this.kafkaMessageProducer = kafkaMessageProducer;
     }
 
     @Override
@@ -210,6 +213,12 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
             walletAccountRepository.saveAndFlush(accountCredit);
 
+//            TransactionReport transReport = new TransactionReport();
+//            transReport.setAccountNo(accountCredit.getAccountNo());
+//            transReport.setCustomer_type(accountCredit.getUser().isCorporate() ? "B" : "P");
+//            transReport.setTrans_amt(transactionPojo.getAmount());
+           
+
             CompletableFuture.runAsync(() -> sendTransactionNotification(Constant.CREDIT_TRANSACTION_ALERT,
                     accountCredit.getAcct_name(), transactionPojo, accountCredit.getClr_bal_amt(), "CR"));
 
@@ -276,11 +285,13 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             String channelEventId, HttpServletRequest request) {
         log.info("Processing transfer transaction {}", transferTransactionRequestData.toString());
 
-        if (Objects.isNull(transferTransactionRequestData.getBeneficiaryName()))
+        if (Objects.isNull(transferTransactionRequestData.getBeneficiaryName())) {
             transferTransactionRequestData.setBeneficiaryName("");
+        }
 
-        if (Objects.isNull(transferTransactionRequestData.getSenderName()))
+        if (Objects.isNull(transferTransactionRequestData.getSenderName())) {
             transferTransactionRequestData.setSenderName("");
+        }
 
         if (transferTransactionRequestData.getDebitAccountNumber()
                 .equals(transferTransactionRequestData.getBenefAccountNumber())) {
@@ -463,7 +474,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                 "D".equalsIgnoreCase(walletTransaction.getPartTranType()) ? CBAAction.DEPOSIT : CBAAction.WITHDRAWAL);
 
         return processCBATransactionCustomerEntry(reversalTransaction);
- 
+
     }
 
     @Override
@@ -533,28 +544,28 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         List<WalletTransaction> customerWalletTransaction = transactioonList.get().stream()
-        .filter( accTrans -> !accTrans.getAcctNum().contains("NGN") ).collect(Collectors.toList());
+                .filter(accTrans -> !accTrans.getAcctNum().contains("NGN")).collect(Collectors.toList());
 
         List<WalletTransaction> glWalletTransaction = transactioonList.get().stream()
-        .filter( accTrans -> accTrans.getAcctNum().contains("NGN") ).collect(Collectors.toList());
+                .filter(accTrans -> accTrans.getAcctNum().contains("NGN")).collect(Collectors.toList());
 
-        if(customerWalletTransaction.size() != 1 ||
-                (glWalletTransaction.size() %2  != 0 && glWalletTransaction.size() <= 12 )){
+        if (customerWalletTransaction.size() != 1
+                || (glWalletTransaction.size() % 2 != 0 && glWalletTransaction.size() <= 12)) {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.TRANSACTION_NOT_SUPPORTED.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
 
-        ResponseEntity<?> response = reverseCustomerTransaction(userToken, provider, 
-                            customerWalletTransaction.get(0));
+        ResponseEntity<?> response = reverseCustomerTransaction(userToken, provider,
+                customerWalletTransaction.get(0));
         if (!response.getStatusCode().is2xxSuccessful()) {
             return response;
         }
 
         Map<String, List<WalletTransaction>> glPostings = glWalletTransaction.stream()
-        .collect(Collectors.groupingBy(WalletTransaction::getTranId));
-            
+                .collect(Collectors.groupingBy(WalletTransaction::getTranId));
+
         for (Map.Entry<String, List<WalletTransaction>> glPosting : glPostings.entrySet()) {
-            if (glPosting.getValue().size() != 2){
+            if (glPosting.getValue().size() != 2) {
                 log.info("invalid GL Transaction:{} ", glPosting.getValue());
                 continue;
             }
@@ -562,8 +573,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         return response;
-     
-            
+
     }
 
     @Override
@@ -735,24 +745,28 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             double currentBalance, String tranType) {
 
         AccountSumary account = tempwallet.getAccountSumaryLookUp(transactionPojo.getAccountNo());
-        if (account == null)
+        if (account == null) {
             return;
+        }
 
         transactionCountService.makeCount(account.getUId().toString(), transactionPojo.getPaymentReference());
 
         String systemToken = tokenImpl.getToken();
-        if (systemToken == null)
+        if (systemToken == null) {
             return;
+        }
 
         String tranDate = LocalDate.now().toString();
-        if (transactionPojo.getAccountNo().contains("NGN"))
+        if (transactionPojo.getAccountNo().contains("NGN")) {
             subject = "GL Posting ".concat(subject);
+        }
 
         StringBuilder transactionType = new StringBuilder();
-        if ("CR".equalsIgnoreCase(tranType))
+        if ("CR".equalsIgnoreCase(tranType)) {
             transactionType.append("Credit");
-        else
+        } else {
             transactionType.append("Debit");
+        }
 
         String notifyEmail = !ObjectUtils.isEmpty(account.getNotifyEmail()) ? account.getNotifyEmail()
                 : account.getEmail();
@@ -1186,10 +1200,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         processCBATransactionGLDoubleEntryWithTransit(cbaTransaction);
 
         /**
-         * Todo
-         * rever customer deposit on failure
+         * Todo rever customer deposit on failure
          */
-
         return response;
     }
 
@@ -1233,10 +1245,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         processCBATransactionGLDoubleEntryWithTransit(cbaTransaction);
 
         /**
-         * Todo
-         * rever customer withdrawal on failure
+         * Todo rever customer withdrawal on failure
          */
-
         return response;
     }
 
