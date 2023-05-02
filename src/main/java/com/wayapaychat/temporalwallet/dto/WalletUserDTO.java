@@ -26,8 +26,8 @@ public class WalletUserDTO {
 	@Size(min=3, max=50)
 	private String firstName;
     
-	@NotNull
-	@Size(min=3, max=50)
+//	@NotNull
+//	@Size(min=3, max=50)
 	private String lastName;
 	
 	@NotNull
