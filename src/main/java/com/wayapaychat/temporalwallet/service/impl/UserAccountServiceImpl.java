@@ -136,7 +136,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     private ResponseEntity<?> createClient(Long userid, String token) {
 
         WalletUser existingUser = walletUserRepository.findByUserId(userid);
-        if (ObjectUtils.isEmpty(existingUser)) {
+        if (!ObjectUtils.isEmpty(existingUser)) {
             return new ResponseEntity<>(existingUser, HttpStatus.ACCEPTED);
         }
 
