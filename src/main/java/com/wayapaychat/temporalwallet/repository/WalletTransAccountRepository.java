@@ -94,8 +94,24 @@ public interface WalletTransAccountRepository extends JpaRepository<WalletTransA
             + "(:fromtranDate) AND (:totranDate) ")
     BigDecimal findByAllBillsTransactionByDate(LocalDate fromtranDate, LocalDate totranDate);
 
-    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'QUICKTELLER' "
-            + " OR u.eventId = 'BAXI' AND u.status = 'SUCCESSFUL' AND u.createdAt BETWEEN  "
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'NIP_PAYOUT' "
+            + " AND u.status = 'SUCCESSFUL' AND u.createdAt BETWEEN  "
             + "(:fromtranDate) AND (:totranDate) ")
     BigDecimal findByAllOutboundExternalTransaction(LocalDate fromtranDate, LocalDate totranDate);
+    
+     @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'PAYSTACK_FUNDING' AND "
+            + "u.status = 'SUCCESSFUL' AND u.createdAt BETWEEN  "
+            + "(:fromtranDate) AND (:totranDate) ")
+    BigDecimal findByAllPaystackTransactionByDate(LocalDate fromtranDate, LocalDate totranDate);
+    
+     @Query("SELECT count(u.id) FROM WalletTransAccount u WHERE u.eventId = 'NIP_FUNDING' AND "
+            + "u.status = 'SUCCESSFUL' AND u.createdAt BETWEEN  "
+            + "(:fromtranDate) AND (:totranDate) ")
+    BigDecimal nipInboundTRansactionByDate(LocalDate fromtranDate, LocalDate totranDate);
+    
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'WAYATRAN' "
+            + " AND u.status = 'SUCCESSFUL' AND u.createdAt BETWEEN  "
+            + "(:fromtranDate) AND (:totranDate) ")
+    BigDecimal findByAllOutboundInternalTransactionByDate(LocalDate fromtranDate, LocalDate totranDate);
+    
 }
