@@ -690,17 +690,17 @@ public class AdminController {
 
     @ApiOperation(value = "Create a Simulated User", tags = { "ADMIN" })
     @PostMapping(path = "simulated/account")
-    public ResponseEntity<?> createSIMUser(@Valid @RequestBody AccountPojo2 user) {
+    public ResponseEntity<?> createSIMUser(@Valid @RequestBody AccountPojo2 user, @RequestHeader("Authorization") String token) {
         log.info("Request input: {}", user);
-        return userAccountService.createAccount(user);
+        return userAccountService.createAccount(user, token);
     }
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Create a wallet account", tags = { "ADMIN" })
     @PostMapping(path = "/official/user/account")
-    public ResponseEntity<?> createUserAccount(@Valid @RequestBody AccountPojo2 accountPojo) {
-        return userAccountService.createAccount(accountPojo);
+    public ResponseEntity<?> createUserAccount(@Valid @RequestBody AccountPojo2 accountPojo, @RequestHeader("Authorization") String token) {
+        return userAccountService.createAccount(accountPojo,token);
     }
 
     @ApiImplicitParams({

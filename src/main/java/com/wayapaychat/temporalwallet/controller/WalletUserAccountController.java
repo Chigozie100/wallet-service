@@ -43,9 +43,9 @@ public class WalletUserAccountController {
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Create a User", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping(path = "/create-user")
-    public ResponseEntity<?> createUser(@Valid @RequestBody UserDTO user) {
+    public ResponseEntity<?> createUser(@Valid @RequestBody UserDTO user, @RequestHeader("Authorization") String token) {
         log.info("Request input: {}", user);
-        return userAccountService.createUser(user);
+        return userAccountService.createUser(user, token);
     }
 
     //Wallet call by other service
@@ -53,9 +53,9 @@ public class WalletUserAccountController {
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Create User Account", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping(path = "/user/account")
-    public ResponseEntity<?> createUserAccount(@Valid @RequestBody WalletUserDTO user) {
-        log.info("Request input: {}", user);
-        return userAccountService.createUserAccount(user);
+    public ResponseEntity<?> createUserAccount(@Valid @RequestBody WalletUserDTO user, @RequestHeader("Authorization") String token) {
+        log.info("Request input: {}", user); //, String token
+        return userAccountService.createUserAccount(user, token);
     }
 
     @ApiOperation(value = "Modify User Account", tags = {"USER-ACCOUNT-WALLET"})
@@ -98,8 +98,8 @@ public class WalletUserAccountController {
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Create a Wallet | add additional wallet", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping(path = "/create-wallet")
-    public ResponseEntity<?> createAccount(@Valid @RequestBody AccountPojo2 accountPojo) {
-        return userAccountService.createAccount(accountPojo);
+    public ResponseEntity<?> createAccount(@Valid @RequestBody AccountPojo2 accountPojo, @RequestHeader("Authorization") String token) {
+        return userAccountService.createAccount(accountPojo, token);
     }
 
     @ApiOperation(value = "Create a Wallet", tags = {"USER-ACCOUNT-WALLET"})
@@ -175,8 +175,8 @@ public class WalletUserAccountController {
 
     @ApiOperation(value = "Get User list of wallets", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/accounts/{user_id}")
-    public ResponseEntity<?> getAccounts(@PathVariable long user_id) {
-        return userAccountService.getUserAccountList(user_id);
+    public ResponseEntity<?> getAccounts(@PathVariable long user_id, @RequestHeader("Authorization") String token) {
+        return userAccountService.getUserAccountList(user_id, token);
     }
 
     @ApiOperation(value = "Get User Wallet Commission Account", tags = {"USER-ACCOUNT-WALLET"})
@@ -201,14 +201,14 @@ public class WalletUserAccountController {
 
     @ApiOperation(value = "Create Cooperate account, this creates a default account and a commission account", notes = "Create Cooperate account, this creates a default account and a commission account", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping("/create/cooperate/user")
-    public ResponseEntity<?> createCooperateAccount(@RequestBody WalletUserDTO createAccountPojo) {
-        return userAccountService.createUserAccount(createAccountPojo);
+    public ResponseEntity<?> createCooperateAccount(@RequestBody WalletUserDTO createAccountPojo, @RequestHeader("Authorization") String token) {
+        return userAccountService.createUserAccount(createAccountPojo, token);
     }
 
     @ApiOperation(value = "Create Nuban account, this creates a default account / commission account / nuban account", notes = "Create Cooperate account, this creates a default account and a commission account", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping("/create/nuban/user")
-    public ResponseEntity<?> createNubanAccount(@RequestBody WalletUserDTO createAccountPojo) {
-        return userAccountService.createUserAccount(createAccountPojo);
+    public ResponseEntity<?> createNubanAccount(@RequestBody WalletUserDTO createAccountPojo, @RequestHeader("Authorization") String token) {
+        return userAccountService.createUserAccount(createAccountPojo, token);
     }
 
     @ApiOperation(value = "Get Wallet Account Info", tags = {"USER-ACCOUNT-WALLET"})
