@@ -1201,6 +1201,9 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
 
         List<WalletAccount> accounts = walletAccountRepository.findByUser(walletUser.get());
+        if(ObjectUtils.isEmpty(accounts)){
+            return createDefaultWallet(tokenData, token);
+        }
 
         CompletableFuture.runAsync(() -> updateTractionLimit(walletUser.get(), tokenData.getTransactionLimit()));
 
