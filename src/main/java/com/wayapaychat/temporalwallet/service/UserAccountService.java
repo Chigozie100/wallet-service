@@ -19,17 +19,17 @@ import javax.servlet.http.HttpServletRequest;
 
 public interface UserAccountService {
 
-    ResponseEntity<?> createUser(UserDTO user);
+    ResponseEntity<?> createUser(UserDTO user, String token);
 
     WalletAccount createNubanAccount(WalletUserDTO user);
 
-    ResponseEntity<?> createUserAccount(WalletUserDTO user);
+    ResponseEntity<?> createUserAccount(WalletUserDTO user, String token);
 
     ResponseEntity<?> createCashAccount(WalletCashAccountDTO user);
 
     ResponseEntity<?> createEventAccount(WalletEventAccountDTO user);
 
-    ResponseEntity<?> createAccount(AccountPojo2 accountPojo);
+    ResponseEntity<?> createAccount(AccountPojo2 accountPojo, String token);
 
     ResponseEntity<?> createOfficialAccount(OfficialAccountDTO account);
 
@@ -53,7 +53,7 @@ public interface UserAccountService {
 
     ResponseEntity<?> fetchVirtualAccountDetail(String accountNo);
 
-    ResponseEntity<?> getUserAccountList(long userId);
+    ResponseEntity<?> getUserAccountList(long userId, String token);
 
     ResponseEntity<?> getAllAccount();
 
@@ -119,7 +119,7 @@ public interface UserAccountService {
 
     ResponseEntity<?> countInActiveAccount();
 
-    ResponseEntity<?> createDefaultWallet(MyData user);
+    ResponseEntity<?> createDefaultWallet(MyData user, String token);
 
     ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount);
 

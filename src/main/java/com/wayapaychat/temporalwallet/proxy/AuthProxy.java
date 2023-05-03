@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.wayapaychat.temporalwallet.config.WalletClientConfiguration;
 import com.wayapaychat.temporalwallet.dto.OTPResponse;
+import com.wayapaychat.temporalwallet.dto.UserProfileResponse;
 import com.wayapaychat.temporalwallet.pojo.TokenCheckResponse;
 import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
 
@@ -41,5 +42,8 @@ public interface AuthProxy {
     
     @GetMapping("/user/{id}")
     TokenCheckResponse getUserById(@PathVariable("id") long id, @RequestHeader("Authorization") String token);
+
+    @GetMapping("/profile/{userId}")
+    UserProfileResponse getUserProfileById(@PathVariable("userId") long id, @RequestHeader("Authorization") String token);
 
 }
