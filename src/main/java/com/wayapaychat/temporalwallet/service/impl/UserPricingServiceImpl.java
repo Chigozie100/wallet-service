@@ -59,11 +59,10 @@ public class UserPricingServiceImpl implements UserPricingService {
 
     @Override
     public ResponseEntity<?> create(Long userId, String fullName, BigDecimal amount, String product, String code) {
-        System.out.println("#################### INSIDE HERE #############1 ");
+        log.info("Create pricing for user {} product  {}", userId, product);
         try{
           Optional<UserPricing> userPricingOptional = userPricingRepository.findDetails(userId,product);
           if(userPricingOptional.isEmpty()){
-              System.out.println("#################### INSIDE HERE ############# 2");
               UserPricing userPricing = new UserPricing();
               userPricing.setGeneralAmount(amount);
               userPricing.setUserId(userId);
@@ -80,7 +79,7 @@ public class UserPricingServiceImpl implements UserPricingService {
 
           }
         } catch (Exception e) {
-            log.error("UNABLE TO CREATE: {}", e.getMessage());
+            log.error("UNABLE TO CREATE Pricinf: {}", e.getMessage());
             throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);
         }
         return null;
