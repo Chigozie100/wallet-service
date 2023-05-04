@@ -3208,4 +3208,18 @@ public class TransAccountServiceImpl implements TransAccountService {
 
         return new ResponseEntity<>(new SuccessResponse("SUCCESS", analysis), HttpStatus.OK);
     }
+
+    @Override
+    public ApiResponse<?> getAllTransactionsNoPagination(LocalDate fromdate, LocalDate todate) {
+        Map<String, Object> response = new HashMap<>();
+
+        List<WalletTransaction> transaction = walletTransactionRepository.findByAllTransactions(fromdate,
+                todate);
+        response.put("transaction", transaction);
+        if (transaction.isEmpty()) {
+            return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO RECORD FOUND", null);
+        }
+        return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION LIST SUCCESSFULLY", response);
+
+    }
 }
