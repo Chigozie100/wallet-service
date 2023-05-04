@@ -3142,7 +3142,7 @@ public class TransAccountServiceImpl implements TransAccountService {
     }
 
     @Override
-    public ResponseEntity<?> transactionAnalysisFilterDate(LocalDate fromdate, LocalDate todate) {
+    public ResponseEntity<?> transactionAnalysisFilterDate(Date fromdate, Date todate) {
 
         TransactionAnalysis analysis = new TransactionAnalysis();
 

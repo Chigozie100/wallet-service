@@ -1292,7 +1292,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         transReport.setTrans_date(LocalDate.now());
         transReport.setCum_cr_amt(accountCredit.getCum_cr_amt());
         transReport.setCum_dr_amt(accountCredit.getCum_dr_amt());
-        
+        transReport.setRelated_trans_id(transactionPojo.getPaymentReference());
         transactionCountService.transReport(transReport);
     }
 }

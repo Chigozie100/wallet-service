@@ -228,7 +228,7 @@ public interface TransAccountService {
         ResponseEntity<?> overallBasedTransactionAnalysis();
         
         
-        ResponseEntity<?> transactionAnalysisFilterDate(LocalDate fromdate, LocalDate todate);
+        ResponseEntity<?> transactionAnalysisFilterDate(Date fromdate, Date todate);
         
         
 
