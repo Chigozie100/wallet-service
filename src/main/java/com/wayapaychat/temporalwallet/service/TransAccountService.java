@@ -228,7 +228,7 @@ public interface TransAccountService {
         ResponseEntity<?> overallBasedTransactionAnalysis();
         
         
-        ResponseEntity<?> transactionAnalysisFilterDate(Date fromdate, Date todate);
+        ResponseEntity<?> transactionAnalysisFilterDate(LocalDate fromdate, LocalDate todate);
         
         
        ApiResponse<?> getAllTransactionsNoPagination(LocalDate fromdate, LocalDate todate);
