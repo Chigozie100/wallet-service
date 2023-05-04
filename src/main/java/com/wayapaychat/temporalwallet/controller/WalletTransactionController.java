@@ -746,8 +746,8 @@ public class WalletTransactionController {
         @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Total Overall Based Transactions", notes = "Total Overall Based Transactions", tags = {"TRANSACTION-WALLET"})
     @GetMapping("/transaction/analysis")
-    public ResponseEntity<?> transactionFilterDate(@RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
-            @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate) {
+    public ResponseEntity<?> transactionFilterDate(@RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromdate,
+            @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate todate) {
         return transAccountService.transactionAnalysisFilterDate(fromdate, todate);
     }
 }
