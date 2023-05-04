@@ -232,6 +232,9 @@ public interface TransAccountService {
         
         
        ApiResponse<?> getAllTransactionsNoPagination(LocalDate fromdate, LocalDate todate);
+       
+       	ApiResponse<?> getAllTransactionsByAccountNo(LocalDate fromdate,
+			LocalDate todate, String accountNo);
 
 
 }

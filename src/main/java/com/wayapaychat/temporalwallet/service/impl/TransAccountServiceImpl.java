@@ -3222,4 +3222,18 @@ public class TransAccountServiceImpl implements TransAccountService {
         return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION LIST SUCCESSFULLY", response);
 
     }
+
+    @Override
+    public ApiResponse<?> getAllTransactionsByAccountNo(LocalDate fromdate, LocalDate todate, String accountNo) {
+        Map<String, Object> response = new HashMap<>();
+        List<WalletTransaction> transaction =  walletTransactionRepository.findByAllTransactionsWithDateRangeaAndAccount(
+                fromdate, todate, accountNo);
+        response.put("transaction", transaction);
+  
+        if (transaction.isEmpty()) {
+            return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO RECORD FOUND", null);
+        }
+        return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION LIST SUCCESSFULLY", response);
+    
+    }
 }
