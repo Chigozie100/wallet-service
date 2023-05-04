@@ -877,5 +877,29 @@ public class AdminController {
         }
 
     }
+    
+    
+      @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "To List All Transaction activities", notes = "To List all Transaction activities", tags = {
+            "ADMIN" })
+    @GetMapping("/transaction-list")
+    public ResponseEntity<?> allTransactionsNoPagiination(
+            @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromdate,
+            @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate todate) {
+        ApiResponse<?> res;
+        try {
+            res = transAccountService.getAllTransactionsNoPagination(fromdate, todate);
+            if (!res.getStatus()) {
+                return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+
+    }
 
 }

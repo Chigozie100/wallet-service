@@ -47,6 +47,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.time.LocalDate;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -739,5 +740,14 @@ public class WalletTransactionController {
     @GetMapping("/transaction/overall-based-analysis")
     public ResponseEntity<?> overallBasedAnalysis() {
         return transAccountService.overallBasedTransactionAnalysis();
+    }
+    
+     @ApiImplicitParams({
+        @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true)})
+    @ApiOperation(value = "Total Overall Based Transactions", notes = "Total Overall Based Transactions", tags = {"TRANSACTION-WALLET"})
+    @GetMapping("/transaction/analysis")
+    public ResponseEntity<?> transactionFilterDate(@RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
+            @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate) {
+        return transAccountService.transactionAnalysisFilterDate(fromdate, todate);
     }
 }

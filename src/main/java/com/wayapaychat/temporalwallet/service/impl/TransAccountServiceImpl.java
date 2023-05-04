@@ -55,6 +55,9 @@ import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.proxy.AuthProxy;
 import com.wayapaychat.temporalwallet.response.Analysis;
+import com.wayapaychat.temporalwallet.response.CategoryAnalysis;
+import com.wayapaychat.temporalwallet.response.OverallAnalysis;
+import com.wayapaychat.temporalwallet.response.TransactionAnalysis;
 
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
@@ -3139,7 +3142,84 @@ public class TransAccountServiceImpl implements TransAccountService {
     }
 
     @Override
-    public ResponseEntity<?> transactionAnalysisFilterDate(LocalDate fromdate, LocalDate todate) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public ResponseEntity<?> transactionAnalysisFilterDate(Date fromdate, Date todate) {
+
+        TransactionAnalysis analysis = new TransactionAnalysis();
+
+        //overall trans analysis
+        OverallAnalysis overall = new OverallAnalysis();
+        BigDecimal totalTransaction = walletTransAccountRepo.totalTransactionAmount();
+        BigDecimal totalRevenue = walletTransAccountRepo.totalRevenueAmount();
+        BigDecimal totalIncome = walletTransAccountRepo.findByAllInboundTransaction();
+        BigDecimal totalOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction();
+        BigDecimal totalOuboundInternal = walletTransAccountRepo.findByAllOutboundInternalTransaction();
+
+        BigDecimal totalOutgoing = totalOutboundExternal.add(totalOuboundInternal);
+
+        //count
+        long totalTransactions = walletTransAccountRepo.totalTransaction();
+        long totalRevenues = walletTransAccountRepo.totalRevenue();
+        long totalIncoming = walletTransAccountRepo.nipInboundCount();
+        long totalOutgoingTrans = walletTransAccountRepo.nipOutboundExternalCount() + walletTransAccountRepo.nipOutboundInternalCount();
+
+        Map<String, BigDecimal> overallResp = new HashMap<>();
+        overallResp.put("totalTransaction", totalTransaction);
+        overallResp.put("totalRevenue", totalRevenue);
+        overallResp.put("totalIncome", totalIncome);
+        overallResp.put("totalOutgoing", totalOutgoing);
+
+        //count response
+        Map<String, String> countresponse = new HashMap<>();
+        countresponse.put("totalTransaction", String.valueOf(totalTransactions));
+        countresponse.put("totalRevenue", String.valueOf(totalRevenues));
+        countresponse.put("totalIncome", String.valueOf(totalIncoming));
+        countresponse.put("totalOutgoing", String.valueOf(totalOutgoingTrans));
+
+        overall.setSumResponse(overallResp);
+        overall.setCountResponse(countresponse);
+
+        //category trans analysis
+        CategoryAnalysis category = new CategoryAnalysis();
+        BigDecimal billsPayment = walletTransAccountRepo.findByAllBillsTransactionByDate(fromdate, todate);
+        BigDecimal totalCategoryOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction(fromdate, todate);
+        BigDecimal totalOutboundInternal = walletTransAccountRepo.findByAllOutboundInternalTransactionByDate(fromdate, todate);
+        BigDecimal totalPaystack = walletTransAccountRepo.findByAllPaystackTransactionByDate(fromdate, todate);
+        BigDecimal totalNipInbound = walletTransAccountRepo.nipInboundTRansactionByDate(fromdate, todate);
+
+        //count
+        long billsCount = walletTransAccountRepo.countBillsTransaction();
+        long outboundExternalCount = walletTransAccountRepo.nipOutboundExternalCount();
+        long outboundInternalCount = walletTransAccountRepo.nipOutboundInternalCount();
+        long paystackCount = walletTransAccountRepo.payStackCount();
+        long nipCount = walletTransAccountRepo.nipInboundCount();
+
+        Map<String, BigDecimal> categoryResponse = new HashMap<>();
+        categoryResponse.put("billsPaymentTrans", billsPayment);
+        categoryResponse.put("outboundExternalTrans", totalCategoryOutboundExternal);
+        categoryResponse.put("outboundInternalTrans", totalOutboundInternal);
+        categoryResponse.put("totalPaystackTrans", totalPaystack);
+        categoryResponse.put("nipInbountTrans", totalNipInbound);
+
+        category.setSumResponse(categoryResponse);
+        category.setCountResponse(countresponse);
+
+        analysis.setCategoryAnalysis(category);
+        analysis.setOverallAnalysis(overall);
+
+        return new ResponseEntity<>(new SuccessResponse("SUCCESS", analysis), HttpStatus.OK);
+    }
+
+    @Override
+    public ApiResponse<?> getAllTransactionsNoPagination(LocalDate fromdate, LocalDate todate) {
+        Map<String, Object> response = new HashMap<>();
+
+        List<WalletTransaction> transaction = walletTransactionRepository.findByAllTransactions(fromdate,
+                todate);
+        response.put("transaction", transaction);
+        if (transaction.isEmpty()) {
+            return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO RECORD FOUND", null);
+        }
+        return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION LIST SUCCESSFULLY", response);
+
     }
 }
