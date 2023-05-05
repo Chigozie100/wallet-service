@@ -2114,42 +2114,22 @@ public class UserAccountServiceImpl implements UserAccountService {
             BigDecimal totalOutgoing = BigDecimal.ZERO;
             log.info("Account list {}", accountList);
             for (WalletAccount acct : accountList) {
-                // user transaction with filter
-                if (filter) {
-                     // all revenue on customer
-                    BigDecimal revenue = walletTransAccountRepo.totalRevenueAmountByUser(acct.getAccountNo());
-                    totalrevenue = totalrevenue.add(revenue == null ? BigDecimal.ZERO : revenue);
-                    // total outgoing
-                    BigDecimal outgoing = walletTransRepo.totalWithdrawalByCustomerFilter(acct.getAccountNo(), fromdate, todate);
-                    totalOutgoing = totalOutgoing.add(outgoing);
-                    // total incoming
-                    BigDecimal incoming = walletTransRepo.totalDepositByCustomerFilter(acct.getAccountNo(), fromdate, todate);
-                    totalIncoming = totalIncoming.add(incoming);
-                    //total balance
-                    BigDecimal totalBalance = walletAccountRepository.totalBalanceByUserFilter(acct.getAccountNo(), fromdate, todate);
-                    totalTrans = totalTrans.add(totalBalance);                  
-                } 
-                  // user transaction without filter
-                else {
-                    // all revenue on customer
-                    BigDecimal revenue = walletTransAccountRepo.totalRevenueAmountByUser(acct.getAccountNo());
-                    totalrevenue = totalrevenue.add(revenue == null ? BigDecimal.ZERO : revenue);
-                    log.info("total customer revenue:: {}", totalrevenue);
+                BigDecimal revenue = walletTransAccountRepo.totalRevenueAmountByUser(acct.getAccountNo());
+                totalrevenue = totalrevenue.add(revenue == null ? BigDecimal.ZERO : revenue);
+                log.info("total customer revenue:: {}", totalrevenue);
 
-                    // total outgoing
-                    BigDecimal outgoing = walletTransRepo.totalWithdrawalByCustomer(acct.getAccountNo());
-                    totalOutgoing = totalOutgoing.add(outgoing);
-                    // total incoming
-                    BigDecimal incoming = walletTransRepo.totalDepositByCustomer(acct.getAccountNo());
-                    totalIncoming = totalIncoming.add(incoming);
-
-                    //total balance
-                    BigDecimal totalBalance = walletAccountRepository.totalBalanceByUser(acct.getAccountNo());
-                    totalTrans = totalTrans.add(totalBalance);
-                }
+                // total outgoing
+                BigDecimal outgoing = walletTransRepo.totalWithdrawalByCustomer(acct.getAccountNo());
+                totalOutgoing = totalOutgoing.add(outgoing);
+                // total incoming
+                BigDecimal incoming = walletTransRepo.totalDepositByCustomer(acct.getAccountNo());
+                totalIncoming = totalIncoming.add(incoming);
+                //total balance
+                BigDecimal totalBalance = walletAccountRepository.totalBalanceByUser(acct.getAccountNo());
+                totalTrans = totalTrans.add(totalBalance);
 
             }
-          
+
             response.put("totalBalance", totalTrans);
             response.put("totalrevenue", totalrevenue);
             response.put("totalDeposit", totalIncoming);

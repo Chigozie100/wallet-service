@@ -128,7 +128,16 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
     List<WalletTransaction> findByAllTransactionsWithDateRangeaAndAccount(LocalDate fromtranDate, LocalDate totranDate, String acctNo);
 
     @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C' AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = 'NGN000012020001')")
-    BigDecimal totalCustomerDeposit();
+    BigDecimal totalCustomersDeposit();
+
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = 'NGN000012020001')")
+    BigDecimal totalCustomersWithdrawal();
+
+    @Query("SELECT count(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C' AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = 'NGN000012020001')")
+    long countCustomersDeposit();
+
+    @Query("SELECT count(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = 'NGN000012020001')")
+    long countCustomersWithdrawal();
 
     @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C' AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = :account)")
     BigDecimal totalDepositByCustomer(String account);
