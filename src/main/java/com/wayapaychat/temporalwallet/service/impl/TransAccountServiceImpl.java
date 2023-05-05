@@ -3070,7 +3070,6 @@ public class TransAccountServiceImpl implements TransAccountService {
         return debitResponse;
     }
 
-
     @Override
     public ResponseEntity<?> transactionAnalysis() {
         TransactionAnalysis analysis = new TransactionAnalysis();
@@ -3086,7 +3085,6 @@ public class TransAccountServiceImpl implements TransAccountService {
         long totalRevenues = walletTransAccountRepo.totalRevenue();
         long countWithdrawal = walletTransRepo.countCustomersWithdrawal();
         long countDeposit = walletTransRepo.countCustomersDeposit();
-        
 
         Map<String, BigDecimal> response = new HashMap<>();
         response.put("totalBalance", totalBalance);
@@ -3150,45 +3148,42 @@ public class TransAccountServiceImpl implements TransAccountService {
 
     @Override
     public ResponseEntity<?> transactionAnalysisFilterDate(LocalDate fromdate, LocalDate todate) {
+        LocalDateTime fDate = fromdate.atStartOfDay();
+        LocalDateTime eDate = fromdate.atStartOfDay();
 
         TransactionAnalysis analysis = new TransactionAnalysis();
 
         //overall trans analysis
         OverallAnalysis overall = new OverallAnalysis();
-        BigDecimal totalTransaction = walletTransAccountRepo.totalTransactionAmount();
-        BigDecimal totalRevenue = walletTransAccountRepo.totalRevenueAmount();
-        BigDecimal totalIncome = walletTransAccountRepo.nipInboundTRansactionByDate(fromdate, todate);
-        BigDecimal totalOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction(fromdate, todate);
-        BigDecimal totalOuboundInternal = walletTransAccountRepo.findByAllOutboundInternalTransactionByDate(fromdate, todate);
 
-        BigDecimal totalOutgoing = totalOutboundExternal.add(totalOuboundInternal);
+        BigDecimal totalRevenue = walletTransAccountRepo.totalRevenueAmountFilter(fDate, eDate);
+        BigDecimal totalWithdrawal = walletTransRepo.totalCustomersWithdrawalFilter(fromdate, todate);
+        BigDecimal totalDeposit = walletTransRepo.totalCustomersDepositFilter(fromdate, todate);
+        BigDecimal totalBalance = totalDeposit.subtract(totalWithdrawal);
 
-        //count
-        long totalTransactions = walletTransAccountRepo.totalTransaction();
+        //count      
         long totalRevenues = walletTransAccountRepo.totalRevenue();
-        long totalIncoming = walletTransAccountRepo.nipInboundCount();
-        long totalOutgoingTrans = walletTransAccountRepo.nipOutboundExternalCount() + walletTransAccountRepo.nipOutboundInternalCount();
+        long countWithdrawal = walletTransRepo.countCustomersWithdrawal();
+        long countDeposit = walletTransRepo.countCustomersDeposit();
 
         Map<String, BigDecimal> overallResp = new HashMap<>();
-        overallResp.put("totalTransaction", totalTransaction);
+        overallResp.put("totalBalance", totalBalance);
         overallResp.put("totalRevenue", totalRevenue);
-        overallResp.put("totalIncome", totalIncome);
-        overallResp.put("totalOutgoing", totalOutgoing);
+        overallResp.put("totalWithdrawal", totalWithdrawal);
+        overallResp.put("totalDeposit", totalDeposit);
 
         //count response
         Map<String, String> countresponse = new HashMap<>();
-        countresponse.put("totalTransaction", String.valueOf(totalTransactions));
         countresponse.put("totalRevenue", String.valueOf(totalRevenues));
-        countresponse.put("totalIncome", String.valueOf(totalIncoming));
-        countresponse.put("totalOutgoing", String.valueOf(totalOutgoingTrans));
+        countresponse.put("countWithdrawalcountWithdrawal", String.valueOf(countWithdrawal));
+        countresponse.put("countDeposit", String.valueOf(countDeposit));
 
         overall.setSumResponse(overallResp);
         overall.setCountResponse(countresponse);
 
         //category trans analysis
         CategoryAnalysis category = new CategoryAnalysis();
-         LocalDateTime fDate = fromdate.atStartOfDay();
-         LocalDateTime eDate = fromdate.atStartOfDay();
+
         BigDecimal baxisPayment = walletTransAccountRepo.findByAllBaxiTransactionByDate(fDate, eDate);
         BigDecimal totalCategoryOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction(fDate, eDate);
         BigDecimal totalOutboundInternal = walletTransAccountRepo.findByAllOutboundInternalTransactionByDate(fDate, eDate);
@@ -3209,15 +3204,15 @@ public class TransAccountServiceImpl implements TransAccountService {
         categoryResponse.put("outboundInternalTrans", totalOutboundInternal);
         categoryResponse.put("totalPaystackTrans", totalPaystack);
         categoryResponse.put("nipInbountTrans", totalNipInbound);
-        
-         Map<String, String> categorycountResponse = new HashMap<>();
+
+        Map<String, String> categorycountResponse = new HashMap<>();
         categorycountResponse.put("baxiCount", String.valueOf(baxiCount));
         categorycountResponse.put("quickTellerCount", String.valueOf(quickTellerCount));
         categorycountResponse.put("outboundExternalCount", String.valueOf(outboundExternalCount));
         categorycountResponse.put("outboundInternalCount", String.valueOf(outboundInternalCount));
         categorycountResponse.put("paystackCount", String.valueOf(paystackCount));
         categorycountResponse.put("nipCount", String.valueOf(nipCount));
-        
+
         category.setSumResponse(categoryResponse);
         category.setCountResponse(categorycountResponse);
 
