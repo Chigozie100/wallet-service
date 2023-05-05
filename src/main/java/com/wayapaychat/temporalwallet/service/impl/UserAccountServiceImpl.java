@@ -2129,7 +2129,6 @@ public class UserAccountServiceImpl implements UserAccountService {
                 totalTrans = totalTrans.add(totalBalance);
 
             }
-
             response.put("totalBalance", totalTrans);
             response.put("totalrevenue", totalrevenue);
             response.put("totalDeposit", totalIncoming);

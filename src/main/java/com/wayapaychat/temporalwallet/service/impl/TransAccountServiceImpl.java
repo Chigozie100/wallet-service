@@ -3106,6 +3106,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
         //category trans analysis
         CategoryAnalysis category = new CategoryAnalysis();
+
         BigDecimal baxiPayment = walletTransAccountRepo.findByAllBaxiTransaction();
         BigDecimal quicketllerPayment = walletTransAccountRepo.findByAllQUICKTELLERTransaction();
         BigDecimal totalOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction();

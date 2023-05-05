@@ -75,6 +75,7 @@ public interface WalletTransAccountRepository extends JpaRepository<WalletTransA
 
     @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'BAXI' AND u.status = 'SUCCESSFUL' "
             + "AND u.createdAt BETWEEN  "
+
             + "(:fromtranDate) AND (:totranDate) ")
     BigDecimal findByAllBaxiTransactionByDate(LocalDate fromtranDate, LocalDate totranDate);
     
@@ -82,6 +83,8 @@ public interface WalletTransAccountRepository extends JpaRepository<WalletTransA
             + "AND u.createdAt BETWEEN  "
             + "(:fromtranDate) AND (:totranDate) ")
     BigDecimal findByAllQuicktellerTransactionByDate(LocalDate fromtranDate, LocalDate totranDate);
+
+            + "(:fromtranDate) AND (:totranDate) ")
 
     @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'NIP_PAYOUT' "
             + " AND u.status = 'SUCCESSFUL' AND CAST(u.createdAt as date) BETWEEN  "
