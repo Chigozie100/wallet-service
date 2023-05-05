@@ -11,9 +11,11 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface WalletTransAccountRepository extends JpaRepository<WalletTransAccount, Long> {
 
-    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'QUICKTELLER' "
-            + " OR u.eventId = 'BAXI' AND u.status = 'SUCCESSFUL'")
-    BigDecimal findByAllBillsTransaction();
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'BAXI' AND u.status = 'SUCCESSFUL'")
+    BigDecimal findByAllBaxiTransaction();
+    
+     @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'QUICKTELLER' AND u.status = 'SUCCESSFUL'")
+    BigDecimal findByAllQUICKTELLERTransaction();
 
     @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'NIP_PAYOUT' AND "
             + "u.status = 'SUCCESSFUL'")
@@ -27,11 +29,6 @@ public interface WalletTransAccountRepository extends JpaRepository<WalletTransA
             + "u.status = 'SUCCESSFUL' ")
     BigDecimal findByAllInboundTransaction();
 
-    @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.status = 'SUCCESSFUL' ")
-    BigDecimal totalTransactionAmount();
-
-    @Query("SELECT count(u.id) FROM WalletTransAccount u WHERE u.status = 'SUCCESSFUL' ")
-    long totalTransaction();
 
     @Query("SELECT sum(u.chargeAmount) FROM WalletTransAccount u WHERE u.status = 'SUCCESSFUL'")
     BigDecimal totalRevenueAmount();
@@ -48,10 +45,13 @@ public interface WalletTransAccountRepository extends JpaRepository<WalletTransA
             + "u.status = 'SUCCESSFUL' ")
     BigDecimal findByAllTransactionByUser(String accountNumber);
 
-    @Query("SELECT count(u.id) FROM WalletTransAccount u WHERE u.eventId = 'QUICKTELLER' "
-            + " OR u.eventId = 'BAXI' AND "
+    @Query("SELECT count(u.id) FROM WalletTransAccount u WHERE OR u.eventId = 'BAXI' AND "
             + "u.status = 'SUCCESSFUL' ")
-    long countBillsTransaction();
+    long countBaxiTransaction();
+    
+     @Query("SELECT count(u.id) FROM WalletTransAccount u WHERE OR u.eventId = 'QUICKTELLER' AND "
+            + "u.status = 'SUCCESSFUL' ")
+    long countQuickTellerTransaction();
 
     @Query("SELECT count(u.id) FROM WalletTransAccount u WHERE u.eventId = 'NIP_FUNDING' AND "
             + "u.status = 'SUCCESSFUL' ")
@@ -75,8 +75,16 @@ public interface WalletTransAccountRepository extends JpaRepository<WalletTransA
 
     @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'BAXI' AND u.status = 'SUCCESSFUL' "
             + "AND u.createdAt BETWEEN  "
+
             + "(:fromtranDate) AND (:totranDate) ")
     BigDecimal findByAllBaxiTransactionByDate(LocalDate fromtranDate, LocalDate totranDate);
+    
+     @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'QUICKTELLER' AND u.status = 'SUCCESSFUL' "
+            + "AND u.createdAt BETWEEN  "
+            + "(:fromtranDate) AND (:totranDate) ")
+    BigDecimal findByAllQuicktellerTransactionByDate(LocalDate fromtranDate, LocalDate totranDate);
+
+            + "(:fromtranDate) AND (:totranDate) ")
 
     @Query("SELECT sum(u.tranAmount) FROM WalletTransAccount u WHERE u.eventId = 'NIP_PAYOUT' "
             + " AND u.status = 'SUCCESSFUL' AND CAST(u.createdAt as date) BETWEEN  "
