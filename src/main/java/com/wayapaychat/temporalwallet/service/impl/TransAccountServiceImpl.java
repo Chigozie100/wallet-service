@@ -3086,7 +3086,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         long totalRevenues = walletTransAccountRepo.totalRevenue();
         long countWithdrawal = walletTransRepo.countCustomersWithdrawal();
         long countDeposit = walletTransRepo.countCustomersDeposit();
-        long balanceCount = countDeposit - countWithdrawal;
+        
 
         Map<String, BigDecimal> response = new HashMap<>();
         response.put("totalBalance", totalBalance);
@@ -3096,7 +3096,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 
         //count response
         Map<String, String> countresponse = new HashMap<>();
-        countresponse.put("balanceCount", String.valueOf(balanceCount));
         countresponse.put("totalRevenue", String.valueOf(totalRevenues));
         countresponse.put("countDeposit", String.valueOf(countDeposit));
         countresponse.put("countWithdrawal", String.valueOf(countWithdrawal));

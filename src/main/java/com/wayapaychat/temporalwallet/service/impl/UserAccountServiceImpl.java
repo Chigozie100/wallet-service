@@ -2120,13 +2120,13 @@ public class UserAccountServiceImpl implements UserAccountService {
 
                 // total outgoing
                 BigDecimal outgoing = walletTransRepo.totalWithdrawalByCustomer(acct.getAccountNo());
-                totalOutgoing = totalOutgoing.add(outgoing);
+                totalOutgoing = totalOutgoing.add(outgoing == null ? BigDecimal.ZERO : outgoing);
                 // total incoming
                 BigDecimal incoming = walletTransRepo.totalDepositByCustomer(acct.getAccountNo());
-                totalIncoming = totalIncoming.add(incoming);
+                totalIncoming = totalIncoming.add(incoming == null ? BigDecimal.ZERO : totalIncoming);
                 //total balance
                 BigDecimal totalBalance = walletAccountRepository.totalBalanceByUser(acct.getAccountNo());
-                totalTrans = totalTrans.add(totalBalance);
+                totalTrans = totalTrans.add(totalBalance == null ? BigDecimal.ZERO : totalBalance);
 
             }
             response.put("totalBalance", totalTrans);
