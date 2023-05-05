@@ -3150,9 +3150,9 @@ public class TransAccountServiceImpl implements TransAccountService {
         OverallAnalysis overall = new OverallAnalysis();
         BigDecimal totalTransaction = walletTransAccountRepo.totalTransactionAmount();
         BigDecimal totalRevenue = walletTransAccountRepo.totalRevenueAmount();
-        BigDecimal totalIncome = walletTransAccountRepo.findByAllInboundTransaction();
-        BigDecimal totalOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction();
-        BigDecimal totalOuboundInternal = walletTransAccountRepo.findByAllOutboundInternalTransaction();
+        BigDecimal totalIncome = walletTransAccountRepo.nipInboundTRansactionByDate(fromdate, todate);
+        BigDecimal totalOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction(fromdate, todate);
+        BigDecimal totalOuboundInternal = walletTransAccountRepo.findByAllOutboundInternalTransactionByDate(fromdate, todate);
 
         BigDecimal totalOutgoing = totalOutboundExternal.add(totalOuboundInternal);
 
