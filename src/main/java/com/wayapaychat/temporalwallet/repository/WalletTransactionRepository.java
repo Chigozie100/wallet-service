@@ -152,5 +152,13 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
     @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND "
             + " u.acctNum = :account AND u.tranDate BETWEEN (:fromDate) AND (:toDate) ")
     BigDecimal totalWithdrawalByCustomerFilter(String account, LocalDate fromDate, LocalDate toDate);
+    
+     @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C' AND u.tranDate BETWEEN (:fromDate) AND (:toDate) "
+             + "AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = 'NGN000012020001')")
+    BigDecimal totalCustomersDepositFilter(LocalDate fromDate, LocalDate toDate);
+
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND u.tranDate BETWEEN (:fromDate) AND (:toDate) "
+            + "AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = 'NGN000012020001')")
+    BigDecimal totalCustomersWithdrawalFilter(LocalDate fromDate, LocalDate toDate);
 
 }
