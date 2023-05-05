@@ -81,13 +81,12 @@ public interface WalletAccountRepository extends JpaRepository<WalletAccount, Lo
     @Query("SELECT u FROM WalletAccount u  " + " WHERE u.del_flg = false AND " + "UPPER(u.acct_ownership) = UPPER(:value) OR " + " UPPER(u.product_type) = UPPER(:value)" + " AND u.rcre_time BETWEEN  (:fromDate)" + " AND (:toDate)" + " order by u.rcre_time DESC ")
     Page<WalletAccount> findByAllWalletAccountWithDateRangeAndTranTypeOR(Pageable pageable, @Param("value") String value, LocalDate fromDate, LocalDate toDate);
 
-    @Query("SELECT sum(u.cum_dr_amt) FROM WalletAccount u WHERE u.accountNo = :account")
-    BigDecimal totalOutgoinTransByUser(String account);
 
-    @Query("SELECT sum(u.cum_cr_amt) FROM WalletAccount u WHERE u.accountNo = :account")
-    BigDecimal totalIncomingTransByUser(String account);
-    
-    @Query("SELECT sum(u.cum_cr_amt) FROM WalletAccount u WHERE u.accountNo = :account")
-    BigDecimal totalIncomingTransBusiness();
+    @Query("SELECT sum(u.clr_bal_amt) FROM WalletAccount u WHERE u.accountNo = :account")
+    BigDecimal totalBalanceByUser(String account);
+
+     @Query("SELECT sum(u.clr_bal_amt) FROM WalletAccount u WHERE u.accountNo = :account AND u.rcre_time BETWEEN  (:fromDate) " 
+             + " AND (:toDate)")
+    BigDecimal totalBalanceByUserFilter(String account, LocalDate fromDate, LocalDate toDate);
 
 }

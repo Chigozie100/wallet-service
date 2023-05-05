@@ -3180,7 +3180,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
         //category trans analysis
         CategoryAnalysis category = new CategoryAnalysis();
-        BigDecimal billsPayment = walletTransAccountRepo.findByAllBillsTransactionByDate(fromdate, todate);
+        BigDecimal baxisPayment = walletTransAccountRepo.findByAllBaxiTransactionByDate(fromdate, todate);
         BigDecimal totalCategoryOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction(fromdate, todate);
         BigDecimal totalOutboundInternal = walletTransAccountRepo.findByAllOutboundInternalTransactionByDate(fromdate, todate);
         BigDecimal totalPaystack = walletTransAccountRepo.findByAllPaystackTransactionByDate(fromdate, todate);
@@ -3194,7 +3194,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         long nipCount = walletTransAccountRepo.nipInboundCount();
 
         Map<String, BigDecimal> categoryResponse = new HashMap<>();
-        categoryResponse.put("billsPaymentTrans", billsPayment);
+        categoryResponse.put("billsPaymentTrans", baxisPayment);
         categoryResponse.put("outboundExternalTrans", totalCategoryOutboundExternal);
         categoryResponse.put("outboundInternalTrans", totalOutboundInternal);
         categoryResponse.put("totalPaystackTrans", totalPaystack);
