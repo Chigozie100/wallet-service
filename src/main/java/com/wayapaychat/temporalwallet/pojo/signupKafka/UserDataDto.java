@@ -20,4 +20,5 @@ public class UserDataDto {
     private String regDeviceType;
     private String regDeviceIP;
     private String merchantId;
+    private String dateOfBirth;
 }

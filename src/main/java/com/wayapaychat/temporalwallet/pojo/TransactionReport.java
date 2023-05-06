@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.wayapaychat.temporalwallet.entity;
+package com.wayapaychat.temporalwallet.pojo;
 
 import java.time.LocalDate;
 import javax.persistence.Column;
@@ -17,27 +17,14 @@ import lombok.Data;
  *
  * @author Olawale
  */
-@Entity
 @Data
-@Table(name = "reporting")
-public class Reporting {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(unique = true, nullable = false)
-    private Long id;
-
-    @Column(unique = true, nullable = false)
-    private String accountNo;
-    @Column(nullable = false)
-    private String acct_name;
-
-    private String accountType;
-
-    private double cum_dr_amt;
-
-    private double cum_cr_amt;
+public class TransactionReport {
     
+    private String accountNo;
+    private String acct_name;
+    private String accountType;
+    private double cum_dr_amt;
+    private double cum_cr_amt;   
     private String event_id;
     
     private double trans_amt;
@@ -57,4 +44,6 @@ public class Reporting {
     private String trans_category;
     
     private String trans_status;
+    
+    private String customer_type;
 }

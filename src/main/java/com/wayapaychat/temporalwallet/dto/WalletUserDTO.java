@@ -15,9 +15,9 @@ import lombok.NoArgsConstructor;
 @Data
 public class WalletUserDTO {
 	
-	@NotNull
-	@Size(min=4, max=5)
-	private String solId;
+//	@NotNull
+//	@Size(min=4, max=5)
+	private String solId = "0000";
 	
 	@NotNull
 	private Long userId;
@@ -26,8 +26,8 @@ public class WalletUserDTO {
 	@Size(min=3, max=50)
 	private String firstName;
     
-	@NotNull
-	@Size(min=3, max=50)
+//	@NotNull
+//	@Size(min=3, max=50)
 	private String lastName;
 	
 	@NotNull
@@ -39,24 +39,24 @@ public class WalletUserDTO {
 	@Size(min=5, max=20)
 	private String mobileNo;
 	
-	@NotNull
+//	@NotNull
 	private Date dob;
 	
 	private double custDebitLimit;
 	
-	@NotNull
-	@Size(min=2, max=5)
+//	@NotNull
+//	@Size(min=2, max=5)
     private String custTitleCode;
 	
-	@NotNull
-	@Size(min=1, max=1)
+//	@NotNull
+//	@Size(min=1, max=1)
 	private String custSex;
 	
-	@NotNull
-	@Size(min=7, max=20)
+//	@NotNull
+//	@Size(min=7, max=20)
 	private String custIssueId;
 	
-	@NotNull
+//	@NotNull
 	private Date custExpIssueDate;
 
 	private String accountType;

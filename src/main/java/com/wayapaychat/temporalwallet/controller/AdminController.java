@@ -574,7 +574,8 @@ public class AdminController {
     }
 
      @ApiImplicitParams({
-            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true),
+            @ApiImplicitParam(name = "pin", value = "pin", paramType = "header", required = true)})
     @ApiOperation(value = "Waya Admin to create multiple transaction", notes = "Transfer amount from one wallet to another wallet", tags = {
             "ADMIN" })
     @PostMapping("/debit/bulk-transaction")
@@ -589,7 +590,9 @@ public class AdminController {
     }
 
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true),
+            @ApiImplicitParam(name = "pin", value = "pin", paramType = "header", required = true)
+             })
     @ApiOperation(value = "Waya Admin to create multiple debit transaction", notes = "Transfer amount from one wallet to another wallet", tags = {
             "ADMIN" })
     @PostMapping(path = "/debit/bulk-transaction-excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -687,17 +690,17 @@ public class AdminController {
 
     @ApiOperation(value = "Create a Simulated User", tags = { "ADMIN" })
     @PostMapping(path = "simulated/account")
-    public ResponseEntity<?> createSIMUser(@Valid @RequestBody AccountPojo2 user) {
+    public ResponseEntity<?> createSIMUser(@Valid @RequestBody AccountPojo2 user, @RequestHeader("Authorization") String token) {
         log.info("Request input: {}", user);
-        return userAccountService.createAccount(user);
+        return userAccountService.createAccount(user, token);
     }
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Create a wallet account", tags = { "ADMIN" })
     @PostMapping(path = "/official/user/account")
-    public ResponseEntity<?> createUserAccount(@Valid @RequestBody AccountPojo2 accountPojo) {
-        return userAccountService.createAccount(accountPojo);
+    public ResponseEntity<?> createUserAccount(@Valid @RequestBody AccountPojo2 accountPojo, @RequestHeader("Authorization") String token) {
+        return userAccountService.createAccount(accountPojo,token);
     }
 
     @ApiImplicitParams({
@@ -874,5 +877,50 @@ public class AdminController {
         }
 
     }
+    
+    
+      @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "To List All Transaction activities", notes = "To List all Transaction activities", tags = {
+            "ADMIN" })
+    @GetMapping("/transaction-list")
+    public ResponseEntity<?> allTransactionsNoPagiination(
+            @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromdate,
+            @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate todate) {
+        ApiResponse<?> res;
+        try {
+            res = transAccountService.getAllTransactionsNoPagination(fromdate, todate);
+            if (!res.getStatus()) {
+                return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+    }
 
+        @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "To List All Transaction activities no pagination", notes = "To List all Transaction activities", tags = {
+            "ADMIN" })
+    @GetMapping("/transaction-list/{accountNo}")
+    public ResponseEntity<?> allTransactionsNoPagination(@RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromdate,
+            @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate todate,
+            @PathVariable("accountNo") String accountNo) {
+        ApiResponse<?> res;
+        try {
+            res = transAccountService.getAllTransactionsByAccountNo(fromdate, todate, accountNo);
+            if (!res.getStatus()) {
+                return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>(res, HttpStatus.OK);
+        } catch (Exception e) {
+            e.printStackTrace();
+            res = new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, e.getMessage(), null);
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+
+    }
 }

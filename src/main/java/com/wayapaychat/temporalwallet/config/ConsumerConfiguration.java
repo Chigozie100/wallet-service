@@ -26,6 +26,7 @@ public class ConsumerConfiguration {
     public KafkaListenerContainerFactory<ConcurrentMessageListenerContainer<String,String>>factory(ConsumerFactory<String,String> consumerFactory){
         ConcurrentKafkaListenerContainerFactory<String,String>factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory);
+        factory.setBatchListener(true);
         return factory;
     }
 

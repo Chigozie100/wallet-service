@@ -129,4 +129,13 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 
 	@Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.tranCategory) = UPPER(:categoryType) " + " AND u.del_flg = false" + " AND u.tranDate BETWEEN  (:fromtranDate)" + " AND (:totranDate)")
 	List<WalletTransaction> filterByDateAndTranCategory(CategoryType categoryType, LocalDate fromtranDate, LocalDate totranDate);
+
+        @Query("SELECT u FROM WalletTransaction u  " + " WHERE u.del_flg = false"+ " AND u.tranDate BETWEEN  (:fromtranDate)" + " AND (:totranDate)" + " order by u.tranDate DESC ")
+	List<WalletTransaction> findByAllTransactions(LocalDate fromtranDate, LocalDate totranDate);
+
+        
+        @Query("SELECT u FROM WalletTransaction u  " + " WHERE u.del_flg = false"+ " AND u.tranDate BETWEEN  (:fromtranDate)" + " AND (:totranDate)" +  "AND UPPER(u.acctNum) = UPPER(:acctNo)" + " order by u.tranDate DESC ")
+	List<WalletTransaction> findByAllTransactionsWithDateRangeaAndAccount(LocalDate fromtranDate, LocalDate totranDate, String acctNo);
+
+
 }

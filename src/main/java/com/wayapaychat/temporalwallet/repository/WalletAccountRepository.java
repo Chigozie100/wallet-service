@@ -86,5 +86,8 @@ public interface WalletAccountRepository extends JpaRepository<WalletAccount, Lo
 
     @Query("SELECT sum(u.cum_cr_amt) FROM WalletAccount u WHERE u.accountNo = :account")
     BigDecimal totalIncomingTransByUser(String account);
+    
+    @Query("SELECT sum(u.cum_cr_amt) FROM WalletAccount u WHERE u.accountNo = :account")
+    BigDecimal totalIncomingTransBusiness();
 
 }
