@@ -154,8 +154,9 @@ public class UserAccountServiceImpl implements UserAccountService {
         try {
             String acct_name = userDetailsResponse.getData().isCorporate()
                     ? userDetailsResponse.getData().getOtherDetails().getOrganisationName()
-                    : userDetailsResponse.getData().getFirstName().toUpperCase() + " "
-                    + userDetailsResponse.getData().getSurname().toUpperCase();
+                    : userDetailsResponse.getData().getFirstName().toUpperCase() + " " + userDetailsResponse.getData().getSurname().toUpperCase();
+            String phoneNumber = userDetailsResponse.getData().isCorporate() ? userDetailsResponse.getData().getOtherDetails().getOrganisationPhone() : userDetailsResponse.getData().getPhoneNumber();
+            String emailAddress = userDetailsResponse.getData().isCorporate() ? userDetailsResponse.getData().getOtherDetails().getOrganisationEmail() : userDetailsResponse.getData().getEmail();
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
             Date dob = formatter.parse(userDetailsResponse.getData().getDateOfBirth());
             String custSex = userDetailsResponse.getData().getGender().substring(0,
@@ -163,10 +164,18 @@ public class UserAccountServiceImpl implements UserAccountService {
             String custTitle = custSex.equalsIgnoreCase("M") ? "MR" : "MRS";
             String code = generateRandomNumber(9);
 
+            String firstName;
+            String surname;
+            if(userDetailsResponse.getData().isCorporate()){
+                //Todo: because is corporate account
+                firstName = userDetailsResponse.getData().getOtherDetails().getOrganisationName().toUpperCase();
+                surname = "";
+            }else {
+               firstName = userDetailsResponse.getData().getFirstName().toUpperCase();
+               surname = userDetailsResponse.getData().getSurname().toUpperCase();
+            }
             WalletUser userInfo = new WalletUser("0000", userid,
-                    userDetailsResponse.getData().getFirstName().toUpperCase(),
-                    userDetailsResponse.getData().getSurname().toUpperCase(), userDetailsResponse.getData().getEmail(),
-                    userDetailsResponse.getData().getPhoneNumber(), acct_name,
+                    firstName, surname, emailAddress, phoneNumber, acct_name,
                     custTitle, custSex, dob, code, new Date(), LocalDate.now(), 0);
 
             WalletUser newUserDetails = walletUserRepository.save(userInfo);
@@ -177,13 +186,11 @@ public class UserAccountServiceImpl implements UserAccountService {
             log.error("Error creating client {}", e.getMessage());
             return new ResponseEntity<>(new ErrorResponse("Error creating client"), HttpStatus.BAD_REQUEST);
         }
-
     }
 
     private ResponseEntity<?> createClientAccount(WalletUser walletUser, String accountType, String description) {
 
         Optional<WalletAccount> defaultAccount = walletAccountRepository.findByDefaultAccount(walletUser);
-
         WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
         WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
         String acctNo = null;
@@ -322,9 +329,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             if (!defaultAccount.isPresent()) {
                 CompletableFuture.runAsync(() -> userPricingService.createUserPricing(walletUser));
             }
-
-            return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
-                    HttpStatus.CREATED);
+            return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account), HttpStatus.CREATED);
         } catch (Exception e) {
             log.error("Error creating ClientAccount", e.getMessage());
             return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
@@ -499,13 +504,11 @@ public class UserAccountServiceImpl implements UserAccountService {
     // Call by Aut-service and others
     public ResponseEntity<?> createUserAccount(WalletUserDTO user, String token) {
         ResponseEntity<?> response = createClient(user.getUserId(), token);
-
-        if (!response.getStatusCode().is2xxSuccessful()) {
+        if(!response.getStatusCode().is2xxSuccessful()){
+            log.error("ERROR CreateUserAccount::: {}",response);
             return response;
         }
-
         return createClientAccount((WalletUser) response.getBody(), user.getAccountType(), user.getDescription());
-
     }
 
     public ResponseEntity<?> createNubbanAccountAuto() {

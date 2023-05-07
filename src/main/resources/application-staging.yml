@@ -103,3 +103,7 @@ waya:
      keymifos: bzVkbElFTWl2MmkwUEcxNFd0eXU4ZzV2SjdISTJqNUcxU3d5UmlKbmFXMnROQWE0V1drWDRMY1EyZ2R4d2hXRQ==
      officialEmail: info@wayabank.ng
      officialPhone: 2347030355396
+
+kafka:
+  bootstrapServers: http://localhost:9092
+  groupId: waya
