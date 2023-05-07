@@ -55,6 +55,9 @@ import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.proxy.AuthProxy;
 import com.wayapaychat.temporalwallet.response.Analysis;
+import com.wayapaychat.temporalwallet.response.CategoryAnalysis;
+import com.wayapaychat.temporalwallet.response.OverallAnalysis;
+import com.wayapaychat.temporalwallet.response.TransactionAnalysis;
 
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
@@ -85,6 +88,9 @@ public class TransAccountServiceImpl implements TransAccountService {
     private final CoreBankingService coreBankingService;
     private final ModelMapper modelMapper;
     private final WalletTransAccountRepository walletTransAccountRepo;
+
+    @Autowired
+    WalletTransactionRepository walletTransRepo;
 
     @Autowired
     public TransAccountServiceImpl(WalletUserRepository walletUserRepository,
@@ -3065,74 +3071,76 @@ public class TransAccountServiceImpl implements TransAccountService {
     }
 
     @Override
-    public ResponseEntity<?> categoryBasedTransactionAnalysis() {
-        Analysis analysis = new Analysis();
-        BigDecimal billsPayment = walletTransAccountRepo.findByAllBillsTransaction();
+    public ResponseEntity<?> transactionAnalysis() {
+        TransactionAnalysis analysis = new TransactionAnalysis();
+
+        //overall analysis
+        OverallAnalysis overall = new OverallAnalysis();
+        BigDecimal totalRevenue = walletTransAccountRepo.totalRevenueAmount();
+        BigDecimal totalWithdrawal = walletTransRepo.totalCustomersWithdrawal();
+        BigDecimal totalDeposit = walletTransRepo.totalCustomersDeposit();
+        BigDecimal totalBalance = totalDeposit.subtract(totalWithdrawal);
+
+        //count      
+        long totalRevenues = walletTransAccountRepo.totalRevenue();
+        long countWithdrawal = walletTransRepo.countCustomersWithdrawal();
+        long countDeposit = walletTransRepo.countCustomersDeposit();
+
+        Map<String, BigDecimal> response = new HashMap<>();
+        response.put("totalBalance", totalBalance);
+        response.put("totalRevenue", totalRevenue);
+        response.put("totalDeposit", totalDeposit);
+        response.put("totalWithdrawal", totalWithdrawal);
+
+        //count response
+        Map<String, String> countresponse = new HashMap<>();
+        countresponse.put("totalRevenue", String.valueOf(totalRevenues));
+        countresponse.put("countDeposit", String.valueOf(countDeposit));
+        countresponse.put("countWithdrawal", String.valueOf(countWithdrawal));
+
+        overall.setSumResponse(response);
+        overall.setCountResponse(countresponse);
+
+        //category trans analysis
+        CategoryAnalysis category = new CategoryAnalysis();
+
+        BigDecimal baxiPayment = walletTransAccountRepo.findByAllBaxiTransaction();
+        BigDecimal quicketllerPayment = walletTransAccountRepo.findByAllQUICKTELLERTransaction();
         BigDecimal totalOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction();
         BigDecimal totalOutboundInternal = walletTransAccountRepo.findByAllOutboundInternalTransaction();
         BigDecimal totalPaystack = walletTransAccountRepo.findByAllPaystackTransaction();
         BigDecimal totalNipInbound = walletTransAccountRepo.findByAllInboundTransaction();
 
         //count
-        long billsCount = walletTransAccountRepo.countBillsTransaction();
+        long baxiCount = walletTransAccountRepo.countBaxiTransaction();
+        long quicktellerCount = walletTransAccountRepo.countQuickTellerTransaction();
         long outboundExternalCount = walletTransAccountRepo.nipOutboundExternalCount();
         long outboundInternalCount = walletTransAccountRepo.nipOutboundInternalCount();
         long paystackCount = walletTransAccountRepo.payStackCount();
         long nipCount = walletTransAccountRepo.nipInboundCount();
 
-        Map<String, BigDecimal> response = new HashMap<>();
-        response.put("billsPaymentTrans", billsPayment);
-        response.put("outboundExternalTrans", totalOutboundExternal);
-        response.put("outboundInternalTrans", totalOutboundInternal);
-        response.put("totalPaystackTrans", totalPaystack);
-        response.put("nipInbountTrans", totalNipInbound);
+        Map<String, BigDecimal> categorysum = new HashMap<>();
+        categorysum.put("billsPaymentTrans", baxiPayment);
+        categorysum.put("quicketllerPayment", quicketllerPayment);
+        categorysum.put("outboundExternalTrans", totalOutboundExternal);
+        categorysum.put("outboundInternalTrans", totalOutboundInternal);
+        categorysum.put("totalPaystackTrans", totalPaystack);
+        categorysum.put("nipInbountTrans", totalNipInbound);
 
-        Map<String, String> countresponse = new HashMap<>();
-        countresponse.put("billsCount", String.valueOf(billsCount));
-        countresponse.put("outboundExternalCount", String.valueOf(outboundExternalCount));
-        countresponse.put("outboundInternalCount", String.valueOf(outboundInternalCount));
-        countresponse.put("paystackCount", String.valueOf(paystackCount));
-        countresponse.put("nipCount", String.valueOf(nipCount));
+        Map<String, String> categorycount = new HashMap<>();
+        categorycount.put("billsCount", String.valueOf(baxiCount));
+        categorycount.put("quicktellerCount", String.valueOf(quicktellerCount));
+        categorycount.put("outboundExternalCount", String.valueOf(outboundExternalCount));
+        categorycount.put("outboundInternalCount", String.valueOf(outboundInternalCount));
+        categorycount.put("paystackCount", String.valueOf(paystackCount));
+        categorycount.put("nipCount", String.valueOf(nipCount));
 
-        analysis.setSumResponse(response);
-        analysis.setCountResponse(countresponse);
+        category.setSumResponse(categorysum);
+        category.setCountResponse(categorycount);
 
-        return new ResponseEntity<>(new SuccessResponse("SUCCESS", analysis), HttpStatus.OK);
-    }
-
-    @Override
-    public ResponseEntity<?> overallBasedTransactionAnalysis() {
-        Analysis analysis = new Analysis();
-
-        BigDecimal totalTransaction = walletTransAccountRepo.totalTransactionAmount();
-        BigDecimal totalRevenue = walletTransAccountRepo.totalRevenueAmount();
-        BigDecimal totalIncome = walletTransAccountRepo.findByAllInboundTransaction();
-        BigDecimal totalOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction();
-        BigDecimal totalOuboundInternal = walletTransAccountRepo.findByAllOutboundInternalTransaction();
-
-        BigDecimal totalOutgoing = totalOutboundExternal.add(totalOuboundInternal);
-
-        //count
-        long totalTransactions = walletTransAccountRepo.totalTransaction();
-        long totalRevenues = walletTransAccountRepo.totalRevenue();
-        long totalIncoming = walletTransAccountRepo.nipInboundCount();
-        long totalOutgoingTrans = walletTransAccountRepo.nipOutboundExternalCount() + walletTransAccountRepo.nipOutboundInternalCount();
-
-        Map<String, BigDecimal> response = new HashMap<>();
-        response.put("totalTransaction", totalTransaction);
-        response.put("totalRevenue", totalRevenue);
-        response.put("totalIncome", totalIncome);
-        response.put("totalOutgoing", totalOutgoing);
-
-        //count response
-        Map<String, String> countresponse = new HashMap<>();
-        countresponse.put("totalTransaction", String.valueOf(totalTransactions));
-        countresponse.put("totalRevenue", String.valueOf(totalRevenues));
-        countresponse.put("totalIncome", String.valueOf(totalIncoming));
-        countresponse.put("totalOutgoing", String.valueOf(totalOutgoingTrans));
-
-        analysis.setSumResponse(response);
-        analysis.setCountResponse(countresponse);
+        //category and overall response
+        analysis.setCategoryAnalysis(category);
+        analysis.setOverallAnalysis(overall);
 
         return new ResponseEntity<>(new SuccessResponse("SUCCESS", analysis), HttpStatus.OK);
 
@@ -3140,6 +3148,105 @@ public class TransAccountServiceImpl implements TransAccountService {
 
     @Override
     public ResponseEntity<?> transactionAnalysisFilterDate(LocalDate fromdate, LocalDate todate) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+        LocalDateTime fDate = fromdate.atStartOfDay();
+        LocalDateTime eDate = fromdate.atStartOfDay();
+
+        TransactionAnalysis analysis = new TransactionAnalysis();
+
+        //overall trans analysis
+        OverallAnalysis overall = new OverallAnalysis();
+
+        BigDecimal totalRevenue = walletTransAccountRepo.totalRevenueAmountFilter(fDate, eDate);
+        BigDecimal totalWithdrawal = walletTransRepo.totalCustomersWithdrawalFilter(fromdate, todate);
+        BigDecimal totalDeposit = walletTransRepo.totalCustomersDepositFilter(fromdate, todate);
+        BigDecimal totalBalance = totalDeposit.subtract(totalWithdrawal);
+
+        //count      
+        long totalRevenues = walletTransAccountRepo.totalRevenue();
+        long countWithdrawal = walletTransRepo.countCustomersWithdrawal();
+        long countDeposit = walletTransRepo.countCustomersDeposit();
+
+        Map<String, BigDecimal> overallResp = new HashMap<>();
+        overallResp.put("totalBalance", totalBalance);
+        overallResp.put("totalRevenue", totalRevenue);
+        overallResp.put("totalWithdrawal", totalWithdrawal);
+        overallResp.put("totalDeposit", totalDeposit);
+
+        //count response
+        Map<String, String> countresponse = new HashMap<>();
+        countresponse.put("totalRevenue", String.valueOf(totalRevenues));
+        countresponse.put("countWithdrawalcountWithdrawal", String.valueOf(countWithdrawal));
+        countresponse.put("countDeposit", String.valueOf(countDeposit));
+
+        overall.setSumResponse(overallResp);
+        overall.setCountResponse(countresponse);
+
+        //category trans analysis
+        CategoryAnalysis category = new CategoryAnalysis();
+
+        BigDecimal baxisPayment = walletTransAccountRepo.findByAllBaxiTransactionByDate(fDate, eDate);
+        BigDecimal totalCategoryOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction(fDate, eDate);
+        BigDecimal totalOutboundInternal = walletTransAccountRepo.findByAllOutboundInternalTransactionByDate(fDate, eDate);
+        BigDecimal totalPaystack = walletTransAccountRepo.findByAllPaystackTransactionByDate(fDate, eDate);
+        BigDecimal totalNipInbound = walletTransAccountRepo.nipInboundTRansactionByDate(fDate, eDate);
+
+        //count
+        long baxiCount = walletTransAccountRepo.countBaxiTransaction();
+        long quickTellerCount = walletTransAccountRepo.countBaxiTransaction();
+        long outboundExternalCount = walletTransAccountRepo.nipOutboundExternalCount();
+        long outboundInternalCount = walletTransAccountRepo.nipOutboundInternalCount();
+        long paystackCount = walletTransAccountRepo.payStackCount();
+        long nipCount = walletTransAccountRepo.nipInboundCount();
+
+        Map<String, BigDecimal> categoryResponse = new HashMap<>();
+        categoryResponse.put("billsPaymentTrans", baxisPayment);
+        categoryResponse.put("outboundExternalTrans", totalCategoryOutboundExternal);
+        categoryResponse.put("outboundInternalTrans", totalOutboundInternal);
+        categoryResponse.put("totalPaystackTrans", totalPaystack);
+        categoryResponse.put("nipInbountTrans", totalNipInbound);
+
+        Map<String, String> categorycountResponse = new HashMap<>();
+        categorycountResponse.put("baxiCount", String.valueOf(baxiCount));
+        categorycountResponse.put("quickTellerCount", String.valueOf(quickTellerCount));
+        categorycountResponse.put("outboundExternalCount", String.valueOf(outboundExternalCount));
+        categorycountResponse.put("outboundInternalCount", String.valueOf(outboundInternalCount));
+        categorycountResponse.put("paystackCount", String.valueOf(paystackCount));
+        categorycountResponse.put("nipCount", String.valueOf(nipCount));
+
+        category.setSumResponse(categoryResponse);
+        category.setCountResponse(categorycountResponse);
+
+        analysis.setCategoryAnalysis(category);
+        analysis.setOverallAnalysis(overall);
+
+        return new ResponseEntity<>(new SuccessResponse("SUCCESS", analysis), HttpStatus.OK);
+    }
+
+    @Override
+    public ApiResponse<?> getAllTransactionsNoPagination(LocalDate fromdate, LocalDate todate) {
+        Map<String, Object> response = new HashMap<>();
+
+        List<WalletTransaction> transaction = walletTransactionRepository.findByAllTransactions(fromdate,
+                todate);
+        response.put("transaction", transaction);
+        if (transaction.isEmpty()) {
+            return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO RECORD FOUND", null);
+        }
+        return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION LIST SUCCESSFULLY", response);
+
+    }
+
+    @Override
+    public ApiResponse<?> getAllTransactionsByAccountNo(LocalDate fromdate, LocalDate todate, String accountNo) {
+        Map<String, Object> response = new HashMap<>();
+        List<WalletTransaction> transaction = walletTransactionRepository.findByAllTransactionsWithDateRangeaAndAccount(
+                fromdate, todate, accountNo);
+        response.put("transaction", transaction);
+
+        if (transaction.isEmpty()) {
+            return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO RECORD FOUND", null);
+        }
+        return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION LIST SUCCESSFULLY", response);
+
     }
 }

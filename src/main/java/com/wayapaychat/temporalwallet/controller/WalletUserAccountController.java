@@ -26,6 +26,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.time.LocalDate;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestHeader;
 
@@ -314,7 +315,7 @@ public class WalletUserAccountController {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
-   @ApiOperation(value = "Toggle transaction property per user")
+    @ApiOperation(value = "Toggle transaction property per user")
     @PostMapping("/toggle/{userId}")
     public ApiResponse<?> toggleTransactionProperty(@PathVariable("userId") long userId,
             @RequestParam("type") String type, @RequestHeader("Authorization") String token) {
@@ -328,14 +329,17 @@ public class WalletUserAccountController {
     public ApiResponse<?> transactionPropertyStatus(@PathVariable("userId") long userId) {
         return userAccountService.transTypeStatus(userId);
     }
-    
-     @ApiImplicitParams({
+
+    @ApiImplicitParams({
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Transaction Analysis for User", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/analysis/transaction/{user_id}")
-    public ResponseEntity<?> userTransactionAnalysis(@PathVariable Long user_id) {
+    public ResponseEntity<?> userTransactionAnalysis(@PathVariable Long user_id,
+            @RequestParam(value = "filter", required = false) boolean filter,
+            @RequestParam(value = "fromdate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromdate,
+            @RequestParam(value = "todate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate todate) {
         // check if the userI passed is same with token
-        ApiResponse<?> res = userAccountService.totalTransactionByUserId(user_id);
+        ApiResponse<?> res = userAccountService.totalTransactionByUserId(user_id, filter, fromdate, todate);
         if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }

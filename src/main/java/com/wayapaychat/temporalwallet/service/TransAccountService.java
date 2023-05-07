@@ -222,14 +222,18 @@ public interface TransAccountService {
 	WalletAccount findByEmailOrPhoneNumberOrId(Boolean isAccountNumber, String value, String userId, String accountNo);
 
 	ApiResponse<?> OfficialAccountReports(int page, int size, LocalDate fromdate, LocalDate todate, String fillter);
+       
         
-        ResponseEntity<?> categoryBasedTransactionAnalysis();
-        
-        ResponseEntity<?> overallBasedTransactionAnalysis();
+        ResponseEntity<?> transactionAnalysis();
         
         
         ResponseEntity<?> transactionAnalysisFilterDate(LocalDate fromdate, LocalDate todate);
         
         
+       ApiResponse<?> getAllTransactionsNoPagination(LocalDate fromdate, LocalDate todate);
+       
+       	ApiResponse<?> getAllTransactionsByAccountNo(LocalDate fromdate,
+			LocalDate todate, String accountNo);
+
 
 }

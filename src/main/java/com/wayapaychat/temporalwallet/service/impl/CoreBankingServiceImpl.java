@@ -213,12 +213,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
             walletAccountRepository.saveAndFlush(accountCredit);
 
-//            TransactionReport transReport = new TransactionReport();
-//            transReport.setAccountNo(accountCredit.getAccountNo());
-//            transReport.setCustomer_type(accountCredit.getUser().isCorporate() ? "B" : "P");
-//            transReport.setTrans_amt(transactionPojo.getAmount());
-           
-
             CompletableFuture.runAsync(() -> sendTransactionNotification(Constant.CREDIT_TRANSACTION_ALERT,
                     accountCredit.getAcct_name(), transactionPojo, accountCredit.getClr_bal_amt(), "CR"));
 
@@ -1284,4 +1278,19 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         return response;
     }
 
+    private void transactionReport(CBAEntryTransaction transactionPojo) {
+        WalletAccount accountCredit = walletAccountRepository.findByAccountNo(transactionPojo.getAccountNo());
+
+        TransactionReport transReport = new TransactionReport();
+        transReport.setAccountNo(accountCredit.getAccountNo());
+        transReport.setCustomer_type(accountCredit.getUser().isCorporate() ? "B" : "P");
+        transReport.setTrans_amt(transactionPojo.getAmount().doubleValue());
+        transReport.setTrans_category(transactionPojo.getTransactionCategory().getValue());
+        transReport.setTrans_ref(transactionPojo.getTranId());
+        transReport.setTrans_date(LocalDate.now());
+        transReport.setCum_cr_amt(accountCredit.getCum_cr_amt());
+        transReport.setCum_dr_amt(accountCredit.getCum_dr_amt());
+        transReport.setRelated_trans_id(transactionPojo.getPaymentReference());
+        transactionCountService.transReport(transReport);
+    }
 }

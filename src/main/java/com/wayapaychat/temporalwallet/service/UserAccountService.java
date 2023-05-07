@@ -139,5 +139,5 @@ public interface UserAccountService {
 
     ApiResponse<?> transTypeStatus(long userId);
     
-    ApiResponse<?> totalTransactionByUserId(Long user_id);
+    ApiResponse<?> totalTransactionByUserId(Long user_id, boolean filter, LocalDate fromdate, LocalDate todate);
 }
