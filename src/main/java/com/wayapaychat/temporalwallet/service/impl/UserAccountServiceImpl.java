@@ -68,6 +68,8 @@ public class UserAccountServiceImpl implements UserAccountService {
     AuthProxy authProxy;
     @Autowired
     WalletTransAccountRepository walletTransAccountRepo;
+    @Autowired
+    WalletTransactionRepository walletTransRepo;
 
     @Value("${waya.wallet.productcode}")
     private String wayaProduct;
@@ -152,8 +154,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         try {
             String acct_name = userDetailsResponse.getData().isCorporate()
                     ? userDetailsResponse.getData().getOtherDetails().getOrganisationName()
-                    : userDetailsResponse.getData().getFirstName().toUpperCase() + " "
-                            + userDetailsResponse.getData().getSurname().toUpperCase();
+                    : userDetailsResponse.getData().getFirstName().toUpperCase() + " " + userDetailsResponse.getData().getSurname().toUpperCase();
             String phoneNumber = userDetailsResponse.getData().isCorporate() ? userDetailsResponse.getData().getOtherDetails().getOrganisationPhone() : userDetailsResponse.getData().getPhoneNumber();
             String emailAddress = userDetailsResponse.getData().isCorporate() ? userDetailsResponse.getData().getOtherDetails().getOrganisationEmail() : userDetailsResponse.getData().getEmail();
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
@@ -270,8 +271,8 @@ public class UserAccountServiceImpl implements UserAccountService {
             String hashed_no = reqUtil
                     .WayaEncrypt(
                             walletUser.getUserId() + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
-            accountType = accountType == null ? "SAVINGS" :  accountType;
-            description  =   description == null ? accountType.concat(" ACCOUNT") :  description;
+            accountType = accountType == null ? "SAVINGS" : accountType;
+            description = description == null ? accountType.concat(" ACCOUNT") : description;
             WalletAccount account = new WalletAccount();
             if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
                     || product.getProduct_type().equals("ODA"))) {
@@ -307,7 +308,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                     log.info(acctNo);
                     hashed_no = reqUtil.WayaEncrypt(
                             walletUser.getUserId() + "|" + acctNo + "|" + wayaProductCommission + "|"
-                                    + product.getCrncy_code());
+                            + product.getCrncy_code());
                     String acct_name = walletUser.getCust_name() + " " + "COMMISSION ACCOUNT";
                     if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
                             || product.getProduct_type().equals("ODA"))) {
@@ -325,10 +326,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 
             }
 
-            if(!defaultAccount.isPresent()){
+            if (!defaultAccount.isPresent()) {
                 CompletableFuture.runAsync(() -> userPricingService.createUserPricing(walletUser));
             }
-            
             return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account), HttpStatus.CREATED);
         } catch (Exception e) {
             log.error("Error creating ClientAccount", e.getMessage());
@@ -341,12 +341,12 @@ public class UserAccountServiceImpl implements UserAccountService {
 
         ResponseEntity<?> response = createClient(user.getUserId(), token);
 
-        if(!response.getStatusCode().is2xxSuccessful()){
+        if (!response.getStatusCode().is2xxSuccessful()) {
             return response;
         }
 
         return createClientAccount((WalletUser) response.getBody(), user.getAccountType(), user.getDescription());
-         
+
     }
 
     @Override
@@ -1206,7 +1206,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
 
         List<WalletAccount> accounts = walletAccountRepository.findByUser(walletUser.get());
-        if(ObjectUtils.isEmpty(accounts)){
+        if (ObjectUtils.isEmpty(accounts)) {
             return createDefaultWallet(tokenData, token);
         }
 
@@ -2100,8 +2100,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     @Override
-    public ApiResponse<?> totalTransactionByUserId(Long user_id) {
-        // securityCheck(user_id);
+    public ApiResponse<?> totalTransactionByUserId(Long user_id, boolean filter, LocalDate fromdate, LocalDate todate) {
         try {
             WalletUser user = walletUserRepository.findByUserId(user_id);
             if (user == null) {
@@ -2118,26 +2117,25 @@ public class UserAccountServiceImpl implements UserAccountService {
             BigDecimal totalOutgoing = BigDecimal.ZERO;
             log.info("Account list {}", accountList);
             for (WalletAccount acct : accountList) {
-                // all revenue on customer
-                log.info("Get customer revenue:: {}", acct.getAccountNo());
                 BigDecimal revenue = walletTransAccountRepo.totalRevenueAmountByUser(acct.getAccountNo());
-                log.info("customer revenue for eact account:: {}", revenue);
                 totalrevenue = totalrevenue.add(revenue == null ? BigDecimal.ZERO : revenue);
                 log.info("total customer revenue:: {}", totalrevenue);
 
                 // total outgoing
-                BigDecimal outgoing = walletAccountRepository.totalOutgoinTransByUser(acct.getAccountNo());
-                totalOutgoing = totalIncoming.add(outgoing);
+                BigDecimal outgoing = walletTransRepo.totalWithdrawalByCustomer(acct.getAccountNo());
+                totalOutgoing = totalOutgoing.add(outgoing == null ? BigDecimal.ZERO : outgoing);
                 // total incoming
-                BigDecimal incoming = walletAccountRepository.totalIncomingTransByUser(acct.getAccountNo());
-                totalIncoming = totalIncoming.add(incoming);
+                BigDecimal incoming = walletTransRepo.totalDepositByCustomer(acct.getAccountNo());
+                totalIncoming = totalIncoming.add(incoming == null ? BigDecimal.ZERO : totalIncoming);
+                //total balance
+                BigDecimal totalBalance = walletAccountRepository.totalBalanceByUser(acct.getAccountNo());
+                totalTrans = totalTrans.add(totalBalance == null ? BigDecimal.ZERO : totalBalance);
 
-                totalTrans = totalOutgoing.add(totalIncoming);
             }
-            response.put("totalTransaction", totalTrans);
+            response.put("totalBalance", totalTrans);
             response.put("totalrevenue", totalrevenue);
-            response.put("totalIncoming", totalIncoming);
-            response.put("totalOutgoing", totalOutgoing);
+            response.put("totalDeposit", totalIncoming);
+            response.put("totalWithdrawal", totalOutgoing);
             return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "User TRANSACTION", response);
         } catch (Exception ex) {
             log.error(ex.getMessage());

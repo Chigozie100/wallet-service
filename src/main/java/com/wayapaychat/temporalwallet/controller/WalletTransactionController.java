@@ -728,18 +728,10 @@ public class WalletTransactionController {
 
     @ApiImplicitParams({
         @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true)})
-    @ApiOperation(value = "Total Category Based Transactions", notes = "Total Category Based Transactions", tags = {"TRANSACTION-WALLET"})
-    @GetMapping("/transaction/category-based-analysis")
-    public ResponseEntity<?> categoryBasedTransaction() {
-        return transAccountService.categoryBasedTransactionAnalysis();
-    }
-
-    @ApiImplicitParams({
-        @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true)})
-    @ApiOperation(value = "Total Overall Based Transactions", notes = "Total Overall Based Transactions", tags = {"TRANSACTION-WALLET"})
+    @ApiOperation(value = "Total Overall and category Based Transactions", notes = "Total Overall and category Based Transactions", tags = {"TRANSACTION-WALLET"})
     @GetMapping("/transaction/overall-based-analysis")
     public ResponseEntity<?> overallBasedAnalysis() {
-        return transAccountService.overallBasedTransactionAnalysis();
+        return transAccountService.transactionAnalysis();
     }
     
      @ApiImplicitParams({
