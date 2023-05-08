@@ -555,6 +555,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return response;
         }
 
+        updateTransactionLog(Long.valueOf(customerWalletTransaction.get(0).getRelatedTransId()), WalletTransStatus.REVERSED);
+
         Map<String, List<WalletTransaction>> glPostings = glWalletTransaction.stream()
                 .collect(Collectors.groupingBy(WalletTransaction::getTranId));
 
