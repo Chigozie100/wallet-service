@@ -41,7 +41,7 @@ public class ConsumerConfiguration {
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, environment.getProperty("spring.kafka.bootstrapServers"));
         props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        props.put(ConsumerConfig.GROUP_ID_CONFIG, "waya");
+        props.put(ConsumerConfig.GROUP_ID_CONFIG, environment.getProperty("spring.kafka.groupId"));
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 //        props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
         props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true");
