@@ -3106,7 +3106,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
         BigDecimal baxiPayment = walletTransAccountRepo.findByAllBaxiTransaction();
         BigDecimal quicketllerPayment = walletTransAccountRepo.findByAllQUICKTELLERTransaction();
-        BigDecimal totalOutboundExternal = walletTransRepo.totalPayStack();
+        BigDecimal totalOutboundExternal = walletTransRepo.totalNipOutbound();
         BigDecimal totalOutboundInternal = walletTransAccountRepo.findByAllOutboundInternalTransaction();
         BigDecimal totalPaystack = walletTransRepo.totalPayStack();
         BigDecimal totalNipInbound = walletTransRepo.totalNipInbound();
