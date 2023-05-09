@@ -2119,7 +2119,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             for (WalletAccount acct : accountList) {
                 BigDecimal revenue = walletTransAccountRepo.totalRevenueAmountByUser(acct.getAccountNo());
                 totalrevenue = totalrevenue.add(revenue == null ? BigDecimal.ZERO : revenue);
-                log.info("total customer revenue:: {}", totalrevenue);
+//                log.info("total customer revenue:: {}", totalrevenue);
 
                 // total outgoing
                 BigDecimal outgoing = walletTransRepo.totalWithdrawalByCustomer(acct.getAccountNo());

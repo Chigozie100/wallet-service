@@ -3114,10 +3114,10 @@ public class TransAccountServiceImpl implements TransAccountService {
         //count
         long baxiCount = walletTransAccountRepo.countBaxiTransaction();
         long quicktellerCount = walletTransAccountRepo.countQuickTellerTransaction();
-        long outboundExternalCount = walletTransAccountRepo.nipOutboundExternalCount();
+        long outboundExternalCount = walletTransRepo.countNipOutbound();
         long outboundInternalCount = walletTransAccountRepo.nipOutboundInternalCount();
-        long paystackCount = walletTransAccountRepo.payStackCount();
-        long nipCount = walletTransAccountRepo.nipInboundCount();
+        long paystackCount = walletTransRepo.countPayStack();
+        long nipCount = walletTransRepo.countNipInbound();
 
         Map<String, BigDecimal> categorysum = new HashMap<>();
         categorysum.put("billsPaymentTrans", baxiPayment);

@@ -170,9 +170,17 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
             + "AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = 'NGN000012010002')")
     BigDecimal totalNipInbound();
     
+    @Query("SELECT count(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND u.tranCategory = 'TRANSFER' "
+            + "AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = 'NGN000012010002')")
+    long countNipInbound();
+    
     @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C'"
             + "AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = 'NGN000012010002')")
     BigDecimal totalNipOutbound();
+    
+     @Query("SELECT count(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C'"
+            + "AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = 'NGN000012010002')")
+    long countNipOutbound();
     
      @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C' "
             + "AND u.tranDate BETWEEN (:fromDate) AND (:toDate) "
@@ -182,6 +190,10 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
     @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND u.tranCategory = 'TRANSFER' "
             + "AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = 'NGN000012040002')")
     BigDecimal totalPayStack();
+    
+    @Query("SELECT count(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND u.tranCategory = 'TRANSFER' "
+            + "AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = 'NGN000012040002')")
+    long countPayStack();
     
      @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C' AND u.tranCategory = 'TRANSFER' "
             + "AND u.tranDate BETWEEN (:fromDate) AND (:toDate) "
