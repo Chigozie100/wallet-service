@@ -29,10 +29,10 @@ public class CBAEntryTransaction {
 	private String senderName;
 	private String receiverName;
     private MyData userToken;
-    private String sessionID;
+    private Long sessionID;
 
 
-    public CBAEntryTransaction(MyData userToken, String sessionID, String paymentReference, CategoryType transactionCategory, String accountNo, String tranNarration, BigDecimal amount) {
+    public CBAEntryTransaction(MyData userToken, Long sessionID, String paymentReference, CategoryType transactionCategory, String accountNo, String tranNarration, BigDecimal amount) {
         this.paymentReference = paymentReference;
         this.transactionCategory = transactionCategory;
         this.accountNo = accountNo;
@@ -45,7 +45,7 @@ public class CBAEntryTransaction {
         this.sessionID = sessionID;
     }
 
-    public CBAEntryTransaction(MyData userToken, String sessionID, String tranId, String paymentReference, CategoryType transactionCategory, String accountNo, String tranNarration,BigDecimal amount,
+    public CBAEntryTransaction(MyData userToken, Long sessionID, String tranId, String paymentReference, CategoryType transactionCategory, String accountNo, String tranNarration,BigDecimal amount,
                 Integer tranPart, TransactionTypeEnum tranType, String senderName, String receiverName) {
         this.accountNo = accountNo; 
         this.amount = amount;
