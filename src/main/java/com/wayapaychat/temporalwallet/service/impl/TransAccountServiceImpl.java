@@ -3175,7 +3175,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         //count response
         Map<String, String> countresponse = new HashMap<>();
         countresponse.put("totalRevenue", String.valueOf(totalRevenues));
-        countresponse.put("countWithdrawalcountWithdrawal", String.valueOf(countWithdrawal));
+        countresponse.put("countWithdrawal", String.valueOf(countWithdrawal));
         countresponse.put("countDeposit", String.valueOf(countDeposit));
 
         overall.setSumResponse(overallResp);
