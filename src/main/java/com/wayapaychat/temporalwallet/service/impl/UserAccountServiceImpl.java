@@ -2126,7 +2126,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                 totalOutgoing = totalOutgoing.add(outgoing == null ? BigDecimal.ZERO : outgoing);
                 // total incoming
                 BigDecimal incoming = walletTransRepo.totalDepositByCustomer(acct.getAccountNo());
-                totalIncoming = totalIncoming.add(incoming == null ? BigDecimal.ZERO : totalIncoming);
+                totalIncoming = totalIncoming.add(incoming == null ? BigDecimal.ZERO : incoming);
                 //total balance
                 BigDecimal totalBalance = walletAccountRepository.totalBalanceByUser(acct.getAccountNo());
                 totalTrans = totalTrans.add(totalBalance == null ? BigDecimal.ZERO : totalBalance);
