@@ -86,7 +86,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     private final UserPricingRepository userPricingRepository;
     private final TransactionCountService transactionCountService;
     private final TokenImpl tokenImpl;
-    private final KafkaMessageProducer kafkaMessageProducer;
 
     @Autowired
     public CoreBankingServiceImpl(SwitchWalletService switchWalletService,
@@ -94,7 +93,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             WalletEventRepository walletEventRepository, WalletTransactionRepository walletTransactionRepository,
             MifosWalletProxy mifosWalletProxy, TemporalWalletDAO tempwallet, CustomNotification customNotification,
             UserPricingRepository userPricingRepository, TransactionCountService transactionCountService,
-            TokenImpl tokenImpl, KafkaMessageProducer kafkaMessageProducer) {
+            TokenImpl tokenImpl) {
         this.switchWalletService = switchWalletService;
         this.walletTransAccountRepository = walletTransAccountRepository;
         this.walletAccountRepository = walletAccountRepository;
@@ -106,7 +105,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         this.userPricingRepository = userPricingRepository;
         this.transactionCountService = transactionCountService;
         this.tokenImpl = tokenImpl;
-        this.kafkaMessageProducer = kafkaMessageProducer;
     }
 
     @Override
@@ -346,7 +344,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transferTransactionRequestData.getTransactionCategory(),
                             transferTransactionRequestData.getTranType(),
                             transferTransactionRequestData.getAmount(),
-                            chargeAmount, vatAmount, provider, channelEventId, String.valueOf(tranId),
+                            chargeAmount, vatAmount, provider, channelEventId, tranId,
                             CBAAction.MOVE_GL_TO_GL));
             customerAccount = transferTransactionRequestData.getDebitAccountNumber();
         } else if (transferTransactionRequestData.getDebitAccountNumber().length() > 10
@@ -361,8 +359,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transferTransactionRequestData.getTranType(),
                             transferTransactionRequestData.getAmount(),
                             BigDecimal.valueOf(0), BigDecimal.valueOf(0), provider, channelEventId,
-                            String.valueOf(tranId),
-                            CBAAction.DEPOSIT));
+                            tranId, CBAAction.DEPOSIT));
             customerAccount = transferTransactionRequestData.getBenefAccountNumber();
         } else if (transferTransactionRequestData.getDebitAccountNumber().length() == 10
                 && transferTransactionRequestData.getBenefAccountNumber().length() > 10) {
@@ -376,7 +373,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transferTransactionRequestData.getTransactionCategory(),
                             transferTransactionRequestData.getTranType(),
                             transferTransactionRequestData.getAmount(),
-                            chargeAmount, vatAmount, provider, channelEventId, String.valueOf(tranId),
+                            chargeAmount, vatAmount, provider, channelEventId, tranId,
                             CBAAction.WITHDRAWAL));
             customerAccount = transferTransactionRequestData.getDebitAccountNumber();
         } else {
@@ -390,7 +387,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             transferTransactionRequestData.getTransactionCategory(),
                             transferTransactionRequestData.getTranType(),
                             transferTransactionRequestData.getAmount(),
-                            chargeAmount, vatAmount, provider, channelEventId, String.valueOf(tranId),
+                            chargeAmount, vatAmount, provider, channelEventId, tranId,
                             CBAAction.MOVE_CUSTOMER_TO_CUSTOMER));
             customerAccount = transferTransactionRequestData.getDebitAccountNumber();
         }
