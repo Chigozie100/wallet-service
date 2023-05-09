@@ -81,7 +81,7 @@ public class WalletTransaction {
     @Column(nullable = true)
     private Integer tranPart;
 
-    private String relatedTransId;
+    private Long relatedTransId;
 
     @CreationTimestamp
     @ApiModelProperty(hidden = true)
@@ -157,7 +157,7 @@ public class WalletTransaction {
         this.receiverName = receiverName;
     }
 
-    public WalletTransaction(@NotNull String relatedTransId, @NotNull String tranId, @NotNull String acctNum,
+    public WalletTransaction(@NotNull Long relatedTransId, @NotNull String tranId, @NotNull String acctNum,
             @NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType,
             @NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
             @NotNull String partTranType, String tranGL, String paymentReference,
@@ -187,7 +187,7 @@ public class WalletTransaction {
     public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
             @NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType,
             @NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
-            @NotNull String partTranType, String tranGL, String paymentReference, String relatedTransId,
+            @NotNull String partTranType, String tranGL, String paymentReference, Long relatedTransId,
             String createdBy, String createdEmail, Integer tranPart, CategoryType tranCategory) {
         super();
         this.del_flg = false;
