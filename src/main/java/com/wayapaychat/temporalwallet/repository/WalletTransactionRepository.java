@@ -163,41 +163,41 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 
     @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND u.tranCategory = 'TRANSFER' "
             + "AND u.tranDate BETWEEN (:fromDate) AND (:toDate) "
-            + "AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = :account)")
+            + "AND UPPER(u.acctNum) = UPPER(:account)")
     BigDecimal totalNipInboundFilter(LocalDate fromDate, LocalDate toDate, String account);
 
     @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND u.tranCategory = 'TRANSFER' "
-            + "AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = :account)")
+            + "AND UPPER(u.acctNum) = UPPER(:account)")
     BigDecimal totalNipInbound(String account);
     
     @Query("SELECT count(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND u.tranCategory = 'TRANSFER' "
-            + "AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = :account)")
+            + "AND UPPER(u.acctNum) = UPPER(:account)")
     long countNipInbound(String account);
     
-    @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C'"
-            + "AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = :account)")
-    BigDecimal totalNipOutbound(String account);
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C' "
+            + "AND UPPER(u.acctNum) = UPPER(:acctNo)")
+    BigDecimal totalNipOutbound(String acctNo);
     
-     @Query("SELECT count(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C'"
-            + "AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = :account)")
+     @Query("SELECT count(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C '"
+            + "AND UPPER(u.acctNum) = UPPER(:account)")
     long countNipOutbound(String account);
     
      @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C' "
             + "AND u.tranDate BETWEEN (:fromDate) AND (:toDate) "
-            + "AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = :account)")
+            + "AND UPPER(u.acctNum) = UPPER(:account)")
     BigDecimal totalNipOutboundFilter(LocalDate fromDate, LocalDate toDate, String account);
     
     @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND u.tranCategory = 'FUNDING' "
-            + "AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = :account)")
+            + "AND UPPER(u.acctNum) = UPPER(:account)")
     BigDecimal totalPayStack(String account);
     
     @Query("SELECT count(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND u.tranCategory = 'FUNDING' "
-            + "AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = :account)")
+            + "AND UPPER(u.acctNum) = UPPER(:account)")
     long countPayStack(String account);
     
      @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND u.tranCategory = 'FUNDING' "
             + "AND u.tranDate BETWEEN (:fromDate) AND (:toDate) "
-            + "AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = :account)")
+            + "AND UPPER(u.acctNum) = UPPER(:account)")
     BigDecimal totalPayStackFilter(LocalDate fromDate, LocalDate toDate, String account);
 
 }
