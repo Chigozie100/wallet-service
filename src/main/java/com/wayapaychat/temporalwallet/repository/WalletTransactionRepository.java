@@ -175,8 +175,8 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
     long countNipInbound(String account);
     
     @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C' "
-            + "AND UPPER(u.acctNum) = UPPER(:account)")
-    BigDecimal totalNipOutbound(String account);
+            + "AND UPPER(u.acctNum) = UPPER(:acctNo)")
+    BigDecimal totalNipOutbound(String acctNo);
     
      @Query("SELECT count(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C '"
             + "AND UPPER(u.acctNum) = UPPER(:account)")
