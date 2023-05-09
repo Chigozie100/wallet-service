@@ -67,9 +67,9 @@ import org.springframework.beans.factory.annotation.Value;
 @Slf4j
 public class TransAccountServiceImpl implements TransAccountService {
     
-    @Value("waya.wallet.NIPGL")
+    @Value("${waya.wallet.NIPGL}")
     String nipgl;
-    @Value("waya.wallet.PAYSTACKGL")
+    @Value("${waya.wallet.PAYSTACKGL}")
     String paystackgl;
 
     private final WalletUserRepository walletUserRepository;
