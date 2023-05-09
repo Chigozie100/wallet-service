@@ -2119,14 +2119,14 @@ public class UserAccountServiceImpl implements UserAccountService {
             for (WalletAccount acct : accountList) {
                 BigDecimal revenue = walletTransAccountRepo.totalRevenueAmountByUser(acct.getAccountNo());
                 totalrevenue = totalrevenue.add(revenue == null ? BigDecimal.ZERO : revenue);
-                log.info("total customer revenue:: {}", totalrevenue);
+//                log.info("total customer revenue:: {}", totalrevenue);
 
                 // total outgoing
                 BigDecimal outgoing = walletTransRepo.totalWithdrawalByCustomer(acct.getAccountNo());
                 totalOutgoing = totalOutgoing.add(outgoing == null ? BigDecimal.ZERO : outgoing);
                 // total incoming
                 BigDecimal incoming = walletTransRepo.totalDepositByCustomer(acct.getAccountNo());
-                totalIncoming = totalIncoming.add(incoming == null ? BigDecimal.ZERO : totalIncoming);
+                totalIncoming = totalIncoming.add(incoming == null ? BigDecimal.ZERO : incoming);
                 //total balance
                 BigDecimal totalBalance = walletAccountRepository.totalBalanceByUser(acct.getAccountNo());
                 totalTrans = totalTrans.add(totalBalance == null ? BigDecimal.ZERO : totalBalance);

@@ -3106,18 +3106,18 @@ public class TransAccountServiceImpl implements TransAccountService {
 
         BigDecimal baxiPayment = walletTransAccountRepo.findByAllBaxiTransaction();
         BigDecimal quicketllerPayment = walletTransAccountRepo.findByAllQUICKTELLERTransaction();
-        BigDecimal totalOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction();
+        BigDecimal totalOutboundExternal = walletTransRepo.totalNipOutbound();
         BigDecimal totalOutboundInternal = walletTransAccountRepo.findByAllOutboundInternalTransaction();
-        BigDecimal totalPaystack = walletTransAccountRepo.findByAllPaystackTransaction();
-        BigDecimal totalNipInbound = walletTransAccountRepo.findByAllInboundTransaction();
+        BigDecimal totalPaystack = walletTransRepo.totalPayStack();
+        BigDecimal totalNipInbound = walletTransRepo.totalNipInbound();
 
         //count
         long baxiCount = walletTransAccountRepo.countBaxiTransaction();
         long quicktellerCount = walletTransAccountRepo.countQuickTellerTransaction();
-        long outboundExternalCount = walletTransAccountRepo.nipOutboundExternalCount();
+        long outboundExternalCount = walletTransRepo.countNipOutbound();
         long outboundInternalCount = walletTransAccountRepo.nipOutboundInternalCount();
-        long paystackCount = walletTransAccountRepo.payStackCount();
-        long nipCount = walletTransAccountRepo.nipInboundCount();
+        long paystackCount = walletTransRepo.countPayStack();
+        long nipCount = walletTransRepo.countNipInbound();
 
         Map<String, BigDecimal> categorysum = new HashMap<>();
         categorysum.put("billsPaymentTrans", baxiPayment);
@@ -3186,9 +3186,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 
         BigDecimal baxisPayment = walletTransAccountRepo.findByAllBaxiTransactionByDate(fromdate, todate);
         BigDecimal totalCategoryOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction(fromdate, todate);
-        BigDecimal totalOutboundInternal = walletTransAccountRepo.findByAllOutboundInternalTransactionByDate(fromdate, todate);
-        BigDecimal totalPaystack = walletTransAccountRepo.findByAllPaystackTransactionByDate(fromdate, todate);
-        BigDecimal totalNipInbound = walletTransAccountRepo.nipInboundTRansactionByDate(fromdate, todate);
+        BigDecimal totalOutboundInternal = walletTransRepo.totalNipOutboundFilter(fDate, tDate);
+        BigDecimal totalPaystack = walletTransRepo.totalPayStackFilter(fDate, tDate);
+        BigDecimal totalNipInbound = walletTransRepo.totalNipInboundFilter(fDate, tDate);
 
         //count
         long baxiCount = walletTransAccountRepo.countBaxiTransaction();
