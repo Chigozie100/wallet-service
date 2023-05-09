@@ -61,10 +61,16 @@ import com.wayapaychat.temporalwallet.response.TransactionAnalysis;
 
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 
 @Service
 @Slf4j
 public class TransAccountServiceImpl implements TransAccountService {
+    
+    @Value("waya.wallet.NIPGL")
+    String nipgl;
+    @Value("waya.wallet.PAYSTACKGL")
+    String paystackgl;
 
     private final WalletUserRepository walletUserRepository;
     private final WalletAccountRepository walletAccountRepository;
@@ -3106,18 +3112,18 @@ public class TransAccountServiceImpl implements TransAccountService {
 
         BigDecimal baxiPayment = walletTransAccountRepo.findByAllBaxiTransaction();
         BigDecimal quicketllerPayment = walletTransAccountRepo.findByAllQUICKTELLERTransaction();
-        BigDecimal totalOutboundExternal = walletTransRepo.totalNipOutbound();
+        BigDecimal totalOutboundExternal = walletTransRepo.totalNipOutbound(nipgl);
         BigDecimal totalOutboundInternal = walletTransAccountRepo.findByAllOutboundInternalTransaction();
-        BigDecimal totalPaystack = walletTransRepo.totalPayStack();
-        BigDecimal totalNipInbound = walletTransRepo.totalNipInbound();
+        BigDecimal totalPaystack = walletTransRepo.totalPayStack(paystackgl);
+        BigDecimal totalNipInbound = walletTransRepo.totalNipInbound(nipgl);
 
         //count
         long baxiCount = walletTransAccountRepo.countBaxiTransaction();
         long quicktellerCount = walletTransAccountRepo.countQuickTellerTransaction();
-        long outboundExternalCount = walletTransRepo.countNipOutbound();
+        long outboundExternalCount = walletTransRepo.countNipOutbound(nipgl);
         long outboundInternalCount = walletTransAccountRepo.nipOutboundInternalCount();
-        long paystackCount = walletTransRepo.countPayStack();
-        long nipCount = walletTransRepo.countNipInbound();
+        long paystackCount = walletTransRepo.countPayStack(paystackgl);
+        long nipCount = walletTransRepo.countNipInbound(nipgl);
 
         Map<String, BigDecimal> categorysum = new HashMap<>();
         categorysum.put("billsPaymentTrans", baxiPayment);
@@ -3175,7 +3181,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         //count response
         Map<String, String> countresponse = new HashMap<>();
         countresponse.put("totalRevenue", String.valueOf(totalRevenues));
-        countresponse.put("countWithdrawalcountWithdrawal", String.valueOf(countWithdrawal));
+        countresponse.put("countWithdrawal", String.valueOf(countWithdrawal));
         countresponse.put("countDeposit", String.valueOf(countDeposit));
 
         overall.setSumResponse(overallResp);
@@ -3186,9 +3192,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 
         BigDecimal baxisPayment = walletTransAccountRepo.findByAllBaxiTransactionByDate(fromdate, todate);
         BigDecimal totalCategoryOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction(fromdate, todate);
-        BigDecimal totalOutboundInternal = walletTransRepo.totalNipOutboundFilter(fDate, tDate);
-        BigDecimal totalPaystack = walletTransRepo.totalPayStackFilter(fDate, tDate);
-        BigDecimal totalNipInbound = walletTransRepo.totalNipInboundFilter(fDate, tDate);
+        BigDecimal totalOutboundInternal = walletTransRepo.totalNipOutboundFilter(fDate, tDate, nipgl);
+        BigDecimal totalPaystack = walletTransRepo.totalPayStackFilter(fDate, tDate, paystackgl);
+        BigDecimal totalNipInbound = walletTransRepo.totalNipInboundFilter(fDate, tDate, nipgl);
 
         //count
         long baxiCount = walletTransAccountRepo.countBaxiTransaction();
