@@ -193,7 +193,7 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
     
     @Query("SELECT count(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND u.tranCategory = 'FUNDING' "
             + "AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = :account)")
-    long countPayStack(String account);
+    long countPayStackTrans(String account);
     
      @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND u.tranCategory = 'FUNDING' "
             + "AND u.tranDate BETWEEN (:fromDate) AND (:toDate) "
