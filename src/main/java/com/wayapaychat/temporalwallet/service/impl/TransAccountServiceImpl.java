@@ -3078,6 +3078,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
     @Override
     public ResponseEntity<?> transactionAnalysis() {
+        System.out.println(nipgl);
         TransactionAnalysis analysis = new TransactionAnalysis();
 
         //overall analysis
