@@ -26,6 +26,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -2143,5 +2144,71 @@ public class UserAccountServiceImpl implements UserAccountService {
 
         }
     }
+
+
+    @Override
+    public ApiResponse<?> fetchAllUsersTransactionAnalysis() {
+        try {
+            long countTotalAccountUser = walletUserRepository.countByUserIdIsNotNull();
+            if(countTotalAccountUser < 1)
+                return new ApiResponse<>(false,ApiResponse.Code.NOT_FOUND,"No records found!", null);
+
+            int maxPerPage = 1000;
+            double result = (double) countTotalAccountUser / (double) maxPerPage;
+            int numberOfPage = (int) Math.ceil(result);
+            log.info("CountTotalAccountUser {}",countTotalAccountUser);
+            log.info("NUMBER OF PAGES {}",numberOfPage);
+            log.info("DATA SIZE PER PAGE {}",maxPerPage);
+            List<UserAccountStatsDto> userAccountStatsDtoList = new ArrayList<>();
+            for(int i = 0; i < numberOfPage; i++){
+                Sort sort = Sort.by(Sort.Direction.DESC, "id");
+                Pageable pageable = PageRequest.of(i, maxPerPage, sort);
+                List<WalletUser> userAccountList = walletUserRepository.findAllByOrderByIdDesc(pageable);
+                log.info("UserAccountList Size {}",userAccountList.size());
+                if(userAccountList.size() < 1)
+                    continue;
+
+                for(WalletUser user: userAccountList){
+                    List<WalletAccount> accountList = walletAccountRepository.findByUser(user);
+                    if(accountList.size() < 1)
+                        continue;
+
+                    UserAccountStatsDto userAccountStatsDto = new UserAccountStatsDto();
+                    userAccountStatsDto.setUserId(String.valueOf(user.getUserId()));
+                    BigDecimal totalTrans = BigDecimal.ZERO;
+                    BigDecimal totalRevenue = BigDecimal.ZERO;
+                    BigDecimal totalIncoming = BigDecimal.ZERO;
+                    BigDecimal totalOutgoing = BigDecimal.ZERO;
+                    for (WalletAccount acct : accountList) {
+                        BigDecimal revenue = walletTransAccountRepo.totalRevenueAmountByUser(acct.getAccountNo());
+                        totalRevenue = totalRevenue.add(revenue == null ? BigDecimal.ZERO : revenue);
+                        // total outgoing
+                        BigDecimal outgoing = walletTransRepo.totalWithdrawalByCustomer(acct.getAccountNo());
+                        totalOutgoing = totalOutgoing.add(outgoing == null ? BigDecimal.ZERO : outgoing);
+                        // total incoming
+                        BigDecimal incoming = walletTransRepo.totalDepositByCustomer(acct.getAccountNo());
+                        totalIncoming = totalIncoming.add(incoming == null ? BigDecimal.ZERO : incoming);
+                        //total balance
+                        BigDecimal totalBalance = walletAccountRepository.totalBalanceByUser(acct.getAccountNo());
+                        totalTrans = totalTrans.add(totalBalance == null ? BigDecimal.ZERO : totalBalance);
+
+                    }
+                    userAccountStatsDto.setTotalIncoming(totalIncoming);
+                    userAccountStatsDto.setTotalTrans(totalTrans);
+                    userAccountStatsDto.setTotalOutgoing(totalOutgoing);
+                    userAccountStatsDto.setTotalRevenue(totalRevenue);
+                    userAccountStatsDtoList.add(userAccountStatsDto);
+                }
+            }
+            log.info("UserAccountStatsDtoList {}",userAccountStatsDtoList.size());
+            return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "Record fetched....", userAccountStatsDtoList);
+        } catch (Exception ex) {
+            log.error("FetchAllUsersTransactionAnalysis {}",ex.getLocalizedMessage());
+            ex.printStackTrace();
+            return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, ex.getMessage(), null);
+        }
+    }
+
+
 
 }

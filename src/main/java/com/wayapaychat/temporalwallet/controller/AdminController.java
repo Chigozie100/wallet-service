@@ -923,4 +923,17 @@ public class AdminController {
         }
 
     }
+
+
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Generate All users transaction analysis", notes = "To Users transaction analysis", tags = {
+            "ADMIN" })
+    @GetMapping("/all/users/analysis")
+    public ResponseEntity<ApiResponse<?>> fetchAllUserAccountStats(){
+        ApiResponse<?> response = userAccountService.fetchAllUsersTransactionAnalysis();
+        return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
+    }
+
 }
