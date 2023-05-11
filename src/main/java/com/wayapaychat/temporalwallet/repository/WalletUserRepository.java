@@ -3,6 +3,7 @@ package com.wayapaychat.temporalwallet.repository;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -24,6 +25,9 @@ public interface WalletUserRepository extends JpaRepository<WalletUser, Long> {
 	
 	@Query(value = "SELECT u FROM WalletUser u " + "WHERE u.isVirtualAccount = false " + " AND u.del_flg = false")
 	List<WalletUser> findUserVirtual();
+
+	List<WalletUser> findAllByOrderByIdDesc(Pageable pageable);
+	long countByUserIdIsNotNull();
 	
 	//@Query(value = "SELECT u FROM WalletUser u " + "WHERE UPPER(u.mobileNo) = UPPER(:phone) " + " AND u.userId = (:userId) " + " AND u.del_flg = false")
 	WalletUser findByMobileNo(String phone);
