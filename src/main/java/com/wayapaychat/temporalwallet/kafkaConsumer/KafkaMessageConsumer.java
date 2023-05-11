@@ -21,7 +21,7 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j @RequiredArgsConstructor
 public class KafkaMessageConsumer {
 
-    public static final String WAYA_GROUP = "waya";
+    public static final String WAYA_GROUP = "wayarepository";
     public static final String PROCESS_OTHER_ACCOUNT = "process-registration";
     public static final String KYC_LIMIT_SETUP = "kyc-limit-setup";
     private final WalletUserRepository walletUserRepository;
