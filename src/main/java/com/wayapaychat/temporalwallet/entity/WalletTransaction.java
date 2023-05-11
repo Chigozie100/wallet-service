@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.entity;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,6 +14,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import javax.persistence.Version;
 import javax.validation.constraints.NotNull;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -36,7 +38,10 @@ import lombok.ToString;
 @Table(name = "m_wallet_transaction", uniqueConstraints = {
     @UniqueConstraint(name = "UniqueTranIdAndAcctNumberAndDelFlgAndDate",
             columnNames = {"tranId", "acctNum", "del_flg", "tranDate", "tranPart"})})
-public class WalletTransaction {
+public class WalletTransaction   implements Serializable  {
+
+	@Version
+    protected int version;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
