@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 
-@Data @AllArgsConstructor @NoArgsConstructor
+@Data @AllArgsConstructor
 public class RegistrationDataDto {
     private String userId;
     private String firstName;
@@ -36,4 +36,9 @@ public class RegistrationDataDto {
     private String businessType;
 
     private String token;
+
+    public RegistrationDataDto() {
+        super();
+    }
+
 }
