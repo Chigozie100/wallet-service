@@ -8,10 +8,12 @@ import java.math.BigDecimal;
 
 @Data @AllArgsConstructor @NoArgsConstructor
 public class UserAccountStatsDto {
-    BigDecimal totalTrans = BigDecimal.ZERO;
-    BigDecimal totalRevenue = BigDecimal.ZERO;
-    BigDecimal totalIncoming = BigDecimal.ZERO;
-    BigDecimal totalOutgoing = BigDecimal.ZERO;
-    String userId;
+    private BigDecimal totalTrans = BigDecimal.ZERO;
+    private BigDecimal totalRevenue = BigDecimal.ZERO;
+    private BigDecimal totalIncoming = BigDecimal.ZERO;
+    private BigDecimal totalOutgoing = BigDecimal.ZERO;
+    private String accountNumber;
+    private String accountType;
+    private String userId;
 
 }

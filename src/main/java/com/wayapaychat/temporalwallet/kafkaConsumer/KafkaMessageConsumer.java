@@ -69,14 +69,14 @@ public class KafkaMessageConsumer {
     private void processAccountRegMessage(String message){
         try {
             RegistrationDataDto data = objectMapper.readValue(message,RegistrationDataDto.class);
-            log.info("::::DATA MAPPED TO OBJECT FOR PROCESSING:: {}",data);
+            log.info("::::DATA MAPPED TO OBJECT FOR PROCESSING:: {} ",data);
             if(data.isCorporate()){
-                log.info("::::ABOUT TO PROCESS CORPORATE ACCOUNT REGISTRATION:: {}",data);
+                log.info("::::ABOUT TO PROCESS CORPORATE ACCOUNT REGISTRATION:: {} ",data);
                 WalletUserDTO walletUserDtoRequest = getWalletUserDto(data);
-                log.info("::::MAPPED DATA {}",walletUserDtoRequest);
+                log.info("::::MAPPED DATA:: {} ",walletUserDtoRequest);
                 CompletableFuture.runAsync(() -> {
                     ResponseEntity<?> corporateReq = userAccountService.createUserAccount(walletUserDtoRequest, data.getToken());
-                    log.info(":::::PROCESS KAFKA Corporate Acct Resp {}",corporateReq);
+                    log.info(":::::PROCESS KAFKA Corporate Acct Response {} ",corporateReq);
                 });
                log.info("::::FINISH PROCESSING CORPORATE ACCT REG::::: {}",walletUserDtoRequest);
             }else {
@@ -96,7 +96,7 @@ public class KafkaMessageConsumer {
     }
 
 
-    private WalletUserDTO getWalletUserDto(RegistrationDataDto signUpDto){
+    public WalletUserDTO getWalletUserDto(RegistrationDataDto signUpDto){
         WalletUserDTO walletUserDTO = new WalletUserDTO();
         if(signUpDto.isCorporate()){
             walletUserDTO.setFirstName(signUpDto.getOrganisationName());
@@ -114,8 +114,8 @@ public class KafkaMessageConsumer {
         walletUserDTO.setUserId(Long.valueOf(signUpDto.getUserId()));
         walletUserDTO.setSolId("0000");
         walletUserDTO.setCustDebitLimit(0.0);
-        walletUserDTO.setDescription(null);
-        walletUserDTO.setAccountType(null);
+        walletUserDTO.setDescription("");
+        walletUserDTO.setAccountType("");
         return walletUserDTO;
     }
 }
