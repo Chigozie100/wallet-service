@@ -172,18 +172,11 @@ public class UserAccountServiceImpl implements UserAccountService {
             String custTitle = custSex.equalsIgnoreCase("M") ? "MR" : "MRS";
             String code = generateRandomNumber(9);
 
-            String firstName;
-            String surname;
-            if(userDetailsResponse.getData().isCorporate()){
-                //Todo: because is corporate account
-                firstName = userDetailsResponse.getData().getOtherDetails().getOrganisationName().toUpperCase();
-                surname = "";
-            }else {
-               firstName = userDetailsResponse.getData().getFirstName().toUpperCase();
-               surname = userDetailsResponse.getData().getSurname().toUpperCase();
-            }
+
             WalletUser userInfo = new WalletUser("0000", userid,
-                    firstName, surname, emailAddress, phoneNumber, acct_name,
+                    userDetailsResponse.getData().getFirstName().toUpperCase(),
+                    userDetailsResponse.getData().getSurname().toUpperCase(),
+                    emailAddress, phoneNumber, acct_name,
                     custTitle, custSex, dob, code, new Date(), LocalDate.now(), 0);
 
             WalletUser newUserDetails = walletUserRepository.save(userInfo);
