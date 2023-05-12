@@ -2190,11 +2190,13 @@ public class UserAccountServiceImpl implements UserAccountService {
                     BigDecimal totalRevenue = BigDecimal.ZERO;
                     BigDecimal totalIncoming = BigDecimal.ZERO;
                     BigDecimal totalOutgoing = BigDecimal.ZERO;
+                    String acctNumber = "";
+                    String acctType = "";
                     for (WalletAccount acct : accountList) {
 
                         if(acct.isWalletDefault()){
-                            userAccountStatsDto.setAccountNumber(acct.getAccountNo());
-                            userAccountStatsDto.setAccountType(acct.getAccountType());
+                            acctNumber = acct.getAccountNo();
+                            acctType = acct.getAccountType();
                         }
                         BigDecimal revenue = walletTransAccountRepo.totalRevenueAmountByUser(acct.getAccountNo());
                         totalRevenue = totalRevenue.add(revenue == null ? BigDecimal.ZERO : revenue);
@@ -2213,6 +2215,8 @@ public class UserAccountServiceImpl implements UserAccountService {
                     userAccountStatsDto.setTotalTrans(totalTrans);
                     userAccountStatsDto.setTotalOutgoing(totalOutgoing);
                     userAccountStatsDto.setTotalRevenue(totalRevenue);
+                    userAccountStatsDto.setAccountNumber(acctNumber);
+                    userAccountStatsDto.setAccountType(acctType);
                     userAccountStatsDtoList.add(userAccountStatsDto);
                 }
             }
