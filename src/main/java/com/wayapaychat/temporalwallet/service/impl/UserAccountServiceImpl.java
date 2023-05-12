@@ -1263,7 +1263,9 @@ public class UserAccountServiceImpl implements UserAccountService {
                 return new ResponseEntity<>(new ErrorResponse("Account List Does Not Exist"), HttpStatus.NOT_FOUND);
             }
             for (WalletAccount wAcct : listAcct) {
-                NewWalletAccount mAcct = new NewWalletAccount(wAcct, userId);
+                String acctDate = wAcct.getAcct_opn_date().toString();
+                NewWalletAccount mAcct = new NewWalletAccount(wAcct, userId, acctDate);
+                
                 accounts.add(mAcct);
             }
 
