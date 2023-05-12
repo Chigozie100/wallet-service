@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import java.time.LocalDate;
 
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
@@ -35,6 +36,7 @@ public class NewWalletAccount {
 
 	private String frez_reason_code;
 
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
 	private LocalDate acct_opn_date;
 
 	private boolean acct_cls_flg;
