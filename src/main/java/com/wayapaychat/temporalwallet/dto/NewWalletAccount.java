@@ -51,11 +51,11 @@ public class NewWalletAccount {
 
 	private String lchg_user_id;
 
-	private LocalDate lchg_time;
+	private String lchg_time;
 
 	private String rcre_user_id;
 
-	private LocalDate rcre_time;
+	private String rcre_time;
 
 	private String acct_crncy_code;
 
@@ -77,9 +77,9 @@ public class NewWalletAccount {
 	
 	private double xfer_cr_limit;
 	
-	private LocalDate acct_cls_date;
+	private String acct_cls_date;
 	
-	private LocalDate last_tran_date;
+	private String last_tran_date;
 	
 	private String last_tran_id_dr;
 	
@@ -116,9 +116,9 @@ public class NewWalletAccount {
 		this.int_paid_flg = acct.isInt_paid_flg();
 		this.int_coll_flg = acct.isInt_coll_flg();
 		this.lchg_user_id = acct.getLchg_user_id();
-		this.lchg_time = acct.getLchg_time();
+		this.lchg_time = acct.getLchg_time().toString();
 		this.rcre_user_id = acct.getRcre_user_id();
-		this.rcre_time = acct.getRcre_time();
+		this.rcre_time = acct.getRcre_time().toString();
 		this.acct_crncy_code = acct.getAcct_crncy_code();
 		this.lien_amt = acct.getLien_amt();
 		this.product_type = acct.getProduct_type();
@@ -129,8 +129,8 @@ public class NewWalletAccount {
 		this.xfer_dr_limit = acct.getXfer_dr_limit();
 		this.cash_cr_limit = acct.getCash_cr_limit();
 		this.xfer_cr_limit = acct.getXfer_cr_limit();
-		this.acct_cls_date = acct.getAcct_cls_date();
-		this.last_tran_date = acct.getLast_tran_date();
+		this.acct_cls_date = acct.getAcct_cls_date().toString();
+		this.last_tran_date = acct.getLast_tran_date().toString();
 		this.last_tran_id_dr = acct.getLast_tran_id_dr();
 		this.last_tran_id_cr = acct.getLast_tran_id_cr();
 		this.walletDefault = acct.isWalletDefault();
