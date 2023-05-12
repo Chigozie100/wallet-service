@@ -142,4 +142,5 @@ public interface UserAccountService {
     ApiResponse<?> totalTransactionByUserId(Long user_id, boolean filter, LocalDate fromdate, LocalDate todate);
 
     ApiResponse<?> fetchAllUsersTransactionAnalysis();
+
 }

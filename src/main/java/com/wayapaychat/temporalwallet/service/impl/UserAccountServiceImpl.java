@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.waya.security.auth.pojo.UserIdentityData;
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
@@ -9,7 +10,9 @@ import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.enumm.ResponseCodes;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
+import com.wayapaychat.temporalwallet.kafkaConsumer.KafkaMessageConsumer;
 import com.wayapaychat.temporalwallet.pojo.*;
+import com.wayapaychat.temporalwallet.pojo.signupKafka.RegistrationDataDto;
 import com.wayapaychat.temporalwallet.proxy.AuthProxy;
 import com.wayapaychat.temporalwallet.repository.*;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
@@ -61,6 +64,8 @@ public class UserAccountServiceImpl implements UserAccountService {
     private final UserPricingService userPricingService;
     private final CoreBankingService coreBankingService;
     private final SwitchWalletService switchWalletService;
+    @Autowired
+    private KafkaMessageConsumer kafkaMessageConsumer;
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -144,10 +149,12 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
 
         UserProfileResponse userDetailsResponse = authProxy.getUserProfileById(userid, token);
+        log.info("userDetailsResponse1 {} ",userDetailsResponse);
         if (ObjectUtils.isEmpty(userDetailsResponse)) {
             return new ResponseEntity<>(new ErrorResponse("User does not exists"), HttpStatus.BAD_REQUEST);
         }
 
+        log.info("userDetailsResponse2 {} ",userDetailsResponse);
         if (!userDetailsResponse.isStatus() || ObjectUtils.isEmpty(userDetailsResponse.getData())) {
             return new ResponseEntity<>(new ErrorResponse("User does not exists"), HttpStatus.BAD_REQUEST);
         }
@@ -191,6 +198,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     private ResponseEntity<?> createClientAccount(WalletUser walletUser, String accountType, String description) {
 
+        log.info("Processing createClientAccount {}, {}, {} ",walletUser, accountType, description);
         Optional<WalletAccount> defaultAccount = walletAccountRepository.findByDefaultAccount(walletUser);
         WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
         WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
@@ -244,6 +252,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                 acct_ownership = "O";
                 acctNo = product.getCrncy_code() + "0000" + rand;
             }
+            log.info("Processing createClientAccount2 {}, {}, {} ",walletUser, accountType, description);
         } else {
             if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
                     || product.getProduct_type().equals("ODA")) && !product.isStaff_product_flg()) {
@@ -265,6 +274,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                     }
                 }
             }
+            log.info("Processing createClientAccount2 {}, {}, {} ",walletUser, accountType, description);
         }
 
         String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, accountType);
@@ -505,6 +515,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     // Call by Aut-service and others
     public ResponseEntity<?> createUserAccount(WalletUserDTO user, String token) {
         ResponseEntity<?> response = createClient(user.getUserId(), token);
+        log.info(":::CreateClient Response {} ",response);
         if(!response.getStatusCode().is2xxSuccessful()){
             log.error("ERROR CreateUserAccount::: {}",response);
             return response;
@@ -2180,6 +2191,11 @@ public class UserAccountServiceImpl implements UserAccountService {
                     BigDecimal totalIncoming = BigDecimal.ZERO;
                     BigDecimal totalOutgoing = BigDecimal.ZERO;
                     for (WalletAccount acct : accountList) {
+
+                        if(acct.isWalletDefault()){
+                            userAccountStatsDto.setAccountNumber(acct.getAccountNo());
+                            userAccountStatsDto.setAccountType(acct.getAccountType());
+                        }
                         BigDecimal revenue = walletTransAccountRepo.totalRevenueAmountByUser(acct.getAccountNo());
                         totalRevenue = totalRevenue.add(revenue == null ? BigDecimal.ZERO : revenue);
                         // total outgoing
@@ -2203,12 +2219,11 @@ public class UserAccountServiceImpl implements UserAccountService {
             log.info("UserAccountStatsDtoList {}",userAccountStatsDtoList.size());
             return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "Record fetched....", userAccountStatsDtoList);
         } catch (Exception ex) {
-            log.error("FetchAllUsersTransactionAnalysis {}",ex.getLocalizedMessage());
+            log.error("Error FetchAllUsersTransactionAnalysis {}",ex.getLocalizedMessage());
             ex.printStackTrace();
             return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, ex.getMessage(), null);
         }
     }
-
 
 
 }
