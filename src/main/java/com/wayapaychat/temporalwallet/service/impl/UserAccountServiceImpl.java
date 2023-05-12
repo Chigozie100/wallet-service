@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.waya.security.auth.pojo.UserIdentityData;
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
@@ -9,7 +10,9 @@ import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.enumm.ResponseCodes;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
+import com.wayapaychat.temporalwallet.kafkaConsumer.KafkaMessageConsumer;
 import com.wayapaychat.temporalwallet.pojo.*;
+import com.wayapaychat.temporalwallet.pojo.signupKafka.RegistrationDataDto;
 import com.wayapaychat.temporalwallet.proxy.AuthProxy;
 import com.wayapaychat.temporalwallet.repository.*;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
@@ -26,6 +29,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -60,6 +64,8 @@ public class UserAccountServiceImpl implements UserAccountService {
     private final UserPricingService userPricingService;
     private final CoreBankingService coreBankingService;
     private final SwitchWalletService switchWalletService;
+    @Autowired
+    private KafkaMessageConsumer kafkaMessageConsumer;
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -143,10 +149,12 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
 
         UserProfileResponse userDetailsResponse = authProxy.getUserProfileById(userid, token);
+        log.info("userDetailsResponse1 {} ", userDetailsResponse);
         if (ObjectUtils.isEmpty(userDetailsResponse)) {
             return new ResponseEntity<>(new ErrorResponse("User does not exists"), HttpStatus.BAD_REQUEST);
         }
 
+        log.info("userDetailsResponse2 {} ", userDetailsResponse);
         if (!userDetailsResponse.isStatus() || ObjectUtils.isEmpty(userDetailsResponse.getData())) {
             return new ResponseEntity<>(new ErrorResponse("User does not exists"), HttpStatus.BAD_REQUEST);
         }
@@ -164,18 +172,10 @@ public class UserAccountServiceImpl implements UserAccountService {
             String custTitle = custSex.equalsIgnoreCase("M") ? "MR" : "MRS";
             String code = generateRandomNumber(9);
 
-            String firstName;
-            String surname;
-            if(userDetailsResponse.getData().isCorporate()){
-                //Todo: because is corporate account
-                firstName = userDetailsResponse.getData().getOtherDetails().getOrganisationName().toUpperCase();
-                surname = "";
-            }else {
-               firstName = userDetailsResponse.getData().getFirstName().toUpperCase();
-               surname = userDetailsResponse.getData().getSurname().toUpperCase();
-            }
             WalletUser userInfo = new WalletUser("0000", userid,
-                    firstName, surname, emailAddress, phoneNumber, acct_name,
+                    userDetailsResponse.getData().getFirstName().toUpperCase(),
+                    userDetailsResponse.getData().getSurname().toUpperCase(),
+                    emailAddress, phoneNumber, acct_name,
                     custTitle, custSex, dob, code, new Date(), LocalDate.now(), 0);
 
             WalletUser newUserDetails = walletUserRepository.save(userInfo);
@@ -190,6 +190,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     private ResponseEntity<?> createClientAccount(WalletUser walletUser, String accountType, String description) {
 
+        log.info("Processing createClientAccount {}, {}, {} ", walletUser, accountType, description);
         Optional<WalletAccount> defaultAccount = walletAccountRepository.findByDefaultAccount(walletUser);
         WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
         WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
@@ -243,6 +244,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                 acct_ownership = "O";
                 acctNo = product.getCrncy_code() + "0000" + rand;
             }
+            log.info("Processing createClientAccount2 {}, {}, {} ", walletUser, accountType, description);
         } else {
             if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
                     || product.getProduct_type().equals("ODA")) && !product.isStaff_product_flg()) {
@@ -264,6 +266,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                     }
                 }
             }
+            log.info("Processing createClientAccount2 {}, {}, {} ", walletUser, accountType, description);
         }
 
         String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, accountType);
@@ -504,8 +507,9 @@ public class UserAccountServiceImpl implements UserAccountService {
     // Call by Aut-service and others
     public ResponseEntity<?> createUserAccount(WalletUserDTO user, String token) {
         ResponseEntity<?> response = createClient(user.getUserId(), token);
-        if(!response.getStatusCode().is2xxSuccessful()){
-            log.error("ERROR CreateUserAccount::: {}",response);
+        log.info(":::CreateClient Response {} ", response);
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            log.error("ERROR CreateUserAccount::: {}", response);
             return response;
         }
         return createClientAccount((WalletUser) response.getBody(), user.getAccountType(), user.getDescription());
@@ -1243,26 +1247,31 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     public ResponseEntity<?> ListUserAccount(long userId) {
         // securityCheck(userId);
-        int uId = (int) userId;
-        UserDetailPojo ur = authService.AuthUser(uId);
-        if (ur == null) {
-            return new ResponseEntity<>(new ErrorResponse("User Id is Invalid"), HttpStatus.NOT_FOUND);
-        }
-        WalletUser x = walletUserRepository.findByEmailAddress(ur.getEmail());
-        if (x == null) {
-            return new ResponseEntity<>(new ErrorResponse("Wallet User does not exist"), HttpStatus.NOT_FOUND);
-        }
-        List<NewWalletAccount> accounts = new ArrayList<>();
-        List<WalletAccount> listAcct = walletAccountRepository.findByUser(x);
-        if (listAcct == null) {
-            return new ResponseEntity<>(new ErrorResponse("Account List Does Not Exist"), HttpStatus.NOT_FOUND);
-        }
-        for (WalletAccount wAcct : listAcct) {
-            NewWalletAccount mAcct = new NewWalletAccount(wAcct, userId);
-            accounts.add(mAcct);
-        }
+        try {
+            int uId = (int) userId;
+            UserDetailPojo ur = authService.AuthUser(uId);
+            if (ur == null) {
+                return new ResponseEntity<>(new ErrorResponse("User Id is Invalid"), HttpStatus.NOT_FOUND);
+            }
+            WalletUser x = walletUserRepository.findByEmailAddress(ur.getEmail());
+            if (x == null) {
+                return new ResponseEntity<>(new ErrorResponse("Wallet User does not exist"), HttpStatus.NOT_FOUND);
+            }
+            List<NewWalletAccount> accounts = new ArrayList<>();
+            List<WalletAccount> listAcct = walletAccountRepository.findByUser(x);
+            if (listAcct == null) {
+                return new ResponseEntity<>(new ErrorResponse("Account List Does Not Exist"), HttpStatus.NOT_FOUND);
+            }
+            for (WalletAccount wAcct : listAcct) {
+                NewWalletAccount mAcct = new NewWalletAccount(wAcct, userId);
+                accounts.add(mAcct);
+            }
 
-        return new ResponseEntity<>(new SuccessResponse("Success.", accounts), HttpStatus.OK);
+            return new ResponseEntity<>(new SuccessResponse("Success.", accounts), HttpStatus.OK);
+        }catch(Exception ex){
+            log.error("Exception:: {}", ex.getMessage());
+            return new ResponseEntity<>(new ErrorResponse("Unable able to fetch account"), HttpStatus.NOT_FOUND);
+        }
     }
 
     @Override
@@ -2141,6 +2150,81 @@ public class UserAccountServiceImpl implements UserAccountService {
             log.error(ex.getMessage());
             return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, ex.getMessage(), null);
 
+        }
+    }
+
+    @Override
+    public ApiResponse<?> fetchAllUsersTransactionAnalysis() {
+        try {
+            long countTotalAccountUser = walletUserRepository.countByUserIdIsNotNull();
+            if (countTotalAccountUser < 1) {
+                return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "No records found!", null);
+            }
+
+            int maxPerPage = 1000;
+            double result = (double) countTotalAccountUser / (double) maxPerPage;
+            int numberOfPage = (int) Math.ceil(result);
+            log.info("CountTotalAccountUser {}", countTotalAccountUser);
+            log.info("NUMBER OF PAGES {}", numberOfPage);
+            log.info("DATA SIZE PER PAGE {}", maxPerPage);
+            List<UserAccountStatsDto> userAccountStatsDtoList = new ArrayList<>();
+            for (int i = 0; i < numberOfPage; i++) {
+                Sort sort = Sort.by(Sort.Direction.DESC, "id");
+                Pageable pageable = PageRequest.of(i, maxPerPage, sort);
+                List<WalletUser> userAccountList = walletUserRepository.findAllByOrderByIdDesc(pageable);
+                log.info("UserAccountList Size {}", userAccountList.size());
+                if (userAccountList.size() < 1) {
+                    continue;
+                }
+
+                for (WalletUser user : userAccountList) {
+                    List<WalletAccount> accountList = walletAccountRepository.findByUser(user);
+                    if (accountList.size() < 1) {
+                        continue;
+                    }
+
+                    UserAccountStatsDto userAccountStatsDto = new UserAccountStatsDto();
+                    userAccountStatsDto.setUserId(String.valueOf(user.getUserId()));
+                    BigDecimal totalTrans = BigDecimal.ZERO;
+                    BigDecimal totalRevenue = BigDecimal.ZERO;
+                    BigDecimal totalIncoming = BigDecimal.ZERO;
+                    BigDecimal totalOutgoing = BigDecimal.ZERO;
+                    String acctNumber = "";
+                    String acctType = "";
+                    for (WalletAccount acct : accountList) {
+
+                        if (acct.isWalletDefault()) {
+                            acctNumber = acct.getAccountNo();
+                            acctType = acct.getAccountType();
+                        }
+                        BigDecimal revenue = walletTransAccountRepo.totalRevenueAmountByUser(acct.getAccountNo());
+                        totalRevenue = totalRevenue.add(revenue == null ? BigDecimal.ZERO : revenue);
+                        // total outgoing
+                        BigDecimal outgoing = walletTransRepo.totalWithdrawalByCustomer(acct.getAccountNo());
+                        totalOutgoing = totalOutgoing.add(outgoing == null ? BigDecimal.ZERO : outgoing);
+                        // total incoming
+                        BigDecimal incoming = walletTransRepo.totalDepositByCustomer(acct.getAccountNo());
+                        totalIncoming = totalIncoming.add(incoming == null ? BigDecimal.ZERO : incoming);
+                        //total balance
+                        BigDecimal totalBalance = walletAccountRepository.totalBalanceByUser(acct.getAccountNo());
+                        totalTrans = totalTrans.add(totalBalance == null ? BigDecimal.ZERO : totalBalance);
+
+                    }
+                    userAccountStatsDto.setTotalIncoming(totalIncoming);
+                    userAccountStatsDto.setTotalTrans(totalTrans);
+                    userAccountStatsDto.setTotalOutgoing(totalOutgoing);
+                    userAccountStatsDto.setTotalRevenue(totalRevenue);
+                    userAccountStatsDto.setAccountNumber(acctNumber);
+                    userAccountStatsDto.setAccountType(acctType);
+                    userAccountStatsDtoList.add(userAccountStatsDto);
+                }
+            }
+            log.info("UserAccountStatsDtoList {}", userAccountStatsDtoList.size());
+            return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "Record fetched....", userAccountStatsDtoList);
+        } catch (Exception ex) {
+            log.error("Error FetchAllUsersTransactionAnalysis {}", ex.getLocalizedMessage());
+            ex.printStackTrace();
+            return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, ex.getMessage(), null);
         }
     }
 

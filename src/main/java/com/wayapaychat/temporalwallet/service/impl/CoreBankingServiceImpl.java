@@ -189,6 +189,16 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         try {
             WalletAccount accountCredit = walletAccountRepository.findByAccountNo(transactionPojo.getAccountNo());
 
+            double cumbalCrAmt = accountCredit.getCum_cr_amt() + transactionPojo.getAmount().doubleValue();
+            accountCredit.setLast_tran_id_dr(transactionPojo.getTranId());
+            accountCredit.setCum_cr_amt(cumbalCrAmt);
+            accountCredit.setLast_tran_date(LocalDate.now());
+
+            double unClrbalAmt = accountCredit.getCum_cr_amt() - accountCredit.getCum_dr_amt();
+            accountCredit.setClr_bal_amt(Precision.round(unClrbalAmt - accountCredit.getLien_amt(), 2));
+            accountCredit.setUn_clr_bal_amt(Precision.round(unClrbalAmt, 2));
+            walletAccountRepository.saveAndFlush(accountCredit);
+
             WalletTransaction tranCredit = new WalletTransaction(transactionPojo.getSessionID(),
                     transactionPojo.getTranId(),
                     accountCredit.getAccountNo(), transactionPojo.getAmount(),
@@ -199,17 +209,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     transactionPojo.getTranPart(), transactionPojo.getTransactionCategory(),
                     transactionPojo.getSenderName(), transactionPojo.getReceiverName());
             walletTransactionRepository.saveAndFlush(tranCredit);
-
-            double cumbalCrAmt = accountCredit.getCum_cr_amt() + transactionPojo.getAmount().doubleValue();
-            accountCredit.setLast_tran_id_dr(transactionPojo.getTranId());
-            accountCredit.setCum_cr_amt(cumbalCrAmt);
-            accountCredit.setLast_tran_date(LocalDate.now());
-
-            double unClrbalAmt = accountCredit.getCum_cr_amt() - accountCredit.getCum_dr_amt();
-            accountCredit.setClr_bal_amt(Precision.round(unClrbalAmt - accountCredit.getLien_amt(), 2));
-            accountCredit.setUn_clr_bal_amt(Precision.round(unClrbalAmt, 2));
-
-            walletAccountRepository.saveAndFlush(accountCredit);
 
             CompletableFuture.runAsync(() -> sendTransactionNotification(Constant.CREDIT_TRANSACTION_ALERT,
                     accountCredit.getAcct_name(), transactionPojo, accountCredit.getClr_bal_amt(), "CR"));
@@ -230,17 +229,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         try {
             WalletAccount accountDebit = walletAccountRepository.findByAccountNo(transactionPojo.getAccountNo());
 
-            WalletTransaction tranDebit = new WalletTransaction(transactionPojo.getSessionID(),
-                    transactionPojo.getTranId(),
-                    accountDebit.getAccountNo(), transactionPojo.getAmount(),
-                    transactionPojo.getTranType(), transactionPojo.getTranNarration(), LocalDate.now(),
-                    accountDebit.getAcct_crncy_code(), "D",
-                    accountDebit.getGl_code(), transactionPojo.getPaymentReference(),
-                    String.valueOf(transactionPojo.getUserToken().getId()), transactionPojo.getUserToken().getEmail(),
-                    transactionPojo.getTranPart(), transactionPojo.getTransactionCategory(),
-                    transactionPojo.getSenderName(), transactionPojo.getReceiverName());
-            walletTransactionRepository.saveAndFlush(tranDebit);
-
             double cumbalDrAmt = accountDebit.getCum_dr_amt() + transactionPojo.getAmount().doubleValue();
             // lien of same amount debited is also removed
             double lienAmt = accountDebit.getLien_amt() - transactionPojo.getAmount().doubleValue();
@@ -257,8 +245,18 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             double unClrbalAmt = accountDebit.getCum_cr_amt() - accountDebit.getCum_dr_amt();
             accountDebit.setClr_bal_amt(Precision.round(unClrbalAmt - lienAmt, 2));
             accountDebit.setUn_clr_bal_amt(Precision.round(unClrbalAmt, 2));
-
             walletAccountRepository.saveAndFlush(accountDebit);
+
+            WalletTransaction tranDebit = new WalletTransaction(transactionPojo.getSessionID(),
+                    transactionPojo.getTranId(),
+                    accountDebit.getAccountNo(), transactionPojo.getAmount(),
+                    transactionPojo.getTranType(), transactionPojo.getTranNarration(), LocalDate.now(),
+                    accountDebit.getAcct_crncy_code(), "D",
+                    accountDebit.getGl_code(), transactionPojo.getPaymentReference(),
+                    String.valueOf(transactionPojo.getUserToken().getId()), transactionPojo.getUserToken().getEmail(),
+                    transactionPojo.getTranPart(), transactionPojo.getTransactionCategory(),
+                    transactionPojo.getSenderName(), transactionPojo.getReceiverName());
+            walletTransactionRepository.saveAndFlush(tranDebit);
 
             CompletableFuture.runAsync(() -> sendTransactionNotification(Constant.DEBIT_TRANSACTION_ALERT,
                     accountDebit.getAcct_name(), transactionPojo, accountDebit.getClr_bal_amt(), "DR"));

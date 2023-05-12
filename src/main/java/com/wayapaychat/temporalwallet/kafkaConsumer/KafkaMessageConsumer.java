@@ -4,12 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wayapaychat.temporalwallet.dto.WalletUserDTO;
 import com.wayapaychat.temporalwallet.dto.kyc.KycTierDataDto;
 import com.wayapaychat.temporalwallet.entity.WalletUser;
-import com.wayapaychat.temporalwallet.pojo.signupKafka.SignUpDto;
+import com.wayapaychat.temporalwallet.pojo.signupKafka.RegistrationDataDto;
 import com.wayapaychat.temporalwallet.repository.WalletUserRepository;
 import com.wayapaychat.temporalwallet.service.UserAccountService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -22,7 +21,7 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j @RequiredArgsConstructor
 public class KafkaMessageConsumer {
 
-    public static final String WAYA_GROUP = "waya";
+    public static final String WAYA_GROUP = "wayarepository";
     public static final String PROCESS_OTHER_ACCOUNT = "process-registration";
     public static final String KYC_LIMIT_SETUP = "kyc-limit-setup";
     private final WalletUserRepository walletUserRepository;
@@ -69,15 +68,15 @@ public class KafkaMessageConsumer {
 
     private void processAccountRegMessage(String message){
         try {
-            SignUpDto data = objectMapper.readValue(message,SignUpDto.class);
-            log.info("::::DATA MAPPED TO OBJECT FOR PROCESSING:: {}",data);
-            if(data.getUser().isCorporate()){
-                log.info("::::ABOUT TO PROCESS CORPORATE ACCOUNT REGISTRATION:: {}",data);
+            RegistrationDataDto data = objectMapper.readValue(message,RegistrationDataDto.class);
+            log.info("::::DATA MAPPED TO OBJECT FOR PROCESSING:: {} ",data);
+            if(data.isCorporate()){
+                log.info("::::ABOUT TO PROCESS CORPORATE ACCOUNT REGISTRATION:: {} ",data);
                 WalletUserDTO walletUserDtoRequest = getWalletUserDto(data);
-                log.info("::::MAPPED DATA {}",walletUserDtoRequest);
+                log.info("::::MAPPED DATA:: {} ",walletUserDtoRequest);
                 CompletableFuture.runAsync(() -> {
                     ResponseEntity<?> corporateReq = userAccountService.createUserAccount(walletUserDtoRequest, data.getToken());
-                    log.info(":::::PROCESS KAFKA Corporate Acct Resp {}",corporateReq);
+                    log.info(":::::PROCESS KAFKA Corporate Acct Response {} ",corporateReq);
                 });
                log.info("::::FINISH PROCESSING CORPORATE ACCT REG::::: {}",walletUserDtoRequest);
             }else {
@@ -97,28 +96,26 @@ public class KafkaMessageConsumer {
     }
 
 
-    private WalletUserDTO getWalletUserDto(SignUpDto signUpDto){
+    public WalletUserDTO getWalletUserDto(RegistrationDataDto signUpDto){
         WalletUserDTO walletUserDTO = new WalletUserDTO();
-        if(signUpDto.getUser().isCorporate()){
-            if(signUpDto.getProfile().getOtherDetails() != null){
-                walletUserDTO.setFirstName(signUpDto.getProfile().getOtherDetails().getOrganisationName());
-                walletUserDTO.setLastName("");
-                walletUserDTO.setCorporate(true);
-                walletUserDTO.setEmailId(signUpDto.getProfile().getOtherDetails().getOrganisationEmail());
-                walletUserDTO.setMobileNo(signUpDto.getProfile().getOtherDetails().getOrganisationPhone());
-            }
+        if(signUpDto.isCorporate()){
+            walletUserDTO.setFirstName(signUpDto.getOrganisationName());
+            walletUserDTO.setLastName("");
+            walletUserDTO.setCorporate(true);
+            walletUserDTO.setEmailId(signUpDto.getOrganisationEmail());
+            walletUserDTO.setMobileNo(signUpDto.getOrganisationPhone());
         }else {
-            walletUserDTO.setFirstName(signUpDto.getUser().getFirstName());
-            walletUserDTO.setLastName(signUpDto.getUser().getSurname());
+            walletUserDTO.setFirstName(signUpDto.getFirstName());
+            walletUserDTO.setLastName(signUpDto.getSurname());
             walletUserDTO.setCorporate(false);
-            walletUserDTO.setEmailId(signUpDto.getUser().getEmail());
-            walletUserDTO.setMobileNo(signUpDto.getUser().getPhoneNumber());
+            walletUserDTO.setEmailId(signUpDto.getEmail());
+            walletUserDTO.setMobileNo(signUpDto.getPhoneNumber());
         }
-        walletUserDTO.setUserId(signUpDto.getUser().getId());
+        walletUserDTO.setUserId(Long.valueOf(signUpDto.getUserId()));
         walletUserDTO.setSolId("0000");
         walletUserDTO.setCustDebitLimit(0.0);
-        walletUserDTO.setDescription(null);
-        walletUserDTO.setAccountType(null);
+        walletUserDTO.setDescription("");
+        walletUserDTO.setAccountType("");
         return walletUserDTO;
     }
 }
