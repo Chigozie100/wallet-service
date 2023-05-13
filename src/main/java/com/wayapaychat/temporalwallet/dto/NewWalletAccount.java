@@ -55,7 +55,7 @@ public class NewWalletAccount {
 
 	private String rcre_user_id;
 
-	private LocalDate rcre_time;
+	private String rcre_time;
 
 	private String acct_crncy_code;
 
@@ -93,7 +93,7 @@ public class NewWalletAccount {
 
 	private String description;
 
-	public NewWalletAccount(WalletAccount acct, Long userId, String acctOpenDate) {
+	public NewWalletAccount(WalletAccount acct, Long userId, String acctOpenDate, String rcretime) {
 		super();
 		this.id = acct.getId();
 		this.del_flg = acct.isDel_flg();
@@ -118,7 +118,7 @@ public class NewWalletAccount {
 		this.lchg_user_id = acct.getLchg_user_id();
 		this.lchg_time = acct.getLchg_time();
 		this.rcre_user_id = acct.getRcre_user_id();
-		this.rcre_time = acct.getRcre_time();
+		this.rcre_time = rcretime;
 		this.acct_crncy_code = acct.getAcct_crncy_code();
 		this.lien_amt = acct.getLien_amt();
 		this.product_type = acct.getProduct_type();
