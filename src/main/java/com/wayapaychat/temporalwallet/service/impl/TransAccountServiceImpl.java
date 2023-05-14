@@ -66,7 +66,7 @@ import org.springframework.beans.factory.annotation.Value;
 @Service
 @Slf4j
 public class TransAccountServiceImpl implements TransAccountService {
-    
+
     @Value("${waya.wallet.NIPGL}")
     String nipgl;
     @Value("${waya.wallet.PAYSTACKGL}")
@@ -3115,6 +3115,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         BigDecimal quicketllerPayment = walletTransAccountRepo.findByAllQUICKTELLERTransaction();
         BigDecimal totalOutboundExternal = walletTransRepo.totalNipOutbound(nipgl);
         BigDecimal totalOutboundInternal = walletTransAccountRepo.findByAllOutboundInternalTransaction();
+        BigDecimal totalOutboundExternalReversed = walletTransRepo.totalNipOutboundReversed(nipgl);
         BigDecimal totalPaystack = walletTransRepo.totalPayStack(paystackgl);
         BigDecimal totalNipInbound = walletTransRepo.totalNipInbound(nipgl);
 
@@ -3129,7 +3130,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         Map<String, BigDecimal> categorysum = new HashMap<>();
         categorysum.put("billsPaymentTrans", baxiPayment);
         categorysum.put("quicketllerPayment", quicketllerPayment);
-        categorysum.put("outboundExternalTrans", totalOutboundExternal);
+        categorysum.put("outboundExternalTrans", totalOutboundExternal.subtract(totalOutboundExternalReversed));
         categorysum.put("outboundInternalTrans", totalOutboundInternal);
         categorysum.put("totalPaystackTrans", totalPaystack);
         categorysum.put("nipInbountTrans", totalNipInbound);
@@ -3192,8 +3193,9 @@ public class TransAccountServiceImpl implements TransAccountService {
         CategoryAnalysis category = new CategoryAnalysis();
 
         BigDecimal baxisPayment = walletTransAccountRepo.findByAllBaxiTransactionByDate(fromdate, todate);
-        BigDecimal totalCategoryOutboundExternal = walletTransAccountRepo.findByAllOutboundExternalTransaction(fromdate, todate);
-        BigDecimal totalOutboundInternal = walletTransRepo.totalNipOutboundFilter(fDate, tDate, nipgl);
+        BigDecimal totalOutboundInternal = walletTransAccountRepo.findByAllOutboundInternalTransactionByDate(fromdate, todate);
+        BigDecimal totalCategoryOutboundExternal = walletTransRepo.totalNipOutboundFilter(fDate, tDate, nipgl);
+
         BigDecimal totalPaystack = walletTransRepo.totalPayStackFilter(fDate, tDate, paystackgl);
         BigDecimal totalNipInbound = walletTransRepo.totalNipInboundFilter(fDate, tDate, nipgl);
 
@@ -3246,9 +3248,16 @@ public class TransAccountServiceImpl implements TransAccountService {
     @Override
     public ApiResponse<?> getAllTransactionsByAccountNo(LocalDate fromdate, LocalDate todate, String accountNo) {
         Map<String, Object> response = new HashMap<>();
+        List<TransactionDTO> tran = new ArrayList<>();
         List<WalletTransaction> transaction = walletTransactionRepository.findByAllTransactionsWithDateRangeaAndAccount(
                 fromdate, todate, accountNo);
-        response.put("transaction", transaction);
+        for (WalletTransaction transList : transaction) {
+            String transDate = transList.getTranDate().toString();
+            TransactionDTO trans = new TransactionDTO(transList, transList.getAcctNum(), transDate);
+
+            tran.add(trans);
+        }
+        response.put("transaction", tran);
 
         if (transaction.isEmpty()) {
             return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO RECORD FOUND", null);
