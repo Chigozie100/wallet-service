@@ -3118,6 +3118,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         BigDecimal totalOutboundExternalReversed = walletTransRepo.totalNipOutboundReversed(nipgl);
         BigDecimal totalPaystack = walletTransRepo.totalPayStack(paystackgl);
         BigDecimal totalNipInbound = walletTransRepo.totalNipInbound(nipgl);
+        BigDecimal reversedFromSucess = totalOutboundInternal.subtract(totalOutboundExternalReversed);
 
         //count
         long baxiCount = walletTransAccountRepo.countBaxiTransaction();
@@ -3130,7 +3131,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         Map<String, BigDecimal> categorysum = new HashMap<>();
         categorysum.put("billsPaymentTrans", baxiPayment);
         categorysum.put("quicketllerPayment", quicketllerPayment);
-        categorysum.put("outboundExternalTrans", totalOutboundExternal.subtract(totalOutboundExternalReversed));
+        categorysum.put("outboundExternalTrans", reversedFromSucess);
         categorysum.put("outboundInternalTrans", totalOutboundInternal);
         categorysum.put("totalPaystackTrans", totalPaystack);
         categorysum.put("nipInbountTrans", totalNipInbound);
