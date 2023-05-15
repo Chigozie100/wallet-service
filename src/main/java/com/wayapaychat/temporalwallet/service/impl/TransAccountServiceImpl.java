@@ -3118,8 +3118,8 @@ public class TransAccountServiceImpl implements TransAccountService {
         BigDecimal totalOutboundExternalReversed = walletTransRepo.totalNipOutboundReversed(nipgl);
         BigDecimal totalPaystack = walletTransRepo.totalPayStack(paystackgl);
         BigDecimal totalNipInbound = walletTransRepo.totalNipInbound(nipgl);
-        BigDecimal reversedFromSucess = totalOutboundInternal.subtract(totalOutboundExternalReversed);
-        log.info("Outbound:: {}",reversedFromSucess);
+//        BigDecimal reversedFromSucess = totalOutboundExternal.subtract(totalOutboundExternalReversed);
+      log.info("Outbound:: {}",totalOutboundExternalReversed);
         //count
         long baxiCount = walletTransAccountRepo.countBaxiTransaction();
         long quicktellerCount = walletTransAccountRepo.countQuickTellerTransaction();
