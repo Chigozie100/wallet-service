@@ -75,5 +75,7 @@ public class TransactionDTO {
         this.senderName = trans.getSenderName();
         this.receiverName = trans.getReceiverName();
         this.relatedTransId = trans.getRelatedTransId();
+        this.tranCategory = trans.getTranCategory();
+        
     }
 }
