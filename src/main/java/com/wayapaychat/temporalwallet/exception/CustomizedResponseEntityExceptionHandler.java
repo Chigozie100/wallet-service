@@ -34,7 +34,7 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
 
     @ExceptionHandler(Exception.class)
     public final ResponseEntity<Object> handleAllExceptions(Exception ex) {
-        //ex.printStackTrace();
+        ex.printStackTrace();
         String message = ex.getLocalizedMessage();
         log.error(ex.getMessage());
         return buildResponseEntity(message, HttpStatus.UNPROCESSABLE_ENTITY);
