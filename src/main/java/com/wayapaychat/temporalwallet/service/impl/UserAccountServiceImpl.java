@@ -1249,11 +1249,11 @@ public class UserAccountServiceImpl implements UserAccountService {
         // securityCheck(userId);
         try {
             int uId = (int) userId;
-//            UserDetailPojo ur = authService.AuthUser(uId);
-//            if (ur == null) {
-//                return new ResponseEntity<>(new ErrorResponse("User Id is Invalid"), HttpStatus.NOT_FOUND);
-//            }
-            WalletUser x = walletUserRepository.findByEmailAddress("oluwatosin.fasina@wayapaychat.com");
+            UserDetailPojo ur = authService.AuthUser(uId);
+            if (ur == null) {
+                return new ResponseEntity<>(new ErrorResponse("User Id is Invalid"), HttpStatus.NOT_FOUND);
+            }
+            WalletUser x = walletUserRepository.findByEmailAddress(ur.getEmail());
             if (x == null) {
                 return new ResponseEntity<>(new ErrorResponse("Wallet User does not exist"), HttpStatus.NOT_FOUND);
             }
@@ -1264,6 +1264,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             }
             for (WalletAccount wAcct : listAcct) {
                 String acctDate = wAcct.getAcct_opn_date().toString();
+                
                 NewWalletAccount mAcct = new NewWalletAccount(wAcct, userId, acctDate);
                 
                 accounts.add(mAcct);
