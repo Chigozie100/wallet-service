@@ -35,7 +35,7 @@ public class NewWalletAccount {
 
 	private String frez_reason_code;
 
-	private String acct_opn_date;
+	private LocalDate acct_opn_date;
 
 	private boolean acct_cls_flg;
 
@@ -93,7 +93,7 @@ public class NewWalletAccount {
 
 	private String description;
 
-	public NewWalletAccount(WalletAccount acct, Long userId, String acctOpenDate) {
+	public NewWalletAccount(WalletAccount acct, Long userId) {
 		super();
 		this.id = acct.getId();
 		this.del_flg = acct.isDel_flg();
@@ -108,7 +108,7 @@ public class NewWalletAccount {
 		this.acct_ownership = acct.getAcct_ownership();
 		this.frez_code = acct.getFrez_code();
 		this.frez_reason_code = acct.getFrez_reason_code();
-		this.acct_opn_date = acctOpenDate;
+		this.acct_opn_date = acct.getAcct_opn_date();
 		this.acct_cls_flg = acct.isAcct_cls_flg();
 		this.clr_bal_amt = acct.getClr_bal_amt();
 		this.un_clr_bal_amt = acct.getUn_clr_bal_amt();
