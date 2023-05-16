@@ -37,6 +37,9 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
     @Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.relatedTransId) = UPPER(:tranId) " + " AND u.del_flg = false")
     Optional<List<WalletTransaction>> findByRelatedTrans(String tranId);
 
+    @Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.relatedTransId) = UPPER(:tranId) AND u.acctNum = UPPER(:accountNo) " + " AND u.del_flg = false")
+    Optional<List<WalletTransaction>> findByRelatedTransAcccount(String tranId, String accountNo);
+
     @Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.tranId) = UPPER(:tranId) " + " AND u.del_flg = false" + " AND u.tranCrncyCode = UPPER(:tranCrncy)" + " AND u.tranDate = (:tranDate)" + " AND u.acctNum = UPPER(:accountNo)")
     WalletTransaction findByAcctNumTran(String accountNo, String tranId, LocalDate tranDate, String tranCrncy);
 

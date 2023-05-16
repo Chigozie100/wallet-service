@@ -395,7 +395,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         updateTransactionLog(tranId, transactionStatus);
 
         Optional<List<WalletTransaction>> transaction = walletTransactionRepository
-                .findByReferenceAndAccount(transferTransactionRequestData.getPaymentReference(), customerAccount);
+                .findByRelatedTransAcccount(String.valueOf(tranId.longValue()), customerAccount);
 
         if (transaction.isEmpty()) {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
