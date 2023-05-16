@@ -60,7 +60,6 @@
         <dependency>
             <groupId>com.fasterxml.jackson.datatype</groupId>
             <artifactId>jackson-datatype-jsr310</artifactId>
-            <version>2.14.1</version> <!-- Replace with the latest version -->
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>

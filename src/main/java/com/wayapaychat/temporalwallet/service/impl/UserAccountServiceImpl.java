@@ -1264,8 +1264,8 @@ public class UserAccountServiceImpl implements UserAccountService {
             }
             for (WalletAccount wAcct : listAcct) {
                 String acctDate = wAcct.getAcct_opn_date().toString();
-                String rcretime = wAcct.getRcre_time().toString();
-                NewWalletAccount mAcct = new NewWalletAccount(wAcct, userId, acctDate, rcretime);
+                
+                NewWalletAccount mAcct = new NewWalletAccount(wAcct, userId, acctDate);
                 
                 accounts.add(mAcct);
             }

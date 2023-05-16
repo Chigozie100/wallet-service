@@ -3,6 +3,7 @@ package com.wayapaychat.temporalwallet;
 //import com.wayapaychat.temporalwallet.config.LoggableDispatcherServlet;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.waya.security.auth.annotation.EnableWayaAuthAuditApi;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -45,7 +46,8 @@ public class TemporalWalletApplication {
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT,true);
-		return objectMapper;
+		objectMapper.registerModule(new JavaTimeModule());
+                return objectMapper;
 	}
 
 }
