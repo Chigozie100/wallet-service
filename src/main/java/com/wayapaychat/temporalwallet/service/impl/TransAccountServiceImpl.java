@@ -3078,15 +3078,14 @@ public class TransAccountServiceImpl implements TransAccountService {
     
     @Override
     public ResponseEntity<?> transactionAnalysis() {
-        System.out.println(nipgl);
+        
+
         TransactionAnalysis analysis = new TransactionAnalysis();
 
         //overall analysis
         OverallAnalysis overall = new OverallAnalysis();
-        BigDecimal totalRevenue = walletTransAccountRepo.totalRevenueAmount();
-        BigDecimal totalWithdrawal = walletTransRepo.totalCustomersWithdrawal();
-        BigDecimal totalDeposit = walletTransRepo.totalCustomersDeposit();
-        BigDecimal totalBalance = totalDeposit.subtract(totalWithdrawal);
+        BigDecimal totalRevenue = walletTransAccountRepo.totalRevenueAmount(); 
+        CustomerTransactionSumary  customerTransactionSumary = tempwallet.getCustomerTransactionSumary(); 
 
         //count      
         long totalRevenues = walletTransAccountRepo.totalRevenue();
@@ -3094,10 +3093,10 @@ public class TransAccountServiceImpl implements TransAccountService {
         long countDeposit = walletTransRepo.countCustomersDeposit();
         
         Map<String, BigDecimal> response = new HashMap<>();
-        response.put("totalBalance", totalBalance);
+        response.put("totalBalance", customerTransactionSumary.getTotalBalance());
         response.put("totalRevenue", totalRevenue);
-        response.put("totalDeposit", totalDeposit);
-        response.put("totalWithdrawal", totalWithdrawal);
+        response.put("totalDeposit", customerTransactionSumary.getTotalDeposit());
+        response.put("totalWithdrawal", customerTransactionSumary.getTotalWithdrawal());
 
         //count response
         Map<String, String> countresponse = new HashMap<>();
