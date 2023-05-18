@@ -46,7 +46,7 @@ public class TemporalWalletApplication {
 		ObjectMapper objectMapper = new ObjectMapper();
 		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 		objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT,true);
-		objectMapper.registerModule(new JavaTimeModule());
+		objectMapper.r;
                 return objectMapper;
 	}
 
