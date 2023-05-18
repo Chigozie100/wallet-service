@@ -26,6 +26,8 @@
 #      use-key-prefix: true
 #      key-prefix: tokens
 #  redis:
+#    host: localhost;
+#    port: 6379
 #    timeout: 10000
 #    password: ${REDIS_PASSWORD:wIYretruTPWPmAyLgq6HNQMa0wjRG3q8}
 #    ttl: 86400000
@@ -34,6 +36,7 @@
 #      nodes:
 #        - waya-redis-staging.wp2y6q.clustercfg.memorydb.eu-west-2.amazonaws.com:6379
 #      max-redirects: 4
+#   
 #  devtools:
 #    livereload:
 #      enabled: false
@@ -127,6 +130,8 @@
 #
 #ofi:
 #  financialInstitutionCode: 901037
+#  
+#
 #
 #
 #kafka:
