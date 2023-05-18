@@ -29,7 +29,7 @@ public class ConsumerConfiguration {
         factory.setBatchListener(true);
         return factory;
     }
-//
+
     @Bean
     public ConsumerFactory<String, String> consumerFactory() {
         return new DefaultKafkaConsumerFactory<>(consumerConfigs());
