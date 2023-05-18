@@ -30,10 +30,10 @@ public class ConsumerConfiguration {
         return factory;
     }
 //
-//    @Bean
-//    public ConsumerFactory<String, String> consumerFactory() {
-//        return new DefaultKafkaConsumerFactory<>(consumerConfigs());
-//    }
+    @Bean
+    public ConsumerFactory<String, String> consumerFactory() {
+        return new DefaultKafkaConsumerFactory<>(consumerConfigs());
+    }
 
     @Bean
     public Map<String, Object> consumerConfigs() {
