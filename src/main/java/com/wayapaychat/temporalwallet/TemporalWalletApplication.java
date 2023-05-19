@@ -4,12 +4,16 @@ package com.wayapaychat.temporalwallet;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.waya.security.auth.annotation.EnableWayaAuthAuditApi;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 import org.springframework.cloud.openfeign.EnableFeignClients;
 import org.springframework.context.annotation.Bean;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import org.springframework.web.client.RestTemplate;
@@ -40,6 +44,12 @@ public class TemporalWalletApplication {
 //        return new LoggableDispatcherServlet();
 //    }
 
+//	@Value("${spring.redis.port}")
+//	private int redisPort;
+//
+//	@Value("${spring.redis.host}")
+//	private String redisHost;
+
 	@Bean
 	public ObjectMapper objectMapper(){
 		ObjectMapper objectMapper = new ObjectMapper();
@@ -47,5 +57,18 @@ public class TemporalWalletApplication {
 		objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT,true);
 		return objectMapper;
 	}
+
+//	@Bean
+//	public LettuceConnectionFactory redisConnectionFactory() {
+//		RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(redisHost, redisPort);
+//		return new LettuceConnectionFactory(config);
+//	}
+//
+//	@Bean
+//	public RedisTemplate<String, Object> redisTemplate() {
+//		RedisTemplate<String, Object> template = new RedisTemplate<>();
+//		template.setConnectionFactory(redisConnectionFactory());
+//		return template;
+//	}
 
 }
