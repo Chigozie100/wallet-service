@@ -32,23 +32,23 @@ public class KafkaMessageConsumer {
 
     @KafkaListener(topics = PROCESS_OTHER_ACCOUNT, groupId = WAYA_GROUP)
     public void processUserAccountRegistration(String message){
-        log.info("::::::ABOUT TO PROCESS USER ACCT REG:::: {}",message);
+        log.debug("::::::ABOUT TO PROCESS USER ACCT REG:::: {}",message);
         processAccountRegMessage(message);
-        log.info("::::::FINISH PROCESSING USER ACCT REG:::: {}",message);
+        log.debug("::::::FINISH PROCESSING USER ACCT REG:::: {}",message);
     }
 
     @KafkaListener(topics = KYC_LIMIT_SETUP, groupId = WAYA_GROUP)
     public void processKycMessage(String message){
-        log.info("::::ABOUT TO PROCESS KYC DEBIT LIMIT ON USER ACCOUNT::: {}",message);
+        log.debug("::::ABOUT TO PROCESS KYC DEBIT LIMIT ON USER ACCOUNT::: {}",message);
         processKycData(message);
-        log.info("::::FINISH PROCESSING KYC DEBIT LIMIT ON USER ACCOUNT::: {}",message);
+        log.debug("::::FINISH PROCESSING KYC DEBIT LIMIT ON USER ACCOUNT::: {}",message);
     }
 
 
     private void processKycData(String message)  {
         try {
             KycTierDataDto kycTierDataDto = objectMapper.readValue(message,KycTierDataDto.class);
-            log.info("::::CONVERT MESSAGE TO KYC DTO CLASS::: {}",kycTierDataDto);
+            log.debug("::::CONVERT MESSAGE TO KYC DTO CLASS::: {}",kycTierDataDto);
             Optional<WalletUser> walletUser = walletUserRepository.findUserId(kycTierDataDto.getUserId());
             if(walletUser.isPresent()){
                 walletUser.get().setCust_debit_limit(kycTierDataDto.getDailyTransactionLimit().doubleValue());
@@ -57,7 +57,7 @@ public class KafkaMessageConsumer {
                 log.info(":::FINISH PROCESSING CUST_DEBIT_LIMIT::::LIMIT {}, TIERNAME {}, USERID {}",
                         kycTierDataDto.getUserId(), kycTierDataDto.getTierName(),kycTierDataDto.getUserId());
             }else {
-                log.info("::::USER WALLET NOT FOUND {}",kycTierDataDto);
+                log.debug("::::USER WALLET NOT FOUND {}",kycTierDataDto);
                 log.info("::::UNABLE TO UPDATE CUST_DEBIT_LIMIT {}",kycTierDataDto);
             }
         }catch (Exception ex){
@@ -69,25 +69,25 @@ public class KafkaMessageConsumer {
     private void processAccountRegMessage(String message){
         try {
             RegistrationDataDto data = objectMapper.readValue(message,RegistrationDataDto.class);
-            log.info("::::DATA MAPPED TO OBJECT FOR PROCESSING:: {} ",data);
+            log.debug("::::DATA MAPPED TO OBJECT FOR PROCESSING:: {} ",data);
             if(data.isCorporate()){
-                log.info("::::ABOUT TO PROCESS CORPORATE ACCOUNT REGISTRATION:: {} ",data);
+                log.debug("::::ABOUT TO PROCESS CORPORATE ACCOUNT REGISTRATION:: {} ",data);
                 WalletUserDTO walletUserDtoRequest = getWalletUserDto(data);
-                log.info("::::MAPPED DATA:: {} ",walletUserDtoRequest);
+                log.debug("::::MAPPED DATA:: {} ",walletUserDtoRequest);
                 CompletableFuture.runAsync(() -> {
                     ResponseEntity<?> corporateReq = userAccountService.createUserAccount(walletUserDtoRequest, data.getToken());
-                    log.info(":::::PROCESS KAFKA Corporate Acct Response {} ",corporateReq);
+                    log.debug(":::::PROCESS KAFKA Corporate Acct Response {} ",corporateReq);
                 });
-               log.info("::::FINISH PROCESSING CORPORATE ACCT REG::::: {}",walletUserDtoRequest);
+               log.debug("::::FINISH PROCESSING CORPORATE ACCT REG::::: {}",walletUserDtoRequest);
             }else {
-                log.info("::::ABOUT TO PROCESS NORMAL ACCOUNT REGISTRATION:: {}",data);
+                log.debug("::::ABOUT TO PROCESS NORMAL ACCOUNT REGISTRATION:: {}",data);
                 WalletUserDTO walletUserDtoRequest = getWalletUserDto(data);
-                log.info("::::MAPPED DATA {}",walletUserDtoRequest);
+                log.debug("::::MAPPED DATA {}",walletUserDtoRequest);
                 CompletableFuture.runAsync(() -> {
                     ResponseEntity<?> corporateReq = userAccountService.createUserAccount(walletUserDtoRequest, data.getToken());
-                    log.info(":::::PROCESS KAFKA Nor Acct Resp {}",corporateReq);
+                    log.debug(":::::PROCESS KAFKA Nor Acct Resp {}",corporateReq);
                 });
-                log.info("::::FINISH PROCESSING NORMAL ACCT REG::::: {}",walletUserDtoRequest);
+                log.debug("::::FINISH PROCESSING NORMAL ACCT REG::::: {}",walletUserDtoRequest);
             }
         }catch (Exception ex){
             log.error(":::AN ERROR PROCESSING ACCOUNT REGISTRATION: {}",ex.getLocalizedMessage());

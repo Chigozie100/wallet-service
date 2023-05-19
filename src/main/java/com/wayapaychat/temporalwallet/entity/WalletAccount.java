@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.entity;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
 import javax.persistence.Column;
@@ -11,6 +12,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Version;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
@@ -27,7 +29,10 @@ import lombok.ToString;
 @NoArgsConstructor
 @ToString(exclude = {"user"})
 @Table(name = "m_wallet_account")
-public class WalletAccount {
+public class WalletAccount  implements Serializable {
+
+	@Version
+    protected int version;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)

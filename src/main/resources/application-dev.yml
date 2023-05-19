@@ -17,7 +17,7 @@
 #        show-sql: true
 #        jdbc:
 #          time_zone: UTC
-#    open-in-view: fals
+#    open-in-view: false
 #  cache:
 #    type: redis
 #    redis:
@@ -26,6 +26,8 @@
 #      use-key-prefix: true
 #      key-prefix: tokens
 #  redis:
+#    host: localhost;
+#    port: 6379
 #    timeout: 10000
 #    password: ${REDIS_PASSWORD:wIYretruTPWPmAyLgq6HNQMa0wjRG3q8}
 #    ttl: 86400000
@@ -34,6 +36,7 @@
 #      nodes:
 #        - waya-redis-staging.wp2y6q.clustercfg.memorydb.eu-west-2.amazonaws.com:6379
 #      max-redirects: 4
+#   
 #  devtools:
 #    livereload:
 #      enabled: false
@@ -84,7 +87,14 @@
 #    wayaglCode: ${CONFIG_PRODUCT_SAVINGS_CODE:21200}
 #    wayacommglCode: ${CONFIG_PRODUCT_COMMISSION_CODE:21105}
 #    wayaposCode: ${CONFIG_PRODUCT_COMMISSION_CODE:21312}
-#
+#    NIPGL: NGN000012010002
+#    PAYSTACKGL: NGN000012040002
+#  
+#  secure:
+#    auth: AUTHENTICATION-SERVICE-API
+#    authurl: https://services.staging.wayabank.ng/auth-service/api/v1
+#    log: LOGGING-SERVICE-API
+#    logurl: https://services.staging.wayabank.ng/logs-service/api/v1
 #  card:
 #    cardurl: ${CONFIG_BASEURL_CARD:https://services.staging.wayabank.ng/card-service}
 #    service: CARD-SERVICE
@@ -120,6 +130,8 @@
 #
 #ofi:
 #  financialInstitutionCode: 901037
+#  
+#
 #
 #
 #kafka:

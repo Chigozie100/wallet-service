@@ -17,6 +17,7 @@ import com.wayapaychat.temporalwallet.dto.AccountStatementDTO;
 import com.wayapaychat.temporalwallet.dto.AccountSumary;
 import com.wayapaychat.temporalwallet.dto.AccountTransChargeDTO;
 import com.wayapaychat.temporalwallet.dto.CommissionHistoryDTO;
+import com.wayapaychat.temporalwallet.dto.CustomerTransactionSumary;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.mapper.AccountLookUpMapper;
@@ -24,6 +25,7 @@ import com.wayapaychat.temporalwallet.mapper.AccountStatementMapper;
 import com.wayapaychat.temporalwallet.mapper.AccountSumaryMapper;
 import com.wayapaychat.temporalwallet.mapper.AccountTransChargeMapper;
 import com.wayapaychat.temporalwallet.mapper.CommissionHistoryMapper;
+import com.wayapaychat.temporalwallet.mapper.CustomerTransactionSumaryMapper;
 import com.wayapaychat.temporalwallet.mapper.TransWalletMapper;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
 import lombok.extern.slf4j.Slf4j;
@@ -420,6 +422,22 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 			log.error(ex.getMessage());
 		}
 		return mAccount;
+	}
+
+	public CustomerTransactionSumary getCustomerTransactionSumary() {
+		CustomerTransactionSumary summaryCustomerTrans = null;
+		StringBuilder query = new StringBuilder();
+		query.append("SELECT SUM(clr_bal_amt) AS total_balance, SUM(cum_cr_amt) as total_credit_balance, SUM(cum_dr_amt) AS total_debit_balance ");
+		query.append("FROM m_wallet_account ");
+		query.append("WHERE account_no NOT LIKE 'NGN%'");
+		String sql = query.toString();
+		try {
+			CustomerTransactionSumaryMapper rowMapper = new CustomerTransactionSumaryMapper();
+			summaryCustomerTrans = jdbcTemplate.queryForObject(sql, rowMapper);
+		} catch (Exception ex) {
+			log.error(ex.getMessage());
+		}
+		return summaryCustomerTrans;
 	}
 
 	public AccountLookUp GetAccountLookUp(String account) {

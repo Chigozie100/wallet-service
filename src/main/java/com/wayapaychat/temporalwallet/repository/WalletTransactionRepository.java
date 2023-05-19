@@ -37,6 +37,9 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
     @Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.relatedTransId) = UPPER(:tranId) " + " AND u.del_flg = false")
     Optional<List<WalletTransaction>> findByRelatedTrans(String tranId);
 
+    @Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.relatedTransId) = UPPER(:tranId) AND u.acctNum = UPPER(:accountNo) " + " AND u.del_flg = false")
+    Optional<List<WalletTransaction>> findByRelatedTransAcccount(String tranId, String accountNo);
+
     @Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.tranId) = UPPER(:tranId) " + " AND u.del_flg = false" + " AND u.tranCrncyCode = UPPER(:tranCrncy)" + " AND u.tranDate = (:tranDate)" + " AND u.acctNum = UPPER(:accountNo)")
     WalletTransaction findByAcctNumTran(String accountNo, String tranId, LocalDate tranDate, String tranCrncy);
 
@@ -127,16 +130,16 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
     @Query("SELECT u FROM WalletTransaction u  " + " WHERE u.del_flg = false" + " AND u.tranDate BETWEEN  (:fromtranDate)" + " AND (:totranDate)" + "AND UPPER(u.acctNum) = UPPER(:acctNo)" + " order by u.tranDate DESC ")
     List<WalletTransaction> findByAllTransactionsWithDateRangeaAndAccount(LocalDate fromtranDate, LocalDate totranDate, String acctNo);
 
-    @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C' AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = 'NGN000012020001')")
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C' AND u.acctNum NOT LIKE 'NGN%' AND u.del_flg = false ")
     BigDecimal totalCustomersDeposit();
 
-    @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = 'NGN000012020001')")
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND u.acctNum NOT LIKE 'NGN%' AND u.del_flg = false ")
     BigDecimal totalCustomersWithdrawal();
 
-    @Query("SELECT count(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C' AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = 'NGN000012020001')")
+    @Query("SELECT count(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C' AND u.acctNum NOT LIKE 'NGN%'  AND u.del_flg = false ")
     long countCustomersDeposit();
 
-    @Query("SELECT count(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = 'NGN000012020001')")
+    @Query("SELECT count(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND u.acctNum NOT LIKE 'NGN%' AND u.del_flg = false ")
     long countCustomersWithdrawal();
 
     @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C' AND u.acctNum IN (SELECT t.accountNo FROM WalletAccount t WHERE t.accountNo = :account)")
@@ -177,6 +180,10 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
     @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C' "
             + "AND UPPER(u.acctNum) = UPPER(:acctNo)")
     BigDecimal totalNipOutbound(String acctNo);
+    
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D'  AND UPPER(u.tranType) = UPPER('REVERSAL') "
+            + "AND UPPER(u.acctNum) = UPPER(:acctNo)")
+    BigDecimal totalNipOutboundReversed(String acctNo);
     
      @Query("SELECT count(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C '"
             + "AND UPPER(u.acctNum) = UPPER(:account)")
