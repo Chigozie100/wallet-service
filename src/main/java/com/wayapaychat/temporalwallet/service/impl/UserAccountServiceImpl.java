@@ -881,7 +881,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
             WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
             String acctNo = null;
-            String acct_name = y.getFirstName().toUpperCase() + " " + y.getLastName().toUpperCase();
+
             Integer rand = reqUtil.getAccountNo();
             if (rand == 0) {
                 return new ResponseEntity<>(new ErrorResponse("Unable to generate Wallet Account"),
@@ -937,6 +937,23 @@ public class UserAccountServiceImpl implements UserAccountService {
 
             if (accountPojo.getDescription().isEmpty()) {
                 accountPojo.setDescription("SAVINGS ACCOUNT");
+            }
+
+            //Todo: check for corporate/normal user
+            String acct_name;
+            if(user.is_corporate() ){
+                String newAccountName = y.getCust_name() + " " + accountPojo.getDescription();
+                acct_name = newAccountName;
+            }else {
+                //Todo: this will also help corporate user that corporate field is false
+                String oldName = y.getFirstName().toUpperCase() + " " + y.getLastName().toUpperCase();
+                if(!y.getCust_name().toUpperCase().contains(oldName)){
+                    //corporate
+                    String newAccountName = y.getCust_name() + " " + accountPojo.getDescription();
+                    acct_name = newAccountName;
+                }else {
+                    acct_name = oldName + " " + accountPojo.getDescription();
+                }
             }
 
             try {
