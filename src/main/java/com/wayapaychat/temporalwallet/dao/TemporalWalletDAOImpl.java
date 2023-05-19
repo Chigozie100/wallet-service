@@ -429,7 +429,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		StringBuilder query = new StringBuilder();
 		query.append("SELECT SUM(clr_bal_amt) AS total_balance, SUM(cum_cr_amt) as total_credit_balance, SUM(cum_dr_amt) AS total_debit_balance ");
 		query.append("FROM m_wallet_account ");
-		query.append("WHRE account_no NOT LIKE 'NGN%'");
+		query.append("WHERE account_no NOT LIKE 'NGN%'");
 		String sql = query.toString();
 		try {
 			CustomerTransactionSumaryMapper rowMapper = new CustomerTransactionSumaryMapper();
