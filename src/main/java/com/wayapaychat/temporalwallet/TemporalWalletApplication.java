@@ -32,13 +32,4 @@ public class TemporalWalletApplication {
         return new RestTemplate();
     }
 
-
-	@Bean
-	public ObjectMapper objectMapper(){
-		ObjectMapper objectMapper = new ObjectMapper();
-		objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-		objectMapper.configure(DeserializationFeature.ACCEPT_EMPTY_STRING_AS_NULL_OBJECT,true);
-		return objectMapper;
-	}
-
 }
