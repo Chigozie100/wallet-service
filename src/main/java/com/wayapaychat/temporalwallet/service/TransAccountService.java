@@ -21,6 +21,7 @@ import com.wayapaychat.temporalwallet.entity.WalletTransaction;
 import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
 import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
+import com.wayapaychat.temporalwallet.response.TransactionsResponse;
 
 public interface TransAccountService {
 
@@ -32,7 +33,7 @@ public interface TransAccountService {
 
     ApiResponse<Page<WalletTransaction>> findAllTransaction(int page, int size);
 
-    ApiResponse<List<WalletTransaction>> findClientTransaction(String tranId);
+    TransactionsResponse findClientTransaction(String tranId);
 
     ApiResponse<List<AccountStatementDTO>> ReportTransaction(String accountNo);
 

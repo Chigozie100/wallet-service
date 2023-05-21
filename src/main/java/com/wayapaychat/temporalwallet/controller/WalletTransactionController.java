@@ -40,6 +40,7 @@ import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
 import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
 import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
+import com.wayapaychat.temporalwallet.response.TransactionsResponse;
 import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
 
@@ -301,7 +302,7 @@ public class WalletTransactionController {
         "TRANSACTION-WALLET"})
     @GetMapping("/account/transactions/{tranId}")
     public ResponseEntity<?> findClientTransaction(@PathVariable("tranId") String tranId) {
-        ApiResponse<?> res = transAccountService.findClientTransaction(tranId);
+        TransactionsResponse res = transAccountService.findClientTransaction(tranId);
         if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
