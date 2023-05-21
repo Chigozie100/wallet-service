@@ -34,6 +34,8 @@ public interface TransAccountService {
     ApiResponse<Page<WalletTransaction>> findAllTransaction(int page, int size);
 
     TransactionsResponse findClientTransaction(String tranId);
+    
+    TransactionsResponse findAllTransactionEntries(String tranId);
 
     ApiResponse<List<AccountStatementDTO>> ReportTransaction(String accountNo);
 

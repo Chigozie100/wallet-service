@@ -309,6 +309,19 @@ public class WalletTransactionController {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
+    @ApiOperation(value = "Find Transaction by tranId", notes = "find client transaction", tags = {
+        "TRANSACTION-WALLET"})
+    @GetMapping("/account/transactions/entries/{tranId}")
+    public ResponseEntity<?> findAllTransactionEntries(@PathVariable("tranId") String tranId) {
+        TransactionsResponse res = transAccountService.findAllTransactionEntries(tranId);
+        if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+
     // Wallet call by other service
     @ApiImplicitParams({
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})

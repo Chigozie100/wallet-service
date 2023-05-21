@@ -1164,6 +1164,16 @@ public class TransAccountServiceImpl implements TransAccountService {
         }
         return new TransactionsResponse(true, ApiResponse.Code.SUCCESS, "SUCCESS", transaction.get());
     }
+
+    public TransactionsResponse findAllTransactionEntries(String tranId) {
+        Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByRelatedTrans(tranId);
+        if (transaction.isEmpty()) {
+            return new TransactionsResponse(false, ApiResponse.Code.NOT_FOUND, "UNABLE TO GENERATE STATEMENT", null);
+        }
+        return new TransactionsResponse(true, ApiResponse.Code.SUCCESS, "SUCCESS", transaction.get());
+    }
+
+    
     
     public ApiResponse<List<AccountStatementDTO>> ReportTransaction(String accountNo) {
         List<AccountStatementDTO> transaction = tempwallet.TransactionReport(accountNo);
