@@ -49,7 +49,7 @@ public class KafkaMessageProducer implements MessageQueueProducer {
             @Override
             public void onSuccess(SendResult<String, Object> result) {
                 //persist in app event as a successful event
-                logger.info("Success:: notification sent to the event queue");
+                logger.info("Success:: notification sent to the event queue {}",result);
             }
 
             /**

@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.entity;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -13,6 +14,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
+import javax.persistence.Version;
 import javax.validation.constraints.NotNull;
 
 import org.hibernate.annotations.CreationTimestamp;
@@ -36,7 +38,10 @@ import lombok.ToString;
 @Table(name = "m_wallet_transaction", uniqueConstraints = {
     @UniqueConstraint(name = "UniqueTranIdAndAcctNumberAndDelFlgAndDate",
             columnNames = {"tranId", "acctNum", "del_flg", "tranDate", "tranPart"})})
-public class WalletTransaction {
+public class WalletTransaction   implements Serializable  {
+
+	@Version
+    protected int version;
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -81,7 +86,7 @@ public class WalletTransaction {
     @Column(nullable = true)
     private Integer tranPart;
 
-    private String relatedTransId;
+    private Long relatedTransId;
 
     @CreationTimestamp
     @ApiModelProperty(hidden = true)
@@ -157,7 +162,7 @@ public class WalletTransaction {
         this.receiverName = receiverName;
     }
 
-    public WalletTransaction(@NotNull String relatedTransId, @NotNull String tranId, @NotNull String acctNum,
+    public WalletTransaction(@NotNull Long relatedTransId, @NotNull String tranId, @NotNull String acctNum,
             @NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType,
             @NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
             @NotNull String partTranType, String tranGL, String paymentReference,
@@ -187,7 +192,7 @@ public class WalletTransaction {
     public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
             @NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType,
             @NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
-            @NotNull String partTranType, String tranGL, String paymentReference, String relatedTransId,
+            @NotNull String partTranType, String tranGL, String paymentReference, Long relatedTransId,
             String createdBy, String createdEmail, Integer tranPart, CategoryType tranCategory) {
         super();
         this.del_flg = false;

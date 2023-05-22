@@ -40,6 +40,7 @@ import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
 import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
 import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
+import com.wayapaychat.temporalwallet.response.TransactionsResponse;
 import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
 
@@ -301,7 +302,20 @@ public class WalletTransactionController {
         "TRANSACTION-WALLET"})
     @GetMapping("/account/transactions/{tranId}")
     public ResponseEntity<?> findClientTransaction(@PathVariable("tranId") String tranId) {
-        ApiResponse<?> res = transAccountService.findClientTransaction(tranId);
+        TransactionsResponse res = transAccountService.findClientTransaction(tranId);
+        if (!res.getStatus()) {
+            return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
+    @ApiOperation(value = "Find Transaction by tranId", notes = "find client transaction", tags = {
+        "TRANSACTION-WALLET"})
+    @GetMapping("/account/transactions/entries/{tranId}")
+    public ResponseEntity<?> findAllTransactionEntries(@PathVariable("tranId") String tranId) {
+        TransactionsResponse res = transAccountService.findAllTransactionEntries(tranId);
         if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
@@ -738,8 +752,8 @@ public class WalletTransactionController {
         @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Total Overall Based Transactions", notes = "Total Overall Based Transactions", tags = {"TRANSACTION-WALLET"})
     @GetMapping("/transaction/analysis")
-    public ResponseEntity<?> transactionFilterDate(@RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromdate,
-            @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate todate) {
+    public ResponseEntity<?> transactionFilterDate(@RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
+            @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate) {
         return transAccountService.transactionAnalysisFilterDate(fromdate, todate);
     }
 }

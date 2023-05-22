@@ -1,105 +1,109 @@
-server:
-  port: 80
-  servlet:
-    context-path: /
-spring:
-   application:
-      name: temporal-service
-      
-   jpa:
-     hibernate:
-       ddl-auto: update
-     properties:
-       hibernate:
-          dialect: org.hibernate.dialect.PostgreSQLDialect
-          show-sql: true
-          jdbc:
-            time_zone: UTC
-     open-in-view: false
-   cache:
-    type: redis
-    redis:
-      time-to-live: 2400000
-      cache-null-values: false
-      use-key-prefix: true
-      key-prefix: tokens
-   redis:
-    timeout: 10000
-    password: ${REDIS_PASSWORD:wIYretruTPWPmAyLgq6HNQMa0wjRG3q8}
-    ttl: 86400000
-    connect-timeout: 10000
-    cluster:
-      nodes:
-        - waya-redis-staging.wp2y6q.clustercfg.memorydb.eu-west-2.amazonaws.com:6379
-      max-redirects: 4
-
-   devtools:
-       livereload:
-           enabled: false
-   jackson:
-      serialization:
-         fail-on-empty-beans: false
-         
-   datasource:
-        url:  jdbc:postgresql://postgresdb:5432/temporal-service?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
-        username: root
-        password: pONvagaJf3BTbu9l
-        driver-class-name: org.postgresql.Driver
-   flyway:
-      baselineOnMigrate: true
-      locations: classpath:db/migration
-      schemas: public
-      enabled: true
-
-#Scheduled Jobs
-job:
-  cron:
-    nonewaya: 0/5 * * * * ? #5am every day
-
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: https://services.staging.wayabank.ng/eureka
-    service-url:
-      default-zone: https://services.staging.wayabank.ng/eureka
-  instance:
-    preferIpAddress: true
-
-waya:
-   wallet:
-       auth: AUTHENTICATION-SERVICE
-       authurl: ${CONFIG_BASEURL_AUTH:https://services.staging.wayabank.ng/auth-service/api/v1} 
-       mifos: MIFOS-WALLET-SERVICE
-       mifosurl: ${CONFIG_BASEURL_MWALLET:https://services.staging.wayabank.ng/wallet-service}
-       productcode: ${CONFIG_PRODUCT_SAVINGS:SB601}
-       commissioncode: ${CONFIG_PRODUCT_COMMISSION:SB901}
-       wayaglCode: ${CONFIG_PRODUCT_SAVINGS_CODE:21200}
-       wayacommglCode: ${CONFIG_PRODUCT_COMMISSION_CODE:21105}
-       
-   card:
-     cardurl: ${CONFIG_BASEURL_CARD:https://services.staging.wayabank.ng/card-service}
-     service: CARD-SERVICE
-     contacturl: ${CONFIG_BASEURL_CONTACT:https://services.staging.wayabank.ng/contact-service}
-   contact:
-      service: CONTACT-SERVICE
-   account:
-       accounturl: ${CONFIG_BASEURL_VIRACCOUNT:https://services.staging.wayabank.ng/account-service}
-       service: ACCOUNT-SERVICE
-#   sms:
-#     atalking: ${AFRICATALKING}
-#     infobip: ${INFOBIP}
-#     twilio: ${TWILIO}
-   notification:
-      service: NOTIFICATION-SERVICE
-      notificationurl: ${CONFIG_BASEURL_NOTIFICATION:https://services.staging.wayabank.ng/notification-service}
-   receipt:
-      service: RECEIPT-SERVICE
-      receipturl: ${CONFIG_BASEURL_RECEIPT:https://services.staging.wayabank.ng/transaction-receipt}
-   service:
-     username: tbaadm@wayapaychat.com
-     password: fintemp@#123
-     keysecret: d2F5YXByb2QxNzI2MjAyMg==
-     keytemporal: MWtLMW01czA3SFpMc2dpRWlhR2psQTV2SjdISTJqNUcxU3d5UmlKbmFXMTA2alJnK1NuVzBBUDMySTVKQ0hlRQ==
-     keymifos: bzVkbElFTWl2MmkwUEcxNFd0eXU4ZzV2SjdISTJqNUcxU3d5UmlKbmFXMnROQWE0V1drWDRMY1EyZ2R4d2hXRQ==
-     officialEmail: info@wayabank.ng
-     officialPhone: 2347030355396
+#server:
+#  port: 80
+#  servlet:
+#    context-path: /
+#spring:
+#   application:
+#      name: temporal-service
+#
+#   jpa:
+#     hibernate:
+#       ddl-auto: update
+#     properties:
+#       hibernate:
+#          dialect: org.hibernate.dialect.PostgreSQLDialect
+#          show-sql: true
+#          jdbc:
+#            time_zone: UTC
+#     open-in-view: false
+#   cache:
+#    type: redis
+#    redis:
+#      time-to-live: 2400000
+#      cache-null-values: false
+#      use-key-prefix: true
+#      key-prefix: tokens
+#   redis:
+#    timeout: 10000
+#    password: ${REDIS_PASSWORD:wIYretruTPWPmAyLgq6HNQMa0wjRG3q8}
+#    ttl: 86400000
+#    connect-timeout: 10000
+#    cluster:
+#      nodes:
+#        - waya-redis-staging.wp2y6q.clustercfg.memorydb.eu-west-2.amazonaws.com:6379
+#      max-redirects: 4
+#
+#   devtools:
+#       livereload:
+#           enabled: false
+#   jackson:
+#      serialization:
+#         fail-on-empty-beans: false
+#
+#   datasource:
+#        url:  jdbc:postgresql://postgresdb:5432/temporal-service?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+#        username: root
+#        password: pONvagaJf3BTbu9l
+#        driver-class-name: org.postgresql.Driver
+#   flyway:
+#      baselineOnMigrate: true
+#      locations: classpath:db/migration
+#      schemas: public
+#      enabled: true
+#
+##Scheduled Jobs
+#job:
+#  cron:
+#    nonewaya: 0/5 * * * * ? #5am every day
+#
+#eureka:
+#  client:
+#    serviceUrl:
+#      defaultZone: https://services.staging.wayabank.ng/eureka
+#    service-url:
+#      default-zone: https://services.staging.wayabank.ng/eureka
+#  instance:
+#    preferIpAddress: true
+#
+#waya:
+#   wallet:
+#       auth: AUTHENTICATION-SERVICE
+#       authurl: ${CONFIG_BASEURL_AUTH:https://services.staging.wayabank.ng/auth-service/api/v1}
+#       mifos: MIFOS-WALLET-SERVICE
+#       mifosurl: ${CONFIG_BASEURL_MWALLET:https://services.staging.wayabank.ng/wallet-service}
+#       productcode: ${CONFIG_PRODUCT_SAVINGS:SB601}
+#       commissioncode: ${CONFIG_PRODUCT_COMMISSION:SB901}
+#       wayaglCode: ${CONFIG_PRODUCT_SAVINGS_CODE:21200}
+#       wayacommglCode: ${CONFIG_PRODUCT_COMMISSION_CODE:21105}
+#
+#   card:
+#     cardurl: ${CONFIG_BASEURL_CARD:https://services.staging.wayabank.ng/card-service}
+#     service: CARD-SERVICE
+#     contacturl: ${CONFIG_BASEURL_CONTACT:https://services.staging.wayabank.ng/contact-service}
+#   contact:
+#      service: CONTACT-SERVICE
+#   account:
+#       accounturl: ${CONFIG_BASEURL_VIRACCOUNT:https://services.staging.wayabank.ng/account-service}
+#       service: ACCOUNT-SERVICE
+##   sms:
+##     atalking: ${AFRICATALKING}
+##     infobip: ${INFOBIP}
+##     twilio: ${TWILIO}
+#   notification:
+#      service: NOTIFICATION-SERVICE
+#      notificationurl: ${CONFIG_BASEURL_NOTIFICATION:https://services.staging.wayabank.ng/notification-service}
+#   receipt:
+#      service: RECEIPT-SERVICE
+#      receipturl: ${CONFIG_BASEURL_RECEIPT:https://services.staging.wayabank.ng/transaction-receipt}
+#   service:
+#     username: tbaadm@wayapaychat.com
+#     password: fintemp@#123
+#     keysecret: d2F5YXByb2QxNzI2MjAyMg==
+#     keytemporal: MWtLMW01czA3SFpMc2dpRWlhR2psQTV2SjdISTJqNUcxU3d5UmlKbmFXMTA2alJnK1NuVzBBUDMySTVKQ0hlRQ==
+#     keymifos: bzVkbElFTWl2MmkwUEcxNFd0eXU4ZzV2SjdISTJqNUcxU3d5UmlKbmFXMnROQWE0V1drWDRMY1EyZ2R4d2hXRQ==
+#     officialEmail: info@wayabank.ng
+#     officialPhone: 2347030355396
+#
+#kafka:
+#  bootstrapServers: http://localhost:9092
+#  groupId: waya
