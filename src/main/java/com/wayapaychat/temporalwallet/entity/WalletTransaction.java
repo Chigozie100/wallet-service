@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.wayapaychat.temporalwallet.enumm.CategoryType;
@@ -93,6 +94,7 @@ public class WalletTransaction implements Serializable {
     @Column(nullable = true)
     private Integer tranPart;
 
+    @JsonSerialize(using=ToStringSerializer.class)
     private Long relatedTransId;
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
