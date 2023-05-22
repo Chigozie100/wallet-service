@@ -19,6 +19,7 @@ import javax.validation.constraints.NotNull;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.wayapaychat.temporalwallet.enumm.CategoryType;
 import com.wayapaychat.temporalwallet.enumm.TransactionTypeEnum;
 
@@ -40,6 +41,7 @@ import lombok.ToString;
             columnNames = {"tranId", "acctNum", "del_flg", "tranDate", "tranPart"})})
 public class WalletTransaction   implements Serializable  {
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	@Version
     protected int version;
 
