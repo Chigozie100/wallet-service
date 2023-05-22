@@ -90,6 +90,8 @@ public class TransactionDTO {
         this.receiverName = trans.getReceiverName();
         this.relatedTransId = trans.getRelatedTransId();
         this.tranCategory = trans.getTranCategory();
+        this.createdAt = trans.getCreatedAt();
+        this.updatedAt = trans.getUpdatedAt();
         
     }
 }
