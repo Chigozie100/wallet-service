@@ -19,7 +19,12 @@ import javax.validation.constraints.NotNull;
 
 import org.hibernate.annotations.CreationTimestamp;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.wayapaychat.temporalwallet.enumm.CategoryType;
 import com.wayapaychat.temporalwallet.enumm.TransactionTypeEnum;
 
@@ -37,12 +42,12 @@ import lombok.ToString;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "m_wallet_transaction", uniqueConstraints = {
-    @UniqueConstraint(name = "UniqueTranIdAndAcctNumberAndDelFlgAndDate",
-            columnNames = {"tranId", "acctNum", "del_flg", "tranDate", "tranPart"})})
-public class WalletTransaction   implements Serializable  {
+        @UniqueConstraint(name = "UniqueTranIdAndAcctNumberAndDelFlgAndDate", columnNames = { "tranId", "acctNum",
+                "del_flg", "tranDate", "tranPart" }) })
+public class WalletTransaction implements Serializable {
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-	@Version
+    @Version
     protected int version;
 
     @Id
@@ -90,10 +95,16 @@ public class WalletTransaction   implements Serializable  {
 
     private Long relatedTransId;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @CreationTimestamp
     @ApiModelProperty(hidden = true)
     private LocalDateTime createdAt;
 
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     @CreationTimestamp
     @ApiModelProperty(hidden = true)
     private LocalDateTime updatedAt;
@@ -168,7 +179,8 @@ public class WalletTransaction   implements Serializable  {
             @NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType,
             @NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
             @NotNull String partTranType, String tranGL, String paymentReference,
-            String createdBy, String createdEmail, Integer tranPart, CategoryType tranCategory, String senderName, String receiverName) {
+            String createdBy, String createdEmail, Integer tranPart, CategoryType tranCategory, String senderName,
+            String receiverName) {
         super();
         this.del_flg = false;
         this.posted_flg = true;
