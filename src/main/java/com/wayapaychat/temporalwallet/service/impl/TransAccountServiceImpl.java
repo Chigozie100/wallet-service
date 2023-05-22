@@ -55,6 +55,7 @@ import com.wayapaychat.temporalwallet.response.Analysis;
 import com.wayapaychat.temporalwallet.response.CategoryAnalysis;
 import com.wayapaychat.temporalwallet.response.OverallAnalysis;
 import com.wayapaychat.temporalwallet.response.TransactionAnalysis;
+import com.wayapaychat.temporalwallet.response.TransactionsResponse;
 
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
@@ -1153,13 +1154,23 @@ public class TransAccountServiceImpl implements TransAccountService {
         return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", transaction);
     }
     
-    public ApiResponse<List<WalletTransaction>> findClientTransaction(String tranId) {
+    public TransactionsResponse findClientTransaction(String tranId) {
         Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
         if (transaction.isEmpty()) {
-            return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "UNABLE TO GENERATE STATEMENT", null);
+            return new TransactionsResponse(false, ApiResponse.Code.NOT_FOUND, "UNABLE TO GENERATE STATEMENT", null);
         }
-        return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", transaction.get());
+        return new TransactionsResponse(true, ApiResponse.Code.SUCCESS, "SUCCESS", transaction.get());
     }
+
+    public TransactionsResponse findAllTransactionEntries(String tranId) {
+        Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByRelatedTrans(tranId);
+        if (transaction.isEmpty()) {
+            return new TransactionsResponse(false, ApiResponse.Code.NOT_FOUND, "UNABLE TO GENERATE STATEMENT", null);
+        }
+        return new TransactionsResponse(true, ApiResponse.Code.SUCCESS, "SUCCESS", transaction.get());
+    }
+
+    
     
     public ApiResponse<List<AccountStatementDTO>> ReportTransaction(String accountNo) {
         List<AccountStatementDTO> transaction = tempwallet.TransactionReport(accountNo);
