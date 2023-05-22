@@ -15,6 +15,7 @@ import javax.persistence.Table;
 import javax.persistence.Version;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -31,6 +32,7 @@ import lombok.ToString;
 @Table(name = "m_wallet_account")
 public class WalletAccount  implements Serializable {
 
+	@JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
 	@Version
     protected int version;
 
