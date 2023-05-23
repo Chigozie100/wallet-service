@@ -1,6 +1,9 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
+import com.wayapaychat.temporalwallet.dto.AccountSumary;
+import com.wayapaychat.temporalwallet.dto.ReferralTransDto;
 import com.wayapaychat.temporalwallet.dto.TransactionCountDto;
+import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
 import com.wayapaychat.temporalwallet.pojo.TransactionReport;
 import com.wayapaychat.temporalwallet.entity.TransactionCount;
 import com.wayapaychat.temporalwallet.entity.WalletUser;
@@ -10,14 +13,16 @@ import com.wayapaychat.temporalwallet.service.MessageQueueProducer;
 import com.wayapaychat.temporalwallet.service.TransactionCountService;
 import com.wayapaychat.temporalwallet.util.Constant;
 import com.wayapaychat.temporalwallet.util.SuccessResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 
-@Service
+@Service @Slf4j
 public class TransactionCountServiceImpl implements TransactionCountService {
 
     private final TransactionCountRepository transactionCountRepository;
@@ -61,14 +66,23 @@ public class TransactionCountServiceImpl implements TransactionCountService {
     }
 
     @Override
-    public void makeCount(String userId, String transactionRef) {
-
-        Map<String, Object> map = new HashMap<>();
-        map.put("userId", userId);
-        map.put("transactionId", transactionRef);
-
+    public void pushTransactionToReferralService(AccountSumary accountSumary, CBAEntryTransaction transaction) {
+        ReferralTransDto referralTransDto = new ReferralTransDto();
+        referralTransDto.setTransactionType(transaction.getTranType().name());
+        referralTransDto.setTransactionCategory(transaction.getTransactionCategory().name());
+        referralTransDto.setTransactionReferenceNumber(transaction.getPaymentReference());
+        referralTransDto.setUserId(accountSumary.getUId());
+        referralTransDto.setAccountNo(accountSumary.getAccountNo());
+        referralTransDto.setEmail(accountSumary.getEmail());
+        referralTransDto.setPhone(accountSumary.getPhone());
+        referralTransDto.setCustName(accountSumary.getCustName());
+        referralTransDto.setAmount(transaction.getAmount());
         // push to kafka
-        MessageQueueProducer.send(Constant.REFERRAL_TRANSACTION_COUNT, map);
+        log.info("::::PUSHING TRANSACTION DTO TO REFERRAL SERVICE KAFKA QUEUE::: {}",referralTransDto);
+        CompletableFuture.runAsync(() ->{
+            MessageQueueProducer.send(Constant.REFERRAL_TRANSACTION_COUNT, referralTransDto);
+            log.info(":::SUCCESS, PUBLISHING REFERRAL TXN TO REFERRAL-SERVICE KAFKA QUEUE::::: {}",referralTransDto);
+        });
     }
 
     @Override
