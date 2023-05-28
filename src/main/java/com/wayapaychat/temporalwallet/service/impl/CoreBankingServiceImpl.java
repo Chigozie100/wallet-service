@@ -740,7 +740,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return;
         }
 
-        transactionCountService.pushTransactionToReferralService(account, transactionPojo);
+        transactionCountService.pushTransactionToEventQueue(account, transactionPojo, currentBalance);
 
         String systemToken = tokenImpl.getToken();
         if (systemToken == null) {
