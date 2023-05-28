@@ -936,4 +936,15 @@ public class AdminController {
         return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
     }
 
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Fetch single user transactions analysis for referral commission", notes = "customer transactions analysis for referral commission", tags = {
+            "ADMIN" })
+    @GetMapping("/user/trns/analysis/{userId}")
+    public ResponseEntity<ApiResponse<?>> fetchUserTransactionStatForReferral(@PathVariable String userId, @RequestParam String accountNumber){
+        ApiResponse<?> response = userAccountService.fetchUserTransactionStatForReferral(userId,accountNumber);
+        return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
+    }
+
 }
