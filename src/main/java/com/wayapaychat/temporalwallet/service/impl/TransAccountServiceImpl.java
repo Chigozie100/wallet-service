@@ -2529,7 +2529,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         
         log.info("sender" + sender);
         String message = "" + "\n";
-        message = message + "" + "Message :" + "A bank withdrawl has occurred"
+        message = message + "" + "Message :" + "A bank withdrawal has occurred"
                 + " see details below" + "\n";
         message = message + "" + "Amount :" + amount + "\n";
         message = message + "" + "tranId :" + tranId + "\n";
