@@ -4,6 +4,11 @@
  */
 package com.wayapaychat.temporalwallet.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.wayapaychat.temporalwallet.entity.WalletTransaction;
 import com.wayapaychat.temporalwallet.enumm.CategoryType;
 import com.wayapaychat.temporalwallet.enumm.TransactionTypeEnum;
@@ -44,8 +49,17 @@ public class TransactionDTO {
     private String tranGL;
     private Integer tranPart;
     private Long relatedTransId;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime createdAt;
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime updatedAt;
+    
     private CategoryType tranCategory;
     private String createdBy;
     private String createdEmail;
@@ -76,6 +90,8 @@ public class TransactionDTO {
         this.receiverName = trans.getReceiverName();
         this.relatedTransId = trans.getRelatedTransId();
         this.tranCategory = trans.getTranCategory();
+        this.createdAt = trans.getCreatedAt();
+        this.updatedAt = trans.getUpdatedAt();
         
     }
 }

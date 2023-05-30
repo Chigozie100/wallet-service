@@ -7,6 +7,7 @@ import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.*;
+import com.wayapaychat.temporalwallet.enumm.CategoryType;
 import com.wayapaychat.temporalwallet.enumm.ResponseCodes;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
@@ -64,6 +65,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     private final UserPricingService userPricingService;
     private final CoreBankingService coreBankingService;
     private final SwitchWalletService switchWalletService;
+    private final WalletTransactionRepository walletTransactionRepository;
     @Autowired
     private KafkaMessageConsumer kafkaMessageConsumer;
     @Autowired
@@ -106,7 +108,8 @@ public class UserAccountServiceImpl implements UserAccountService {
             WalletTellerRepository walletTellerRepository, TemporalWalletDAO tempwallet,
             WalletEventRepository walletEventRepo,
             TokenImpl tokenService, UserPricingService userPricingService,
-            CoreBankingService coreBankingService, SwitchWalletService switchWalletService) {
+            CoreBankingService coreBankingService, SwitchWalletService switchWalletService,
+                                  WalletTransactionRepository walletTransactionRepository) {
         this.walletUserRepository = walletUserRepository;
         this.walletAccountRepository = walletAccountRepository;
         this.walletProductRepository = walletProductRepository;
@@ -121,6 +124,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         this.userPricingService = userPricingService;
         this.coreBankingService = coreBankingService;
         this.switchWalletService = switchWalletService;
+        this.walletTransactionRepository = walletTransactionRepository;
     }
 
     public String generateRandomNumber(int length) {
@@ -881,7 +885,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
             WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
             String acctNo = null;
-            String acct_name = y.getFirstName().toUpperCase() + " " + y.getLastName().toUpperCase();
+
             Integer rand = reqUtil.getAccountNo();
             if (rand == 0) {
                 return new ResponseEntity<>(new ErrorResponse("Unable to generate Wallet Account"),
@@ -937,6 +941,23 @@ public class UserAccountServiceImpl implements UserAccountService {
 
             if (accountPojo.getDescription().isEmpty()) {
                 accountPojo.setDescription("SAVINGS ACCOUNT");
+            }
+
+            //Todo: check for corporate/normal user
+            String acct_name;
+            if(user.is_corporate() ){
+                String newAccountName = y.getCust_name() + " " + accountPojo.getDescription();
+                acct_name = newAccountName;
+            }else {
+                //Todo: this will also help corporate user that corporate field is false
+                String oldName = y.getFirstName().toUpperCase() + " " + y.getLastName().toUpperCase();
+                if(!y.getCust_name().toUpperCase().contains(oldName)){
+                    //corporate
+                    String newAccountName = y.getCust_name() + " " + accountPojo.getDescription();
+                    acct_name = newAccountName;
+                }else {
+                    acct_name = oldName + " " + accountPojo.getDescription();
+                }
             }
 
             try {
@@ -2153,6 +2174,8 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
     }
 
+
+
     @Override
     public ApiResponse<?> fetchAllUsersTransactionAnalysis() {
         try {
@@ -2225,6 +2248,102 @@ public class UserAccountServiceImpl implements UserAccountService {
             log.error("Error FetchAllUsersTransactionAnalysis {}", ex.getLocalizedMessage());
             ex.printStackTrace();
             return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, ex.getMessage(), null);
+        }
+    }
+
+
+    @Override
+    public ApiResponse<?> fetchUserTransactionStatForReferral(String user_id, String accountNo) {
+        try {
+            WalletUser user = walletUserRepository.findByUserId(Long.valueOf(user_id));
+            if (user == null) {
+                return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "USER ID DOES NOT EXIST", null);
+            }
+            List<WalletAccount> accountList = walletAccountRepository.findByUser(user);
+            if (accountList.isEmpty()) {
+                return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "NO ACCOUNT FOR USER ID", null);
+            }
+            BigDecimal totalTrans = BigDecimal.ZERO;
+            BigDecimal totalRevenue = BigDecimal.ZERO;
+            BigDecimal totalIncoming = BigDecimal.ZERO;
+            BigDecimal totalOutgoing = BigDecimal.ZERO;
+            BigDecimal overAllWithdrawal = BigDecimal.ZERO;
+            BigDecimal overAllTransfer = BigDecimal.ZERO;
+
+            BigDecimal totalAirTimeTopUp = BigDecimal.ZERO;
+            BigDecimal totalBetting = BigDecimal.ZERO;
+            BigDecimal totalUtility = BigDecimal.ZERO;
+            BigDecimal totalDataTopUp = BigDecimal.ZERO;
+            BigDecimal totalCableCount = BigDecimal.ZERO;
+            for (WalletAccount acct : accountList) {
+
+                BigDecimal airTimeTopUp = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.AIRTIME_TOPUP));
+                totalAirTimeTopUp = totalAirTimeTopUp.add(airTimeTopUp == null ? BigDecimal.ZERO : airTimeTopUp);
+
+                BigDecimal betting = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.BETTING));
+                totalBetting = totalBetting.add(betting == null ? BigDecimal.ZERO : betting);
+
+                BigDecimal utility = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.UTILITY));
+                totalUtility = totalUtility.add(utility == null ? BigDecimal.ZERO : utility);
+
+                BigDecimal dataTopUp = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.DATA_TOPUP));
+                totalDataTopUp = totalDataTopUp.add(dataTopUp == null ? BigDecimal.ZERO : dataTopUp);
+
+                BigDecimal cableCount = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.CABLE));
+                totalCableCount = totalCableCount.add(cableCount == null ? BigDecimal.ZERO : cableCount);
+
+                // over all credit/transfer
+                BigDecimal overTransfer = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(acct.getAccountNo(), CategoryType.TRANSFER));
+                overAllTransfer = overAllTransfer.add(overTransfer == null ? BigDecimal.ZERO : overTransfer);
+                // over all debit/withdrawal
+                BigDecimal overAllWith = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(acct.getAccountNo(), CategoryType.WITHDRAW));
+                overAllWithdrawal = overAllWithdrawal.add(overAllWith == null ? BigDecimal.ZERO : overAllWith);
+                //total revenue
+                BigDecimal revenue = walletTransAccountRepo.totalRevenueAmountByUser(acct.getAccountNo());
+                totalRevenue = totalRevenue.add(revenue == null ? BigDecimal.ZERO : revenue);
+                // total Withdrawal
+                BigDecimal outgoing = walletTransRepo.totalWithdrawalByCustomer(acct.getAccountNo());
+                totalOutgoing = totalOutgoing.add(outgoing == null ? BigDecimal.ZERO : outgoing);
+                // total transfer
+                BigDecimal incoming = walletTransRepo.totalDepositByCustomer(acct.getAccountNo());
+                totalIncoming = totalIncoming.add(incoming == null ? BigDecimal.ZERO : incoming);
+                //total balance
+                BigDecimal totalBalance = walletAccountRepository.totalBalanceByUser(acct.getAccountNo());
+                totalTrans = totalTrans.add(totalBalance == null ? BigDecimal.ZERO : totalBalance);
+
+            }
+            BigDecimal singleAccountWithdrawal = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.WITHDRAW));
+            BigDecimal singleAccountTransfer = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.TRANSFER));
+            BigDecimal singleAirTimeTopUp = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.AIRTIME_TOPUP));
+            BigDecimal singleBetting = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.BETTING));
+            BigDecimal singleUtility = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.UTILITY));
+            BigDecimal singleDataTopUp = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.DATA_TOPUP));
+            BigDecimal singleCableCount = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.CABLE));
+
+            UserTransactionStatsDataDto transactionStats = new UserTransactionStatsDataDto();
+            transactionStats.setTotalBalance(totalTrans);
+            transactionStats.setTotalRevenue(totalRevenue);
+            transactionStats.setTotalDeposit(totalIncoming);
+            transactionStats.setTotalWithdrawal(totalOutgoing);
+            transactionStats.setOverAllWithdrawalCount(overAllWithdrawal);
+            transactionStats.setOverAllTransferCount(overAllTransfer);
+            transactionStats.setSingleAccountTransferCount(singleAccountTransfer);
+            transactionStats.setSingleAccountWithdrawalCount(singleAccountWithdrawal);
+            transactionStats.setSingleAirTimeTopUpCount(singleAirTimeTopUp);
+            transactionStats.setSingleDataTopUpCount(singleDataTopUp);
+            transactionStats.setSingleCableCount(singleCableCount);
+            transactionStats.setSingleBettingCount(singleBetting);
+            transactionStats.setSingleUtilityCount(singleUtility);
+            transactionStats.setTotalAirTimeTopUpCount(totalAirTimeTopUp);
+            transactionStats.setTotalDataTopUpCount(totalDataTopUp);
+            transactionStats.setTotalCableCount(totalCableCount);
+            transactionStats.setTotalBettingCount(totalBetting);
+            transactionStats.setTotalUtilityCount(totalUtility);
+            return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "USER TRANSACTION STATS FETCHED....", transactionStats);
+        } catch (Exception ex) {
+            log.error(ex.getMessage());
+            return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, ex.getMessage(), null);
+
         }
     }
 

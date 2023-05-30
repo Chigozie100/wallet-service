@@ -21,6 +21,7 @@ import static org.springframework.http.HttpStatus.BAD_REQUEST;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.enumm.*;
+import com.wayapaychat.temporalwallet.pojo.*;
 import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
 import com.wayapaychat.temporalwallet.repository.*;
 import com.wayapaychat.temporalwallet.service.*;
@@ -48,16 +49,13 @@ import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.notification.CustomNotification;
-import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
-import com.wayapaychat.temporalwallet.pojo.MyData;
-import com.wayapaychat.temporalwallet.pojo.TransWallet;
-import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.proxy.AuthProxy;
 import com.wayapaychat.temporalwallet.response.Analysis;
 import com.wayapaychat.temporalwallet.response.CategoryAnalysis;
 import com.wayapaychat.temporalwallet.response.OverallAnalysis;
 import com.wayapaychat.temporalwallet.response.TransactionAnalysis;
+import com.wayapaychat.temporalwallet.response.TransactionsResponse;
 
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
@@ -1156,13 +1154,23 @@ public class TransAccountServiceImpl implements TransAccountService {
         return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", transaction);
     }
     
-    public ApiResponse<List<WalletTransaction>> findClientTransaction(String tranId) {
+    public TransactionsResponse findClientTransaction(String tranId) {
         Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByTranIdIgnoreCase(tranId);
         if (transaction.isEmpty()) {
-            return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "UNABLE TO GENERATE STATEMENT", null);
+            return new TransactionsResponse(false, ApiResponse.Code.NOT_FOUND, "UNABLE TO GENERATE STATEMENT", null);
         }
-        return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", transaction.get());
+        return new TransactionsResponse(true, ApiResponse.Code.SUCCESS, "SUCCESS", transaction.get());
     }
+
+    public TransactionsResponse findAllTransactionEntries(String tranId) {
+        Optional<List<WalletTransaction>> transaction = walletTransactionRepository.findByRelatedTrans(tranId);
+        if (transaction.isEmpty()) {
+            return new TransactionsResponse(false, ApiResponse.Code.NOT_FOUND, "UNABLE TO GENERATE STATEMENT", null);
+        }
+        return new TransactionsResponse(true, ApiResponse.Code.SUCCESS, "SUCCESS", transaction.get());
+    }
+
+    
     
     public ApiResponse<List<AccountStatementDTO>> ReportTransaction(String accountNo) {
         List<AccountStatementDTO> transaction = tempwallet.TransactionReport(accountNo);
@@ -3265,4 +3273,26 @@ public class TransAccountServiceImpl implements TransAccountService {
         return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION LIST SUCCESSFULLY", response);
         
     }
+
+    @Override
+    public ApiResponse<?> fetchUserTransactionsByReferenceNumber(String token, String referenceNumber) {
+        try {
+            TokenCheckResponse authentication = authProxy.getUserDataToken(token);
+            if(authentication.isStatus())
+                return new ApiResponse<>(false,ApiResponse.Code.UNAUTHORIZED,"UNAUTHORIZED", null);
+
+            Optional<List<WalletTransaction>> transactionList = walletTransactionRepository.findByReference(referenceNumber);
+            if(!transactionList.isPresent())
+                return new ApiResponse<>(false,ApiResponse.Code.NOT_FOUND,"Transaction not found", null);
+
+            return new ApiResponse<>(true,ApiResponse.Code.SUCCESS,"Success", transactionList.get());
+        }catch (Exception ex){
+            log.error("Error fetchUserTransactionsByReferenceNumber:: {}",ex.getLocalizedMessage());
+            ex.printStackTrace();
+            return new ApiResponse<>(false,ApiResponse.Code.BAD_REQUEST,"Oops!, unable to fetch transaction",null);
+        }
+    }
+
+
+
 }

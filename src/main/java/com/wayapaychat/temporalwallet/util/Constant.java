@@ -50,6 +50,7 @@ public class Constant {
 
     public static final String BILLS_PAYNENT = "BILLS-PAYMENT";
     public static final String REFERRAL_TRANSACTION_COUNT = "referral-transaction-count";
+    public static final String TRANSACTION_KAFKA_QUEUE = "wallet-transaction";
 
     public static final String WAYA_REDEEM = "Payment Request has been redeemed";
     public static final String RETRIEVE_DATA = "Retrieve Data";
@@ -78,7 +79,7 @@ public class Constant {
     public static final String REDEEM_NON_WAYA_TRANSACTION_ALERT = "Redeem None Waya Transaction Alert";
     public static final String TRADE_TRANSACTION_ALERT = "Trade Transaction Alert";
     
-    public static final String STATEMENT_REPORTING = "Transaction Reporting";
+    public static final String STATEMENT_REPORTING = "transaction_reporting";
 
 
 }

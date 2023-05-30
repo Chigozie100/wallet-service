@@ -143,4 +143,6 @@ public interface UserAccountService {
 
     ApiResponse<?> fetchAllUsersTransactionAnalysis();
 
+    ApiResponse<?> fetchUserTransactionStatForReferral(String user_id, String accountNo);
+
 }

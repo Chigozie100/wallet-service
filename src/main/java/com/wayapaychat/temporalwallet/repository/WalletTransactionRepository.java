@@ -25,6 +25,8 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 
     Page<WalletTransaction> findAllByAcctNum(String accountNumber, Pageable pageable);
 
+    long countByAcctNumAndTranCategory(String accountNumber, CategoryType tranCategory);
+
     @Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.tranId) = UPPER(:tranId) " + " AND u.del_flg = false" + " AND u.tranCrncyCode = UPPER(:tranCrncy)" + " AND u.tranDate = (:tranDate)")
     List<WalletTransaction> findByTransaction(String tranId, LocalDate tranDate, String tranCrncy);
 
