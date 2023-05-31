@@ -109,7 +109,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             WalletEventRepository walletEventRepo,
             TokenImpl tokenService, UserPricingService userPricingService,
             CoreBankingService coreBankingService, SwitchWalletService switchWalletService,
-                                  WalletTransactionRepository walletTransactionRepository) {
+            WalletTransactionRepository walletTransactionRepository) {
         this.walletUserRepository = walletUserRepository;
         this.walletAccountRepository = walletAccountRepository;
         this.walletProductRepository = walletProductRepository;
@@ -945,17 +945,17 @@ public class UserAccountServiceImpl implements UserAccountService {
 
             //Todo: check for corporate/normal user
             String acct_name;
-            if(user.is_corporate() ){
+            if (user.is_corporate()) {
                 String newAccountName = y.getCust_name() + " " + accountPojo.getDescription();
                 acct_name = newAccountName;
-            }else {
+            } else {
                 //Todo: this will also help corporate user that corporate field is false
                 String oldName = y.getFirstName().toUpperCase() + " " + y.getLastName().toUpperCase();
-                if(!y.getCust_name().toUpperCase().contains(oldName)){
+                if (!y.getCust_name().toUpperCase().contains(oldName)) {
                     //corporate
                     String newAccountName = y.getCust_name() + " " + accountPojo.getDescription();
                     acct_name = newAccountName;
-                }else {
+                } else {
                     acct_name = oldName + " " + accountPojo.getDescription();
                 }
             }
@@ -1289,7 +1289,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             }
 
             return new ResponseEntity<>(new SuccessResponse("Success.", accounts), HttpStatus.OK);
-        }catch(Exception ex){
+        } catch (Exception ex) {
             log.error("Exception:: {}", ex.getMessage());
             return new ResponseEntity<>(new ErrorResponse("Unable able to fetch account"), HttpStatus.NOT_FOUND);
         }
@@ -2174,8 +2174,6 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
     }
 
-
-
     @Override
     public ApiResponse<?> fetchAllUsersTransactionAnalysis() {
         try {
@@ -2250,7 +2248,6 @@ public class UserAccountServiceImpl implements UserAccountService {
             return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, ex.getMessage(), null);
         }
     }
-
 
     @Override
     public ApiResponse<?> fetchUserTransactionStatForReferral(String user_id, String accountNo) {
@@ -2345,6 +2342,19 @@ public class UserAccountServiceImpl implements UserAccountService {
             return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, ex.getMessage(), null);
 
         }
+    }
+
+    @Override
+    public ResponseEntity<?> updateAccountDescription(String accountNo, String token, String description) {
+        
+        Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
+        if (!account.isPresent()) {
+            return new ResponseEntity<>(new ErrorResponse("Unable to fetch account"), HttpStatus.BAD_REQUEST);
+        }
+           WalletAccount update = account.get();
+           update.setDescription(description);
+           walletAccountRepository.save(update);
+           return new ResponseEntity<>(new SuccessResponse("SUCCESS", update), HttpStatus.OK);
     }
 
 }
