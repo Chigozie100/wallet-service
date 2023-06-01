@@ -947,6 +947,11 @@ public class AdminController {
         return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
     }
 
+    
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Update account description", notes = "update account description", tags = {
+            "ADMIN" })
      @PostMapping("/update/account-description/{accountNumber}")
     public ResponseEntity<?> updateAccountDEscription(@PathVariable String accountNumber, @RequestParam String description,
             @RequestHeader("Authorization") String token){
