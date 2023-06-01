@@ -777,7 +777,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     account.getEmail(), _email_message.toString(), account.getUId(),
                     String.valueOf(Precision.round(transactionPojo.getAmount().doubleValue(), 2)),
                     transactionPojo.getTranId(), tranDate, transactionPojo.getTranNarration(), account.getAccountNo(),
-                    transactionType.append("alert").toString().toUpperCase(),
+                    transactionType.toString().toUpperCase(),
                     String.valueOf(Precision.round(currentBalance, 2)));
         }
 
