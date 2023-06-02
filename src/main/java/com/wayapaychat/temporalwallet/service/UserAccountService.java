@@ -143,4 +143,8 @@ public interface UserAccountService {
 
     ApiResponse<?> fetchAllUsersTransactionAnalysis();
 
+    ApiResponse<?> fetchUserTransactionStatForReferral(String user_id, String accountNo);
+    
+    ResponseEntity<?> updateAccountDescription(String accountNo, String token, String description);
+
 }
