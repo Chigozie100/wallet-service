@@ -3275,12 +3275,8 @@ public class TransAccountServiceImpl implements TransAccountService {
     }
 
     @Override
-    public ApiResponse<?> fetchUserTransactionsByReferenceNumber(String token, String referenceNumber) {
+    public ApiResponse<?> fetchUserTransactionsByReferenceNumber(String referenceNumber) {
         try {
-            TokenCheckResponse authentication = authProxy.getUserDataToken(token);
-            if(authentication.isStatus())
-                return new ApiResponse<>(false,ApiResponse.Code.UNAUTHORIZED,"UNAUTHORIZED", null);
-
             Optional<List<WalletTransaction>> transactionList = walletTransactionRepository.findByReference(referenceNumber);
             if(!transactionList.isPresent())
                 return new ApiResponse<>(false,ApiResponse.Code.NOT_FOUND,"Transaction not found", null);
@@ -3293,6 +3289,21 @@ public class TransAccountServiceImpl implements TransAccountService {
         }
     }
 
+
+    @Override
+    public ApiResponse<?> fetchTransactionsByReferenceNumber(String referenceNumber) {
+        try {
+            Optional<List<WalletTransAccount>> transactionList = walletTransAccountRepo.findByTranId(referenceNumber);
+            if(!transactionList.isPresent())
+                return new ApiResponse<>(false,ApiResponse.Code.NOT_FOUND,"Transaction not found", null);
+
+            return new ApiResponse<>(true,ApiResponse.Code.SUCCESS,"Success", transactionList.get());
+        }catch (Exception ex){
+            log.error("Error fetchUserTransactionsByReferenceNumber:: {}",ex.getLocalizedMessage());
+            ex.printStackTrace();
+            return new ApiResponse<>(false,ApiResponse.Code.BAD_REQUEST,"Oops!, unable to fetch transaction",null);
+        }
+    }
 
 
 }
