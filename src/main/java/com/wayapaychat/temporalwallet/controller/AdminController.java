@@ -948,6 +948,7 @@ public class AdminController {
     }
 
 
+
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Fetch user transaction by reference number", notes = "get user transaction by ref number", tags = {"ADMIN"})
@@ -964,6 +965,18 @@ public class AdminController {
     public ResponseEntity<?> fetchAccountTransactionByRefNumber(@PathVariable String referenceNumber) {
         ApiResponse<?> response = transAccountService.fetchTransactionsByReferenceNumber(referenceNumber);
         return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
+    }
+
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Update account description", notes = "update account description", tags = {
+            "ADMIN" })
+     @PostMapping("/update/account-description/{accountNumber}")
+    public ResponseEntity<?> updateAccountDEscription(@PathVariable String accountNumber, @RequestParam String description,
+            @RequestHeader("Authorization") String token){
+        ResponseEntity<?> response = userAccountService.updateAccountDescription(accountNumber, token, description);
+        return new ResponseEntity<>(response,HttpStatus.valueOf(response.getStatusCodeValue()));
     }
 
 }

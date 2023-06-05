@@ -1643,7 +1643,7 @@ public class TransAccountServiceImpl implements TransAccountService {
     @Override
     public ApiResponse<?> AdminSendMoneyCustomer(HttpServletRequest request, AdminWalletTransactionDTO transfer) {
         Optional<WalletUser> wallet = walletUserRepository
-                .findByEmailOrPhoneNumberOrId(transfer.getEmailOrPhoneNumberOrUserId());
+                .findByEmailOrPhoneNumber(transfer.getEmailOrPhoneNumberOrUserId());
         if (wallet.isEmpty()) {
             return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE OR ID DOES NOT EXIST", null);
         }
@@ -2537,7 +2537,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         
         log.info("sender" + sender);
         String message = "" + "\n";
-        message = message + "" + "Message :" + "A bank withdrawl has occurred"
+        message = message + "" + "Message :" + "A bank withdrawal has occurred"
                 + " see details below" + "\n";
         message = message + "" + "Amount :" + amount + "\n";
         message = message + "" + "tranId :" + tranId + "\n";
