@@ -503,12 +503,13 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		query.append("SELECT acct_num,a.payment_reference,a.tran_amount,tran_crncy_code,");
 		query.append("a.tran_date,tran_narrate,tran_type,(CASE WHEN part_tran_type = 'D' THEN 'DEBIT' ");
 		query.append("WHEN part_tran_type = 'C' THEN 'CREDIT' ELSE 'Unknown' END) AS part_tran_type,");
-		query.append("a.tran_id,(CASE WHEN event_id = 'ADMINTIL' THEN 'CASH' WHEN event_id = 'PAYSTACK' ");
-		query.append("THEN 'CARD' WHEN event_id = 'BANKPMT' THEN 'CASH' WHEN event_id = 'NONWAYAPT' ");
-		query.append("THEN 'NON-WAYA' ELSE 'TRANSFER' END) AS categoies ");
+//		query.append("a.tran_id,(CASE WHEN event_id = 'ADMINTIL' THEN 'CASH' WHEN event_id = 'PAYSTACK' ");
+//		query.append("THEN 'CARD' WHEN event_id = 'BANKPMT' THEN 'CASH' WHEN event_id = 'NONWAYAPT' ");
+//		query.append("THEN 'NON-WAYA' ELSE 'TRANSFER' END) AS categoies ");
 		query.append("FROM m_wallet_transaction a, m_accounts_transaction b WHERE processed_flg ='Y' ");
 		query.append("AND a.tran_id = b.tran_id AND acct_num = ?");
 		query.append("AND b.tran_date between ? AND ? ORDER BY a.id asc");
+                
 
 		String sql = query.toString();
 		try {
@@ -519,6 +520,7 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 
 			TransWalletMapper rowMapper = new TransWalletMapper();
 			wallet = jdbcTemplate.query(sql, rowMapper, params);
+                        log.info("REsponse:: {}", wallet);
 		} catch (Exception ex) {
 			log.error(ex.getMessage());
 		}
