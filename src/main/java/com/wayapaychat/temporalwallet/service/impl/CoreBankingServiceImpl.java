@@ -882,7 +882,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         double sufficientFunds = ownerAccount.get().getCum_cr_amt() - ownerAccount.get().getCum_dr_amt()
-                - ownerAccount.get().getLien_amt() - amount.doubleValue();
+                - ownerAccount.get().getLien_amt() - amount.doubleValue() - 50;
 
         if (sufficientFunds < 0 && ownerAccount.get().getAcct_ownership().equals("C")) {
             log.error("insufficientFunds :: {}", sufficientFunds);
