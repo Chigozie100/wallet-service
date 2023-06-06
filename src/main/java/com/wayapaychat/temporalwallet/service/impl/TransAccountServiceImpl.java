@@ -1643,7 +1643,7 @@ public class TransAccountServiceImpl implements TransAccountService {
     @Override
     public ApiResponse<?> AdminSendMoneyCustomer(HttpServletRequest request, AdminWalletTransactionDTO transfer) {
         Optional<WalletUser> wallet = walletUserRepository
-                .findByEmailOrPhoneNumber(transfer.getEmailOrPhoneNumberOrUserId());
+                .findByEmailOrPhoneNumberOrUserId(transfer.getEmailOrPhoneNumberOrUserId());
         if (wallet.isEmpty()) {
             return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE OR ID DOES NOT EXIST", null);
         }
