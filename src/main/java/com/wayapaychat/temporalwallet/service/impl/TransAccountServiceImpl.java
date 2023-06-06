@@ -3291,9 +3291,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 
     @Override
-    public ApiResponse<?> fetchTransactionsByReferenceNumber(String referenceNumber) {
+    public ApiResponse<?> fetchTransactionsByReferenceNumberAndAccountNumber(String accountNumber,String referenceNumber) {
         try {
-            Optional<List<WalletTransAccount>> transactionList = walletTransAccountRepo.findByTranId(referenceNumber);
+            Optional<WalletTransaction> transactionList = walletTransactionRepository.findFirstByAcctNumAndPaymentReference(accountNumber,referenceNumber);
             if(!transactionList.isPresent())
                 return new ApiResponse<>(false,ApiResponse.Code.NOT_FOUND,"Transaction not found", null);
 

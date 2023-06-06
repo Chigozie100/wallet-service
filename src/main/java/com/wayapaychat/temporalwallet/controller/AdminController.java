@@ -961,9 +961,10 @@ public class AdminController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Fetch user account transaction by reference number", notes = "get user account transaction by ref number", tags = {"ADMIN"})
-    @GetMapping(path = "/fetchAccountTransByReferenceNumber/{referenceNumber}")
-    public ResponseEntity<?> fetchAccountTransactionByRefNumber(@PathVariable String referenceNumber) {
-        ApiResponse<?> response = transAccountService.fetchTransactionsByReferenceNumber(referenceNumber);
+    @GetMapping(path = "/fetchTransByReferenceNumber/{referenceNumber}/accountNumber/{accountNumber}")
+    public ResponseEntity<?> fetchAccountTransactionByRefNumberAndAcctNumber(@PathVariable String referenceNumber,
+                                                                             @PathVariable String accountNumber) {
+        ApiResponse<?> response = transAccountService.fetchTransactionsByReferenceNumberAndAccountNumber(accountNumber,referenceNumber);
         return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
     }
 

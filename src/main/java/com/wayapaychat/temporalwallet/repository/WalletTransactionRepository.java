@@ -18,6 +18,7 @@ import com.wayapaychat.temporalwallet.entity.WalletTransaction;
 @Repository
 public interface WalletTransactionRepository extends JpaRepository<WalletTransaction, Long> {
 
+    Optional<WalletTransaction> findFirstByAcctNumAndPaymentReference(String accNum, String paymentReference);
     List<WalletTransaction> findByAcctNumEquals(String accountNumber);
 
     @Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.tranId) = UPPER(:value) " + " AND u.del_flg = false")

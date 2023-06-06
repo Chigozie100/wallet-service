@@ -235,5 +235,5 @@ public interface TransAccountService {
     ApiResponse<?> getAllTransactionsByAccountNo(LocalDate fromdate, LocalDate todate, String accountNo);
 
     ApiResponse<?> fetchUserTransactionsByReferenceNumber(String referenceNumber);
-    ApiResponse<?> fetchTransactionsByReferenceNumber(String referenceNumber);
+    ApiResponse<?> fetchTransactionsByReferenceNumberAndAccountNumber(String accountNumber,String referenceNumber);
 }
