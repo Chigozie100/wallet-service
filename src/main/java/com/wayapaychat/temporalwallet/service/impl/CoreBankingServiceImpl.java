@@ -724,8 +724,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     @Override
     public void addLien(WalletAccount account, BigDecimal amount) {
-
-        account.setLien_amt(amount.doubleValue());
+        double lienAmt = account.getLien_amt() + amount.doubleValue();
+        account.setLien_amt(lienAmt);
         walletAccountRepository.saveAndFlush(account);
 
     }
