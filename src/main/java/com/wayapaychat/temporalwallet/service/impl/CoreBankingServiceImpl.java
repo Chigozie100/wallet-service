@@ -397,13 +397,12 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         Optional<List<WalletTransaction>> transaction = walletTransactionRepository
                 .findByReferenceAndAccount(transferTransactionRequestData.getPaymentReference(), customerAccount);
 
-        if (transaction.isEmpty()) {
-            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
-                    HttpStatus.BAD_REQUEST);
+        if(WalletTransStatus.SUCCESSFUL.equals(transactionStatus) && transaction.isPresent()){
+            return new ResponseEntity<>(new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue(), transaction),
+                HttpStatus.CREATED);
         }
 
-        return new ResponseEntity<>(new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue(), transaction),
-                HttpStatus.CREATED);
+        return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()), HttpStatus.BAD_REQUEST);        
 
     }
 
