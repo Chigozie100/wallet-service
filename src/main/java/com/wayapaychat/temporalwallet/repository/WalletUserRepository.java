@@ -35,7 +35,7 @@ public interface WalletUserRepository extends JpaRepository<WalletUser, Long> {
 	WalletUser findByAccount(WalletAccount account);
 	
 	@Query(value = "SELECT u FROM WalletUser u " + "WHERE (UPPER(u.emailAddress) = UPPER(:value) OR  u.mobileNo LIKE CONCAT('%', :value) OR u.userId = (:value) ) AND u.del_flg = false")
-	Optional<WalletUser> findByEmailOrPhoneNumberOrId(@Param("value") String value);
+	Optional<WalletUser> findByEmailOrPhoneNumberOrUserId(@Param("value") String value);
 
 	@Query(value = "SELECT u FROM WalletUser u " + "WHERE (UPPER(u.emailAddress) = UPPER(:value) OR  u.mobileNo LIKE CONCAT('%', :value)) AND u.del_flg = false")
 	Optional<WalletUser> findByEmailOrPhoneNumber(@Param("value") String value);
