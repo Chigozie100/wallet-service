@@ -1418,7 +1418,7 @@ public class TransAccountServiceImpl implements TransAccountService {
                         transfer.getTranType(), transfer.getTranCrncy(), transfer.getTranNarration(),
                         transfer.getPaymentReference(), CategoryType.FUNDING.getValue(), transfer.getReceiverName(),
                         transfer.getSenderName()),
-                "WAYAOFFTOCUS", request);
+                "WAYATRAN", request);
     }
     
     public ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer,
@@ -1648,7 +1648,7 @@ public class TransAccountServiceImpl implements TransAccountService {
                 .findByEmailOrPhoneNumber(transfer.getEmailOrPhoneNumberOrUserId());        
         }
         else {
-                wallet = walletUserRepository.findUserId(Long.parseLong(transfer.getEmailOrPhoneNumberOrUserId()));
+                wallet = walletUserRepository.findUserId(Long.valueOf(transfer.getEmailOrPhoneNumberOrUserId()));
             }
        if (wallet.isEmpty()) {
             return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "EMAIL OR PHONE OR ID DOES NOT EXIST", null);
