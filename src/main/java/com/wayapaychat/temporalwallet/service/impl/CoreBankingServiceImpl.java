@@ -747,7 +747,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return;
         }
 
-        String tranDate = LocalDate.now().toString();
+//        String tranDate = LocalDate.now().toString();
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss a");
+        String tranDate = now.format(formatter);
+
         if (transactionPojo.getAccountNo().contains("NGN")) {
             subject = "GL Posting ".concat(subject);
         }
@@ -777,7 +781,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     account.getEmail(), _email_message.toString(), account.getUId(),
                     String.valueOf(Precision.round(transactionPojo.getAmount().doubleValue(), 2)),
                     transactionPojo.getTranId(), tranDate, transactionPojo.getTranNarration(), account.getAccountNo(),
-                    transactionType.append("alert").toString().toUpperCase(),
+                    transactionType.append(" alert").toString().toUpperCase(),
                     String.valueOf(Precision.round(currentBalance, 2)));
         }
 
@@ -794,7 +798,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             _sms_message.append("\n");
             _sms_message.append(String.format("Date: %s", tranDate));
             _sms_message.append("\n");
-            _sms_message.append(String.format("Naration: %s", transactionPojo.getTranNarration()));
+            _sms_message.append(String.format("Narration: %s", transactionPojo.getTranNarration()));
             _sms_message.append("\n");
             _sms_message.append(String.format("Avail Bal: %s", Precision.round(currentBalance, 2)));
 
