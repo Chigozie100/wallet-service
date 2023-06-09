@@ -1134,10 +1134,10 @@ public class TransAccountServiceImpl implements TransAccountService {
         String message = formatNewMessage(transfer.getAmount(), tranId, new Date().toString(), transfer.getTranCrncy(),
                 transfer.getTranNarration(), transfer.getSenderName(), transfer.getReceiverName(),
                 xAccount.getClr_bal_amt(), description, transfer.getBankName());
-        CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(TRADE_TRANSACTION_ALERT, token, fullName,
-                xUser.getEmailAddress(), message, userToken.getId(), transfer.getAmount().toString(), tranId,
-                tranDate, transfer.getTranNarration(), xAccount.getAccountNo(), "Alert".toUpperCase(),
-                transfer.getAmount().toString()));
+//        CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(TRADE_TRANSACTION_ALERT, token, fullName,
+//                xUser.getEmailAddress(), message, userToken.getId(), transfer.getAmount().toString(), tranId,
+//                tranDate, transfer.getTranNarration(), xAccount.getAccountNo(), "Alert".toUpperCase(),
+//                String.valueOf(xAccount.getClr_bal_amt())));
         
         CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, phone,
                 message, userToken.getId()));
@@ -2502,8 +2502,8 @@ public class TransAccountServiceImpl implements TransAccountService {
     public String formatMessage(BigDecimal amount, String tranId, String tranDate, String tranCrncy, String narration,
             String tokenId) {
         log.info("amt" + amount + "|" + tranId + "|" + tranCrncy + "|" + narration + "|" + tranDate);
-        String message = "" + "\n";
-        message = message + "" + "A transaction has occurred with token id: " + tokenId
+//        String message = "" + "\n";
+        String message = "" + "A transaction has occurred with token id: " + tokenId
                 + "  on your account see details below." + "\n";
         return message;
     }
@@ -2512,8 +2512,8 @@ public class TransAccountServiceImpl implements TransAccountService {
             String narration,
             String tokenId) {
         
-        String message = "" + "\n";
-        message = message + "" + "A transaction has occurred with token id: " + tokenId
+//        String message = "" + "\n";
+        String message = "" + "A transaction has occurred with token id: " + tokenId
                 + "  on your account see details below." + "\n";
         message = message + "" + "Amount :" + amount + "\n";
         message = message + "" + "tranId :" + tranId + "\n";
@@ -2526,8 +2526,8 @@ public class TransAccountServiceImpl implements TransAccountService {
     public String formatNewMessage(BigDecimal amount, String tranId, String tranDate, String tranCrncy,
             String narration) {
         
-        String message = "" + "\n";
-        message = message + "" + "Message :" + "A credit transaction has occurred"
+//        String message = "" + "\n";
+        String message = "" + "Message :" + "A credit transaction has occurred"
                 + "  on your account see details below" + "\n";
         message = message + "" + "Amount :" + amount + "\n";
         message = message + "" + "tranId :" + tranId + "\n";
@@ -2538,12 +2538,12 @@ public class TransAccountServiceImpl implements TransAccountService {
     }
     
     public String formatNewMessage(BigDecimal amount, String tranId, String tranDate, String tranCrncy,
-            String narration, String sender, String reciever, double availableBalance, String description,
+            String narration, String sender, String receiver, double availableBalance, String description,
             String bank) {
         
         log.info("sender" + sender);
-        String message = "" + "\n";
-        message = message + "" + "Message :" + "A bank withdrawal has occurred"
+//        String message = "" + "\n";
+        String message ="" + "Message :" + "A bank withdrawal has occurred"
                 + " see details below" + "\n";
         message = message + "" + "Amount :" + amount + "\n";
         message = message + "" + "tranId :" + tranId + "\n";
@@ -2552,7 +2552,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         message = message + "" + "Narration :" + narration + "\n";
         message = message + "" + "Desc :" + description + "\n";
         message = message + "" + "Avail Bal :" + availableBalance + "\n";
-        message = message + "" + "Reciever :" + reciever + "\n";
+        message = message + "" + "Receiver :" + receiver + "\n";
         message = message + "" + "Bank :" + bank + "\n";
         return message;
     }
@@ -2561,8 +2561,8 @@ public class TransAccountServiceImpl implements TransAccountService {
             String narration, String sender, double availableBalance, String description) {
         
         log.info("sender" + sender);
-        String message = "" + "\n";
-        message = message + "" + "Message :" + "A credit transaction has occurred"
+//        String message = "" + "\n";
+        String message ="" + "Message :" + "A credit transaction has occurred"
                 + "  on your account see details below" + "\n";
         message = message + "" + "Amount :" + amount + "\n";
         message = message + "" + "tranId :" + tranId + "\n";
@@ -2577,8 +2577,8 @@ public class TransAccountServiceImpl implements TransAccountService {
     public String formatCreditMessage(BigDecimal amount, String tranId, String tranDate, String tranCrncy,
             String narration) {
         
-        String message = "" + "\n";
-        message = message + "" + "Message :" + "A credit transaction has occurred"
+//        String message = "" + "\n";
+        String message = "" + "Message :" + "A credit transaction has occurred"
                 + "  on your account see details below" + "\n";
         message = message + "" + "Amount :" + amount + "\n";
         message = message + "" + "tranId :" + tranId + "\n";
@@ -2591,8 +2591,8 @@ public class TransAccountServiceImpl implements TransAccountService {
     public String formatDebitMessage(BigDecimal amount, String tranId, String tranDate, String tranCrncy,
             String narration) {
         
-        String message = "" + "\n";
-        message = message + "" + "Message :" + "A debit transaction has occurred"
+//        String message = "" + "\n";
+        String message = "" + "Message :" + "A debit transaction has occurred"
                 + "  on your account see details below" + "\n";
         message = message + "" + "Amount :" + amount + "\n";
         message = message + "" + "tranId :" + tranId + "\n";
@@ -2605,8 +2605,8 @@ public class TransAccountServiceImpl implements TransAccountService {
     public String formatDebitMessage(BigDecimal amount, String tranId, String tranDate, String tranCrncy,
             String narration, String sender, double availableBalance, String description) {
         
-        String message = "" + "\n";
-        message = message + "" + "Message :" + "A debit transaction has occurred"
+//        String message = "" + "\n";
+        String message = "" + "Message :" + "A debit transaction has occurred"
                 + "  on your account see details below" + "\n";
         message = message + "" + "Amount :" + amount + "\n";
         message = message + "" + "tranId :" + tranId + "\n";
@@ -2621,23 +2621,23 @@ public class TransAccountServiceImpl implements TransAccountService {
     
     public String formatMessagePIN(String pin) {
         
-        String message = "" + "\n";
-        message = message + "" + "Message :" + "Kindly confirm the reserved transaction with received pin: " + pin;
+//        String message = "" + "\n";
+        String message = "" + "Message :" + "Kindly confirm the reserved transaction with received pin: " + pin;
         return message;
     }
     
     public String formatMessageRedeem(BigDecimal amount, String tranId) {
         
-        String message = "" + "\n";
-        message = message + "" + "Message :" + "Transaction payout has occurred"
+//        String message = "" + "\n";
+        String message = "" + "Message :" + "Transaction payout has occurred"
                 + " on your account Amount =" + amount + " Transaction Id = " + tranId;
         return message;
     }
     
     public String formatMessengerRejection(BigDecimal amount, String tranId) {
         
-        String message = "" + "\n";
-        message = message + "" + "Message :" + "Transaction has been request"
+//        String message = "" + "\n";
+        String message = "" + "Message :" + "Transaction has been request"
                 + " on your account Amount =" + amount + " Transaction Id = " + tranId;
         return message;
     }

@@ -127,6 +127,9 @@ public class WalletTransaction implements Serializable {
     private String transChannel;
 
     private boolean channel_flg = false;
+    @Column(name = "charge_amount")
+    private BigDecimal chargeAmount = BigDecimal.ZERO;
+    private BigDecimal vat = BigDecimal.ZERO;
 
     public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
             @NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType,
@@ -156,7 +159,8 @@ public class WalletTransaction implements Serializable {
             @NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType,
             @NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
             @NotNull String partTranType, String tranGL, String paymentReference,
-            String createdBy, String createdEmail, Integer tranPart, String senderName, String receiverName) {
+            String createdBy, String createdEmail, Integer tranPart, String senderName, String receiverName,
+                             BigDecimal chargeAmount,BigDecimal vat) {
         super();
         this.del_flg = false;
         this.posted_flg = true;
@@ -175,6 +179,8 @@ public class WalletTransaction implements Serializable {
         this.tranPart = tranPart;
         this.senderName = senderName;
         this.receiverName = receiverName;
+        this.chargeAmount = chargeAmount;
+        this.vat = vat;
     }
 
     public WalletTransaction(@NotNull Long relatedTransId, @NotNull String tranId, @NotNull String acctNum,
@@ -182,7 +188,7 @@ public class WalletTransaction implements Serializable {
             @NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
             @NotNull String partTranType, String tranGL, String paymentReference,
             String createdBy, String createdEmail, Integer tranPart, CategoryType tranCategory, String senderName,
-            String receiverName) {
+            String receiverName,BigDecimal chargeAmount, BigDecimal vat) {
         super();
         this.del_flg = false;
         this.posted_flg = true;
@@ -203,6 +209,8 @@ public class WalletTransaction implements Serializable {
         this.senderName = senderName;
         this.receiverName = receiverName;
         this.relatedTransId = relatedTransId;
+        this.chargeAmount = chargeAmount;
+        this.vat = vat;
     }
 
     public WalletTransaction(@NotNull String tranId, @NotNull String acctNum,
