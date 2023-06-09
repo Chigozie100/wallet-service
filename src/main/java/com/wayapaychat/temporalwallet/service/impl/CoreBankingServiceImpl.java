@@ -399,13 +399,12 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         Optional<List<WalletTransaction>> transaction = walletTransactionRepository
                 .findByReferenceAndAccount(transferTransactionRequestData.getPaymentReference(), customerAccount);
 
-        if (transaction.isEmpty()) {
-            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
-                    HttpStatus.BAD_REQUEST);
+        if(WalletTransStatus.SUCCESSFUL.equals(transactionStatus) && transaction.isPresent()){
+            return new ResponseEntity<>(new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue(), transaction),
+                HttpStatus.CREATED);
         }
 
-        return new ResponseEntity<>(new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue(), transaction),
-                HttpStatus.CREATED);
+        return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()), HttpStatus.BAD_REQUEST);        
 
     }
 
@@ -727,8 +726,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     @Override
     public void addLien(WalletAccount account, BigDecimal amount) {
-
-        account.setLien_amt(amount.doubleValue());
+        double lienAmt = account.getLien_amt() + amount.doubleValue();
+        account.setLien_amt(lienAmt);
         walletAccountRepository.saveAndFlush(account);
 
     }
@@ -889,7 +888,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         double sufficientFunds = ownerAccount.get().getCum_cr_amt() - ownerAccount.get().getCum_dr_amt()
-                - ownerAccount.get().getLien_amt() - amount.doubleValue();
+                - ownerAccount.get().getLien_amt() - amount.doubleValue() - 50;
 
         if (sufficientFunds < 0 && ownerAccount.get().getAcct_ownership().equals("C")) {
             log.error("insufficientFunds :: {}", sufficientFunds);
