@@ -18,10 +18,10 @@ public class PDFExporter {
 
     private List<TransactionDTO> trans;
     private String accountNo;
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private Date startDate;
+    private Date endDate;
 
-    public PDFExporter(List<TransactionDTO> trans, String accountNo, LocalDate startDate, LocalDate endDate) {
+    public PDFExporter(List<TransactionDTO> trans, String accountNo, Date startDate, Date endDate) {
         this.trans = trans;
         this.accountNo = accountNo;
         this.startDate = startDate;
