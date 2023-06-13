@@ -105,6 +105,8 @@ public interface WalletTransAccountRepository extends JpaRepository<WalletTransA
             + " AND u.status = 'SUCCESSFUL' AND CAST(u.createdAt AS date) BETWEEN  "
             + "(:fromtranDate) AND (:totranDate) ")
     BigDecimal findByAllOutboundInternalTransactionByDate(Date fromtranDate, Date totranDate);
+    
+  
 
 
 
