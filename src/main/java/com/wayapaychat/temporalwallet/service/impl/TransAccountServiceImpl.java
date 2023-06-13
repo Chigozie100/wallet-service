@@ -1197,14 +1197,14 @@ public class TransAccountServiceImpl implements TransAccountService {
     }
     
     @Override
-    public ApiResponse<Page<WalletTransaction>> findByAccountNumber(int page, int size, String accountNumber) {
+    public ApiResponse<Page<WalletTransAccount>> findByAccountNumber(int page, int size, String accountNumber) {
         WalletAccount account = walletAccountRepository.findByAccountNo(accountNumber);
         if (account == null) {
             return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
         }
         
         Pageable sortedByName = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<WalletTransaction> transaction = walletTransactionRepository.findAllByAcctNum(accountNumber, sortedByName);
+        Page<WalletTransAccount> transaction = walletTransAccountRepo.findByAccount(sortedByName, accountNumber);
         
         if (transaction == null) {
             return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "UNABLE TO GENERATE STATEMENT", null);

@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
+import com.wayapaychat.temporalwallet.entity.WalletTransAccount;
 import com.wayapaychat.temporalwallet.entity.WalletTransaction;
 import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
 import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
@@ -41,7 +42,7 @@ public interface TransAccountService {
 
     ApiResponse<Page<WalletTransaction>> getTransactionByWalletId(int page, int size, Long walletId);
 
-    ApiResponse<Page<WalletTransaction>> findByAccountNumber(int page, int size, String accountNumber);
+    ApiResponse<Page<WalletTransAccount>> findByAccountNumber(int page, int size, String accountNumber);
 
     ResponseEntity<?> makeWalletTransaction(HttpServletRequest request, String command,
             TransferTransactionDTO transactionPojo);
