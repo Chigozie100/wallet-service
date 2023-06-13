@@ -3,6 +3,8 @@ package com.wayapaychat.temporalwallet.util;
 import com.lowagie.text.BadElementException;
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
+import com.wayapaychat.temporalwallet.dto.TransactionDTO;
+import com.wayapaychat.temporalwallet.entity.WalletTransaction;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
 
 import javax.servlet.http.HttpServletResponse;
@@ -14,12 +16,12 @@ import java.awt.Color;
 public class PDFExporter {
 
 
-    private List<TransWallet> trans;
+    private List<WalletTransaction> trans;
     private String accountNo;
     private Date startDate;
     private Date endDate;
 
-    public PDFExporter(List<TransWallet> trans, String accountNo, Date startDate, Date endDate) {
+    public PDFExporter(List<WalletTransaction> trans, String accountNo, Date startDate, Date endDate) {
         this.trans = trans;
         this.accountNo = accountNo;
         this.startDate = startDate;
@@ -112,11 +114,11 @@ public class PDFExporter {
         font.setColor(Color.BLACK);
         font.setSize(9);
 
-        for (TransWallet data: trans){
-            cell.setPhrase(new Phrase(data.getAcctNo(), font));
+        for (WalletTransaction data: trans){
+            cell.setPhrase(new Phrase(data.getAcctNum(), font));
             table.addCell(cell);
 
-            cell.setPhrase(new Phrase(data.getPaymentRef(), font));
+            cell.setPhrase(new Phrase(data.getPaymentReference(), font));
             table.addCell(cell);
 
             cell.setPhrase(new Phrase(data.getTranAmount().toString(), font));
@@ -128,7 +130,7 @@ public class PDFExporter {
             cell.setPhrase(new Phrase(data.getTranNarrate(), font));
             table.addCell(cell);
 
-            cell.setPhrase(new Phrase(data.getTranType(), font));
+            cell.setPhrase(new Phrase(data.getTranType().name(), font));
             table.addCell(cell);
 
             cell.setPhrase(new Phrase(data.getPartTranType(), font));
