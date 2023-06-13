@@ -12,15 +12,16 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.awt.Color;
+import java.time.LocalDate;
 public class PDFExporter {
 
 
     private List<TransactionDTO> trans;
     private String accountNo;
-    private Date startDate;
-    private Date endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
 
-    public PDFExporter(List<TransactionDTO> trans, String accountNo, Date startDate, Date endDate) {
+    public PDFExporter(List<TransactionDTO> trans, String accountNo, LocalDate startDate, LocalDate endDate) {
         this.trans = trans;
         this.accountNo = accountNo;
         this.startDate = startDate;
