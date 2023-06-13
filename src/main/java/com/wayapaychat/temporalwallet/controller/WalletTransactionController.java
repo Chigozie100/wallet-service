@@ -678,8 +678,8 @@ public class WalletTransactionController {
     @ApiOperation(value = "To Export Account Transaction ", notes = "Account Statement", tags = {"TRANSACTION-WALLET"})
     @GetMapping("/transaction/export/pdf/{accountNo}")
     public ResponseEntity<?> exportToPDF(HttpServletResponse response,
-            @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
-            @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
+            @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromdate,
+            @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate todate,
             @PathVariable String accountNo) throws IOException, com.lowagie.text.DocumentException {
         response.setContentType("application/pdf");
         DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
