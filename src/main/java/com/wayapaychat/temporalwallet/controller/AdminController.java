@@ -947,7 +947,28 @@ public class AdminController {
         return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
     }
 
-    
+
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
+    @ApiOperation(value = "Fetch user transaction by reference number", notes = "get user transaction by ref number", tags = {"ADMIN"})
+    @GetMapping(path = "/fetchTransByReferenceNumber/{referenceNumber}")
+    public ResponseEntity<?> fetchTransactionByRefNumber(@PathVariable String referenceNumber) {
+        ApiResponse<?> response = transAccountService.fetchUserTransactionsByReferenceNumber(referenceNumber);
+        return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
+    @ApiOperation(value = "Fetch user account transaction by reference number", notes = "get user account transaction by ref number", tags = {"ADMIN"})
+    @GetMapping(path = "/fetchTransByReferenceNumber/{referenceNumber}/accountNumber/{accountNumber}")
+    public ResponseEntity<?> fetchAccountTransactionByRefNumberAndAcctNumber(@PathVariable String referenceNumber,
+                                                                             @PathVariable String accountNumber) {
+        ApiResponse<?> response = transAccountService.fetchTransactionsByReferenceNumberAndAccountNumber(accountNumber,referenceNumber);
+        return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
+    }
+
+
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Update account description", notes = "update account description", tags = {
@@ -958,4 +979,5 @@ public class AdminController {
         ResponseEntity<?> response = userAccountService.updateAccountDescription(accountNumber, token, description);
         return new ResponseEntity<>(response,HttpStatus.valueOf(response.getStatusCodeValue()));
     }
+
 }

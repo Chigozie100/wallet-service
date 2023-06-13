@@ -31,4 +31,6 @@ public class WalletTransactionDataDto {
     private String receiverName;
     private MyData userToken;
     private Long sessionID;
+    private BigDecimal chargeAmount;
+    private BigDecimal vat;
 }

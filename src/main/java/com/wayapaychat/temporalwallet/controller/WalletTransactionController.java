@@ -758,13 +758,13 @@ public class WalletTransactionController {
     }
 
 
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
-    @ApiOperation(value = "Fetch user transaction by reference number", notes = "get user transaction by ref number", tags = {"TRANSACTION-WALLET"})
-    @GetMapping(path = "/fetchByReferenceNumber/{referenceNumber}")
-    public ResponseEntity<?> fetchUserTransactionByRefNumber(@RequestHeader("Authorization") String token, @PathVariable String referenceNumber) {
-        ApiResponse<?> response = transAccountService.fetchUserTransactionsByReferenceNumber(token,referenceNumber);
-        return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
-    }
+//    @ApiImplicitParams({
+//            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
+//    @ApiOperation(value = "Fetch user transaction by reference number", notes = "get user transaction by ref number", tags = {"TRANSACTION-WALLET"})
+//    @GetMapping(path = "/fetchByReferenceNumber/{referenceNumber}")
+//    public ResponseEntity<?> fetchUserTransactionByRefNumber(@RequestHeader("Authorization") String token, @PathVariable String referenceNumber) {
+//        ApiResponse<?> response = transAccountService.fetchUserTransactionsByReferenceNumber(token,referenceNumber);
+//        return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
+//    }
 
 }
