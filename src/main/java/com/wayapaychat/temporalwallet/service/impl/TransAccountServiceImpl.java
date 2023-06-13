@@ -2466,6 +2466,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         LocalDate ld = LocalDate.ofInstant(fromdate.toInstant(), ZoneId.systemDefault());
         List<WalletTransaction> transaction = walletTransactionRepository.findByAllTransactionsWithDateRangeaAndAccount(
                 fd, ld, acctNo);
+        log.info("Transactions::", transaction);
         return transaction;
     }
     
