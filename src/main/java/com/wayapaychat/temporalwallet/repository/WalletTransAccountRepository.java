@@ -113,8 +113,8 @@ public interface WalletTransAccountRepository extends JpaRepository<WalletTransA
     BigDecimal findByAllOutboundInternalTransactionByDate(Date fromtranDate, Date totranDate);
     
   
-   @Query("SELECT u FROM WalletTransAccount u WHERE u.debitAccountNumber =: accountNo OR u.creditAccountNumber =: accountNo " + " order by u.createdAt DESC ")
-    Page<WalletTransAccount> findByAccount(Pageable pageable,  String accountNo);
+   @Query("SELECT u FROM WalletTransAccount u WHERE u.debitAccountNumber =:accountNumber OR u.creditAccountNumber =:accountNumber " + " order by u.createdAt DESC ")
+    Page<WalletTransAccount> findByAccount(Pageable pageable,  String accountNumber);
 
 
 
