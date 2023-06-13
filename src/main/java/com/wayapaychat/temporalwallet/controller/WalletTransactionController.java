@@ -13,7 +13,6 @@ import javax.validation.Valid;
 
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
-import com.wayapaychat.temporalwallet.entity.WalletTransaction;
 import com.wayapaychat.temporalwallet.enumm.EventCharge;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
@@ -689,9 +688,9 @@ public class WalletTransactionController {
         String headerKey = "Content-Disposition";
         String headerValue = "attachment; filename=receipt_" + currentDateTime + ".pdf";
         response.setHeader(headerKey, headerValue);
-        List<WalletTransaction> res = transAccountService.statementReport2(fromdate, todate, accountNo);
-            
-        PDFExporter exporter = new PDFExporter(res, accountNo, fromdate, todate);
+        ApiResponse<List<TransactionDTO>> res = transAccountService.statementReport2(fromdate, todate, accountNo);
+
+        PDFExporter exporter = new PDFExporter(res.getData(), accountNo, fromdate, todate);
         exporter.export(response);
         return new ResponseEntity<>(headerValue, HttpStatus.BAD_REQUEST);
 

@@ -127,7 +127,7 @@ public interface TransAccountService {
 
     ApiResponse<?> statementReport(Date fromdate, Date todate, String acctNo);
 
-    List<WalletTransaction> statementReport2(Date fromdate, Date todate, String acctNo);
+    ApiResponse<List<TransactionDTO>> statementReport2(Date fromdate, Date todate, String acctNo);
 
     ApiResponse<List<AccountStatementDTO>> ReportTransaction2(String accountNo);
 
