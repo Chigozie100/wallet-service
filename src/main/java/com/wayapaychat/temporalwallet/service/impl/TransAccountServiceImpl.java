@@ -2461,18 +2461,20 @@ public class TransAccountServiceImpl implements TransAccountService {
         return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION REPORT", transaction);
     }
     
-    public ApiResponse<List<TransactionDTO>> statementReport2(LocalDate fromdate, LocalDate todate, String acctNo) {
+    public ApiResponse<List<TransactionDTO>> statementReport2(Date fromdate, Date todate, String acctNo) {
+         LocalDate fromDate = fromdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate toDate = todate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
         
         List<TransactionDTO> tran = new ArrayList<>();
         List<WalletTransaction> transaction = walletTransactionRepository.findByAllTransactionsWithDateRangeaAndAccount(
-                fromdate, todate, acctNo);
+                fromDate, toDate, acctNo);
         for (WalletTransaction transList : transaction) {
             String transDate = transList.getTranDate().toString();
             TransactionDTO trans = new TransactionDTO(transList, transList.getAcctNum(), transDate);
             
             tran.add(trans);
         }
-        log.info("Transaction::", tran);
+        log.info("Transaction:: {}", tran);
          return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION LIST SUCCESSFULLY", tran);    
     }
     
@@ -3323,5 +3325,5 @@ public class TransAccountServiceImpl implements TransAccountService {
         }
     }
 
-
+    
 }
