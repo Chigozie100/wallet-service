@@ -2069,7 +2069,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                         ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accounNumber)),
                 HttpStatus.BAD_REQUEST);
         }
-
+        log.info(walletUser.getCust_name());
         Provider provider = switchWalletService.getActiveProvider();
         return coreBankingService.externalCBACreateAccount(walletUser, walletAccount, provider);
         
