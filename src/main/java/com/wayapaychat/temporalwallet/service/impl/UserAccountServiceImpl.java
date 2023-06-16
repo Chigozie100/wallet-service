@@ -35,6 +35,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
@@ -2050,6 +2052,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     }
 
+    @Transactional
     @Override
     public ResponseEntity<?> setupAccountOnExternalCBA(String accounNumber) {
 
