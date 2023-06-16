@@ -59,11 +59,11 @@ public class AdminController {
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-    @ApiOperation(value = "Send Money to Wallet", notes = "Post Money", tags = { "ADMIN" })
+    @ApiOperation(value = "Create Account on CBA", notes = "Create CBA Account", tags = { "ADMIN" })
     @PostMapping("/cba/create-account/{accountNumber}")
     public ResponseEntity<?> coreBankingCreateAccount(HttpServletRequest request,
                                 String accountNumber) {
-        return coreBankingService.setupAccountOnExternalCBA(accountNumber);
+        return userAccountService.setupAccountOnExternalCBA(accountNumber);
     }
 
     @ApiImplicitParams({
