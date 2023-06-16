@@ -133,6 +133,8 @@ public interface UserAccountService {
 
     void setupExternalCBA();
 
+    ResponseEntity<?>  setupAccountOnExternalCBA(String accounNumber);
+
     ApiResponse<?> getAllAccounts(int page, int size, String filter, LocalDate fromdate, LocalDate todate);
 
     ApiResponse<?> toggleTransactionType(long userId, String type, String token);
