@@ -3,7 +3,6 @@ package com.wayapaychat.temporalwallet.util;
 import com.lowagie.text.BadElementException;
 import com.lowagie.text.*;
 import com.lowagie.text.pdf.*;
-import com.wayapaychat.temporalwallet.dto.TransactionDTO;
 import com.wayapaychat.temporalwallet.pojo.TransWallet;
 
 import javax.servlet.http.HttpServletResponse;
@@ -12,16 +11,15 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.awt.Color;
-import java.time.LocalDate;
 public class PDFExporter {
 
 
-    private List<TransactionDTO> trans;
+    private List<TransWallet> trans;
     private String accountNo;
     private Date startDate;
     private Date endDate;
 
-    public PDFExporter(List<TransactionDTO> trans, String accountNo, Date startDate, Date endDate) {
+    public PDFExporter(List<TransWallet> trans, String accountNo, Date startDate, Date endDate) {
         this.trans = trans;
         this.accountNo = accountNo;
         this.startDate = startDate;
@@ -114,23 +112,23 @@ public class PDFExporter {
         font.setColor(Color.BLACK);
         font.setSize(9);
 
-        for (TransactionDTO data: trans){
-            cell.setPhrase(new Phrase(data.getAcctNum(), font));
+        for (TransWallet data: trans){
+            cell.setPhrase(new Phrase(data.getAcctNo(), font));
             table.addCell(cell);
 
-            cell.setPhrase(new Phrase(data.getPaymentReference(), font));
+            cell.setPhrase(new Phrase(data.getPaymentRef(), font));
             table.addCell(cell);
 
             cell.setPhrase(new Phrase(data.getTranAmount().toString(), font));
             table.addCell(cell);
 
-            cell.setPhrase(new Phrase(data.getTranDate(), font));
+            cell.setPhrase(new Phrase(data.getTranDate().toString(), font));
             table.addCell(cell);
 
             cell.setPhrase(new Phrase(data.getTranNarrate(), font));
             table.addCell(cell);
 
-            cell.setPhrase(new Phrase(data.getTranType().name(), font));
+            cell.setPhrase(new Phrase(data.getTranType(), font));
             table.addCell(cell);
 
             cell.setPhrase(new Phrase(data.getPartTranType(), font));
@@ -208,7 +206,6 @@ public class PDFExporter {
         document.add(table);
 
         document.close();
-
 
     }
 }

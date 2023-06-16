@@ -688,9 +688,9 @@ public class WalletTransactionController {
         String headerKey = "Content-Disposition";
         String headerValue = "attachment; filename=receipt_" + currentDateTime + ".pdf";
         response.setHeader(headerKey, headerValue);
-        ApiResponse<List<TransactionDTO>> res = transAccountService.statementReport2(fromdate, todate, accountNo);
+        List<TransWallet> res = transAccountService.statementReport2(fromdate, todate, accountNo);
 
-        PDFExporter exporter = new PDFExporter(res.getData(), accountNo, fromdate, todate);
+        PDFExporter exporter = new PDFExporter(res, accountNo, fromdate, todate);
         exporter.export(response);
         return new ResponseEntity<>(headerValue, HttpStatus.BAD_REQUEST);
 
