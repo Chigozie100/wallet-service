@@ -62,7 +62,7 @@ public class AdminController {
     @ApiOperation(value = "Create Account on CBA", notes = "Create CBA Account", tags = { "ADMIN" })
     @PostMapping("/cba/create-account/{accountNumber}")
     public ResponseEntity<?> coreBankingCreateAccount(HttpServletRequest request,
-                                String accountNumber) {
+            @PathVariable String accountNumber) {
         return userAccountService.setupAccountOnExternalCBA(accountNumber);
     }
 
