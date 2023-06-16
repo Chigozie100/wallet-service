@@ -2055,15 +2055,24 @@ public class UserAccountServiceImpl implements UserAccountService {
 
         WalletAccount walletAccount = walletAccountRepository.findByAccountNo(accounNumber);
 
-        if (ObjectUtils.isNotEmpty(walletAccount)) {
-            Provider provider = switchWalletService.getActiveProvider();
-            return coreBankingService.externalCBACreateAccount(walletAccount.getUser(), walletAccount, provider);
-        }
-
-        return new ResponseEntity<>(
+        if (ObjectUtils.isEmpty(walletAccount)) {
+            return new ResponseEntity<>(
                 new ErrorResponse(String.format("%s %s",
                         ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accounNumber)),
                 HttpStatus.BAD_REQUEST);
+        }
+
+        WalletUser walletUser = walletAccount.getUser();
+        if (ObjectUtils.isEmpty(walletUser)) {
+            return new ResponseEntity<>(
+                new ErrorResponse(String.format("%s %s",
+                        ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accounNumber)),
+                HttpStatus.BAD_REQUEST);
+        }
+
+        Provider provider = switchWalletService.getActiveProvider();
+        return coreBankingService.externalCBACreateAccount(walletUser, walletAccount, provider);
+        
     }
 
     @Override
