@@ -2395,15 +2395,40 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     @Override
     public ResponseEntity<?> updateAccountDescription(String accountNo, String token, String description) {
+        try{
 
-        Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
+          Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
         if (!account.isPresent()) {
             return new ResponseEntity<>(new ErrorResponse("Unable to fetch account"), HttpStatus.BAD_REQUEST);
         }
-        WalletAccount update = account.get();
-        update.setDescription(description);
-        walletAccountRepository.save(update);
-        return new ResponseEntity<>(new SuccessResponse("SUCCESS", update), HttpStatus.OK);
+
+           WalletAccount update = account.get();
+           update.setDescription(description);
+           walletAccountRepository.save(update);
+           return new ResponseEntity<>(new SuccessResponse("SUCCESS", update), HttpStatus.OK);
+    
+        }catch(Exception e){
+            log.error("Exception::{}", e.getMessage());
+            return new ResponseEntity<>("An Error occured. Try again", HttpStatus.UNPROCESSABLE_ENTITY);
+        }
+    }
+
+    @Override
+    public ApiResponse<?> updateAccountName(String accountNo, String token, String name) {
+    try{
+            
+        Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
+        if (!account.isPresent()) {
+            return new ApiResponse<>(false,  ApiResponse.Code.NOT_FOUND, "Unable to fetch account", null);
+        }
+           WalletAccount update = account.get();
+           update.setAcct_name(name);
+           walletAccountRepository.save(update);
+                return new ApiResponse<>(false,  ApiResponse.Code.SUCCESS, "SUCCESS", update);
+        }catch(Exception e){
+            log.error("Exception::{}", e.getMessage());
+                   return new ApiResponse<>(false,  ApiResponse.Code.UNKNOWN_ERROR, "An Error occured. Try again", null);
+        }
     }
 
 }

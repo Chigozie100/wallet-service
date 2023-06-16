@@ -1197,14 +1197,13 @@ public class TransAccountServiceImpl implements TransAccountService {
     }
     
     @Override
-    public ApiResponse<Page<WalletTransAccount>> findByAccountNumber(int page, int size, String accountNumber) {
+    public ApiResponse<Page<WalletTransaction>> findByAccountNumber(int page, int size, String accountNumber) {
         WalletAccount account = walletAccountRepository.findByAccountNo(accountNumber);
         if (account == null) {
             return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVAILED ACCOUNT NO", null);
         }
-        
         Pageable sortedByName = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<WalletTransAccount> transaction = walletTransAccountRepo.findByAccount(sortedByName, accountNumber);
+        Page<WalletTransaction> transaction = walletTransactionRepository.findAllByAcctNum(accountNumber, sortedByName);
         
         if (transaction == null) {
             return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "UNABLE TO GENERATE STATEMENT", null);
@@ -2461,21 +2460,8 @@ public class TransAccountServiceImpl implements TransAccountService {
         return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION REPORT", transaction);
     }
     
-    public ApiResponse<List<TransactionDTO>> statementReport2(Date fromdate, Date todate, String acctNo) {
-         LocalDate fromDate = fromdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        LocalDate toDate = todate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        
-        List<TransactionDTO> tran = new ArrayList<>();
-        List<WalletTransaction> transaction = walletTransactionRepository.findByAllTransactionsWithDateRangeaAndAccount(
-                fromDate, toDate, acctNo);
-        for (WalletTransaction transList : transaction) {
-            String transDate = transList.getTranDate().toString();
-            TransactionDTO trans = new TransactionDTO(transList, transList.getAcctNum(), transDate);
-            
-            tran.add(trans);
-        }
-        log.info("Transaction:: {}", tran);
-         return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION LIST SUCCESSFULLY", tran);    
+    public List<TransWallet> statementReport2(Date fromdate, Date todate, String acctNo) {
+        return tempwallet.GetTransactionType2(acctNo, fromdate, todate);
     }
     
     @Override
@@ -3325,5 +3311,5 @@ public class TransAccountServiceImpl implements TransAccountService {
         }
     }
 
-    
+
 }
