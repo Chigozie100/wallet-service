@@ -147,4 +147,5 @@ public interface UserAccountService {
     
     ResponseEntity<?> updateAccountDescription(String accountNo, String token, String description);
 
+   ApiResponse<?> updateAccountName(String accountNo, String token, String name);
 }
