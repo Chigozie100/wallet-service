@@ -188,7 +188,8 @@ public class UserAccountServiceImpl implements UserAccountService {
                     userDetailsResponse.getData().getSurname().toUpperCase(),
                     emailAddress, phoneNumber, acct_name,
                     custTitle, custSex, dob, code, new Date(), LocalDate.now(), 0);
-
+                 
+            userInfo.setCorporate(userDetailsResponse.getData().isCorporate());
             WalletUser newUserDetails = walletUserRepository.save(userInfo);
 
             return new ResponseEntity<>(newUserDetails, HttpStatus.ACCEPTED);
