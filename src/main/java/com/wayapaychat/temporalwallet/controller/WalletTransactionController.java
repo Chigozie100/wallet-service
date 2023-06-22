@@ -786,11 +786,11 @@ public class WalletTransactionController {
         String headerValue = "attachment; filename=receipt_" + currentDateTime + ".pdf";
         response.setHeader(headerKey, headerValue);
 
-        ApiResponse<CustomerStatement> res = transAccountService.accountstatementReport2(fromdate, todate, accountNo);       
+//        ApiResponse<CustomerStatement> res = transAccountService.accountstatementReport2(fromdate, todate, accountNo);       
 //
-//        ExportPdf exporter = new ExportPdf();
-//        exporter.export(response);
-        return new ResponseEntity<>(res, HttpStatus.OK);
+        ExportPdf exporter = new ExportPdf();
+        exporter.export(response);
+        return new ResponseEntity<>(headerValue, HttpStatus.OK);
 
     }
 }
