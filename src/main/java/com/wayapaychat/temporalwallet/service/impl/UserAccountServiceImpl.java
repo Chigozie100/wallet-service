@@ -304,7 +304,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 
             WalletAccount caccount = new WalletAccount();
             // Commission Wallet
+            log.info("Create commission account in progress");
             if (walletUser.isCorporate() && !defaultAccount.isPresent()) {
+                log.info("User is corporate. creat commission account:{}", walletUser.isCorporate());
                 Optional<WalletAccount> acct = walletAccountRepository.findByProductCode(wayaProductCommission);
                 if (!acct.isPresent()) {
                     code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission, wayaCommGLCode);
@@ -320,7 +322,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                             acctNo = StringUtils.rightPad(acctNo, 10, "0");
                         }
                     }
-                    log.info(acctNo);
+                    log.info("Account::{}",acctNo);
                     hashed_no = reqUtil.WayaEncrypt(
                             walletUser.getUserId() + "|" + acctNo + "|" + wayaProductCommission + "|"
                                     + product.getCrncy_code());
@@ -337,6 +339,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                     }
 
                     coreBankingService.createAccount(walletUser, caccount);
+                    log.info("Commission account created: {}", caccount.getAccountNo());
                 }
 
             }
