@@ -43,6 +43,7 @@ import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.response.TransactionsResponse;
 import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
+import com.wayapaychat.temporalwallet.util.ExportPdf;
 
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -777,10 +778,18 @@ public class WalletTransactionController {
             @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
             @PathVariable String accountNo) throws IOException, com.lowagie.text.DocumentException {
         response.setContentType("application/pdf");
+        
         DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
         String currentDateTime = dateFormatter.format(new Date());
+        
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=receipt_" + currentDateTime + ".pdf";
+        response.setHeader(headerKey, headerValue);
 
         ApiResponse<CustomerStatement> res = transAccountService.accountstatementReport2(fromdate, todate, accountNo);       
+
+//        ExportPdf exporter = new ExportPdf();
+//        exporter.export(response);
         return new ResponseEntity<>(res, HttpStatus.OK);
 
     }

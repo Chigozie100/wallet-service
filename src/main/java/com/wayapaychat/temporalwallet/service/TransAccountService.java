@@ -236,4 +236,7 @@ public interface TransAccountService {
 
     ApiResponse<?> fetchUserTransactionsByReferenceNumber(String referenceNumber);
     ApiResponse<?> fetchTransactionsByReferenceNumberAndAccountNumber(String accountNumber,String referenceNumber);
+
+    ApiResponse<CustomerStatement> accountstatementReport2(Date fromdate, Date todate, String acctNo);
+        
 }
