@@ -1,6 +1,5 @@
 package com.wayapaychat.temporalwallet.controller;
 
-import com.itextpdf.text.DocumentException;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.DateFormat;
@@ -44,8 +43,6 @@ import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.response.TransactionsResponse;
 import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
-import com.wayapaychat.temporalwallet.util.AccountSataementPdf;
-import com.wayapaychat.temporalwallet.util.ExportPdf;
 
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -683,7 +680,7 @@ public class WalletTransactionController {
     public ResponseEntity<?> exportToPDF(HttpServletResponse response,
             @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
             @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
-            @PathVariable String accountNo) throws IOException, com.lowagie.text.DocumentException, DocumentException {
+            @PathVariable String accountNo) throws IOException, com.lowagie.text.DocumentException {
         response.setContentType("application/pdf");
         DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
         String currentDateTime = dateFormatter.format(new Date());
@@ -692,7 +689,7 @@ public class WalletTransactionController {
         String headerValue = "attachment; filename=receipt_" + currentDateTime + ".pdf";
         response.setHeader(headerKey, headerValue);
         List<TransWallet> res = transAccountService.statementReport2(fromdate, todate, accountNo);
-//
+
         PDFExporter exporter = new PDFExporter(res, accountNo, fromdate, todate);
         exporter.export(response);
         return new ResponseEntity<>(headerValue, HttpStatus.BAD_REQUEST);
@@ -750,8 +747,8 @@ public class WalletTransactionController {
     public ResponseEntity<?> overallBasedAnalysis() {
         return transAccountService.transactionAnalysis();
     }
-
-    @ApiImplicitParams({
+    
+     @ApiImplicitParams({
         @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Total Overall Based Transactions", notes = "Total Overall Based Transactions", tags = {"TRANSACTION-WALLET"})
     @GetMapping("/transaction/analysis")
@@ -759,6 +756,7 @@ public class WalletTransactionController {
             @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate) {
         return transAccountService.transactionAnalysisFilterDate(fromdate, todate);
     }
+
 
 //    @ApiImplicitParams({
 //            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
@@ -768,7 +766,8 @@ public class WalletTransactionController {
 //        ApiResponse<?> response = transAccountService.fetchUserTransactionsByReferenceNumber(token,referenceNumber);
 //        return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
 //    }
-    
+
+  
     @ApiImplicitParams({
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Customer statement of account", notes = "Account Statement", tags = {"TRANSACTION-WALLET"})
@@ -776,7 +775,7 @@ public class WalletTransactionController {
     public ResponseEntity<?> customerstatement(HttpServletResponse response,
             @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
             @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
-            @PathVariable String accountNo) throws IOException, com.lowagie.text.DocumentException, DocumentException {
+            @PathVariable String accountNo) throws IOException, com.lowagie.text.DocumentException {
         response.setContentType("application/pdf");
         DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
         String currentDateTime = dateFormatter.format(new Date());
