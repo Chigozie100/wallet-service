@@ -767,4 +767,21 @@ public class WalletTransactionController {
 //        return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
 //    }
 
+  
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
+    @ApiOperation(value = "Customer statement of account", notes = "Account Statement", tags = {"TRANSACTION-WALLET"})
+    @GetMapping("/transaction/customer_statement/{accountNo}")
+    public ResponseEntity<?> customerstatement(HttpServletResponse response,
+            @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
+            @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
+            @PathVariable String accountNo) throws IOException, com.lowagie.text.DocumentException {
+        response.setContentType("application/pdf");
+        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+        String currentDateTime = dateFormatter.format(new Date());
+
+        ApiResponse<CustomerStatement> res = transAccountService.accountstatementReport2(fromdate, todate, accountNo);       
+        return new ResponseEntity<>(res, HttpStatus.OK);
+
+    }
 }
