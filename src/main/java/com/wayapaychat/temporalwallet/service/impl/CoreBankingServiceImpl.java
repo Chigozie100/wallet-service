@@ -148,7 +148,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     @Override
     public ResponseEntity<?> createAccount(WalletUser userInfo, WalletAccount sAcct) {
-        log.info("createAccount: {0},{1} ", sAcct.getAccountNo(), sAcct.getAcct_name());
+        log.info("createAccount: {}", sAcct.getAccountNo(), sAcct.getAcct_name());
         Provider provider = switchWalletService.getActiveProvider();
         if (provider == null) {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.NO_PROVIDER.getValue()),

@@ -169,7 +169,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             String acct_name = userDetailsResponse.getData().isCorporate()
                     ? userDetailsResponse.getData().getOtherDetails().getOrganisationName()
                     : userDetailsResponse.getData().getFirstName().toUpperCase() + " "
-                            + userDetailsResponse.getData().getSurname().toUpperCase();
+                    + userDetailsResponse.getData().getSurname().toUpperCase();
             String phoneNumber = userDetailsResponse.getData().isCorporate()
                     ? userDetailsResponse.getData().getOtherDetails().getOrganisationPhone()
                     : userDetailsResponse.getData().getPhoneNumber();
@@ -188,7 +188,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                     userDetailsResponse.getData().getSurname().toUpperCase(),
                     emailAddress, phoneNumber, acct_name,
                     custTitle, custSex, dob, code, new Date(), LocalDate.now(), 0);
-                 
+
             userInfo.setCorporate(userDetailsResponse.getData().isCorporate());
             WalletUser newUserDetails = walletUserRepository.save(userInfo);
 
@@ -305,11 +305,12 @@ public class UserAccountServiceImpl implements UserAccountService {
             WalletAccount caccount = new WalletAccount();
             // Commission Wallet
             log.info("Create commission account in progress:{}", walletUser);
-              if (walletUser.isCorporate() && !defaultAccount.isPresent()) {
-                  String commisionName = "COMMISSION ACCOUNT";
+            if (walletUser.isCorporate() && !defaultAccount.isPresent()) {
+                String commisionName = "COMMISSION ACCOUNT";
+                log.info("does commission account exist");
                 Optional<WalletAccount> acct = walletAccountRepository.findFirstByProduct_codeAndUserAndAcct_nameLike(wayaProductCommission, walletUser);
-               log.info("is account present or not:{}", acct.isPresent());
-                if (!acct.isPresent()) {                   
+                log.info("is account present or not:{}", acct.isPresent());
+                if (!acct.isPresent()) {
                     code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission, wayaCommGLCode);
                     product = walletProductRepository.findByProductCode(wayaProductCommission, wayaCommGLCode);
                     if (!walletUser.getCust_sex().equals("S")) {
@@ -323,10 +324,10 @@ public class UserAccountServiceImpl implements UserAccountService {
                             acctNo = StringUtils.rightPad(acctNo, 10, "0");
                         }
                     }
-                    log.info("Comission Account::{}",acctNo);
+                    log.info("Comission Account::{}", acctNo);
                     hashed_no = reqUtil.WayaEncrypt(
                             walletUser.getUserId() + "|" + acctNo + "|" + wayaProductCommission + "|"
-                                    + product.getCrncy_code());
+                            + product.getCrncy_code());
                     String acct_name = walletUser.getCust_name() + " " + "COMMISSION ACCOUNT";
                     if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
                             || product.getProduct_type().equals("ODA"))) {
@@ -338,7 +339,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                                 product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(),
                                 false, accountType, description);
                         log.info("Wallet commission account: {}", caccount);
-                    }else{
+                    } else {
                         log.error("Commission account not created");
                     }
 
@@ -392,7 +393,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
                     HttpStatus.CREATED);
         } catch (Exception e) {
-           
+
             log.error("Error creating ClientAccount", e.getMessage());
             e.printStackTrace();
             return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
@@ -2108,22 +2109,22 @@ public class UserAccountServiceImpl implements UserAccountService {
 
         if (ObjectUtils.isEmpty(walletAccount)) {
             return new ResponseEntity<>(
-                new ErrorResponse(String.format("%s %s",
-                        ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accounNumber)),
-                HttpStatus.BAD_REQUEST);
+                    new ErrorResponse(String.format("%s %s",
+                            ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accounNumber)),
+                    HttpStatus.BAD_REQUEST);
         }
 
         WalletUser walletUser = walletAccount.getUser();
         if (ObjectUtils.isEmpty(walletUser)) {
             return new ResponseEntity<>(
-                new ErrorResponse(String.format("%s %s",
-                        ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accounNumber)),
-                HttpStatus.BAD_REQUEST);
+                    new ErrorResponse(String.format("%s %s",
+                            ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accounNumber)),
+                    HttpStatus.BAD_REQUEST);
         }
         log.info(walletUser.getCust_name());
         Provider provider = switchWalletService.getActiveProvider();
         return coreBankingService.externalCBACreateAccount(walletUser, walletAccount, provider);
-        
+
     }
 
     @Override
@@ -2443,19 +2444,19 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     @Override
     public ResponseEntity<?> updateAccountDescription(String accountNo, String token, String description) {
-        try{
+        try {
 
-          Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
-        if (!account.isPresent()) {
-            return new ResponseEntity<>(new ErrorResponse("Unable to fetch account"), HttpStatus.BAD_REQUEST);
-        }
+            Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
+            if (!account.isPresent()) {
+                return new ResponseEntity<>(new ErrorResponse("Unable to fetch account"), HttpStatus.BAD_REQUEST);
+            }
 
-           WalletAccount update = account.get();
-           update.setDescription(description);
-           walletAccountRepository.save(update);
-           return new ResponseEntity<>(new SuccessResponse("SUCCESS", update), HttpStatus.OK);
-    
-        }catch(Exception e){
+            WalletAccount update = account.get();
+            update.setDescription(description);
+            walletAccountRepository.save(update);
+            return new ResponseEntity<>(new SuccessResponse("SUCCESS", update), HttpStatus.OK);
+
+        } catch (Exception e) {
             log.error("Exception::{}", e.getMessage());
             return new ResponseEntity<>("An Error occured. Try again", HttpStatus.UNPROCESSABLE_ENTITY);
         }
@@ -2463,19 +2464,19 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     @Override
     public ApiResponse<?> updateAccountName(String accountNo, String token, String name) {
-    try{
-            
-        Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
-        if (!account.isPresent()) {
-            return new ApiResponse<>(false,  ApiResponse.Code.NOT_FOUND, "Unable to fetch account", null);
-        }
-           WalletAccount update = account.get();
-           update.setAcct_name(name);
-           walletAccountRepository.save(update);
-                return new ApiResponse<>(false,  ApiResponse.Code.SUCCESS, "SUCCESS", update);
-        }catch(Exception e){
+        try {
+
+            Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
+            if (!account.isPresent()) {
+                return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unable to fetch account", null);
+            }
+            WalletAccount update = account.get();
+            update.setAcct_name(name);
+            walletAccountRepository.save(update);
+            return new ApiResponse<>(false, ApiResponse.Code.SUCCESS, "SUCCESS", update);
+        } catch (Exception e) {
             log.error("Exception::{}", e.getMessage());
-                   return new ApiResponse<>(false,  ApiResponse.Code.UNKNOWN_ERROR, "An Error occured. Try again", null);
+            return new ApiResponse<>(false, ApiResponse.Code.UNKNOWN_ERROR, "An Error occured. Try again", null);
         }
     }
 

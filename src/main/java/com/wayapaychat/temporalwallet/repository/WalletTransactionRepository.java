@@ -215,7 +215,7 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
     BigDecimal allDebitAndCredit(LocalDate fromtranDate, String acctNo, String partTranType);
 
     
-    @Query("SELECT u.paymentReference FROM WalletTransaction u  " + " WHERE u.del_flg = false" + " AND u.tranDate BETWEEN  (:fromtranDate)" + " AND (:totranDate)" + "AND u.acctNum = :acctNo" + " order by u.tranDate ASC ")
+    @Query("SELECT u FROM WalletTransaction u  " + " WHERE u.del_flg = false" + " AND u.tranDate BETWEEN  (:fromtranDate)" + " AND (:totranDate)" + "AND u.acctNum = :acctNo" + " order by u.tranDate ASC ")
     List<WalletTransaction> transList(LocalDate fromtranDate, LocalDate totranDate, String acctNo);
 
 }
