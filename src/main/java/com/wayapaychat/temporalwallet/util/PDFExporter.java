@@ -76,28 +76,31 @@ public class PDFExporter {
         font.setColor(Color.WHITE);
         font.setSize(9);
         font.isBold();
-        cell.setPhrase(new Phrase("AcctNo", font));
+        cell.setPhrase(new Phrase("Narration", font));
         table.addCell(cell);
 
-        cell.setPhrase(new Phrase("PaymentRef", font));
+        cell.setPhrase(new Phrase("Reference", font));
         table.addCell(cell);
 
-        cell.setPhrase(new Phrase("TranAmount ", font));
+        cell.setPhrase(new Phrase("Sender's Name ", font));
         table.addCell(cell);
 
-        cell.setPhrase(new Phrase("TranDate", font));
+        cell.setPhrase(new Phrase("Receiver's Name", font));
         table.addCell(cell);
 
-        cell.setPhrase(new Phrase("TranNarrate", font));
+        cell.setPhrase(new Phrase("Trans Date", font));
         table.addCell(cell);
 
-        cell.setPhrase(new Phrase("TranType", font));
+        cell.setPhrase(new Phrase("Value Date", font));
         table.addCell(cell);
 
-        cell.setPhrase(new Phrase("PartTranType", font));
+        cell.setPhrase(new Phrase("Debit", font));
         table.addCell(cell);
 
-        cell.setPhrase(new Phrase("TranId", font));
+        cell.setPhrase(new Phrase("Credit", font));
+        table.addCell(cell);
+        
+        cell.setPhrase(new Phrase("Balance", font));
         table.addCell(cell);
 
 
@@ -164,7 +167,7 @@ public class PDFExporter {
         document.open();
         Font font = FontFactory.getFont(FontFactory.HELVETICA_BOLD);
         font.setSize(18);
-        font.setColor(Color.red);
+        font.setColor(Color.white);
 
         Paragraph p = new Paragraph("Account Statement", font);
         p.setAlignment(Paragraph.ALIGN_CENTER);
