@@ -89,4 +89,7 @@ public interface WalletAccountRepository extends JpaRepository<WalletAccount, Lo
              + " AND (:toDate)")
     BigDecimal totalBalanceByUserFilter(String account, LocalDate fromDate, LocalDate toDate);
 
+    @Query("SELECT u FROM WalletAccount u WHERE u.product_code = (:wayaProductCommission) AND u.user = :walletUser AND u.acct_name LIKE ('%COMMISSION%')")
+   Optional<WalletAccount> findFirstByProduct_codeAndUserAndAcct_nameLike(String wayaProductCommission, WalletUser walletUser);
+
 }
