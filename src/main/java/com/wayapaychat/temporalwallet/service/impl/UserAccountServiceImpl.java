@@ -308,8 +308,8 @@ public class UserAccountServiceImpl implements UserAccountService {
               if (walletUser.isCorporate() && !defaultAccount.isPresent()) {
                   String commisionName = "COMMISSION ACCOUNT";
                 Optional<WalletAccount> acct = walletAccountRepository.findFirstByProduct_codeAndUserAndAcct_nameLike(wayaProductCommission, walletUser);
-                if (!acct.isPresent()) {
-                    
+               log.info("is account present or not:{}", acct.isPresent());
+                if (!acct.isPresent()) {                   
                     code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission, wayaCommGLCode);
                     product = walletProductRepository.findByProductCode(wayaProductCommission, wayaCommGLCode);
                     if (!walletUser.getCust_sex().equals("S")) {
