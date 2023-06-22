@@ -787,9 +787,9 @@ public class WalletTransactionController {
         response.setHeader(headerKey, headerValue);
 
         ApiResponse<CustomerStatement> res = transAccountService.accountstatementReport2(fromdate, todate, accountNo);       
-//
-//        ExportPdf exporter = new ExportPdf();
-//        exporter.export(response);
+
+        ExportPdf exporter = new ExportPdf();
+        exporter.export(response);
         return new ResponseEntity<>(res, HttpStatus.OK);
 
     }
