@@ -3308,6 +3308,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         }
     }
 
+    @Override
     public ApiResponse<CustomerStatement> accountstatementReport2(Date fromdate, Date todate, String acctNo) {
         try {
             CustomerStatement custStatement = new CustomerStatement();
