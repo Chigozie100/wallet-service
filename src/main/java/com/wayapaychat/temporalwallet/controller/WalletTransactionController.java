@@ -781,15 +781,15 @@ public class WalletTransactionController {
         
         DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
         String currentDateTime = dateFormatter.format(new Date());
-        
-        String headerKey = "Content-Disposition";
-        String headerValue = "attachment; filename=receipt_" + currentDateTime + ".pdf";
-        response.setHeader(headerKey, headerValue);
+//        
+//        String headerKey = "Content-Disposition";
+//        String headerValue = "attachment; filename=receipt_" + currentDateTime + ".pdf";
+//        response.setHeader(headerKey, headerValue);
 
         ApiResponse<CustomerStatement> res = transAccountService.accountstatementReport2(fromdate, todate, accountNo);       
-//
-        ExportPdf exporter = new ExportPdf();
-        exporter.export(response);
+////
+//        ExportPdf exporter = new ExportPdf();
+//        exporter.export(response);
         return new ResponseEntity<>(res, HttpStatus.OK);
 
     }
