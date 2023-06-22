@@ -307,9 +307,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             log.info("Create commission account in progress:{}", walletUser);
             if (walletUser.isCorporate() && !defaultAccount.isPresent()) {
                 String commisionName = "COMMISSION ACCOUNT";
-                log.info("does commission account exist");
                 Optional<WalletAccount> acct = walletAccountRepository.findFirstByProduct_codeAndUserAndAcct_nameLike(wayaProductCommission, walletUser);
-                log.info("is account present or not:{}", acct.isPresent());
                 if (!acct.isPresent()) {
                     code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission, wayaCommGLCode);
                     product = walletProductRepository.findByProductCode(wayaProductCommission, wayaCommGLCode);

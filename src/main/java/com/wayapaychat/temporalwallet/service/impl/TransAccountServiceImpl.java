@@ -3352,17 +3352,18 @@ public class TransAccountServiceImpl implements TransAccountService {
                 state.setValueDate(transList.getUpdatedAt().toString());
                 state.setDeposits(transList.getPartTranType().equalsIgnoreCase("C")
                         ? transList.getTranAmount().toString() : "");
-                state.setWithdrawals(transList.getPartTranType().equalsIgnoreCase("C")
+                state.setWithdrawals(transList.getPartTranType().equalsIgnoreCase("D")
                         ? transList.getTranAmount().toString() : "");
                 tran.add(state);
                 i++;
+                log.info("value of i:{}", i);
             }
             custStatement.setAccountName(account.getAcct_name());
             custStatement.setAccountNumber(acctNo);
             custStatement.setClearedal(new BigDecimal(account.getClr_bal_amt()));
             custStatement.setUnclearedBal(new BigDecimal(account.getUn_clr_bal_amt()));
             custStatement.setTransaction(tran);
-            log.info("Transaction:: {}", tran);
+            log.info("Transaction:: {}", custStatement);
             return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION LIST SUCCESSFULLY", custStatement);
 
         } catch (Exception e) {
