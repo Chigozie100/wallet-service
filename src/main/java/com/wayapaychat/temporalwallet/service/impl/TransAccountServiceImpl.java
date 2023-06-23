@@ -3329,15 +3329,15 @@ public class TransAccountServiceImpl implements TransAccountService {
                     == null ? (BigDecimal.ZERO) : debit);
 
             List<AccountStatement> tran = new ArrayList<>();
-            List<WalletTransaction> transaction = walletTransactionRepository.transList(
+            List<WalletTransaction> transaction = walletTransactionRepository.findByAllTransactionsWithDateRangeaAndAccount(
                     fromDate, toDate, acctNo);
             AccountStatement state = new AccountStatement();
             BigDecimal curBal = BigDecimal.ZERO;
 
             for (WalletTransaction transList : transaction) {
                 curBal = transList.getPartTranType().equalsIgnoreCase("D")
-                        ? curBal.subtract(transList.getTranAmount())
-                        : curBal.add(transList.getTranAmount());
+                        ? openBal.subtract(transList.getTranAmount())
+                        : openBal.add(transList.getTranAmount());
                 state.setBalance(curBal);
                 state.setDate(Date.from(transList.getTranDate().atStartOfDay(ZoneId.systemDefault()).toInstant()));
                 state.setReceiver(transList.getReceiverName());
@@ -3357,7 +3357,7 @@ public class TransAccountServiceImpl implements TransAccountService {
             custStatement.setUnclearedBal(new BigDecimal(account.getUn_clr_bal_amt()));
             custStatement.setOpeningBal(openBal);
             custStatement.setTransaction(tran);
-            custStatement.setClosingBal(openBal);
+            custStatement.setClosingBal(curBal);
             log.info("Transaction:: {}", custStatement);
             return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION LIST SUCCESSFULLY", custStatement);
 
