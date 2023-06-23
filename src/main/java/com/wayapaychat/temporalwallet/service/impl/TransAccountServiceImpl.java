@@ -3333,15 +3333,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                     fromDate, toDate, acctNo);
             AccountStatement state = new AccountStatement();
             BigDecimal curBal = BigDecimal.ZERO;
-            int i = 0;
+
             for (WalletTransaction transList : transaction) {
-                String transDate = transList.getTranDate().toString();
-                if (i == 0) {
-                    curBal = transList.getPartTranType().equalsIgnoreCase("D")
-                            ? openBal.subtract(transList.getTranAmount())
-                            : openBal.add(transList.getTranAmount());
-                    state.setBalance(curBal);
-                }
                 curBal = transList.getPartTranType().equalsIgnoreCase("D")
                         ? curBal.subtract(transList.getTranAmount())
                         : curBal.add(transList.getTranAmount());
@@ -3355,20 +3348,22 @@ public class TransAccountServiceImpl implements TransAccountService {
                 state.setWithdrawals(transList.getPartTranType().equalsIgnoreCase("D")
                         ? transList.getTranAmount().toString() : "");
                 tran.add(state);
-                i++;
-                log.info("value of i:{}", i);
+
             }
+
             custStatement.setAccountName(account.getAcct_name());
             custStatement.setAccountNumber(acctNo);
             custStatement.setClearedal(new BigDecimal(account.getClr_bal_amt()));
             custStatement.setUnclearedBal(new BigDecimal(account.getUn_clr_bal_amt()));
+            custStatement.setOpeningBal(openBal);
             custStatement.setTransaction(tran);
+            custStatement.setClosingBal(openBal);
             log.info("Transaction:: {}", custStatement);
             return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION LIST SUCCESSFULLY", custStatement);
 
         } catch (Exception e) {
             log.error("Exception:: {}", e.getMessage());
-                  return new ApiResponse<>(false, ApiResponse.Code.UNKNOWN_ERROR, "Error occured", null);
+            return new ApiResponse<>(false, ApiResponse.Code.UNKNOWN_ERROR, "Error occured", null);
         }
     }
 }
