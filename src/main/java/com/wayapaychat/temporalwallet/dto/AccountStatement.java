@@ -8,7 +8,7 @@ import java.util.Date;
 
 @Data
 public class AccountStatement {
-    private Date date;
+    private String date;
     private String description;
     private String ref;
     private String withdrawals;
