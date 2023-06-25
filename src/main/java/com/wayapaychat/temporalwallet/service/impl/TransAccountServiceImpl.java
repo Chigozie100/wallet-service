@@ -3314,10 +3314,10 @@ public class TransAccountServiceImpl implements TransAccountService {
             CustomerStatement custStatement = new CustomerStatement();
 
             //get account details
-            WalletAccount account = walletAccountRepository.findByAccountNo(acctNo);
-            if (account == null) {
-                return new ApiResponse<>(false, -1, "Invalid Account Number", null);
-            }
+//            WalletAccount account = walletAccountRepository.findByAccountNo(acctNo);
+//            if (account == null) {
+//                return new ApiResponse<>(false, -1, "Invalid Account Number", null);
+//            }
             LocalDate fromDate = fromdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
             LocalDate toDate = todate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
@@ -3329,17 +3329,18 @@ public class TransAccountServiceImpl implements TransAccountService {
                     == null ? (BigDecimal.ZERO) : debit);
 
             List<AccountStatement> tran = new ArrayList<>();
-            List<WalletTransaction> transaction = walletTransactionRepository.findByAllTransactionsWithDateRangeaAndAccount(
+            List<WalletTransaction> transaction = walletTransactionRepository.transList(
                     fromDate, toDate, acctNo);
-            AccountStatement state = new AccountStatement();
+            log.info("Trnsacrtion history:: {}",transaction);
             BigDecimal curBal = BigDecimal.ZERO;
 
             for (WalletTransaction transList : transaction) {
+                AccountStatement state = new AccountStatement();
                 curBal = transList.getPartTranType().equalsIgnoreCase("D")
                         ? openBal.subtract(transList.getTranAmount())
                         : openBal.add(transList.getTranAmount());
                 state.setBalance(curBal);
-                state.setDate(Date.from(transList.getTranDate().atStartOfDay(ZoneId.systemDefault()).toInstant()));
+                state.setDate(transList.getTranDate().toString());
                 state.setReceiver(transList.getReceiverName());
                 state.setSender(transList.getSenderName());
                 state.setValueDate(transList.getUpdatedAt().toString());
@@ -3348,13 +3349,12 @@ public class TransAccountServiceImpl implements TransAccountService {
                 state.setWithdrawals(transList.getPartTranType().equalsIgnoreCase("D")
                         ? transList.getTranAmount().toString() : "");
                 tran.add(state);
-
             }
-
-            custStatement.setAccountName(account.getAcct_name());
+            
+            custStatement.setAccountName("");
             custStatement.setAccountNumber(acctNo);
-            custStatement.setClearedal(new BigDecimal(account.getClr_bal_amt()));
-            custStatement.setUnclearedBal(new BigDecimal(account.getUn_clr_bal_amt()));
+            custStatement.setClearedal(new BigDecimal(""));
+            custStatement.setUnclearedBal(new BigDecimal(""));
             custStatement.setOpeningBal(openBal);
             custStatement.setTransaction(tran);
             custStatement.setClosingBal(curBal);
