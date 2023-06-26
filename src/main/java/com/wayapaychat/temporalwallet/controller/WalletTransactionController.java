@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.controller;
 
+import com.itextpdf.text.DocumentException;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.DateFormat;
@@ -776,21 +777,21 @@ public class WalletTransactionController {
     public ResponseEntity<?> customerstatement(HttpServletResponse response,
             @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
             @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
-            @PathVariable String accountNo) throws IOException, com.lowagie.text.DocumentException {
+            @PathVariable String accountNo) throws IOException, com.lowagie.text.DocumentException, DocumentException {
         response.setContentType("application/pdf");
         
         DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
         String currentDateTime = dateFormatter.format(new Date());
 //        
-//        String headerKey = "Content-Disposition";
-//        String headerValue = "attachment; filename=receipt_" + currentDateTime + ".pdf";
-//        response.setHeader(headerKey, headerValue);
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=receipt_" + currentDateTime + ".pdf";
+        response.setHeader(headerKey, headerValue);
 
         ApiResponse<CustomerStatement> res = transAccountService.accountstatementReport2(fromdate, todate, accountNo);       
 ////
-//        ExportPdf exporter = new ExportPdf();
-//        exporter.export(response);
-        return new ResponseEntity<>(res, HttpStatus.OK);
+        ExportPdf exporter = new ExportPdf(res.getData().getTransaction(),accountNo, fromdate, todate, res.getData().getAccountName(), res.getData().getOpeningBal().toString(), res.getData().getClosingBal().toString());
+      exporter.export(response);
+        return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
 }
