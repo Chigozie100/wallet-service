@@ -36,7 +36,7 @@ import javax.servlet.http.HttpServletResponse;
 public class ExportPdf {
 
     public static final String BASE_PATH = "/images";
-   private List<AccountStatement> trans;
+    private List<AccountStatement> trans;
     private String accountNo;
     private String accountName;
     private Date startDate;
@@ -71,13 +71,13 @@ public class ExportPdf {
         document.add(tables);
 
         Font font = FontFactory.getFont(FontFactory.TIMES_ITALIC);
-        font.setSize(15);
+        font.setSize(20);
         font.setColor(BaseColor.BLACK);
         font.isBold();
 
-        Paragraph p = new Paragraph(accountName, font);
+        Paragraph p = new Paragraph(accountName.toUpperCase(), font);
         p.setAlignment(Paragraph.ALIGN_LEFT);
-        p.setSpacingAfter(10f);
+        p.setSpacingAfter(9f);
         p.setSpacingBefore(15.5f);
         document.add(p);
 
@@ -107,7 +107,7 @@ public class ExportPdf {
         document.add(accountDetail);
 
         // add fradulent image
-        Image img = Image.getInstance("https://s3.eu-west-3.amazonaws.com/waya-2.0-file-resources/others/1/app1_Fraudimage.png");
+        Image img = Image.getInstance(BASE_PATH + "/fradulentpage.png");
         float documentWidth = document.getPageSize().getWidth() - document.leftMargin() - document.rightMargin();
         float documentHeight = document.getPageSize().getHeight() - document.topMargin() - document.bottomMargin();
         img.scaleToFit(documentWidth, documentHeight);
@@ -124,12 +124,13 @@ public class ExportPdf {
         document.add(footerTable);
 
         // add transaction history table
-        PdfPTable table2 = new PdfPTable(9);
+        PdfPTable table2 = new PdfPTable(8);
         table2.setWidthPercentage(113f);
-        table2.setWidths(new float[]{3.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f, 3.5f});
+        table2.setWidths(new float[]{3.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f});
         table2.setSpacingBefore(10f);
 
         writeTableHeader(table2);
+        
         writeTableData(table2);
         document.newPage();
         document.add(table2);
@@ -213,14 +214,11 @@ public class ExportPdf {
         cell.setPhrase(new Phrase("Credit", font));
         table.addCell(cell);
 
-        cell.setPhrase(new Phrase("Balance", font));
-        table.addCell(cell);
-
     }
 
     private void addAccountDetailTableCell(PdfPTable table, String text, int alignment, int fontStyle) {
 
-        PdfPCell cell = new PdfPCell(new Phrase(text.toUpperCase(), new Font(Font.FontFamily.HELVETICA, 14, fontStyle, BaseColor.BLACK)));
+        PdfPCell cell = new PdfPCell(new Phrase(text, new Font(Font.FontFamily.HELVETICA, 10, fontStyle, BaseColor.BLACK)));
 
         cell.setHorizontalAlignment(alignment);
         table.addCell(cell);
@@ -241,15 +239,20 @@ public class ExportPdf {
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
         table.addCell(cell);
     }
-    
-     private void writeTableData(PdfPTable table) {
+
+    private void writeTableData(PdfPTable table) throws DocumentException {
+        PdfPTable transList = new PdfPTable(8);
+        transList.setWidthPercentage(113f);
+        transList.setWidths(new float[]{3.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f});
+        transList.setSpacingBefore(10f);
+        
         PdfPCell cell = new PdfPCell();
         cell.setBorder(0);
         Font font = FontFactory.getFont(FontFactory.HELVETICA);
         font.setColor(BaseColor.BLACK);
         font.setSize(9);
 
-        for (AccountStatement data: trans){
+        for (AccountStatement data : trans) {
             cell.setPhrase(new Phrase(data.getDescription(), font));
             table.addCell(cell);
 
@@ -273,11 +276,9 @@ public class ExportPdf {
 
             cell.setPhrase(new Phrase(data.getWithdrawals(), font));
             table.addCell(cell);
-            
-            
+
             cell.setPhrase(new Phrase(data.getBalance().toString(), font));
             table.addCell(cell);
-
 
         }
     }
