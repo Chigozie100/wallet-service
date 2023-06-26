@@ -91,7 +91,7 @@ public class ExportPdf {
         writeAccountTable(accountNum);
 
         accountDetail.setWidthPercentage(50);
-        accountDetail.setSpacingAfter(100f);
+        accountDetail.setSpacingAfter(90f);
         accountDetail.setWidths(new float[]{10.5f, 10.5f});
         accountDetail.setHorizontalAlignment(Element.ALIGN_RIGHT);
         addAccountDetailTableCell(accountDetail, "AccountType:", Element.ALIGN_LEFT, Font.NORMAL);
@@ -111,15 +111,15 @@ public class ExportPdf {
         float documentWidth = document.getPageSize().getWidth() - document.leftMargin() - document.rightMargin();
         float documentHeight = document.getPageSize().getHeight() - document.topMargin() - document.bottomMargin();
         img.scaleToFit(documentWidth, documentHeight);
-        img.setSpacingBefore(100f);
-        img.setSpacingAfter(150f);
+        img.setSpacingBefore(90f);
+        img.setSpacingAfter(100f);
         document.add(img);
 
         //add contact table
         PdfPTable footerTable = new PdfPTable(1);
         footerTable.setWidthPercentage(100f);
         footerTable.setWidths(new float[]{3.5f});
-        footerTable.setSpacingBefore(150f);
+        footerTable.setSpacingBefore(100f);
         onEndPage(footerTable);
         document.add(footerTable);
 
@@ -128,10 +128,10 @@ public class ExportPdf {
         table2.setWidthPercentage(113f);
         table2.setWidths(new float[]{3.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f});
         table2.setSpacingBefore(10f);
-
+         
         writeTableHeader(table2);
         
-        writeTableData(table2);
+        
         document.newPage();
         document.add(table2);
 
@@ -184,7 +184,7 @@ public class ExportPdf {
         PdfPCell cell = new PdfPCell();
         cell.setBorder(0);
         cell.setBackgroundColor(new BaseColor(255, 68, 0));
-        cell.setPadding(15);
+        cell.setPadding(10);
 
         Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN);
         font.setColor(BaseColor.WHITE);
@@ -213,45 +213,7 @@ public class ExportPdf {
 
         cell.setPhrase(new Phrase("Credit", font));
         table.addCell(cell);
-
-    }
-
-    private void addAccountDetailTableCell(PdfPTable table, String text, int alignment, int fontStyle) {
-
-        PdfPCell cell = new PdfPCell(new Phrase(text, new Font(Font.FontFamily.HELVETICA, 10, fontStyle, BaseColor.BLACK)));
-
-        cell.setHorizontalAlignment(alignment);
-        table.addCell(cell);
-
-    }
-
-    public void onEndPage(PdfPTable table) {
-        PdfPCell cell = new PdfPCell();
-        cell.setBorder(0);
-        cell.setBackgroundColor(new BaseColor(255, 68, 0));
-        cell.setPadding(15);
-
-        Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN);
-        font.setColor(BaseColor.WHITE);
-        font.setSize(8);
-
-        cell.setPhrase(new Phrase("CALL WAYABANK(23413300359)-www.wayabank.ng", font));
-        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        table.addCell(cell);
-    }
-
-    private void writeTableData(PdfPTable table) throws DocumentException {
-        PdfPTable transList = new PdfPTable(8);
-        transList.setWidthPercentage(113f);
-        transList.setWidths(new float[]{3.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f});
-        transList.setSpacingBefore(10f);
         
-        PdfPCell cell = new PdfPCell();
-        cell.setBorder(0);
-        Font font = FontFactory.getFont(FontFactory.HELVETICA);
-        font.setColor(BaseColor.BLACK);
-        font.setSize(9);
-
         for (AccountStatement data : trans) {
             cell.setPhrase(new Phrase(data.getDescription(), font));
             table.addCell(cell);
@@ -281,6 +243,41 @@ public class ExportPdf {
             table.addCell(cell);
 
         }
+
     }
+
+    private void addAccountDetailTableCell(PdfPTable table, String text, int alignment, int fontStyle) {
+
+        PdfPCell cell = new PdfPCell(new Phrase(text, new Font(Font.FontFamily.HELVETICA, 10, fontStyle, BaseColor.BLACK)));
+
+        cell.setHorizontalAlignment(alignment);
+        table.addCell(cell);
+
+    }
+
+    public void onEndPage(PdfPTable table) {
+        PdfPCell cell = new PdfPCell();
+        cell.setBorder(0);
+        cell.setBackgroundColor(new BaseColor(255, 68, 0));
+        cell.setPadding(15);
+
+        Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN);
+        font.setColor(BaseColor.WHITE);
+        font.setSize(8);
+
+        cell.setPhrase(new Phrase("CALL WAYABANK(23413300359)-www.wayabank.ng", font));
+        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        table.addCell(cell);
+    }
+
+//    private void writeTableData(PdfPTable table) throws DocumentException {       
+//        PdfPCell cell = new PdfPCell();
+//        cell.setBorder(0);
+//        Font font = FontFactory.getFont(FontFactory.HELVETICA);
+//        font.setColor(BaseColor.BLACK);
+//        font.setSize(9);
+//
+//        
+//    }
 
 }
