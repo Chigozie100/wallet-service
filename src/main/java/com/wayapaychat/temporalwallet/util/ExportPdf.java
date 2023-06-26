@@ -130,7 +130,7 @@ public class ExportPdf {
         table2.setSpacingBefore(10f);
 
         writeTableHeader(table2);
-//        writeTableData(table2);
+        writeTableData(table2);
         document.newPage();
         document.add(table2);
 
@@ -220,7 +220,7 @@ public class ExportPdf {
 
     private void addAccountDetailTableCell(PdfPTable table, String text, int alignment, int fontStyle) {
 
-        PdfPCell cell = new PdfPCell(new Phrase(text, new Font(Font.FontFamily.HELVETICA, 8, fontStyle, BaseColor.BLACK)));
+        PdfPCell cell = new PdfPCell(new Phrase(text.toUpperCase(), new Font(Font.FontFamily.HELVETICA, 14, fontStyle, BaseColor.BLACK)));
 
         cell.setHorizontalAlignment(alignment);
         table.addCell(cell);
@@ -242,44 +242,44 @@ public class ExportPdf {
         table.addCell(cell);
     }
     
-//     private void writeTableData(PdfPTable table) {
-//        PdfPCell cell = new PdfPCell();
-//        cell.setBorder(0);
-//        Font font = FontFactory.getFont(FontFactory.HELVETICA);
-//        font.setColor(BaseColor.BLACK);
-//        font.setSize(9);
-//
-//        for (AccountStatement data: trans){
-//            cell.setPhrase(new Phrase(data.getDescription(), font));
-//            table.addCell(cell);
-//
-//            cell.setPhrase(new Phrase(data.getRef(), font));
-//            table.addCell(cell);
-//
-//            cell.setPhrase(new Phrase(data.getSender(), font));
-//            table.addCell(cell);
-//
-//            cell.setPhrase(new Phrase(data.getReceiver(), font));
-//            table.addCell(cell);
-//
-//            cell.setPhrase(new Phrase(data.getDate(), font));
-//            table.addCell(cell);
-//
-//            cell.setPhrase(new Phrase(data.getValueDate(), font));
-//            table.addCell(cell);
-//
-//            cell.setPhrase(new Phrase(data.getDeposits(), font));
-//            table.addCell(cell);
-//
-//            cell.setPhrase(new Phrase(data.getWithdrawals(), font));
-//            table.addCell(cell);
-//            
-//            
-//            cell.setPhrase(new Phrase(data.getBalance().toString(), font));
-//            table.addCell(cell);
-//
-//
-//        }
-//    }
+     private void writeTableData(PdfPTable table) {
+        PdfPCell cell = new PdfPCell();
+        cell.setBorder(0);
+        Font font = FontFactory.getFont(FontFactory.HELVETICA);
+        font.setColor(BaseColor.BLACK);
+        font.setSize(9);
+
+        for (AccountStatement data: trans){
+            cell.setPhrase(new Phrase(data.getDescription(), font));
+            table.addCell(cell);
+
+            cell.setPhrase(new Phrase(data.getRef(), font));
+            table.addCell(cell);
+
+            cell.setPhrase(new Phrase(data.getSender(), font));
+            table.addCell(cell);
+
+            cell.setPhrase(new Phrase(data.getReceiver(), font));
+            table.addCell(cell);
+
+            cell.setPhrase(new Phrase(data.getDate(), font));
+            table.addCell(cell);
+
+            cell.setPhrase(new Phrase(data.getValueDate(), font));
+            table.addCell(cell);
+
+            cell.setPhrase(new Phrase(data.getDeposits(), font));
+            table.addCell(cell);
+
+            cell.setPhrase(new Phrase(data.getWithdrawals(), font));
+            table.addCell(cell);
+            
+            
+            cell.setPhrase(new Phrase(data.getBalance().toString(), font));
+            table.addCell(cell);
+
+
+        }
+    }
 
 }
