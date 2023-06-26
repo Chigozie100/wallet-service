@@ -107,7 +107,7 @@ public class ExportPdf {
         document.add(accountDetail);
 
         // add fradulent image
-        Image img = Image.getInstance(BASE_PATH + "/fradulentpage.png");
+        Image img = Image.getInstance("https://s3.eu-west-3.amazonaws.com/waya-2.0-file-resources/others/1/app1_Fraudimage.png");
         float documentWidth = document.getPageSize().getWidth() - document.leftMargin() - document.rightMargin();
         float documentHeight = document.getPageSize().getHeight() - document.topMargin() - document.bottomMargin();
         img.scaleToFit(documentWidth, documentHeight);
