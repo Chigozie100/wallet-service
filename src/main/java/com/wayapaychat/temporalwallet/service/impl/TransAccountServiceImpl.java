@@ -3314,10 +3314,10 @@ public class TransAccountServiceImpl implements TransAccountService {
             CustomerStatement custStatement = new CustomerStatement();
 
             //get account details
-//            WalletAccount account = walletAccountRepository.findByAccountNo(acctNo);
-//            if (account == null) {
-//                return new ApiResponse<>(false, -1, "Invalid Account Number", null);
-//            }
+            WalletAccount account = walletAccountRepository.findByAccountNo(acctNo);
+            if (account == null) {
+                return new ApiResponse<>(false, -1, "Invalid Account Number", null);
+            }
             LocalDate fromDate = fromdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
             LocalDate toDate = todate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
@@ -3350,11 +3350,11 @@ public class TransAccountServiceImpl implements TransAccountService {
                         ? transList.getTranAmount().toString() : "");
                 tran.add(state);
             }
-            
-            custStatement.setAccountName("");
+             log.info("List:: {}", tran);
+            custStatement.setAccountName(account.getAcct_name());
             custStatement.setAccountNumber(acctNo);
-            custStatement.setClearedal(new BigDecimal(""));
-            custStatement.setUnclearedBal(new BigDecimal(""));
+            custStatement.setClearedal(new BigDecimal(account.getClr_bal_amt()));
+            custStatement.setUnclearedBal(new BigDecimal(account.getUn_clr_bal_amt()));
             custStatement.setOpeningBal(openBal);
             custStatement.setTransaction(tran);
             custStatement.setClosingBal(curBal);
