@@ -3331,15 +3331,21 @@ public class TransAccountServiceImpl implements TransAccountService {
             List<AccountStatement> tran = new ArrayList<>();
             List<WalletTransaction> transaction = walletTransactionRepository.transList(
                     fromDate, toDate, acctNo);
-            log.info("Trnsacrtion history:: {}",transaction);
+            log.info("Trnsacrtion history:: {}", transaction);
             BigDecimal curBal = BigDecimal.ZERO;
 
             for (WalletTransaction transList : transaction) {
                 AccountStatement state = new AccountStatement();
-                curBal = transList.getPartTranType().equalsIgnoreCase("D")
-                        ? openBal.subtract(transList.getTranAmount())
-                        : openBal.add(transList.getTranAmount());
-                state.setBalance(curBal);
+                if (tran.size() == 1) {
+                    curBal = transList.getPartTranType().equalsIgnoreCase("D")
+                            ? openBal.subtract(transList.getTranAmount())
+                            : openBal.add(transList.getTranAmount());
+                    state.setBalance(curBal);
+                }
+
+                state.setBalance(transList.getPartTranType().equalsIgnoreCase("D")
+                            ? curBal.subtract(transList.getTranAmount())
+                            : curBal.add(transList.getTranAmount()));
                 state.setDate(transList.getTranDate().toString());
                 state.setReceiver(transList.getReceiverName());
                 state.setSender(transList.getSenderName());
@@ -3349,8 +3355,9 @@ public class TransAccountServiceImpl implements TransAccountService {
                 state.setWithdrawals(transList.getPartTranType().equalsIgnoreCase("D")
                         ? transList.getTranAmount().toString() : "");
                 tran.add(state);
+
             }
-             log.info("List:: {}", tran);
+            log.info("List:: {}", tran);
             custStatement.setAccountName(account.getAcct_name());
             custStatement.setAccountNumber(acctNo);
             custStatement.setClearedal(new BigDecimal(account.getClr_bal_amt()));
