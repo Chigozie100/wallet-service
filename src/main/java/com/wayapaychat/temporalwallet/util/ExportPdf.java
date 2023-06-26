@@ -35,6 +35,7 @@ import javax.servlet.http.HttpServletResponse;
  */
 public class ExportPdf {
 
+    public static final String BASE_PATH = "/images";
    private List<AccountStatement> trans;
     private String accountNo;
     private String accountName;
@@ -106,7 +107,7 @@ public class ExportPdf {
         document.add(accountDetail);
 
         // add fradulent image
-        Image img = Image.getInstance("src/main/resources/images/fradulentpage.png");
+        Image img = Image.getInstance("https://s3.eu-west-3.amazonaws.com/waya-2.0-file-resources/others/1/app1_Fraudimage.png");
         float documentWidth = document.getPageSize().getWidth() - document.leftMargin() - document.rightMargin();
         float documentHeight = document.getPageSize().getHeight() - document.topMargin() - document.bottomMargin();
         img.scaleToFit(documentWidth, documentHeight);
@@ -129,7 +130,7 @@ public class ExportPdf {
         table2.setSpacingBefore(10f);
 
         writeTableHeader(table2);
-        writeTableData(table2);
+//        writeTableData(table2);
         document.newPage();
         document.add(table2);
 
@@ -241,44 +242,44 @@ public class ExportPdf {
         table.addCell(cell);
     }
     
-     private void writeTableData(PdfPTable table) {
-        PdfPCell cell = new PdfPCell();
-        cell.setBorder(0);
-        Font font = FontFactory.getFont(FontFactory.HELVETICA);
-        font.setColor(BaseColor.BLACK);
-        font.setSize(9);
-
-        for (AccountStatement data: trans){
-            cell.setPhrase(new Phrase(data.getDescription(), font));
-            table.addCell(cell);
-
-            cell.setPhrase(new Phrase(data.getRef(), font));
-            table.addCell(cell);
-
-            cell.setPhrase(new Phrase(data.getSender(), font));
-            table.addCell(cell);
-
-            cell.setPhrase(new Phrase(data.getReceiver(), font));
-            table.addCell(cell);
-
-            cell.setPhrase(new Phrase(data.getDate(), font));
-            table.addCell(cell);
-
-            cell.setPhrase(new Phrase(data.getValueDate(), font));
-            table.addCell(cell);
-
-            cell.setPhrase(new Phrase(data.getDeposits(), font));
-            table.addCell(cell);
-
-            cell.setPhrase(new Phrase(data.getWithdrawals(), font));
-            table.addCell(cell);
-            
-            
-            cell.setPhrase(new Phrase(data.getBalance().toString(), font));
-            table.addCell(cell);
-
-
-        }
-    }
+//     private void writeTableData(PdfPTable table) {
+//        PdfPCell cell = new PdfPCell();
+//        cell.setBorder(0);
+//        Font font = FontFactory.getFont(FontFactory.HELVETICA);
+//        font.setColor(BaseColor.BLACK);
+//        font.setSize(9);
+//
+//        for (AccountStatement data: trans){
+//            cell.setPhrase(new Phrase(data.getDescription(), font));
+//            table.addCell(cell);
+//
+//            cell.setPhrase(new Phrase(data.getRef(), font));
+//            table.addCell(cell);
+//
+//            cell.setPhrase(new Phrase(data.getSender(), font));
+//            table.addCell(cell);
+//
+//            cell.setPhrase(new Phrase(data.getReceiver(), font));
+//            table.addCell(cell);
+//
+//            cell.setPhrase(new Phrase(data.getDate(), font));
+//            table.addCell(cell);
+//
+//            cell.setPhrase(new Phrase(data.getValueDate(), font));
+//            table.addCell(cell);
+//
+//            cell.setPhrase(new Phrase(data.getDeposits(), font));
+//            table.addCell(cell);
+//
+//            cell.setPhrase(new Phrase(data.getWithdrawals(), font));
+//            table.addCell(cell);
+//            
+//            
+//            cell.setPhrase(new Phrase(data.getBalance().toString(), font));
+//            table.addCell(cell);
+//
+//
+//        }
+//    }
 
 }
