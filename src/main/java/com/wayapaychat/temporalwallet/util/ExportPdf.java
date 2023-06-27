@@ -138,7 +138,8 @@ public class ExportPdf {
         list.setWidthPercentage(113f);
         list.setWidths(new float[]{3.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f});
         list.setSpacingBefore(10f);
-        writeTableData(table2);
+        writeTableData(list);
+        document.add(list);
 
         document.close();
 
