@@ -3333,6 +3333,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                     fromDate, toDate, acctNo);
             log.info("Trnsacrtion history:: {}", transaction);
             BigDecimal curBal = BigDecimal.ZERO;
+            BigDecimal deposit = BigDecimal.ZERO;
+            BigDecimal with = BigDecimal.ZERO;
 
             for (WalletTransaction transList : transaction) {
                 AccountStatement state = new AccountStatement();
@@ -3341,11 +3343,13 @@ public class TransAccountServiceImpl implements TransAccountService {
                             ? openBal.subtract(transList.getTranAmount())
                             : openBal.add(transList.getTranAmount());
                     state.setBalance(curBal);
-                }
-
-                state.setBalance(transList.getPartTranType().equalsIgnoreCase("D")
+                } else {
+                    curBal = transList.getPartTranType().equalsIgnoreCase("D")
                             ? curBal.subtract(transList.getTranAmount())
-                            : curBal.add(transList.getTranAmount()));
+                            : curBal.add(transList.getTranAmount());
+                    state.setBalance(curBal);
+
+                }
                 state.setDate(transList.getTranDate().toString());
                 state.setReceiver(transList.getReceiverName());
                 state.setSender(transList.getSenderName());
@@ -3354,10 +3358,16 @@ public class TransAccountServiceImpl implements TransAccountService {
                         ? transList.getTranAmount().toString() : "");
                 state.setWithdrawals(transList.getPartTranType().equalsIgnoreCase("D")
                         ? transList.getTranAmount().toString() : "");
+                with = transList.getPartTranType().equalsIgnoreCase("D")
+                        ? deposit.add(transList.getTranAmount()) : deposit;
+                
+                deposit = transList.getPartTranType().equalsIgnoreCase("C")
+                        ? with.add(transList.getTranAmount()) : deposit;
+                
                 tran.add(state);
-
             }
-            log.info("List:: {}", tran);
+            log.info("All trans debit: {}", with);
+            log.info("All trans credit:: {}", deposit);
             custStatement.setAccountName(account.getAcct_name());
             custStatement.setAccountNumber(acctNo);
             custStatement.setClearedal(new BigDecimal(account.getClr_bal_amt()));
