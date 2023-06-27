@@ -22,18 +22,28 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.wayapaychat.temporalwallet.dto.AccountStatement;
+import com.wayapaychat.temporalwallet.notification.EmailEvent;
+import com.wayapaychat.temporalwallet.notification.EmailPayload;
+import com.wayapaychat.temporalwallet.notification.EmailRecipient;
+import com.wayapaychat.temporalwallet.proxy.NotificationProxy;
 import java.awt.Color;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
  * @author Olawale
  */
 public class ExportPdf {
+
+    @Autowired
+    private NotificationProxy notificationServiceProxy;
 
     public static final String BASE_PATH = "/images";
     private List<AccountStatement> trans;
@@ -129,12 +139,12 @@ public class ExportPdf {
         table2.setWidths(new float[]{3.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f});
         table2.setSpacingBefore(10f);
 
-        writeTableHeader(table2);               
+        writeTableHeader(table2);
         document.newPage();
         document.add(table2);
-        
+
         PdfPTable list = new PdfPTable(8);
-        
+
         list.setWidthPercentage(113f);
         list.setWidths(new float[]{3.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f});
         list.setSpacingBefore(10f);
@@ -246,7 +256,7 @@ public class ExportPdf {
         table.addCell(cell);
     }
 
-    private void writeTableData(PdfPTable table) throws DocumentException {       
+    private void writeTableData(PdfPTable table) throws DocumentException {
         PdfPCell cell = new PdfPCell();
         cell.setBorder(1);
         Font font = FontFactory.getFont(FontFactory.HELVETICA);
@@ -272,13 +282,39 @@ public class ExportPdf {
             cell.setPhrase(new Phrase(data.getValueDate(), font));
             table.addCell(cell);
 
-            cell.setPhrase(new Phrase(data.getDeposits(), font));
+            cell.setPhrase(new Phrase(data.getWithdrawals(), font));
             table.addCell(cell);
 
-            cell.setPhrase(new Phrase(data.getWithdrawals(), font));
+            cell.setPhrase(new Phrase(data.getDeposits(), font));
             table.addCell(cell);
 
         }
     }
 
+    private void sendSatement(Date startDate, Date endDate, String name, String email, String token) {
+        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+        String staDate = formatter.format(startDate);
+        String strDate = formatter.format(endDate);
+
+        EmailEvent emailEvent = new EmailEvent();
+
+        emailEvent.setEventType("EMAIL");
+        emailEvent.setProductType("WAYABANK");
+        emailEvent.setSubject("Account Statement: " + staDate + " TO " + strDate);
+        emailEvent.setEventCategory("WELCOME");
+        emailEvent.setInitiator("SYSTEM ADMIN");
+        String message = "Please find attached your staement of account from  "
+                + staDate + " to " + strDate;
+String htmlCode = String.format("<h2><a style=\"color:green;\" href=\"%s\">Download Report File</a></h2>", emailEvent.getAttachment());
+			emailEvent.setHtmlCode(htmlCode);
+        ArrayList<EmailRecipient> recipient = new ArrayList<>(Arrays.asList(
+                new EmailRecipient(name, email)
+        ));
+        EmailPayload mail = new EmailPayload();
+        mail.setMessage(message);
+        mail.setNames(recipient);
+        emailEvent.setData(mail);
+        notificationServiceProxy.emailNotifyUser(emailEvent, token);
+
+    }
 }
