@@ -3359,10 +3359,10 @@ public class TransAccountServiceImpl implements TransAccountService {
                 state.setWithdrawals(transList.getPartTranType().equalsIgnoreCase("D")
                         ? transList.getTranAmount().toString() : "");
                 with = transList.getPartTranType().equalsIgnoreCase("D")
-                        ? deposit.add(transList.getTranAmount()) : deposit;
+                        ? with.add(transList.getTranAmount()) : with;
                 
                 deposit = transList.getPartTranType().equalsIgnoreCase("C")
-                        ? with.add(transList.getTranAmount()) : deposit;
+                        ? deposit.add(transList.getTranAmount()) : deposit;
                 
                 tran.add(state);
             }
@@ -3374,7 +3374,7 @@ public class TransAccountServiceImpl implements TransAccountService {
             custStatement.setUnclearedBal(new BigDecimal(account.getUn_clr_bal_amt()));
             custStatement.setOpeningBal(openBal);
             custStatement.setTransaction(tran);
-            custStatement.setClosingBal(curBal);
+            custStatement.setClosingBal(openBal.add(deposit).subtract(with));
             log.info("Transaction:: {}", custStatement);
             return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION LIST SUCCESSFULLY", custStatement);
 
