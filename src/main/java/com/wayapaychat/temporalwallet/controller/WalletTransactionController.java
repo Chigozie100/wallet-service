@@ -51,6 +51,7 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -749,8 +750,8 @@ public class WalletTransactionController {
     public ResponseEntity<?> overallBasedAnalysis() {
         return transAccountService.transactionAnalysis();
     }
-    
-     @ApiImplicitParams({
+
+    @ApiImplicitParams({
         @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Total Overall Based Transactions", notes = "Total Overall Based Transactions", tags = {"TRANSACTION-WALLET"})
     @GetMapping("/transaction/analysis")
@@ -758,7 +759,6 @@ public class WalletTransactionController {
             @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate) {
         return transAccountService.transactionAnalysisFilterDate(fromdate, todate);
     }
-
 
 //    @ApiImplicitParams({
 //            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
@@ -768,8 +768,6 @@ public class WalletTransactionController {
 //        ApiResponse<?> response = transAccountService.fetchUserTransactionsByReferenceNumber(token,referenceNumber);
 //        return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
 //    }
-
-  
     @ApiImplicitParams({
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Customer statement of account", notes = "Account Statement", tags = {"TRANSACTION-WALLET"})
@@ -779,7 +777,7 @@ public class WalletTransactionController {
             @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
             @PathVariable String accountNo) throws IOException, com.lowagie.text.DocumentException, DocumentException {
         response.setContentType("application/pdf");
-        
+
         DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
         String currentDateTime = dateFormatter.format(new Date());
 //        
@@ -788,9 +786,10 @@ public class WalletTransactionController {
         response.setHeader(headerKey, headerValue);
 
         ApiResponse<CustomerStatement> res = transAccountService.accountstatementReport2(fromdate, todate, accountNo);       
-
-        ExportPdf exporter = new ExportPdf(res.getData().getTransaction(),accountNo, fromdate, todate, res.getData().getAccountName(), res.getData().getOpeningBal().toString(), res.getData().getClosingBal().toString());
+        ExportPdf exporter = new ExportPdf(res.getData().getTransaction(), accountNo, fromdate, todate, res.getData().getAccountName(), res.getData().getOpeningBal().toString(),
+                res.getData().getClosingBal().toString(), res.getData().getClearedal().toString(), res.getData().getUnclearedBal().toString());
         exporter.export(response);
+
         return new ResponseEntity<>(response, HttpStatus.OK);
 
     }
