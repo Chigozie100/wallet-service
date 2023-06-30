@@ -58,6 +58,7 @@ import com.wayapaychat.temporalwallet.response.TransactionAnalysis;
 import com.wayapaychat.temporalwallet.response.TransactionsResponse;
 
 import feign.FeignException;
+import java.math.RoundingMode;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -3335,7 +3336,9 @@ public class TransAccountServiceImpl implements TransAccountService {
             BigDecimal curBal = BigDecimal.ZERO;
             BigDecimal deposit = BigDecimal.ZERO;
             BigDecimal with = BigDecimal.ZERO;
-
+            BigDecimal clearedBal = new BigDecimal(account.getClr_bal_amt());
+            BigDecimal unclearedBal = new BigDecimal(account.getUn_clr_bal_amt());
+            
             for (WalletTransaction transList : transaction) {
                 AccountStatement state = new AccountStatement();
                 if (tran.size() == 1) {
@@ -3370,8 +3373,8 @@ public class TransAccountServiceImpl implements TransAccountService {
             log.info("All trans credit:: {}", deposit);
             custStatement.setAccountName(account.getAcct_name());
             custStatement.setAccountNumber(acctNo);
-            custStatement.setClearedal(new BigDecimal(account.getClr_bal_amt()));
-            custStatement.setUnclearedBal(new BigDecimal(account.getUn_clr_bal_amt()));
+            custStatement.setClearedal(clearedBal.setScale(2, RoundingMode.HALF_EVEN));
+            custStatement.setUnclearedBal(unclearedBal.setScale(2, RoundingMode.HALF_EVEN));
             custStatement.setOpeningBal(openBal);
             custStatement.setTransaction(tran);
             custStatement.setClosingBal(openBal.add(deposit).subtract(with));
