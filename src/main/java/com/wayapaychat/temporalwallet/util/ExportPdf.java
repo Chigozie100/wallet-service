@@ -23,7 +23,9 @@ import com.wayapaychat.temporalwallet.notification.EmailEvent;
 import com.wayapaychat.temporalwallet.notification.EmailPayload;
 import com.wayapaychat.temporalwallet.notification.EmailRecipient;
 import com.wayapaychat.temporalwallet.proxy.NotificationProxy;
+import java.io.File;
 import java.io.IOException;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,6 +39,12 @@ import org.springframework.beans.factory.annotation.Autowired;
  * @author Olawale
  */
 public class ExportPdf {
+    
+      private final String SEPARATOR = System.getProperty("file.separator");
+    private final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+	private final String DESTINATION = System.getProperty("user.dir") + SEPARATOR +"reports"+ SEPARATOR;
+	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
+    private final String EXT = ".pdf";
 
     @Autowired
     private NotificationProxy notificationServiceProxy;
@@ -64,112 +72,116 @@ public class ExportPdf {
         this.unclearedBal = unclearedBal;
     }
 
-    public void export(HttpServletResponse response) throws DocumentException, IOException {
-        PdfPTable tables = new PdfPTable(2);
+    public void export(HttpServletResponse response) {
+        try {
+            PdfPTable tables = new PdfPTable(2);
 
-        Document document = new Document(PageSize.A4);
-        PdfWriter.getInstance(document, response.getOutputStream());
+            Document document = new Document(PageSize.A4);
+            PdfWriter.getInstance(document, response.getOutputStream());
 
-        document.open();
+            document.open();
 
-        tables.setWidthPercentage(100f);
-        tables.setWidths(new float[]{3.5f, 2.5f});
-        tables.setSpacingBefore(10.5f);
-        tables.setSpacingAfter(15.5f);
-        writeHeader(tables);
-        document.add(tables);
+            tables.setWidthPercentage(100f);
+            tables.setWidths(new float[]{3.5f, 2.5f});
+            tables.setSpacingBefore(10.5f);
+            tables.setSpacingAfter(15.5f);
+            writeHeader(tables);
+            document.add(tables);
 
-        Font font = FontFactory.getFont(FontFactory.TIMES_ITALIC);
-        font.setSize(20);
-        font.setColor(BaseColor.BLACK);
-        font.isBold();
+            Font font = FontFactory.getFont(FontFactory.TIMES_ITALIC);
+            font.setSize(20);
+            font.setColor(BaseColor.BLACK);
+            font.isBold();
 
-        Paragraph p = new Paragraph(accountName.toUpperCase(), font);
-        p.setAlignment(Paragraph.ALIGN_LEFT);
-        p.setSpacingBefore(15.5f);
-        document.add(p);
+            Paragraph p = new Paragraph(accountName.toUpperCase(), font);
+            p.setAlignment(Paragraph.ALIGN_LEFT);
+            p.setSpacingBefore(15.5f);
+            document.add(p);
 
-        Font addressfont = FontFactory.getFont(FontFactory.TIMES_ITALIC);
-        addressfont.setSize(9);
-        addressfont.setColor(BaseColor.BLACK);
-        addressfont.isBold();
-        Paragraph address = new Paragraph("14 yeye olofin street, Lekki, Lagos", addressfont);
-        address.setAlignment(Paragraph.ALIGN_LEFT);
-        address.setSpacingAfter(5f);
-        document.add(address);
+            Font addressfont = FontFactory.getFont(FontFactory.TIMES_ITALIC);
+            addressfont.setSize(9);
+            addressfont.setColor(BaseColor.BLACK);
+            addressfont.isBold();
+            Paragraph address = new Paragraph("14 yeye olofin street, Lekki, Lagos", addressfont);
+            address.setAlignment(Paragraph.ALIGN_LEFT);
+            address.setSpacingAfter(5f);
+            document.add(address);
 
-        // add account detils        
-        PdfPTable accountNum = new PdfPTable(1);
-        accountNum.setWidthPercentage(50f);
-        accountNum.setWidths(new float[]{10f});
-        accountNum.setHorizontalAlignment(Element.ALIGN_LEFT);
-        writeAccountTable(accountNum);
+            // add account detils        
+            PdfPTable accountNum = new PdfPTable(1);
+            accountNum.setWidthPercentage(50f);
+            accountNum.setWidths(new float[]{10f});
+            accountNum.setHorizontalAlignment(Element.ALIGN_LEFT);
+            writeAccountTable(accountNum);
 
-        PdfPTable accountDetail = new PdfPTable(2);
-        accountDetail.setWidthPercentage(50f);
-        accountDetail.setWidths(new float[]{5f, 5f});
-        accountDetail.setHorizontalAlignment(Element.ALIGN_RIGHT);
-        addAccountDetailTableCell(accountDetail, "AccountType:", Element.ALIGN_LEFT, Font.NORMAL, BaseColor.WHITE);
-        addAccountDetailTableCell(accountDetail, "Savings", Element.ALIGN_RIGHT, Font.NORMAL, BaseColor.WHITE);
-        addAccountDetailTableCell(accountDetail, "Currency", Element.ALIGN_LEFT, Font.NORMAL, new BaseColor(251, 206, 177));
-        addAccountDetailTableCell(accountDetail, "NGN", Element.ALIGN_RIGHT, Font.NORMAL, new BaseColor(251, 206, 177));
-        addAccountDetailTableCell(accountDetail, "Opening Balance", Element.ALIGN_LEFT, Font.NORMAL, BaseColor.WHITE);
-        addAccountDetailTableCell(accountDetail, openBal, Element.ALIGN_RIGHT, Font.NORMAL, BaseColor.WHITE);
-        addAccountDetailTableCell(accountDetail, "Closing Balance", Element.ALIGN_LEFT, Font.NORMAL, new BaseColor(251, 206, 177));
-        addAccountDetailTableCell(accountDetail, closeBal, Element.ALIGN_RIGHT, Font.NORMAL, new BaseColor(251, 206, 177));
-        addAccountDetailTableCell(accountDetail, "Cleared Balance", Element.ALIGN_LEFT, Font.NORMAL, BaseColor.WHITE);
-        addAccountDetailTableCell(accountDetail, clearedBal, Element.ALIGN_RIGHT, Font.NORMAL, BaseColor.WHITE);
-        addAccountDetailTableCell(accountDetail, "Uncleared Balance", Element.ALIGN_LEFT, Font.NORMAL, new BaseColor(251, 206, 177));
-        addAccountDetailTableCell(accountDetail, unclearedBal, Element.ALIGN_RIGHT, Font.NORMAL, new BaseColor(251, 206, 177));
+            PdfPTable accountDetail = new PdfPTable(2);
+            accountDetail.setWidthPercentage(50f);
+            accountDetail.setWidths(new float[]{5f, 5f});
+            accountDetail.setHorizontalAlignment(Element.ALIGN_RIGHT);
+            addAccountDetailTableCell(accountDetail, "AccountType:", Element.ALIGN_LEFT, Font.NORMAL, BaseColor.WHITE);
+            addAccountDetailTableCell(accountDetail, "Savings", Element.ALIGN_RIGHT, Font.NORMAL, BaseColor.WHITE);
+            addAccountDetailTableCell(accountDetail, "Currency", Element.ALIGN_LEFT, Font.NORMAL, new BaseColor(251, 206, 177));
+            addAccountDetailTableCell(accountDetail, "NGN", Element.ALIGN_RIGHT, Font.NORMAL, new BaseColor(251, 206, 177));
+            addAccountDetailTableCell(accountDetail, "Opening Balance", Element.ALIGN_LEFT, Font.NORMAL, BaseColor.WHITE);
+            addAccountDetailTableCell(accountDetail, openBal, Element.ALIGN_RIGHT, Font.NORMAL, BaseColor.WHITE);
+            addAccountDetailTableCell(accountDetail, "Closing Balance", Element.ALIGN_LEFT, Font.NORMAL, new BaseColor(251, 206, 177));
+            addAccountDetailTableCell(accountDetail, closeBal, Element.ALIGN_RIGHT, Font.NORMAL, new BaseColor(251, 206, 177));
+            addAccountDetailTableCell(accountDetail, "Cleared Balance", Element.ALIGN_LEFT, Font.NORMAL, BaseColor.WHITE);
+            addAccountDetailTableCell(accountDetail, clearedBal, Element.ALIGN_RIGHT, Font.NORMAL, BaseColor.WHITE);
+            addAccountDetailTableCell(accountDetail, "Uncleared Balance", Element.ALIGN_LEFT, Font.NORMAL, new BaseColor(251, 206, 177));
+            addAccountDetailTableCell(accountDetail, unclearedBal, Element.ALIGN_RIGHT, Font.NORMAL, new BaseColor(251, 206, 177));
 
-        PdfPTable outer = new PdfPTable(2);
-        outer.setWidthPercentage(120);
-        outer.getDefaultCell().setBorder(0);
-        outer.getDefaultCell().setPadding(30);
-        outer.setWidths(new float[]{15f, 20f});
-        outer.setSpacingBefore(5f);
-        outer.setSpacingAfter(70f);
-        outer.addCell(accountNum);
-        outer.addCell(accountDetail);
-        document.add(outer);
+            PdfPTable outer = new PdfPTable(2);
+            outer.setWidthPercentage(120);
+            outer.getDefaultCell().setBorder(0);
+            outer.getDefaultCell().setPadding(30);
+            outer.setWidths(new float[]{15f, 20f});
+            outer.setSpacingBefore(5f);
+            outer.setSpacingAfter(70f);
+            outer.addCell(accountNum);
+            outer.addCell(accountDetail);
+            document.add(outer);
 
-        // add fradulent image
-        Image img = Image.getInstance("https://s3.eu-west-3.amazonaws.com/waya-2.0-file-resources/others/1/app1_Fraudimage.png");
-        float documentWidth = document.getPageSize().getWidth() - document.leftMargin() - document.rightMargin();
-        float documentHeight = document.getPageSize().getHeight() - document.topMargin() - document.bottomMargin();
-        img.scaleToFit(documentWidth, documentHeight);
-        img.setSpacingBefore(70f);
-        img.setSpacingAfter(100f);
-        document.add(img);
+            // add fradulent image
+            Image img = Image.getInstance("https://s3.eu-west-3.amazonaws.com/waya-2.0-file-resources/others/1/app1_Fraudimage.png");
+            float documentWidth = document.getPageSize().getWidth() - document.leftMargin() - document.rightMargin();
+            float documentHeight = document.getPageSize().getHeight() - document.topMargin() - document.bottomMargin();
+            img.scaleToFit(documentWidth, documentHeight);
+            img.setSpacingBefore(70f);
+            img.setSpacingAfter(100f);
+            document.add(img);
 
-        //add contact table
-        PdfPTable footerTable = new PdfPTable(1);
-        footerTable.setWidthPercentage(100f);
-        footerTable.setWidths(new float[]{3.5f});
-        footerTable.setSpacingBefore(100f);
-        onEndPage(footerTable);
-        document.add(footerTable);
+            //add contact table
+            PdfPTable footerTable = new PdfPTable(1);
+            footerTable.setWidthPercentage(100f);
+            footerTable.setWidths(new float[]{3.5f});
+            footerTable.setSpacingBefore(100f);
+            onEndPage(footerTable);
+            document.add(footerTable);
 
-        // add transaction history table
-        PdfPTable table2 = new PdfPTable(8);
-        table2.setWidthPercentage(113f);
-        table2.setWidths(new float[]{3.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f});
-        table2.setSpacingBefore(10f);
+            // add transaction history table
+            PdfPTable table2 = new PdfPTable(8);
+            table2.setWidthPercentage(113f);
+            table2.setWidths(new float[]{3.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f});
+            table2.setSpacingBefore(10f);
 
-        writeTableHeader(table2);
-        document.newPage();
-        document.add(table2);
+            writeTableHeader(table2);
+            document.newPage();
+            document.add(table2);
 
-        PdfPTable list = new PdfPTable(8);
+            PdfPTable list = new PdfPTable(8);
 
-        list.setWidthPercentage(113f);
-        list.setWidths(new float[]{3.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f});
-        list.setSpacingBefore(10f);
-        writeTableData(list);
-        document.add(list);
+            list.setWidthPercentage(113f);
+            list.setWidths(new float[]{3.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f});
+            list.setSpacingBefore(10f);
+            writeTableData(list);
+            document.add(list);
 
-        document.close();
+            document.close();
 
+        } catch (Exception ex) {
+
+        }
     }
 
     private void writeHeader(PdfPTable table) throws IOException, BadElementException {
@@ -180,7 +192,7 @@ public class ExportPdf {
 
         PdfPCell cell = new PdfPCell();
         cell.setBorder(0);
-        cell.setBackgroundColor(new BaseColor(255, 68, 0));
+        cell.setBackgroundColor(new BaseColor(255, 101, 46, 1));
         cell.setPadding(10);
 
         Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN);
@@ -205,7 +217,7 @@ public class ExportPdf {
     private void writeAccountTable(PdfPTable table) {
         PdfPCell cell = new PdfPCell();
         cell.setBorder(0);
-        cell.setBackgroundColor(new BaseColor(255, 68, 0));
+        cell.setBackgroundColor(new BaseColor(255, 101, 46, 1));
         cell.setPadding(9);
 
         Font font = FontFactory.getFont(FontFactory.COURIER);
@@ -224,7 +236,7 @@ public class ExportPdf {
     private void writeTableHeader(PdfPTable table) {
         PdfPCell cell = new PdfPCell();
         cell.setBorder(0);
-        cell.setBackgroundColor(new BaseColor(255, 68, 0));
+        cell.setBackgroundColor(new BaseColor(255, 101, 46, 1));
         cell.setPadding(15);
 
         Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN);
@@ -272,7 +284,7 @@ public class ExportPdf {
     public void onEndPage(PdfPTable table) {
         PdfPCell cell = new PdfPCell();
         cell.setBorder(0);
-        cell.setBackgroundColor(new BaseColor(255, 68, 0));
+        cell.setBackgroundColor(new BaseColor(255, 101, 46, 1));
         cell.setPadding(15);
 
         Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN);
@@ -287,7 +299,7 @@ public class ExportPdf {
     private void writeTableData(PdfPTable table) throws DocumentException {
         PdfPCell cell = new PdfPCell();
         cell.setBorder(1);
-        cell.setBorderColor(new BaseColor(255, 68, 0));
+        cell.setBorderColor(new BaseColor(255, 101, 46, 1));
         Font font = FontFactory.getFont(FontFactory.HELVETICA);
         font.setColor(BaseColor.BLACK);
         font.setSize(6);
