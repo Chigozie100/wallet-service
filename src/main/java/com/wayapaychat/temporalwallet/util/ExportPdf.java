@@ -192,7 +192,7 @@ public class ExportPdf {
 
         PdfPCell cell = new PdfPCell();
         cell.setBorder(0);
-        cell.setBackgroundColor(new BaseColor(255, 101, 46, 1));
+        cell.setBackgroundColor(new BaseColor(255, 101, 46));
         cell.setPadding(10);
 
         Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN);
@@ -217,7 +217,7 @@ public class ExportPdf {
     private void writeAccountTable(PdfPTable table) {
         PdfPCell cell = new PdfPCell();
         cell.setBorder(0);
-        cell.setBackgroundColor(new BaseColor(255, 101, 46, 1));
+        cell.setBackgroundColor(new BaseColor(255, 101, 46));
         cell.setPadding(9);
 
         Font font = FontFactory.getFont(FontFactory.COURIER);
@@ -236,7 +236,7 @@ public class ExportPdf {
     private void writeTableHeader(PdfPTable table) {
         PdfPCell cell = new PdfPCell();
         cell.setBorder(0);
-        cell.setBackgroundColor(new BaseColor(255, 101, 46, 1));
+        cell.setBackgroundColor(new BaseColor(255, 101, 46));
         cell.setPadding(15);
 
         Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN);
@@ -284,7 +284,7 @@ public class ExportPdf {
     public void onEndPage(PdfPTable table) {
         PdfPCell cell = new PdfPCell();
         cell.setBorder(0);
-        cell.setBackgroundColor(new BaseColor(255, 101, 46, 1));
+        cell.setBackgroundColor(new BaseColor(255, 101, 46));
         cell.setPadding(15);
 
         Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN);
@@ -299,7 +299,7 @@ public class ExportPdf {
     private void writeTableData(PdfPTable table) throws DocumentException {
         PdfPCell cell = new PdfPCell();
         cell.setBorder(1);
-        cell.setBorderColor(new BaseColor(255, 101, 46, 1));
+        cell.setBorderColor(new BaseColor(255, 101, 46));
         Font font = FontFactory.getFont(FontFactory.HELVETICA);
         font.setColor(BaseColor.BLACK);
         font.setSize(6);
