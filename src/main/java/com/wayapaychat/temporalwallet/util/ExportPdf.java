@@ -174,7 +174,7 @@ public class ExportPdf {
             PdfPTable list = new PdfPTable(9);
 
             list.setWidthPercentage(113f);
-            list.setWidths(new float[]{3.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f, 3.5f});
+            list.setWidths(new float[]{5.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f, 3.5f});
             list.setSpacingBefore(10f);
             writeTableData(list);
             document.add(list);
