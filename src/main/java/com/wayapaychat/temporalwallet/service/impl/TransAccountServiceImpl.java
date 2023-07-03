@@ -3366,7 +3366,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                 
                 deposit = transList.getPartTranType().equalsIgnoreCase("C")
                         ? deposit.add(transList.getTranAmount()) : deposit;
-                
+                state.setRef(transList.getPaymentReference());
+                state.setDescription(transList.getTranNarrate());
                 tran.add(state);
             }
             log.info("All trans debit: {}", with);
