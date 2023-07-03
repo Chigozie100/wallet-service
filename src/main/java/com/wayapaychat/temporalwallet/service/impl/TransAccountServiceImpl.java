@@ -3347,10 +3347,10 @@ public class TransAccountServiceImpl implements TransAccountService {
                             : openBal.add(transList.getTranAmount());
                     state.setBalance(curBal);   
                 } else{
-
+                  BigDecimal ff = tran.get(0).getBalance();
                     curBal = transList.getPartTranType().equalsIgnoreCase("D")
-                            ? curBal.subtract(transList.getTranAmount())
-                            : curBal.add(transList.getTranAmount());
+                            ? ff.subtract(transList.getTranAmount())
+                            : ff.add(transList.getTranAmount());
                     state.setBalance(curBal);
 
                 }
