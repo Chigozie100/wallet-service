@@ -309,7 +309,7 @@ public class ExportPdf {
         cell.setBorderColor(new BaseColor(255, 101, 46));
         Font font = FontFactory.getFont(FontFactory.HELVETICA);
         font.setColor(BaseColor.BLACK);
-        font.setSize(6);
+        font.setSize(5);
 
         for (AccountStatement data : trans) {
             cell.setPhrase(new Phrase(data.getDescription(), font));

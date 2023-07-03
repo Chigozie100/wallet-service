@@ -3345,8 +3345,9 @@ public class TransAccountServiceImpl implements TransAccountService {
                     curBal = transList.getPartTranType().equalsIgnoreCase("D")
                             ? openBal.subtract(transList.getTranAmount())
                             : openBal.add(transList.getTranAmount());
-                    state.setBalance(curBal);
-                } else {
+                    state.setBalance(curBal);   
+                } else{
+
                     curBal = transList.getPartTranType().equalsIgnoreCase("D")
                             ? curBal.subtract(transList.getTranAmount())
                             : curBal.add(transList.getTranAmount());
