@@ -32,18 +32,20 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import javax.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
  * @author Olawale
  */
+@Slf4j
 public class ExportPdf {
-    
-      private final String SEPARATOR = System.getProperty("file.separator");
+
+    private final String SEPARATOR = System.getProperty("file.separator");
     private final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-	private final String DESTINATION = System.getProperty("user.dir") + SEPARATOR +"reports"+ SEPARATOR;
-	private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
+    private final String DESTINATION = System.getProperty("user.dir") + SEPARATOR + "reports" + SEPARATOR;
+    private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
     private final String EXT = ".pdf";
 
     @Autowired
@@ -160,24 +162,26 @@ public class ExportPdf {
             document.add(footerTable);
 
             // add transaction history table
-            PdfPTable table2 = new PdfPTable(8);
+            PdfPTable table2 = new PdfPTable(9);
             table2.setWidthPercentage(113f);
-            table2.setWidths(new float[]{3.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f});
+            table2.setWidths(new float[]{3.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f, 3.5f});
             table2.setSpacingBefore(10f);
 
             writeTableHeader(table2);
             document.newPage();
             document.add(table2);
 
-            PdfPTable list = new PdfPTable(8);
+            PdfPTable list = new PdfPTable(9);
 
             list.setWidthPercentage(113f);
-            list.setWidths(new float[]{3.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f});
+            list.setWidths(new float[]{3.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f, 3.5f});
             list.setSpacingBefore(10f);
             writeTableData(list);
             document.add(list);
 
             document.close();
+
+            sendSatement(startDate, endDate, "tosin", "tosinfasina247@gmail.com", response);
 
         } catch (Exception ex) {
 
@@ -266,6 +270,9 @@ public class ExportPdf {
 
         cell.setPhrase(new Phrase("Credit", font));
         table.addCell(cell);
+        
+        cell.setPhrase(new Phrase("Balance", font));
+        table.addCell(cell);
 
     }
 
@@ -328,36 +335,43 @@ public class ExportPdf {
 
             cell.setPhrase(new Phrase(data.getDeposits(), font));
             table.addCell(cell);
+            
+            cell.setPhrase(new Phrase(data.getBalance().toString(), font));
+            table.addCell(cell);
 
         }
     }
 
-    public void sendSatement(Date startDate, Date endDate, String name, String email, String attach) {
-        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
-        String staDate = formatter.format(startDate);
-        String strDate = formatter.format(endDate);
+    public void sendSatement(Date startDate, Date endDate, String name, String email, HttpServletResponse response) {
+        try {
+            SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
+            String staDate = formatter.format(startDate);
+            String strDate = formatter.format(endDate);
 
-        EmailEvent emailEvent = new EmailEvent();
+            EmailEvent emailEvent = new EmailEvent();
 
-        emailEvent.setEventType("EMAIL");
-        emailEvent.setProductType("WAYABANK");
-        emailEvent.setSubject("Account Statement: " + staDate + " TO " + strDate);
-        emailEvent.setEventCategory("WELCOME");
-        emailEvent.setInitiator("SYSTEM ADMIN");
-        emailEvent.setAttachment(attach);
-        String message = "Please find attached your statement of account from  "
-                + staDate + " to " + strDate
-                + ". You can save, view and print it at your convenience.";
-        String htmlCode = String.format("<h2><a style=\"color:green;\" href=\"%s\">Download Report File</a></h2>", emailEvent.getAttachment());
-        emailEvent.setHtmlCode(htmlCode);
-        ArrayList<EmailRecipient> recipient = new ArrayList<>(Arrays.asList(
-                new EmailRecipient("tosin", "tosinfasina247@gmail.com")
-        ));
-        EmailPayload mail = new EmailPayload();
-        mail.setMessage(message);
-        mail.setNames(recipient);
-        emailEvent.setData(mail);
-        notificationServiceProxy.emailNotifyUser(emailEvent, "");
+            emailEvent.setEventType("EMAIL");
+            emailEvent.setProductType("WAYABANK");
+            emailEvent.setSubject("Account Statement: " + staDate + " TO " + strDate);
+            emailEvent.setEventCategory("WELCOME");
+            emailEvent.setInitiator("SYSTEM ADMIN");
+            emailEvent.setAttachment("https://s3.eu-west-3.amazonaws.com/waya-2.0-file-resources/others/1/app1_Acct_Statement.pdf");
+            String message = "Please find attached your statement of account from  "
+                    + staDate + " to " + strDate
+                    + ". You can save, view and print it at your convenience.";
+            String htmlCode = String.format("<h2><a style=\"color:green;\" href=\"%s\">Download Report File</a></h2>", emailEvent.getAttachment());
+            emailEvent.setHtmlCode(htmlCode);
+            ArrayList<EmailRecipient> recipient = new ArrayList<>(Arrays.asList(
+                    new EmailRecipient("tosin", "tosinfasina247@gmail.com")
+            ));
+            EmailPayload mail = new EmailPayload();
+            mail.setMessage(message);
+            mail.setNames(recipient);
+            emailEvent.setData(mail);
+            notificationServiceProxy.emailNotifyUser(emailEvent, "serial eyJhbGciOiJIUzUxMiJ9.eyJyb2xlIjpbeyJjcmVhdGVkQXQiOiIxNS0wMi0yMDIyIDA2OjI3OjEzIiwidXBkYXRlZEF0IjoiMTUtMDItMjAyMiAwNjoyNzoxMyIsImNyZWF0ZWRCeSI6Ik1HUiIsIm1vZGlmaWVkQnkiOiJNR1IiLCJpZCI6MTcsIm5hbWUiOiJST0xFX0FETUlOX1NVUEVSIiwiZGVzY3JpcHRpb24iOiJTVVBFUiBBRE1JTiBST0xFIiwiZGVmYXVsdCI6dHJ1ZX0seyJjcmVhdGVkQXQiOiIxNS0wMi0yMDIyIDA2OjI3OjEzIiwidXBkYXRlZEF0IjoiMTUtMDItMjAyMiAwNjoyNzoxMyIsImNyZWF0ZWRCeSI6Ik1HUiIsIm1vZGlmaWVkQnkiOiJNR1IiLCJpZCI6MTgsIm5hbWUiOiJST0xFX0FETUlOX09XTkVSIiwiZGVzY3JpcHRpb24iOiJPV05FUiBBRE1JTiBST0xFIiwiZGVmYXVsdCI6dHJ1ZX1dLCJpZCI6MSwic3ViIjoid2F5YWFkbWluQHdheWFwYXljaGF0LmNvbSIsImlhdCI6MTY3NTM0NzU2OSwiZXhwIjoxNzA2OTA1MTY5fQ.YJGbaUtuxQ0q2QMV0yfkT78d6kt7Q98tpyikvcGMFUrPDRAfDlikS_iRFEQA6puM8H3hunetqpcjnX0SeawxZQ");
 
+        }catch(Exception e){
+            log.error("Exception:: {}", e.getMessage());
+        }
     }
 }
