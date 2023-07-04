@@ -164,7 +164,7 @@ public class ExportPdf {
             // add transaction history table
             PdfPTable table2 = new PdfPTable(9);
             table2.setWidthPercentage(113f);
-            table2.setWidths(new float[]{3.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f, 3.5f});
+            table2.setWidths(new float[]{5.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3f, 3f, 3f});
             table2.setSpacingBefore(10f);
 
             writeTableHeader(table2);
