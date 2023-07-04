@@ -3341,21 +3341,15 @@ public class TransAccountServiceImpl implements TransAccountService {
             for (WalletTransaction transList : transaction) {
                 AccountStatement state = new AccountStatement();
 
-                if (tran.size() == 1) {
-                    curBal = transList.getPartTranType().equalsIgnoreCase("D")
-                            ? openBal.subtract(transList.getTranAmount())
-                            : openBal.add(transList.getTranAmount());
-                    state.setBalance(curBal);
-                } else {
-                    curBal = (tran.size() == 2
+                    curBal = (tran.size() == 1
                             ? (transList.getPartTranType().equalsIgnoreCase("D")
-                            ? tran.get(0).getBalance().subtract(transList.getTranAmount())
-                            : tran.get(0).getBalance().add(transList.getTranAmount()))
+                            ? openBal.subtract(transList.getTranAmount())
+                            : openBal.add(transList.getTranAmount()))
                             : (transList.getPartTranType().equalsIgnoreCase("D")
                             ? curBal.subtract(transList.getTranAmount())
                             : curBal.add(transList.getTranAmount())));
                     state.setBalance(curBal);
-                }
+                
                 state.setDate(transList.getTranDate().toString());
                 state.setReceiver(transList.getReceiverName());
                 state.setSender(transList.getSenderName());
