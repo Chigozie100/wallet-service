@@ -156,8 +156,7 @@ public class WalletTransaction implements Serializable {
             @NotNull BigDecimal tranAmount, @NotNull TransactionTypeEnum tranType,
             @NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
             @NotNull String partTranType, String tranGL, String paymentReference,
-            String createdBy, String createdEmail, Integer tranPart, String senderName, String receiverName,
-                             BigDecimal chargeAmount,BigDecimal vat) {
+            String createdBy, String createdEmail, Integer tranPart, String senderName, String receiverName) {
         super();
         this.del_flg = false;
         this.posted_flg = true;
@@ -183,7 +182,7 @@ public class WalletTransaction implements Serializable {
             @NotNull String tranNarrate, @NotNull LocalDate tranDate, @NotNull String tranCrncyCode,
             @NotNull String partTranType, String tranGL, String paymentReference,
             String createdBy, String createdEmail, Integer tranPart, CategoryType tranCategory, String senderName,
-            String receiverName,BigDecimal chargeAmount, BigDecimal vat) {
+            String receiverName) {
         super();
         this.del_flg = false;
         this.posted_flg = true;
