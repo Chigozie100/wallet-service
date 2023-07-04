@@ -3341,7 +3341,7 @@ public class TransAccountServiceImpl implements TransAccountService {
             for (WalletTransaction transList : transaction) {
                 AccountStatement state = new AccountStatement();
 
-                    curBal = (tran.size() == 1
+                    curBal = (tran.isEmpty()
                             ? (transList.getPartTranType().equalsIgnoreCase("D")
                             ? openBal.subtract(transList.getTranAmount())
                             : openBal.add(transList.getTranAmount()))
