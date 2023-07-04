@@ -174,14 +174,15 @@ public class ExportPdf {
             PdfPTable list = new PdfPTable(9);
 
             list.setWidthPercentage(113f);
-            list.setWidths(new float[]{5.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f, 3.5f});
+            list.setWidths(new float[]{5.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3f, 3f, 3f});
             list.setSpacingBefore(10f);
+            list.getDefaultCell().setBorder(2);
             writeTableData(list);
             document.add(list);
 
             document.close();
 
-            sendSatement(startDate, endDate, "tosin", "tosinfasina247@gmail.com", response);
+//            sendSatement(startDate, endDate, "tosin", "tosinfasina247@gmail.com", response);
 
         } catch (Exception ex) {
 
