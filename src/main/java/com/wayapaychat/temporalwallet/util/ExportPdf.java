@@ -164,7 +164,7 @@ public class ExportPdf {
             // add transaction history table
             PdfPTable table2 = new PdfPTable(9);
             table2.setWidthPercentage(113f);
-            table2.setWidths(new float[]{5.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3f, 3f, 3f});
+            table2.setWidths(new float[]{5.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f, 3.5f});
             table2.setSpacingBefore(10f);
 
             writeTableHeader(table2);
@@ -174,15 +174,14 @@ public class ExportPdf {
             PdfPTable list = new PdfPTable(9);
 
             list.setWidthPercentage(113f);
-            list.setWidths(new float[]{5.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3f, 3f, 3f});
+            list.setWidths(new float[]{5.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f, 3.5f});
             list.setSpacingBefore(10f);
-            list.getDefaultCell().setBorder(2);
             writeTableData(list);
             document.add(list);
 
             document.close();
 
-//            sendSatement(startDate, endDate, "tosin", "tosinfasina247@gmail.com", response);
+            sendSatement(startDate, endDate, "tosin", "tosinfasina247@gmail.com", response);
 
         } catch (Exception ex) {
 
@@ -310,7 +309,7 @@ public class ExportPdf {
         cell.setBorderColor(new BaseColor(255, 101, 46));
         Font font = FontFactory.getFont(FontFactory.HELVETICA);
         font.setColor(BaseColor.BLACK);
-        font.setSize(5);
+        font.setSize(6);
 
         for (AccountStatement data : trans) {
             cell.setPhrase(new Phrase(data.getDescription(), font));
