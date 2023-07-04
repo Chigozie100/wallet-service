@@ -3340,21 +3340,22 @@ public class TransAccountServiceImpl implements TransAccountService {
             BigDecimal unclearedBal = new BigDecimal(account.getUn_clr_bal_amt());
             for (WalletTransaction transList : transaction) {
                 AccountStatement state = new AccountStatement();
+
                 if (tran.size() == 1) {
                     curBal = transList.getPartTranType().equalsIgnoreCase("D")
                             ? openBal.subtract(transList.getTranAmount())
                             : openBal.add(transList.getTranAmount());
                     state.setBalance(curBal);
                 } else {
-                    log.info("Current Balance:{}", curBal);
-                    curBal = transList.getPartTranType().equalsIgnoreCase("D")
+                    curBal = (tran.size() == 2
+                            ? (transList.getPartTranType().equalsIgnoreCase("D")
+                            ? tran.get(0).getBalance().subtract(transList.getTranAmount())
+                            : tran.get(0).getBalance().add(transList.getTranAmount()))
+                            : (transList.getPartTranType().equalsIgnoreCase("D")
                             ? curBal.subtract(transList.getTranAmount())
-                            : curBal.add(transList.getTranAmount());
+                            : curBal.add(transList.getTranAmount())));
                     state.setBalance(curBal);
-
                 }
-                curBal = state.getBalance();
-                log.info("Current Balance::{}", curBal);
                 state.setDate(transList.getTranDate().toString());
                 state.setReceiver(transList.getReceiverName());
                 state.setSender(transList.getSenderName());
@@ -3373,8 +3374,6 @@ public class TransAccountServiceImpl implements TransAccountService {
                 tran.add(state);
 
             }
-            log.info("All trans debit: {}", with);
-            log.info("All trans credit:: {}", deposit);
             custStatement.setAccountName(account.getAcct_name());
             custStatement.setAccountNumber(acctNo);
             custStatement.setClearedal(clearedBal.setScale(2, RoundingMode.HALF_EVEN));
@@ -3382,7 +3381,6 @@ public class TransAccountServiceImpl implements TransAccountService {
             custStatement.setOpeningBal(openBal);
             custStatement.setTransaction(tran);
             custStatement.setClosingBal(openBal.add(deposit).subtract(with));
-            log.info("Transaction:: {}", custStatement);
             return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION LIST SUCCESSFULLY", custStatement);
 
         } catch (Exception e) {
