@@ -3338,23 +3338,23 @@ public class TransAccountServiceImpl implements TransAccountService {
             BigDecimal with = BigDecimal.ZERO;
             BigDecimal clearedBal = new BigDecimal(account.getClr_bal_amt());
             BigDecimal unclearedBal = new BigDecimal(account.getUn_clr_bal_amt());
-            
             for (WalletTransaction transList : transaction) {
                 AccountStatement state = new AccountStatement();
                 if (tran.size() == 1) {
                     curBal = transList.getPartTranType().equalsIgnoreCase("D")
                             ? openBal.subtract(transList.getTranAmount())
                             : openBal.add(transList.getTranAmount());
-                    state.setBalance(curBal);   
-                } else{
-                  String ff = tran.get(0).getBalance().toString();
-                  BigDecimal firstBal = new BigDecimal(ff);
+                    state.setBalance(curBal);
+                } else {
+                    log.info("Current Balance:{}", curBal);
                     curBal = transList.getPartTranType().equalsIgnoreCase("D")
-                            ? firstBal.subtract(transList.getTranAmount())
-                            : firstBal.add(transList.getTranAmount());
+                            ? curBal.subtract(transList.getTranAmount())
+                            : curBal.add(transList.getTranAmount());
                     state.setBalance(curBal);
 
                 }
+                curBal = state.getBalance();
+                log.info("Current Balance::{}", curBal);
                 state.setDate(transList.getTranDate().toString());
                 state.setReceiver(transList.getReceiverName());
                 state.setSender(transList.getSenderName());
@@ -3365,12 +3365,13 @@ public class TransAccountServiceImpl implements TransAccountService {
                         ? transList.getTranAmount().toString() : "");
                 with = transList.getPartTranType().equalsIgnoreCase("D")
                         ? with.add(transList.getTranAmount()) : with;
-                
+
                 deposit = transList.getPartTranType().equalsIgnoreCase("C")
                         ? deposit.add(transList.getTranAmount()) : deposit;
                 state.setRef(transList.getPaymentReference());
                 state.setDescription(transList.getTranNarrate());
                 tran.add(state);
+
             }
             log.info("All trans debit: {}", with);
             log.info("All trans credit:: {}", deposit);
