@@ -308,7 +308,7 @@ public class ExportPdf {
         PdfPCell cell = new PdfPCell();
         Font font = FontFactory.getFont(FontFactory.HELVETICA);
         font.setColor(BaseColor.BLACK);
-        font.setSize(6);
+        font.setSize(8);
 
         for (AccountStatement data : trans) {
             table.getDefaultCell().setBorder(1);
