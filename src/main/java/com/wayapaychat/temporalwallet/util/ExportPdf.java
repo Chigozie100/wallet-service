@@ -237,6 +237,8 @@ public class ExportPdf {
 
     private void writeTableHeader(PdfPTable table) {
         PdfPCell cell = new PdfPCell();
+        cell.setBorderColor(new BaseColor(251, 206, 177));
+        cell.setBorder(8);
         cell.setBackgroundColor(new BaseColor(255, 101, 46));
         cell.setPadding(10);
 
@@ -252,8 +254,6 @@ public class ExportPdf {
         table.addCell(cell);
 
         cell.setPhrase(new Phrase("Sender's Name ", font));
-        table.getDefaultCell().setBorder(1);
-        table.getDefaultCell().setBorderColor(new BaseColor(255, 101, 46));
         table.addCell(cell);
 
         cell.setPhrase(new Phrase("Receiver's Name", font));
@@ -280,7 +280,6 @@ public class ExportPdf {
     private void addAccountDetailTableCell(PdfPTable table, String text, int alignment, int fontStyle, BaseColor cellColor) {
 
         PdfPCell cell = new PdfPCell(new Phrase(text, new Font(Font.FontFamily.HELVETICA, 10, fontStyle, BaseColor.BLACK)));
-        cell.setBorderColor(BaseColor.WHITE);
         cell.setBorder(0);
 
         cell.setHorizontalAlignment(alignment);
@@ -306,13 +305,13 @@ public class ExportPdf {
 
     private void writeTableData(PdfPTable table) throws DocumentException {
         PdfPCell cell = new PdfPCell();
+        cell.setBorderColor(new BaseColor(251, 206, 177));
+        cell.setBorder(8);
         Font font = FontFactory.getFont(FontFactory.HELVETICA);
         font.setColor(BaseColor.BLACK);
-        font.setSize(8);
+        font.setSize(7);
 
         for (AccountStatement data : trans) {
-            table.getDefaultCell().setBorder(1);
-            table.getDefaultCell().setBorderColor(new BaseColor(255, 101, 46));
             cell.setPhrase(new Phrase(data.getDescription(), font));
             table.addCell(cell);
 
