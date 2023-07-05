@@ -41,16 +41,16 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 @Slf4j
 public class ExportPdf {
-    
+
     private final String SEPARATOR = System.getProperty("file.separator");
     private final Timestamp timestamp = new Timestamp(System.currentTimeMillis());
     private final String DESTINATION = System.getProperty("user.dir") + SEPARATOR + "reports" + SEPARATOR;
     private final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss");
     private final String EXT = ".pdf";
-    
+
     @Autowired
     private NotificationProxy notificationServiceProxy;
-    
+
     private List<AccountStatement> trans;
     private String accountNo;
     private String accountName;
@@ -60,7 +60,7 @@ public class ExportPdf {
     private String closeBal;
     private String clearedBal;
     private String unclearedBal;
-    
+
     public ExportPdf(List<AccountStatement> trans, String accountNo, Date startDate, Date endDate, String accountName, String openingBal,
             String closeBal, String clearedBal, String unclearedBal) {
         this.trans = trans;
@@ -73,33 +73,33 @@ public class ExportPdf {
         this.clearedBal = clearedBal;
         this.unclearedBal = unclearedBal;
     }
-    
+
     public void export(HttpServletResponse response) {
         try {
             PdfPTable tables = new PdfPTable(2);
-            
+
             Document document = new Document(PageSize.A4);
             PdfWriter.getInstance(document, response.getOutputStream());
-            
+
             document.open();
-            
+
             tables.setWidthPercentage(100f);
             tables.setWidths(new float[]{3.5f, 2.5f});
             tables.setSpacingBefore(10.5f);
             tables.setSpacingAfter(15.5f);
             writeHeader(tables);
             document.add(tables);
-            
+
             Font font = FontFactory.getFont(FontFactory.TIMES_ITALIC);
             font.setSize(20);
             font.setColor(BaseColor.BLACK);
             font.isBold();
-            
+
             Paragraph p = new Paragraph(accountName.toUpperCase(), font);
             p.setAlignment(Paragraph.ALIGN_LEFT);
             p.setSpacingBefore(15.5f);
             document.add(p);
-            
+
             Font addressfont = FontFactory.getFont(FontFactory.TIMES_ITALIC);
             addressfont.setSize(9);
             addressfont.setColor(BaseColor.BLACK);
@@ -115,7 +115,7 @@ public class ExportPdf {
             accountNum.setWidths(new float[]{10f});
             accountNum.setHorizontalAlignment(Element.ALIGN_LEFT);
             writeAccountTable(accountNum);
-            
+
             PdfPTable accountDetail = new PdfPTable(2);
             accountDetail.setWidthPercentage(50f);
             accountDetail.setWidths(new float[]{5f, 5f});
@@ -132,7 +132,7 @@ public class ExportPdf {
             addAccountDetailTableCell(accountDetail, clearedBal, Element.ALIGN_RIGHT, Font.NORMAL, BaseColor.WHITE);
             addAccountDetailTableCell(accountDetail, "Uncleared Balance", Element.ALIGN_LEFT, Font.NORMAL, new BaseColor(251, 206, 177));
             addAccountDetailTableCell(accountDetail, unclearedBal, Element.ALIGN_RIGHT, Font.NORMAL, new BaseColor(251, 206, 177));
-            
+
             PdfPTable outer = new PdfPTable(2);
             outer.setWidthPercentage(120);
             outer.getDefaultCell().setBorder(0);
@@ -169,43 +169,43 @@ public class ExportPdf {
             writeTableHeader(table2);
             document.newPage();
             document.add(table2);
-            
+
             PdfPTable list = new PdfPTable(9);
-            
+
             list.setWidthPercentage(113f);
             list.setWidths(new float[]{5f, 5f, 5f, 5f, 5f, 5f, 5f, 5f, 5f});
             writeTableData(list);
             document.add(list);
-            
+
             document.close();
-            
+
             sendSatement(startDate, endDate, "tosin", "tosinfasina247@gmail.com", response);
-            
+
         } catch (Exception ex) {
-            
+
         }
     }
-    
+
     private void writeHeader(PdfPTable table) throws IOException, BadElementException {
-        
+
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
         String staDate = formatter.format(startDate);
         String strDate = formatter.format(endDate);
-        
+
         PdfPCell cell = new PdfPCell();
         cell.setBorder(0);
         cell.setBackgroundColor(new BaseColor(255, 101, 46));
         cell.setPadding(10);
-        
+
         Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN);
         font.setColor(BaseColor.WHITE);
         font.setSize(9);
         font.isBold();
-        
+
         cell.setPhrase(new Phrase("ACCOUNT STATEMENT: " + staDate + " TO " + strDate, font));
         cell.setHorizontalAlignment(Element.ALIGN_LEFT);
         table.addCell(cell);
-        
+
         Image img = Image.getInstance("https://s3.eu-west-3.amazonaws.com/waya-2.0-file-resources/others/1/app1_wayawhitelogo.png");
         img.setWidthPercentage(20);
         img.scaleAbsolute(30, 40);
@@ -213,15 +213,15 @@ public class ExportPdf {
         cell.setHorizontalAlignment(Element.ALIGN_RIGHT);
         cell.setFixedHeight(40);
         table.addCell(cell);
-        
+
     }
-    
+
     private void writeAccountTable(PdfPTable accounttable) {
         PdfPCell cell = new PdfPCell();
         cell.setBorder(0);
         cell.setBackgroundColor(new BaseColor(255, 101, 46));
         cell.setPadding(9);
-        
+
         Font font = FontFactory.getFont(FontFactory.COURIER);
         font.setColor(BaseColor.WHITE);
         font.setSize(10);
@@ -232,16 +232,14 @@ public class ExportPdf {
         cell.setPhrase(new Phrase(accountNo, font));
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
         accounttable.addCell(cell);
-        
+
     }
-    
+
     private void writeTableHeader(PdfPTable table) {
         PdfPCell cell = new PdfPCell();
-        cell.setBorder(2);
-        cell.setBorderColor(new BaseColor(255, 101, 46));
         cell.setBackgroundColor(new BaseColor(255, 101, 46));
         cell.setPadding(10);
-        
+
         Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN);
         font.setColor(BaseColor.WHITE);
         font.setSize(7);
@@ -249,112 +247,110 @@ public class ExportPdf {
         cell.setPhrase(new Phrase("Narration", font));
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
         table.addCell(cell);
-        
+
         cell.setPhrase(new Phrase("Reference", font));
         table.addCell(cell);
-        
+
         cell.setPhrase(new Phrase("Sender's Name ", font));
-        table.getDefaultCell().setBorder(3);
-        table.getDefaultCell().setBorderColor(BaseColor.WHITE);
+        table.getDefaultCell().setBorder(1);
+        table.getDefaultCell().setBorderColor(new BaseColor(255, 101, 46));
         table.addCell(cell);
-        
+
         cell.setPhrase(new Phrase("Receiver's Name", font));
         table.addCell(cell);
-        
+
         cell.setPhrase(new Phrase("Trans Date", font));
         table.addCell(cell);
-        
+
         cell.setPhrase(new Phrase("Value Date", font));
         table.addCell(cell);
-        
+
         cell.setPhrase(new Phrase("Debit", font));
         table.addCell(cell);
-        
+
         cell.setPhrase(new Phrase("Credit", font));
         table.addCell(cell);
-        
+
         cell.setPhrase(new Phrase("Balance", font));
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
         table.addCell(cell);
-        
+
     }
-    
+
     private void addAccountDetailTableCell(PdfPTable table, String text, int alignment, int fontStyle, BaseColor cellColor) {
-        
+
         PdfPCell cell = new PdfPCell(new Phrase(text, new Font(Font.FontFamily.HELVETICA, 10, fontStyle, BaseColor.BLACK)));
         cell.setBorderColor(BaseColor.WHITE);
         cell.setBorder(0);
-        
+
         cell.setHorizontalAlignment(alignment);
         cell.setBackgroundColor(cellColor);
         table.addCell(cell);
-        
+
     }
-    
+
     public void onEndPage(PdfPTable table) {
         PdfPCell cell = new PdfPCell();
         cell.setBorder(0);
         cell.setBackgroundColor(new BaseColor(255, 101, 46));
         cell.setPadding(15);
-        
+
         Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN);
         font.setColor(BaseColor.WHITE);
         font.setSize(8);
-        
+
         cell.setPhrase(new Phrase("CALL WAYABANK(23413300359)-www.wayabank.ng", font));
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
         table.addCell(cell);
     }
-    
+
     private void writeTableData(PdfPTable table) throws DocumentException {
         PdfPCell cell = new PdfPCell();
-        cell.setBorder(1);
-        cell.setBorderColor(new BaseColor(255, 101, 46));
         Font font = FontFactory.getFont(FontFactory.HELVETICA);
         font.setColor(BaseColor.BLACK);
         font.setSize(6);
-        
+
         for (AccountStatement data : trans) {
-            table.getDefaultCell().setBorder(2);
+            table.getDefaultCell().setBorder(1);
             table.getDefaultCell().setBorderColor(new BaseColor(255, 101, 46));
             cell.setPhrase(new Phrase(data.getDescription(), font));
             table.addCell(cell);
-            
+
             cell.setPhrase(new Phrase(data.getRef(), font));
             table.addCell(cell);
-            
+
             cell.setPhrase(new Phrase(data.getSender(), font));
             table.addCell(cell);
-            
+
             cell.setPhrase(new Phrase(data.getReceiver(), font));
             table.addCell(cell);
-            
+
             cell.setPhrase(new Phrase(data.getDate(), font));
             table.addCell(cell);
-            
+
             cell.setPhrase(new Phrase(data.getValueDate(), font));
             table.addCell(cell);
-            
+
             cell.setPhrase(new Phrase(data.getWithdrawals(), font));
             table.addCell(cell);
-            
+
             cell.setPhrase(new Phrase(data.getDeposits(), font));
             table.addCell(cell);
-            
+
             cell.setPhrase(new Phrase(data.getBalance().toString(), font));
             table.addCell(cell);
-            
+
         }
     }
-    
+
     public void sendSatement(Date startDate, Date endDate, String name, String email, HttpServletResponse response) {
         try {
             SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
             String staDate = formatter.format(startDate);
             String strDate = formatter.format(endDate);
-            
+
             EmailEvent emailEvent = new EmailEvent();
-            
+
             emailEvent.setEventType("EMAIL");
             emailEvent.setProductType("WAYABANK");
             emailEvent.setSubject("Account Statement: " + staDate + " TO " + strDate);
@@ -374,7 +370,7 @@ public class ExportPdf {
             mail.setNames(recipient);
             emailEvent.setData(mail);
             notificationServiceProxy.emailNotifyUser(emailEvent, "serial eyJhbGciOiJIUzUxMiJ9.eyJyb2xlIjpbeyJjcmVhdGVkQXQiOiIxNS0wMi0yMDIyIDA2OjI3OjEzIiwidXBkYXRlZEF0IjoiMTUtMDItMjAyMiAwNjoyNzoxMyIsImNyZWF0ZWRCeSI6Ik1HUiIsIm1vZGlmaWVkQnkiOiJNR1IiLCJpZCI6MTcsIm5hbWUiOiJST0xFX0FETUlOX1NVUEVSIiwiZGVzY3JpcHRpb24iOiJTVVBFUiBBRE1JTiBST0xFIiwiZGVmYXVsdCI6dHJ1ZX0seyJjcmVhdGVkQXQiOiIxNS0wMi0yMDIyIDA2OjI3OjEzIiwidXBkYXRlZEF0IjoiMTUtMDItMjAyMiAwNjoyNzoxMyIsImNyZWF0ZWRCeSI6Ik1HUiIsIm1vZGlmaWVkQnkiOiJNR1IiLCJpZCI6MTgsIm5hbWUiOiJST0xFX0FETUlOX09XTkVSIiwiZGVzY3JpcHRpb24iOiJPV05FUiBBRE1JTiBST0xFIiwiZGVmYXVsdCI6dHJ1ZX1dLCJpZCI6MSwic3ViIjoid2F5YWFkbWluQHdheWFwYXljaGF0LmNvbSIsImlhdCI6MTY3NTM0NzU2OSwiZXhwIjoxNzA2OTA1MTY5fQ.YJGbaUtuxQ0q2QMV0yfkT78d6kt7Q98tpyikvcGMFUrPDRAfDlikS_iRFEQA6puM8H3hunetqpcjnX0SeawxZQ");
-            
+
         } catch (Exception e) {
             log.error("Exception:: {}", e.getMessage());
         }
