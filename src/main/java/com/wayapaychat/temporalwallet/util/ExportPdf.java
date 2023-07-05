@@ -166,7 +166,7 @@ public class ExportPdf {
             table2.setWidthPercentage(113f);
             table2.setWidths(new float[]{5.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f, 3.5f});
             table2.setSpacingBefore(10f);
-
+            table2.getDefaultCell().setBorder(2);
             writeTableHeader(table2);
             document.newPage();
             document.add(table2);
@@ -176,6 +176,7 @@ public class ExportPdf {
             list.setWidthPercentage(113f);
             list.setWidths(new float[]{5.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f, 3.5f});
             list.setSpacingBefore(10f);
+            list.getDefaultCell().setBorder(2);
             writeTableData(list);
             document.add(list);
 
@@ -239,7 +240,7 @@ public class ExportPdf {
 
     private void writeTableHeader(PdfPTable table) {
         PdfPCell cell = new PdfPCell();
-        cell.setBorder(0);
+        cell.setBorder(3);
         cell.setBackgroundColor(new BaseColor(255, 101, 46));
         cell.setPadding(9);
 
