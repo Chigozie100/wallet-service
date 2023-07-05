@@ -220,7 +220,7 @@ public class ExportPdf {
 
     private void writeAccountTable(PdfPTable table) {
         PdfPCell cell = new PdfPCell();
-        cell.setBorder(0);
+        cell.setBorder(3);
         cell.setBackgroundColor(new BaseColor(255, 101, 46));
         cell.setPadding(9);
 
@@ -241,11 +241,11 @@ public class ExportPdf {
         PdfPCell cell = new PdfPCell();
         cell.setBorder(0);
         cell.setBackgroundColor(new BaseColor(255, 101, 46));
-        cell.setPadding(15);
+        cell.setPadding(9);
 
         Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN);
         font.setColor(BaseColor.WHITE);
-        font.setSize(6);
+        font.setSize(9);
         font.isBold();
         cell.setPhrase(new Phrase("Narration", font));
         table.addCell(cell);
@@ -305,7 +305,7 @@ public class ExportPdf {
 
     private void writeTableData(PdfPTable table) throws DocumentException {
         PdfPCell cell = new PdfPCell();
-        cell.setBorder(1);
+        cell.setBorder(3);
         cell.setBorderColor(new BaseColor(255, 101, 46));
         Font font = FontFactory.getFont(FontFactory.HELVETICA);
         font.setColor(BaseColor.BLACK);
