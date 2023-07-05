@@ -166,7 +166,7 @@ public class ExportPdf {
             table2.setWidthPercentage(113f);
             table2.setWidths(new float[]{5.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f, 3.5f});
             table2.setSpacingBefore(10f);
-
+            table2.getDefaultCell().setBorder(2);
             writeTableHeader(table2);
             document.newPage();
             document.add(table2);
@@ -176,6 +176,7 @@ public class ExportPdf {
             list.setWidthPercentage(113f);
             list.setWidths(new float[]{5.5f, 4.0f, 5.5f, 5.5f, 4.5f, 4.5f, 3.5f, 3.5f, 3.5f});
             list.setSpacingBefore(10f);
+            list.getDefaultCell().setBorder(2);
             writeTableData(list);
             document.add(list);
 
@@ -220,7 +221,7 @@ public class ExportPdf {
 
     private void writeAccountTable(PdfPTable table) {
         PdfPCell cell = new PdfPCell();
-        cell.setBorder(0);
+        cell.setBorder(3);
         cell.setBackgroundColor(new BaseColor(255, 101, 46));
         cell.setPadding(9);
 
@@ -239,13 +240,13 @@ public class ExportPdf {
 
     private void writeTableHeader(PdfPTable table) {
         PdfPCell cell = new PdfPCell();
-        cell.setBorder(0);
+        cell.setBorder(3);
         cell.setBackgroundColor(new BaseColor(255, 101, 46));
-        cell.setPadding(15);
+        cell.setPadding(9);
 
         Font font = FontFactory.getFont(FontFactory.TIMES_ROMAN);
         font.setColor(BaseColor.WHITE);
-        font.setSize(6);
+        font.setSize(9);
         font.isBold();
         cell.setPhrase(new Phrase("Narration", font));
         table.addCell(cell);
@@ -305,7 +306,7 @@ public class ExportPdf {
 
     private void writeTableData(PdfPTable table) throws DocumentException {
         PdfPCell cell = new PdfPCell();
-        cell.setBorder(1);
+        cell.setBorder(3);
         cell.setBorderColor(new BaseColor(255, 101, 46));
         Font font = FontFactory.getFont(FontFactory.HELVETICA);
         font.setColor(BaseColor.BLACK);
