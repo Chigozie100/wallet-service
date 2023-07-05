@@ -174,7 +174,6 @@ public class ExportPdf {
             
             list.setWidthPercentage(113f);
             list.setWidths(new float[]{5f, 5f, 5f, 5f, 5f, 5f, 5f, 5f, 5f});
-            list.setSpacingBefore(10f);
             writeTableData(list);
             document.add(list);
             
@@ -238,6 +237,8 @@ public class ExportPdf {
     
     private void writeTableHeader(PdfPTable table) {
         PdfPCell cell = new PdfPCell();
+        cell.setBorder(2);
+        cell.setBorderColor(new BaseColor(255, 101, 46));
         cell.setBackgroundColor(new BaseColor(255, 101, 46));
         cell.setPadding(10);
         
@@ -307,12 +308,15 @@ public class ExportPdf {
     
     private void writeTableData(PdfPTable table) throws DocumentException {
         PdfPCell cell = new PdfPCell();
+        cell.setBorder(1);
+        cell.setBorderColor(new BaseColor(255, 101, 46));
         Font font = FontFactory.getFont(FontFactory.HELVETICA);
         font.setColor(BaseColor.BLACK);
         font.setSize(6);
         
         for (AccountStatement data : trans) {
             table.getDefaultCell().setBorder(2);
+            table.getDefaultCell().setBorderColor(new BaseColor(255, 101, 46));
             cell.setPhrase(new Phrase(data.getDescription(), font));
             table.addCell(cell);
             
