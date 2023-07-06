@@ -770,29 +770,29 @@ public class WalletTransactionController {
 //        ApiResponse<?> response = transAccountService.fetchUserTransactionsByReferenceNumber(token,referenceNumber);
 //        return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
 //    }
-//    @ApiImplicitParams({
-//        @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
-//    @ApiOperation(value = "Customer statement of account", notes = "Account Statement", tags = {"TRANSACTION-WALLET"})
-//    @GetMapping("/transaction/customer_statement/{accountNo}")
-//    public ResponseEntity<?> customerstatement(HttpServletResponse response,
-//            @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
-//            @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
-//            @PathVariable String accountNo) throws IOException, com.lowagie.text.DocumentException, DocumentException {
-//        response.setContentType("application/pdf");
-//
-//        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
-//        String currentDateTime = dateFormatter.format(new Date());
-////        
-//        String headerKey = "Content-Disposition";
-//        String headerValue = "attachment; filename=accountstatement" + currentDateTime + ".pdf";
-//        response.setHeader(headerKey, headerValue);
-//
-//        //ApiResponse<CustomerStatement> res = transAccountService.accountstatementReport2(fromdate, todate, accountNo);       
-//        List<AccountStatement> res = new ArrayList<>();
-//        ExportPdf exporter = new ExportPdf(res, accountNo, fromdate, todate, "TEST ACCOUNT", "0.00", "0.00", "0.00", "0.00");
-//        exporter.export(response);
-//
-//        return new ResponseEntity<>(response, HttpStatus.OK);
-//
-//    }
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
+    @ApiOperation(value = "Customer statement of account", notes = "Account Statement", tags = {"TRANSACTION-WALLET"})
+    @GetMapping("/transaction/customer_statement/{accountNo}")
+    public ResponseEntity<?> customerstatement(HttpServletResponse response,
+            @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
+            @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
+            @PathVariable String accountNo) throws IOException, com.lowagie.text.DocumentException, DocumentException {
+        response.setContentType("application/pdf");
+
+        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd_HH:mm:ss");
+        String currentDateTime = dateFormatter.format(new Date());
+//        
+        String headerKey = "Content-Disposition";
+        String headerValue = "attachment; filename=accountstatement" + currentDateTime + ".pdf";
+        response.setHeader(headerKey, headerValue);
+
+        //ApiResponse<CustomerStatement> res = transAccountService.accountstatementReport2(fromdate, todate, accountNo);       
+        List<AccountStatement> res = new ArrayList<>();
+        ExportPdf exporter = new ExportPdf(res, accountNo, fromdate, todate, "TEST ACCOUNT", "0.00", "0.00", "0.00", "0.00");
+        exporter.export(response);
+
+        return new ResponseEntity<>(response, HttpStatus.OK);
+
+    }
 }
