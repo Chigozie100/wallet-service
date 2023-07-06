@@ -311,7 +311,7 @@ public class ExportPdf {
 
         for (AccountStatement data : trans) {
             table.getDefaultCell().setBorderColor(new BaseColor(251, 206, 177));
-            table.getDefaultCell().setBorder(8);
+            table.getDefaultCell().setBorder(3);
             cell.setPhrase(new Phrase(data.getDescription(), font));
             table.addCell(cell);
 
