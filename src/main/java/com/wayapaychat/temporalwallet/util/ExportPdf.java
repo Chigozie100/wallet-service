@@ -305,9 +305,6 @@ public class ExportPdf {
 
     private void writeTableData(PdfPTable table) throws DocumentException {
         PdfPCell cell = new PdfPCell();
-        cell.setBorder(1);
-        cell.setBorderColor(new BaseColor(251, 206, 177));
-
         Font font = FontFactory.getFont(FontFactory.HELVETICA);
         font.setColor(BaseColor.BLACK);
         font.setSize(7);
