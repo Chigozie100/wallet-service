@@ -35,6 +35,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.security.SecureRandom;
@@ -46,6 +48,7 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+import org.apache.commons.math3.util.Precision;
 
 @Service
 @Slf4j
@@ -166,9 +169,14 @@ public class UserAccountServiceImpl implements UserAccountService {
         try {
             String acct_name = userDetailsResponse.getData().isCorporate()
                     ? userDetailsResponse.getData().getOtherDetails().getOrganisationName()
-                    : userDetailsResponse.getData().getFirstName().toUpperCase() + " " + userDetailsResponse.getData().getSurname().toUpperCase();
-            String phoneNumber = userDetailsResponse.getData().isCorporate() ? userDetailsResponse.getData().getOtherDetails().getOrganisationPhone() : userDetailsResponse.getData().getPhoneNumber();
-            String emailAddress = userDetailsResponse.getData().isCorporate() ? userDetailsResponse.getData().getOtherDetails().getOrganisationEmail() : userDetailsResponse.getData().getEmail();
+                    : userDetailsResponse.getData().getFirstName().toUpperCase() + " "
+                    + userDetailsResponse.getData().getSurname().toUpperCase();
+            String phoneNumber = userDetailsResponse.getData().isCorporate()
+                    ? userDetailsResponse.getData().getOtherDetails().getOrganisationPhone()
+                    : userDetailsResponse.getData().getPhoneNumber();
+            String emailAddress = userDetailsResponse.getData().isCorporate()
+                    ? userDetailsResponse.getData().getOtherDetails().getOrganisationEmail()
+                    : userDetailsResponse.getData().getEmail();
             SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
             Date dob = formatter.parse(userDetailsResponse.getData().getDateOfBirth());
             String custSex = userDetailsResponse.getData().getGender().substring(0,
@@ -182,6 +190,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                     emailAddress, phoneNumber, acct_name,
                     custTitle, custSex, dob, code, new Date(), LocalDate.now(), 0);
 
+            userInfo.setCorporate(userDetailsResponse.getData().isCorporate());
             WalletUser newUserDetails = walletUserRepository.save(userInfo);
 
             return new ResponseEntity<>(newUserDetails, HttpStatus.ACCEPTED);
@@ -296,8 +305,10 @@ public class UserAccountServiceImpl implements UserAccountService {
 
             WalletAccount caccount = new WalletAccount();
             // Commission Wallet
+            log.info("Create commission account in progress:{}", walletUser);
             if (walletUser.isCorporate() && !defaultAccount.isPresent()) {
-                Optional<WalletAccount> acct = walletAccountRepository.findByProductCode(wayaProductCommission);
+                String commisionName = "COMMISSION ACCOUNT";
+                Optional<WalletAccount> acct = walletAccountRepository.findFirstByProduct_codeAndUserAndAcct_nameLike(wayaProductCommission, walletUser);
                 if (!acct.isPresent()) {
                     code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission, wayaCommGLCode);
                     product = walletProductRepository.findByProductCode(wayaProductCommission, wayaCommGLCode);
@@ -312,7 +323,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                             acctNo = StringUtils.rightPad(acctNo, 10, "0");
                         }
                     }
-                    log.info(acctNo);
+                    log.info("Comission Account::{}", acctNo);
                     hashed_no = reqUtil.WayaEncrypt(
                             walletUser.getUserId() + "|" + acctNo + "|" + wayaProductCommission + "|"
                             + product.getCrncy_code());
@@ -326,19 +337,64 @@ public class UserAccountServiceImpl implements UserAccountService {
                                 product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
                                 product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(),
                                 false, accountType, description);
+                        log.info("Wallet commission account: {}", caccount);
+                    } else {
+                        log.error("Commission account not created");
                     }
 
                     coreBankingService.createAccount(walletUser, caccount);
+                    log.info("Commission account created: {}", caccount.getAccountNo());
                 }
 
             }
+//            if (walletUser.isCorporate() && !defaultAccount.isPresent()) {
+//                Optional<WalletAccount> acct = walletAccountRepository.findByProductCode(wayaProductCommission);
+//                if (!acct.isPresent()) {
+//                    
+//                    code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission, wayaCommGLCode);
+//                    product = walletProductRepository.findByProductCode(wayaProductCommission, wayaCommGLCode);
+//                    if (!walletUser.getCust_sex().equals("S")) {
+//                        acctNo = "901" + rand;
+//                        if (acctNo.length() < 10) {
+//                            acctNo = StringUtils.rightPad(acctNo, 10, "0");
+//                        }
+//                    } else {
+//                        acctNo = "621" + rand;
+//                        if (acctNo.length() < 10) {
+//                            acctNo = StringUtils.rightPad(acctNo, 10, "0");
+//                        }
+//                    }
+//                    log.info("Account::{}",acctNo);
+//                    hashed_no = reqUtil.WayaEncrypt(
+//                            walletUser.getUserId() + "|" + acctNo + "|" + wayaProductCommission + "|"
+//                                    + product.getCrncy_code());
+//                    String acct_name = walletUser.getCust_name() + " " + "COMMISSION ACCOUNT";
+//                    if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+//                            || product.getProduct_type().equals("ODA"))) {
+//                        caccount = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, walletUser,
+//                                code.getGlSubHeadCode(),
+//                                wayaProductCommission, acct_ownership, hashed_no, product.isInt_paid_flg(),
+//                                product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
+//                                product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
+//                                product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(),
+//                                false, accountType, description);
+//                    }
+//
+//                    coreBankingService.createAccount(walletUser, caccount);
+//                    log.info("Commission account created: {}", caccount.getAccountNo());
+//                }
+//
+//            }
 
             if (!defaultAccount.isPresent()) {
                 CompletableFuture.runAsync(() -> userPricingService.createUserPricing(walletUser));
             }
-            return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account), HttpStatus.CREATED);
+            return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
+                    HttpStatus.CREATED);
         } catch (Exception e) {
+
             log.error("Error creating ClientAccount", e.getMessage());
+            e.printStackTrace();
             return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
         }
 
@@ -943,16 +999,16 @@ public class UserAccountServiceImpl implements UserAccountService {
                 accountPojo.setDescription("SAVINGS ACCOUNT");
             }
 
-            //Todo: check for corporate/normal user
+            // Todo: check for corporate/normal user
             String acct_name;
             if (user.is_corporate()) {
                 String newAccountName = y.getCust_name() + " " + accountPojo.getDescription();
                 acct_name = newAccountName;
             } else {
-                //Todo: this will also help corporate user that corporate field is false
+                // Todo: this will also help corporate user that corporate field is false
                 String oldName = y.getFirstName().toUpperCase() + " " + y.getLastName().toUpperCase();
                 if (!y.getCust_name().toUpperCase().contains(oldName)) {
-                    //corporate
+                    // corporate
                     String newAccountName = y.getCust_name() + " " + accountPojo.getDescription();
                     acct_name = newAccountName;
                 } else {
@@ -1828,10 +1884,14 @@ public class UserAccountServiceImpl implements UserAccountService {
                 double acctAmt = account.getLien_amt() + user.getLienAmount().doubleValue();
                 account.setLien_amt(acctAmt);
                 account.setLien_reason(user.getLienReason());
+                account.setClr_bal_amt(account.getClr_bal_amt() - user.getLienAmount().doubleValue());
             } else {
                 double acctAmt = account.getLien_amt() - user.getLienAmount().doubleValue();
                 log.info("###################### account.getLien_amt() ########### " + account.getLien_amt());
                 log.info("###################### user.getLienAmount() ########### " + user.getLienAmount());
+                double unClrbalAmt = account.getCum_cr_amt() - account.getCum_dr_amt();
+                account.setClr_bal_amt(Precision.round(unClrbalAmt - account.getLien_amt(), 2));
+                account.setUn_clr_bal_amt(Precision.round(unClrbalAmt, 2));
                 account.setLien_amt(acctAmt);
                 account.setLien_reason(user.getLienReason());
             }
@@ -2044,6 +2104,32 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     }
 
+    @Transactional
+    @Override
+    public ResponseEntity<?> setupAccountOnExternalCBA(String accounNumber) {
+
+        WalletAccount walletAccount = walletAccountRepository.findByAccountNo(accounNumber);
+
+        if (ObjectUtils.isEmpty(walletAccount)) {
+            return new ResponseEntity<>(
+                    new ErrorResponse(String.format("%s %s",
+                            ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accounNumber)),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+        WalletUser walletUser = walletAccount.getUser();
+        if (ObjectUtils.isEmpty(walletUser)) {
+            return new ResponseEntity<>(
+                    new ErrorResponse(String.format("%s %s",
+                            ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accounNumber)),
+                    HttpStatus.BAD_REQUEST);
+        }
+        log.info(walletUser.getCust_name());
+        Provider provider = switchWalletService.getActiveProvider();
+        return coreBankingService.externalCBACreateAccount(walletUser, walletAccount, provider);
+
+    }
+
     @Override
     public ApiResponse<?> getAllAccounts(int page, int size, String filter, LocalDate fromdate, LocalDate todate) {
 
@@ -2149,7 +2235,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             for (WalletAccount acct : accountList) {
                 BigDecimal revenue = walletTransAccountRepo.totalRevenueAmountByUser(acct.getAccountNo());
                 totalrevenue = totalrevenue.add(revenue == null ? BigDecimal.ZERO : revenue);
-//                log.info("total customer revenue:: {}", totalrevenue);
+                // log.info("total customer revenue:: {}", totalrevenue);
 
                 // total outgoing
                 BigDecimal outgoing = walletTransRepo.totalWithdrawalByCustomer(acct.getAccountNo());
@@ -2157,7 +2243,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                 // total incoming
                 BigDecimal incoming = walletTransRepo.totalDepositByCustomer(acct.getAccountNo());
                 totalIncoming = totalIncoming.add(incoming == null ? BigDecimal.ZERO : incoming);
-                //total balance
+                // total balance
                 BigDecimal totalBalance = walletAccountRepository.totalBalanceByUser(acct.getAccountNo());
                 totalTrans = totalTrans.add(totalBalance == null ? BigDecimal.ZERO : totalBalance);
 
@@ -2226,7 +2312,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                         // total incoming
                         BigDecimal incoming = walletTransRepo.totalDepositByCustomer(acct.getAccountNo());
                         totalIncoming = totalIncoming.add(incoming == null ? BigDecimal.ZERO : incoming);
-                        //total balance
+                        // total balance
                         BigDecimal totalBalance = walletAccountRepository.totalBalanceByUser(acct.getAccountNo());
                         totalTrans = totalTrans.add(totalBalance == null ? BigDecimal.ZERO : totalBalance);
 
@@ -2274,28 +2360,35 @@ public class UserAccountServiceImpl implements UserAccountService {
             BigDecimal totalCableCount = BigDecimal.ZERO;
             for (WalletAccount acct : accountList) {
 
-                BigDecimal airTimeTopUp = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.AIRTIME_TOPUP));
+                BigDecimal airTimeTopUp = BigDecimal.valueOf(walletTransactionRepository
+                        .countByAcctNumAndTranCategory(accountNo, CategoryType.AIRTIME_TOPUP));
                 totalAirTimeTopUp = totalAirTimeTopUp.add(airTimeTopUp == null ? BigDecimal.ZERO : airTimeTopUp);
 
-                BigDecimal betting = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.BETTING));
+                BigDecimal betting = BigDecimal.valueOf(
+                        walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.BETTING));
                 totalBetting = totalBetting.add(betting == null ? BigDecimal.ZERO : betting);
 
-                BigDecimal utility = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.UTILITY));
+                BigDecimal utility = BigDecimal.valueOf(
+                        walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.UTILITY));
                 totalUtility = totalUtility.add(utility == null ? BigDecimal.ZERO : utility);
 
-                BigDecimal dataTopUp = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.DATA_TOPUP));
+                BigDecimal dataTopUp = BigDecimal.valueOf(
+                        walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.DATA_TOPUP));
                 totalDataTopUp = totalDataTopUp.add(dataTopUp == null ? BigDecimal.ZERO : dataTopUp);
 
-                BigDecimal cableCount = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.CABLE));
+                BigDecimal cableCount = BigDecimal.valueOf(
+                        walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.CABLE));
                 totalCableCount = totalCableCount.add(cableCount == null ? BigDecimal.ZERO : cableCount);
 
                 // over all credit/transfer
-                BigDecimal overTransfer = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(acct.getAccountNo(), CategoryType.TRANSFER));
+                BigDecimal overTransfer = BigDecimal.valueOf(walletTransactionRepository
+                        .countByAcctNumAndTranCategory(acct.getAccountNo(), CategoryType.TRANSFER));
                 overAllTransfer = overAllTransfer.add(overTransfer == null ? BigDecimal.ZERO : overTransfer);
                 // over all debit/withdrawal
-                BigDecimal overAllWith = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(acct.getAccountNo(), CategoryType.WITHDRAW));
+                BigDecimal overAllWith = BigDecimal.valueOf(walletTransactionRepository
+                        .countByAcctNumAndTranCategory(acct.getAccountNo(), CategoryType.WITHDRAW));
                 overAllWithdrawal = overAllWithdrawal.add(overAllWith == null ? BigDecimal.ZERO : overAllWith);
-                //total revenue
+                // total revenue
                 BigDecimal revenue = walletTransAccountRepo.totalRevenueAmountByUser(acct.getAccountNo());
                 totalRevenue = totalRevenue.add(revenue == null ? BigDecimal.ZERO : revenue);
                 // total Withdrawal
@@ -2304,18 +2397,25 @@ public class UserAccountServiceImpl implements UserAccountService {
                 // total transfer
                 BigDecimal incoming = walletTransRepo.totalDepositByCustomer(acct.getAccountNo());
                 totalIncoming = totalIncoming.add(incoming == null ? BigDecimal.ZERO : incoming);
-                //total balance
+                // total balance
                 BigDecimal totalBalance = walletAccountRepository.totalBalanceByUser(acct.getAccountNo());
                 totalTrans = totalTrans.add(totalBalance == null ? BigDecimal.ZERO : totalBalance);
 
             }
-            BigDecimal singleAccountWithdrawal = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.WITHDRAW));
-            BigDecimal singleAccountTransfer = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.TRANSFER));
-            BigDecimal singleAirTimeTopUp = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.AIRTIME_TOPUP));
-            BigDecimal singleBetting = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.BETTING));
-            BigDecimal singleUtility = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.UTILITY));
-            BigDecimal singleDataTopUp = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.DATA_TOPUP));
-            BigDecimal singleCableCount = BigDecimal.valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.CABLE));
+            BigDecimal singleAccountWithdrawal = BigDecimal.valueOf(
+                    walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.WITHDRAW));
+            BigDecimal singleAccountTransfer = BigDecimal.valueOf(
+                    walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.TRANSFER));
+            BigDecimal singleAirTimeTopUp = BigDecimal.valueOf(
+                    walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.AIRTIME_TOPUP));
+            BigDecimal singleBetting = BigDecimal.valueOf(
+                    walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.BETTING));
+            BigDecimal singleUtility = BigDecimal.valueOf(
+                    walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.UTILITY));
+            BigDecimal singleDataTopUp = BigDecimal.valueOf(
+                    walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.DATA_TOPUP));
+            BigDecimal singleCableCount = BigDecimal
+                    .valueOf(walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.CABLE));
 
             UserTransactionStatsDataDto transactionStats = new UserTransactionStatsDataDto();
             transactionStats.setTotalBalance(totalTrans);
@@ -2336,7 +2436,8 @@ public class UserAccountServiceImpl implements UserAccountService {
             transactionStats.setTotalCableCount(totalCableCount);
             transactionStats.setTotalBettingCount(totalBetting);
             transactionStats.setTotalUtilityCount(totalUtility);
-            return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "USER TRANSACTION STATS FETCHED....", transactionStats);
+            return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "USER TRANSACTION STATS FETCHED....",
+                    transactionStats);
         } catch (Exception ex) {
             log.error(ex.getMessage());
             return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, ex.getMessage(), null);
@@ -2346,15 +2447,40 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     @Override
     public ResponseEntity<?> updateAccountDescription(String accountNo, String token, String description) {
-        
-        Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
-        if (!account.isPresent()) {
-            return new ResponseEntity<>(new ErrorResponse("Unable to fetch account"), HttpStatus.BAD_REQUEST);
+        try {
+
+            Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
+            if (!account.isPresent()) {
+                return new ResponseEntity<>(new ErrorResponse("Unable to fetch account"), HttpStatus.BAD_REQUEST);
+            }
+
+            WalletAccount update = account.get();
+            update.setDescription(description);
+            walletAccountRepository.save(update);
+            return new ResponseEntity<>(new SuccessResponse("SUCCESS", update), HttpStatus.OK);
+
+        } catch (Exception e) {
+            log.error("Exception::{}", e.getMessage());
+            return new ResponseEntity<>("An Error occured. Try again", HttpStatus.UNPROCESSABLE_ENTITY);
         }
-           WalletAccount update = account.get();
-           update.setDescription(description);
-           walletAccountRepository.save(update);
-           return new ResponseEntity<>(new SuccessResponse("SUCCESS", update), HttpStatus.OK);
+    }
+
+    @Override
+    public ApiResponse<?> updateAccountName(String accountNo, String token, String name) {
+        try {
+
+            Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
+            if (!account.isPresent()) {
+                return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unable to fetch account", null);
+            }
+            WalletAccount update = account.get();
+            update.setAcct_name(name);
+            walletAccountRepository.save(update);
+            return new ApiResponse<>(false, ApiResponse.Code.SUCCESS, "SUCCESS", update);
+        } catch (Exception e) {
+            log.error("Exception::{}", e.getMessage());
+            return new ApiResponse<>(false, ApiResponse.Code.UNKNOWN_ERROR, "An Error occured. Try again", null);
+        }
     }
 
 }

@@ -148,7 +148,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     @Override
     public ResponseEntity<?> createAccount(WalletUser userInfo, WalletAccount sAcct) {
-        log.info("createAccount: {} ", sAcct.getAccountNo());
+        log.info("createAccount: {}", sAcct.getAccountNo(), sAcct.getAcct_name());
         Provider provider = switchWalletService.getActiveProvider();
         if (provider == null) {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.NO_PROVIDER.getValue()),
@@ -746,7 +746,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return;
         }
 
-        String tranDate = LocalDate.now().toString();
+//        String tranDate = LocalDate.now().toString();
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd hh:mm:ss a");
+        String tranDate = now.format(formatter);
+
         if (transactionPojo.getAccountNo().contains("NGN")) {
             subject = "GL Posting ".concat(subject);
         }
@@ -776,7 +780,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     account.getEmail(), _email_message.toString(), account.getUId(),
                     String.valueOf(Precision.round(transactionPojo.getAmount().doubleValue(), 2)),
                     transactionPojo.getTranId(), tranDate, transactionPojo.getTranNarration(), account.getAccountNo(),
-                    transactionType.append("alert").toString().toUpperCase(),
+                    transactionType.append(" alert").toString().toUpperCase(),
                     String.valueOf(Precision.round(currentBalance, 2)));
         }
 
@@ -793,7 +797,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             _sms_message.append("\n");
             _sms_message.append(String.format("Date: %s", tranDate));
             _sms_message.append("\n");
-            _sms_message.append(String.format("Naration: %s", transactionPojo.getTranNarration()));
+            _sms_message.append(String.format("Narration: %s", transactionPojo.getTranNarration()));
             _sms_message.append("\n");
             _sms_message.append(String.format("Avail Bal: %s", Precision.round(currentBalance, 2)));
 
@@ -1021,7 +1025,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     cbaTransaction.getSessionID(), tranId,
                     cbaTransaction.getPaymentReference(), tranCategory, getDebitAccountNumber(cbaTransaction),
                     cbaTransaction.getNarration(), cbaTransaction.getAmount(), 1, tranType,
-                    cbaTransaction.getSenderName(), cbaTransaction.getReceiverName()));
+                    cbaTransaction.getSenderName(), cbaTransaction.getReceiverName(),
+                    cbaTransaction.getCharge(),cbaTransaction.getVat()));
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
@@ -1037,7 +1042,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     cbaTransaction.getSessionID(), tranId,
                     cbaTransaction.getPaymentReference(), tranCategory, getCreditAccountNumber(cbaTransaction),
                     cbaTransaction.getNarration(), cbaTransaction.getAmount(), 2, tranType,
-                    cbaTransaction.getSenderName(), cbaTransaction.getReceiverName()));
+                    cbaTransaction.getSenderName(), cbaTransaction.getReceiverName(),cbaTransaction.getCharge(),cbaTransaction.getVat()));
         } catch (Exception e) {
             e.printStackTrace();
             response = new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
@@ -1052,7 +1057,9 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             creditAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(),
                     cbaTransaction.getSessionID(), tranId,
                     cbaTransaction.getPaymentReference(), tranCategory, getDebitAccountNumber(cbaTransaction),
-                    cbaTransaction.getNarration(), cbaTransaction.getAmount(), 2, tranType, cbaTransaction.getSenderName(), cbaTransaction.getReceiverName()));
+                    cbaTransaction.getNarration(), cbaTransaction.getAmount(), 2, tranType,
+                    cbaTransaction.getSenderName(), cbaTransaction.getReceiverName(),
+                    cbaTransaction.getCharge(),cbaTransaction.getVat()));
         }
 
         return response;
@@ -1149,12 +1156,14 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                 creditAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(),
                         cbaTransaction.getSessionID(), tranId,
                         cbaTransaction.getPaymentReference(), tranCategory, cbaTransaction.getCustomerAccount(),
-                        cbaTransaction.getNarration(), totalAmount, 1, tranType, cbaTransaction.getSenderName(), cbaTransaction.getReceiverName()));
+                        cbaTransaction.getNarration(), totalAmount, 1, tranType, cbaTransaction.getSenderName(),
+                        cbaTransaction.getReceiverName(),cbaTransaction.getCharge(),cbaTransaction.getVat()));
             } else {
                 response = debitAccount(new CBAEntryTransaction(cbaTransaction.getUserToken(),
                         cbaTransaction.getSessionID(), tranId,
                         cbaTransaction.getPaymentReference(), tranCategory, cbaTransaction.getCustomerAccount(),
-                        cbaTransaction.getNarration(), totalAmount, 1, tranType, cbaTransaction.getSenderName(), cbaTransaction.getReceiverName()));
+                        cbaTransaction.getNarration(), totalAmount, 1, tranType, cbaTransaction.getSenderName(),
+                        cbaTransaction.getReceiverName(),cbaTransaction.getCharge(),cbaTransaction.getVat()));
             }
         } catch (Exception e) {
             e.printStackTrace();

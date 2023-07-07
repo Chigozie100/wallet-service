@@ -8,10 +8,13 @@ import java.util.Date;
 
 @Data
 public class AccountStatement {
-    private Date date;
+    private String date;
     private String description;
     private String ref;
-    private BigDecimal withdrawals;
-    private BigDecimal deposits;
+    private String withdrawals;
+    private String deposits;
     private BigDecimal balance;
+    private String valueDate;
+    private String sender;
+    private String receiver;
 }
