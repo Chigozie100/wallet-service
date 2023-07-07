@@ -1889,9 +1889,8 @@ public class UserAccountServiceImpl implements UserAccountService {
                 double acctAmt = account.getLien_amt() - user.getLienAmount().doubleValue();
                 log.info("###################### account.getLien_amt() ########### " + account.getLien_amt());
                 log.info("###################### user.getLienAmount() ########### " + user.getLienAmount());
-                double unClrbalAmt = account.getCum_cr_amt() - account.getCum_dr_amt();
-                account.setClr_bal_amt(Precision.round(unClrbalAmt - account.getLien_amt(), 2));
-                account.setUn_clr_bal_amt(Precision.round(unClrbalAmt, 2));
+                
+                account.setClr_bal_amt(account.getClr_bal_amt() + user.getLienAmount().doubleValue());
                 account.setLien_amt(acctAmt);
                 account.setLien_reason(user.getLienReason());
             }
