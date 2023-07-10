@@ -2496,6 +2496,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 
                     coreBankingService.createAccount(walletUser, caccount);
                     log.info("Commission account created: {}", caccount.getAccountNo());
+               return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "Successful", caccount);
+
                 }
                 return new ApiResponse<>(false, ApiResponse.Code.UNKNOWN_ERROR, "Commission account exist for user", null);
 
