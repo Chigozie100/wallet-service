@@ -1855,7 +1855,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                 account.setLien_amt(acctAmt);
                 account.setLien_reason(user.getLienReason());
                 account.setClr_bal_amt(account.getClr_bal_amt() + user.getLienAmount().doubleValue());
-            
+
             }
 
             WalletAccount account1 = walletAccountRepository.save(account);
@@ -2445,58 +2445,67 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
     }
 
-//    @Override
-//    public ApiResponse<?> createCommisionAccount(long userId, String accountType, String token) {
-//        String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, accountType);
-//    // check if user is corporate
-//        WalletUser walletUser = walletUserRepository.findByUserId(userId);
-//        String acctNo = null;
-//        Integer rand = reqUtil.getAccountNo();
-//        String hashed_no = reqUtil.WayaEncrypt(
-//                walletUser.getUserId() + "|" + acctNo + "|" + wayaProductCommission + "|"
-//                + "NGN");
-//        if (walletUser.isCorporate()) {
-//            String commisionName = "COMMISSION ACCOUNT";
-//            Optional<WalletAccount> acct = walletAccountRepository.findFirstByProduct_codeAndUserAndAcct_nameLike(wayaProductCommission, walletUser);
-//            if (!acct.isPresent()) {
-//                WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission, wayaCommGLCode);
-//                WalletProduct product = walletProductRepository.findByProductCode(wayaProductCommission, wayaCommGLCode);
-//                if (!walletUser.getCust_sex().equals("S")) {
-//                    acctNo = "901" + rand;
-//                    if (acctNo.length() < 10) {
-//                        acctNo = StringUtils.rightPad(acctNo, 10, "0");
-//                    }
-//                } else {
-//                    acctNo = "621" + rand;
-//                    if (acctNo.length() < 10) {
-//                        acctNo = StringUtils.rightPad(acctNo, 10, "0");
-//                    }
-//                }
-//                log.info("Comission Account::{}", acctNo);
-//                hashed_no = reqUtil.WayaEncrypt(
-//                        walletUser.getUserId() + "|" + acctNo + "|" + wayaProductCommission + "|"
-//                        + product.getCrncy_code());
-//                String acct_name = walletUser.getCust_name() + " " + "COMMISSION ACCOUNT";
-//                WalletAccount caccount= new WalletAccount();
-//                if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
-//                        || product.getProduct_type().equals("ODA"))) {
-//                     caccount = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, walletUser,
-//                            code.getGlSubHeadCode(),
-//                            wayaProductCommission, acct_ownership, hashed_no, product.isInt_paid_flg(),
-//                            product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
-//                            product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
-//                            product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(),
-//                            false, accountType, description);
-//                    log.info("Wallet commission account: {}", caccount);
-//                } else {
-//                    log.error("Commission account not created");
-//                }
-//
-//                coreBankingService.createAccount(walletUser, caccount);
-//                log.info("Commission account created: {}", caccount.getAccountNo());
-//            }
-//
-//        }
-//    }
+    @Override
+    public ApiResponse<?> createCommisionAccount(long userId, String token) {
+        try {
+            String accountType = "SAVINGS";
+            String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, accountType);
+
+            String acctNo = null;
+            Integer rand = reqUtil.getAccountNo();
+            String hashed_no = reqUtil.WayaEncrypt(
+                    userId + "|" + acctNo + "|" + wayaProductCommission + "|"
+                    + "NGN");
+
+            // check if user is corporate
+            WalletUser walletUser = walletUserRepository.findByUserId(userId);
+            String description = accountType.concat(" ACCOUNT");
+            if (walletUser.isCorporate()) {
+                String commisionName = "COMMISSION ACCOUNT";
+                Optional<WalletAccount> acct = walletAccountRepository.findFirstByProduct_codeAndUserAndAcct_nameLike(wayaProductCommission, walletUser);
+                if (!acct.isPresent()) {
+                    WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission, wayaCommGLCode);
+                    WalletProduct product = walletProductRepository.findByProductCode(wayaProductCommission, wayaCommGLCode);
+                    if (!walletUser.getCust_sex().equals("S")) {
+                        acctNo = "901" + rand;
+                        if (acctNo.length() < 10) {
+                            acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                        }
+                    } else {
+                        acctNo = "621" + rand;
+                        if (acctNo.length() < 10) {
+                            acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                        }
+                    }
+                    log.info("Comission Account::{}", acctNo);
+                    String acct_name = walletUser.getCust_name() + " " + "COMMISSION ACCOUNT";
+                    WalletAccount caccount = new WalletAccount();
+                    if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+                            || product.getProduct_type().equals("ODA"))) {
+                        caccount = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, walletUser,
+                                code.getGlSubHeadCode(),
+                                wayaProductCommission, "C", hashed_no, product.isInt_paid_flg(),
+                                product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
+                                product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
+                                product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(),
+                                false, accountType, description);
+                        log.info("Wallet commission account: {}", caccount);
+                    } else {
+                        log.error("Commission account not created");
+                    }
+
+                    coreBankingService.createAccount(walletUser, caccount);
+                    log.info("Commission account created: {}", caccount.getAccountNo());
+                }
+                return new ApiResponse<>(false, ApiResponse.Code.UNKNOWN_ERROR, "Commission account exist for user", null);
+
+            }
+            return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Not a corporate user", null);
+
+        } catch (Exception e) {
+            log.error("Exception:: {}", e.getMessage());
+            return new ApiResponse<>(false, ApiResponse.Code.UNKNOWN_ERROR, "An Error occured. Try again", null);
+        }
+    }
 
 }
