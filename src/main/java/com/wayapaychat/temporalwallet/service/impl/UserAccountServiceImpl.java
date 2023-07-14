@@ -2448,7 +2448,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     @Override
     public ApiResponse<?> createCommisionAccount(long userId, String token) {
         try {
-            String accountType = "SAVINGS";
+          
             String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, accountType);
 
             String acctNo = null;
@@ -2459,7 +2459,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
             // check if user is corporate
             WalletUser walletUser = walletUserRepository.findByUserId(userId);
-            String description = accountType.concat(" ACCOUNT");
+    
             if (walletUser.isCorporate()) {
                 String commisionName = "COMMISSION ACCOUNT";
                 Optional<WalletAccount> acct = walletAccountRepository.findFirstByProduct_codeAndUserAndAcct_nameLike(wayaProductCommission, walletUser);
@@ -2488,7 +2488,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                                 product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
                                 product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
                                 product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(),
-                                false, accountType, description);
+                                false, "", "COMMISSION ACCOUNT");
                         log.info("Wallet commission account: {}", caccount);
                     } else {
                         log.error("Commission account not created");
