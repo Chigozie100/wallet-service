@@ -2448,7 +2448,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     @Override
     public ApiResponse<?> createCommisionAccount(long userId, String token) {
         try {
-            String accountType = "SAVINGS";
+            String accountType = "";
             String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, accountType);
 
             String acctNo = null;
