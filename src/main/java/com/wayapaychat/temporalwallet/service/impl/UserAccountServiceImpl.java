@@ -2449,7 +2449,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     public ApiResponse<?> createCommisionAccount(long userId, String token) {
         try {
           
-            String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, accountType);
+            String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, "");
 
             String acctNo = null;
             Integer rand = reqUtil.getAccountNo();
