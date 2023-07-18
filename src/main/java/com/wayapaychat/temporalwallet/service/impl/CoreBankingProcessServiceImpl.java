@@ -133,7 +133,7 @@ public class CoreBankingProcessServiceImpl implements CoreBankingProcessService 
 
         WalletTransaction transaction = walletTransactionRepository.findFirstByAcctNumNotLikeOrderByIdAsc("NGN%");
         if (!ObjectUtils.isEmpty(transaction)) {
-            return transaction.getTranDate().plusDays(1);
+            return transaction.getTranDate();
         }
 
         return LocalDate.of(2022, 1, 1);
