@@ -22,6 +22,9 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 
     List<WalletTransaction> findByAcctNumEquals(String accountNumber);
 
+    @Query("SELECT TOP 1 u FROM WalletTransaction u " + "WHERE u.acctNum NOT LIKE 'NGN%' " + " AND u.del_flg = false ORDER BY id ASC ")
+    WalletTransaction findFirstCustomerTransaction();
+
     @Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.tranId) = UPPER(:value) " + " AND u.del_flg = false")
     Optional<List<WalletTransaction>> findByTranIdIgnoreCase(@Param("value") String value);
 
@@ -31,6 +34,9 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 
     @Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.tranId) = UPPER(:tranId) " + " AND u.del_flg = false" + " AND u.tranCrncyCode = UPPER(:tranCrncy)" + " AND u.tranDate = (:tranDate)")
     List<WalletTransaction> findByTransaction(String tranId, LocalDate tranDate, String tranCrncy);
+
+    @Query("SELECT u FROM WalletTransaction u " + "WHERE  u.acctNum NOT LIKE 'NGN%' AND u.del_flg = false" + " AND u.tranCrncyCode = UPPER(:tranCrncy)" + " AND u.tranDate = (:tranDate)")
+    List<WalletTransaction> findByAllCustomerTransaction(LocalDate tranDate, String tranCrncy);
 
     @Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.tranId) = UPPER(:tranId) " + " AND u.del_flg = false")
     List<WalletTransaction> findByTransaction(String tranId);
