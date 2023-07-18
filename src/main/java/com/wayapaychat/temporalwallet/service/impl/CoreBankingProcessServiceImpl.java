@@ -126,12 +126,12 @@ public class CoreBankingProcessServiceImpl implements CoreBankingProcessService 
     @Override
     public LocalDate getLastProcessedDate(String processName) {
 
-        WalletProcess lastProcess = walletProcessRepository.findLastProcessExecuted(processName);
+        WalletProcess lastProcess = walletProcessRepository.findFirstByProcessNameOrderByIdDesc(processName);
         if (!ObjectUtils.isEmpty(lastProcess)) {
             return lastProcess.getProcessDate().plusDays(1);
         }
 
-        WalletTransaction transaction = walletTransactionRepository.findFirstCustomerTransaction();
+        WalletTransaction transaction = walletTransactionRepository.findFirstByAcctNumNotLikeOrderByIdAsc("NGN%");
         if (!ObjectUtils.isEmpty(transaction)) {
             return transaction.getTranDate().plusDays(1);
         }

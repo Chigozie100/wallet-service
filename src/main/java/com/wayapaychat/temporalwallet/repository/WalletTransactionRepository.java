@@ -22,8 +22,7 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 
     List<WalletTransaction> findByAcctNumEquals(String accountNumber);
 
-    @Query( "SELECT u FROM WalletTransaction u " + "WHERE u.acctNum NOT LIKE 'NGN%' " + " AND u.del_flg = false ORDER BY id ASC LIMIT 1")
-    WalletTransaction findFirstCustomerTransaction();
+    WalletTransaction findFirstByAcctNumNotLikeOrderByIdAsc(String acctNum);
 
     @Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.tranId) = UPPER(:value) " + " AND u.del_flg = false")
     Optional<List<WalletTransaction>> findByTranIdIgnoreCase(@Param("value") String value);
