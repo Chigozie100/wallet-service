@@ -113,7 +113,7 @@ public class CoreBankingProcessServiceImpl implements CoreBankingProcessService 
                     new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()), HttpStatus.BAD_REQUEST);
         }
 
-        if("QUICKTELLER".equalsIgnoreCase(transLog.get().getEventId()) && relatedTrransactions.get().size() <= 10 ){
+        if("QUICKTELLER".equalsIgnoreCase(transLog.get().getEventId()) && relatedTrransactions.get().size() < 13 ){
             log.error("missing entries for transaction {}", walletTransaction.getTranId());
             return new ResponseEntity<>(
                     new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()), HttpStatus.BAD_REQUEST);
