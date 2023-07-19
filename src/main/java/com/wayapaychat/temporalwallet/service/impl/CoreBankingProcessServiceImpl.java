@@ -8,13 +8,16 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import com.waya.security.auth.pojo.UserIdentityData;
 import com.wayapaychat.temporalwallet.entity.WalletProcess;
 import com.wayapaychat.temporalwallet.entity.WalletTransAccount;
 import com.wayapaychat.temporalwallet.entity.WalletTransaction;
 import com.wayapaychat.temporalwallet.enumm.ResponseCodes;
+import com.wayapaychat.temporalwallet.pojo.MyData;
 import com.wayapaychat.temporalwallet.repository.WalletProcessRepository;
 import com.wayapaychat.temporalwallet.repository.WalletTransAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletTransactionRepository;
@@ -42,6 +45,13 @@ public class CoreBankingProcessServiceImpl implements CoreBankingProcessService 
     @Override
     public ResponseEntity<?> runProcess(String processName) {
 
+        UserIdentityData _userToken = (UserIdentityData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        MyData userToken = MyData.newInstance(_userToken);
+        if (userToken == null) {
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_TOKEN.getValue()),
+                    HttpStatus.BAD_REQUEST);
+        }
+
         ResponseEntity<?> processResponse = new ResponseEntity<>(
                 new ErrorResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue()), HttpStatus.ACCEPTED);
         LocalDate processDate = getLastProcessedDate(processName);
@@ -58,7 +68,7 @@ public class CoreBankingProcessServiceImpl implements CoreBankingProcessService 
         }
 
         WalletProcess walletProcess = new WalletProcess(processName, "SUCCESSFUL", "", processDate,
-                LocalDateTime.now(), LocalDateTime.now(), "", "");
+                LocalDateTime.now(), LocalDateTime.now(), userToken.getEmail(), userToken.getEmail());
         walletProcessRepository.save(walletProcess);
 
         return processResponse;
