@@ -89,25 +89,25 @@ public class CoreBankingProcessServiceImpl implements CoreBankingProcessService 
                     new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()), HttpStatus.BAD_REQUEST);
         }
 
-        if("WAYATRAN".equalsIgnoreCase(transLog.get().getEventId()) && relatedTrransactions.get().size() <= 10 ){
+        if("WAYATRAN".equalsIgnoreCase(transLog.get().getEventId()) && relatedTrransactions.get().size() < 10 ){
             log.error("missing entries for transaction {}", walletTransaction.getTranId());
             return new ResponseEntity<>(
                     new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()), HttpStatus.BAD_REQUEST);
         }
 
-        if("NIP_PAYOUT".equalsIgnoreCase(transLog.get().getEventId()) && relatedTrransactions.get().size() <= 10 ){
+        if("NIP_PAYOUT".equalsIgnoreCase(transLog.get().getEventId()) && relatedTrransactions.get().size() < 13 ){
             log.error("missing entries for transaction {}", walletTransaction.getTranId());
             return new ResponseEntity<>(
                     new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()), HttpStatus.BAD_REQUEST);
         }
 
-        if("NIP_FUNDING".equalsIgnoreCase(transLog.get().getEventId()) && relatedTrransactions.get().size() <= 10 ){
+        if("NIP_FUNDING".equalsIgnoreCase(transLog.get().getEventId()) && relatedTrransactions.get().size() < 5 ){
             log.error("missing entries for transaction {}", walletTransaction.getTranId());
             return new ResponseEntity<>(
                     new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()), HttpStatus.BAD_REQUEST);
         }
 
-        if("PAYSTACK_FUNDING".equalsIgnoreCase(transLog.get().getEventId()) && relatedTrransactions.get().size() <= 10 ){
+        if("PAYSTACK_FUNDING".equalsIgnoreCase(transLog.get().getEventId()) && relatedTrransactions.get().size() < 5 ){
             log.error("missing entries for transaction {}", walletTransaction.getTranId());
             return new ResponseEntity<>(
                     new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()), HttpStatus.BAD_REQUEST);
