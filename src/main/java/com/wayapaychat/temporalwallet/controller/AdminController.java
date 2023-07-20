@@ -71,6 +71,15 @@ public class AdminController {
     }
 
     @ApiImplicitParams({
+        @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Create Account on CBA", notes = "Create CBA Account", tags = { "ADMIN" })
+    @PostMapping("/cba/fix-entries/{transactionId}")
+    public ResponseEntity<?> coreBankingFixEntry(HttpServletRequest request,
+            @PathVariable String transactionId) {
+        return coreBankingProcessService.fixTransactionEntries(request, transactionId);
+    }
+
+    @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Create Account on CBA", notes = "Create CBA Account", tags = { "ADMIN" })
     @PostMapping("/cba/create-account/{accountNumber}")
