@@ -240,7 +240,42 @@ public class CoreBankingProcessServiceImpl implements CoreBankingProcessService 
             new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue()), HttpStatus.ACCEPTED);
         }
 
-        CBATransaction cbaTransaction = new CBATransaction();
+        Provider provider = switchWalletService.getActiveProvider();
+        List<WalletTransaction> customerWalletTransaction = relatedTrransactions.get().stream()
+                .filter(accTrans -> !accTrans.getAcctNum().contains("NGN")).collect(Collectors.toList());
+                
+        String customerDepositGL = coreBankingService.getEventAccountNumber(EventCharge.WAYATRAN.name());
+        String transitAccount = coreBankingService.getEventAccountNumber(transLog.get().getEventId());
+        String debitAccountNumber; String creditAccountNumber;  
+        if(transLog.get().getCreditAccountNumber().contains("NGN")){
+            debitAccountNumber = customerDepositGL;
+            creditAccountNumber = transLog.get().getCreditAccountNumber();
+        }
+        else if(transLog.get().getDebitAccountNumber().contains("NGN")){
+            creditAccountNumber = customerDepositGL;
+            debitAccountNumber = transLog.get().getDebitAccountNumber();
+        }
+        else{
+            creditAccountNumber = customerDepositGL;
+            debitAccountNumber = customerDepositGL;
+        }
+        CBATransaction cbaTransaction = new CBATransaction(transLog.get().getSenderName(), transLog.get().getBeneficiaryName(), userToken,
+        customerWalletTransaction.get(0).getPaymentReference(), 
+        transitAccount, creditAccountNumber, debitAccountNumber, null,
+        customerWalletTransaction.get(0).getTranNarrate(),
+        customerWalletTransaction.get(0).getTranCategory().name(), customerWalletTransaction.get(0).getTranType().name(),
+        transLog.get().getTranAmount(), transLog.get().getChargeAmount(), transLog.get().getVatAmount(), 
+        provider, transLog.get().getEventId(), customerWalletTransaction.get(0).getRelatedTransId(), CBAAction.MOVE_GL_TO_GL);
+
+        String vatCollectionAccount = coreBankingService.getEventAccountNumber("VAT_".concat(cbaTransaction.getChannelEvent()));
+        if (vatCollectionAccount == null || cbaTransaction.getVat().doubleValue() <= 0) {
+            return new ResponseEntity<>(new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue()), HttpStatus.ACCEPTED);
+        }
+
+        cbaTransaction.setCreditGLAccount(vatCollectionAccount);
+        cbaTransaction.setAmount(cbaTransaction.getVat());
+
+                                                
         return coreBankingService.processCBATransactionGLDoubleEntryWithTransit(cbaTransaction);
 
     }
@@ -264,7 +299,41 @@ public class CoreBankingProcessServiceImpl implements CoreBankingProcessService 
             new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue()), HttpStatus.ACCEPTED);
         }
         
-        CBATransaction cbaTransaction = new CBATransaction();
+        Provider provider = switchWalletService.getActiveProvider();
+        List<WalletTransaction> customerWalletTransaction = relatedTrransactions.get().stream()
+                .filter(accTrans -> !accTrans.getAcctNum().contains("NGN")).collect(Collectors.toList());
+                
+        String customerDepositGL = coreBankingService.getEventAccountNumber(EventCharge.WAYATRAN.name());
+        String transitAccount = coreBankingService.getEventAccountNumber(transLog.get().getEventId());
+        String debitAccountNumber; String creditAccountNumber;  
+        if(transLog.get().getCreditAccountNumber().contains("NGN")){
+            debitAccountNumber = customerDepositGL;
+            creditAccountNumber = transLog.get().getCreditAccountNumber();
+        }
+        else if(transLog.get().getDebitAccountNumber().contains("NGN")){
+            creditAccountNumber = customerDepositGL;
+            debitAccountNumber = transLog.get().getDebitAccountNumber();
+        }
+        else{
+            creditAccountNumber = customerDepositGL;
+            debitAccountNumber = customerDepositGL;
+        }
+        CBATransaction cbaTransaction = new CBATransaction(transLog.get().getSenderName(), transLog.get().getBeneficiaryName(), userToken,
+        customerWalletTransaction.get(0).getPaymentReference(), 
+        transitAccount, creditAccountNumber, debitAccountNumber, null,
+        customerWalletTransaction.get(0).getTranNarrate(),
+        customerWalletTransaction.get(0).getTranCategory().name(), customerWalletTransaction.get(0).getTranType().name(),
+        transLog.get().getTranAmount(), transLog.get().getChargeAmount(), transLog.get().getVatAmount(), 
+        provider, transLog.get().getEventId(), customerWalletTransaction.get(0).getRelatedTransId(), CBAAction.MOVE_GL_TO_GL);
+ 
+        String chargeCollectionAccount = coreBankingService.getEventAccountNumber("INCOME_".concat(cbaTransaction.getChannelEvent()));
+        if (chargeCollectionAccount == null || cbaTransaction.getCharge().doubleValue() <= 0) {
+            return new ResponseEntity<>(new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue()), HttpStatus.ACCEPTED);
+        }
+
+        cbaTransaction.setCreditGLAccount(chargeCollectionAccount);
+        cbaTransaction.setAmount(cbaTransaction.getCharge());
+                                        
         return coreBankingService.processCBATransactionGLDoubleEntryWithTransit(cbaTransaction);
 
     }
