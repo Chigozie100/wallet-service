@@ -63,7 +63,7 @@ public class AdminController {
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-    @ApiOperation(value = "Create Account on CBA", notes = "Create CBA Account", tags = { "ADMIN" })
+    @ApiOperation(value = "Run CBA Accounting Process", notes = "Run CBA Accounting Process", tags = { "ADMIN" })
     @PostMapping("/cba/run-process/{proccessName}")
     public ResponseEntity<?> coreBankingRunProcess(HttpServletRequest request,
             @PathVariable String proccessName) {
@@ -72,7 +72,7 @@ public class AdminController {
 
     @ApiImplicitParams({
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-    @ApiOperation(value = "Create Account on CBA", notes = "Create CBA Account", tags = { "ADMIN" })
+    @ApiOperation(value = "Fix CBA Accounting Entries", notes = "Fix CBA Accounting Entries", tags = { "ADMIN" })
     @PostMapping("/cba/fix-entries/{transactionId}")
     public ResponseEntity<?> coreBankingFixEntry(HttpServletRequest request,
             @PathVariable String transactionId) {
