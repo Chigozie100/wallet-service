@@ -133,18 +133,23 @@ public interface UserAccountService {
 
     void setupExternalCBA();
 
+    ResponseEntity<?> setupAccountOnExternalCBA(String accounNumber);
+
     ApiResponse<?> getAllAccounts(int page, int size, String filter, LocalDate fromdate, LocalDate todate);
 
     ApiResponse<?> toggleTransactionType(long userId, String type, String token);
 
     ApiResponse<?> transTypeStatus(long userId);
-    
+
     ApiResponse<?> totalTransactionByUserId(Long user_id, boolean filter, LocalDate fromdate, LocalDate todate,String profileId);
 
     ApiResponse<?> fetchAllUsersTransactionAnalysis();
 
     ApiResponse<?> fetchUserTransactionStatForReferral(String user_id, String accountNo,String profileId);
-    
+
     ResponseEntity<?> updateAccountDescription(String accountNo, String token, String description);
 
+    ApiResponse<?> updateAccountName(String accountNo, String token, String name);
+    
+    ApiResponse<?> createCommisionAccount(long userId,String token,String profileId);
 }

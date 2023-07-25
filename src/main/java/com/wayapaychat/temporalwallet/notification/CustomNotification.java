@@ -111,7 +111,7 @@ public class CustomNotification {
 		SmsPayload data = new SmsPayload();
 		data.setMessage(message);
 		data.setSmsEventStatus(SMSEventStatus.TRANSACTION);
-		data.setRecipients(Arrays.asList(new SmsRecipient(name, phone)));
+		data.setRecipients(Arrays.asList(new SmsRecipient(email, phone)));
 		smsEvent.setData(data);
 
 		smsEvent.setEventType("SMS");

@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.controller;
 
+import com.itextpdf.text.DocumentException;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.DateFormat;
@@ -43,12 +44,14 @@ import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.response.TransactionsResponse;
 import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
+import com.wayapaychat.temporalwallet.util.ExportPdf;
 
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
@@ -692,9 +695,11 @@ public class WalletTransactionController {
         String headerKey = "Content-Disposition";
         String headerValue = "attachment; filename=receipt_" + currentDateTime + ".pdf";
         response.setHeader(headerKey, headerValue);
-        List<TransWallet> res = transAccountService.statementReport2(fromdate, todate, accountNo);
-
-        PDFExporter exporter = new PDFExporter(res, accountNo, fromdate, todate);
+        ApiResponse<CustomerStatement> res = transAccountService.accountstatementReport2(fromdate, todate, accountNo);       
+        
+        ExportPdf exporter = new ExportPdf(res.getData().getTransaction(), accountNo, fromdate, todate, 
+                res.getData().getAccountName(), res.getData().getOpeningBal().toString(), res.getData().getClosingBal().toString(), 
+                res.getData().getClearedal().toString(), res.getData().getUnclearedBal().toString());
         exporter.export(response);
         return new ResponseEntity<>(headerValue, HttpStatus.BAD_REQUEST);
 
@@ -751,8 +756,8 @@ public class WalletTransactionController {
     public ResponseEntity<?> overallBasedAnalysis() {
         return transAccountService.transactionAnalysis();
     }
-    
-     @ApiImplicitParams({
+
+    @ApiImplicitParams({
         @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Total Overall Based Transactions", notes = "Total Overall Based Transactions", tags = {"TRANSACTION-WALLET"})
     @GetMapping("/transaction/analysis")
@@ -761,14 +766,13 @@ public class WalletTransactionController {
         return transAccountService.transactionAnalysisFilterDate(fromdate, todate);
     }
 
-
-//    @ApiImplicitParams({
-//            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
-//    @ApiOperation(value = "Fetch user transaction by reference number", notes = "get user transaction by ref number", tags = {"TRANSACTION-WALLET"})
-//    @GetMapping(path = "/fetchByReferenceNumber/{referenceNumber}")
-//    public ResponseEntity<?> fetchUserTransactionByRefNumber(@RequestHeader("Authorization") String token, @PathVariable String referenceNumber) {
-//        ApiResponse<?> response = transAccountService.fetchUserTransactionsByReferenceNumber(token,referenceNumber);
-//        return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
-//    }
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
+    @ApiOperation(value = "Fetch user transaction by reference number", notes = "get user transaction by ref number", tags = {"TRANSACTION-WALLET"})
+    @GetMapping(path = "/fetchByReferenceNumber/{referenceNumber}")
+    public ResponseEntity<?> fetchUserTransactionByRefNumber(@RequestHeader("Authorization") String token, @PathVariable String referenceNumber) {
+        ApiResponse<?> response = transAccountService.fetchUserTransactionsByReferenceNumber(referenceNumber);
+        return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
+    }
 
 }

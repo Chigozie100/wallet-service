@@ -351,7 +351,12 @@ public class WalletUserAccountController {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
-
-
+    @ApiOperation(value = "Createcommission account", notes = "Create Cooperate account, this creates a default account and a commission account", tags = {"USER-ACCOUNT-WALLET"})
+    @PostMapping("/create/commission_account/{userId}/{profileId}")
+    public ApiResponse<?> createCommissionAccount(@PathVariable("userId") long userId,
+                                                  @RequestHeader("Authorization") String token,
+                                                  @PathVariable String profileId) {
+        return userAccountService.createCommisionAccount(userId, token,profileId);
+    }
 
 }

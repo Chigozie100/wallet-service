@@ -5,6 +5,7 @@ import com.wayapaychat.temporalwallet.enumm.TransactionTypeEnum;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
+import com.wayapaychat.temporalwallet.service.CoreBankingProcessService;
 import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
 import com.wayapaychat.temporalwallet.service.UserAccountService;
@@ -45,16 +46,46 @@ import java.util.List;
 @Slf4j
 @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
 public class AdminController {
+
     private final TransAccountService transAccountService;
     private final CoreBankingService coreBankingService;
     private final UserAccountService userAccountService;
+    private final CoreBankingProcessService coreBankingProcessService;
 
     @Autowired
     public AdminController(TransAccountService transAccountService, CoreBankingService coreBankingService,
-            UserAccountService userAccountService) {
+        UserAccountService userAccountService, CoreBankingProcessService coreBankingProcessService) {
         this.transAccountService = transAccountService;
         this.coreBankingService = coreBankingService;
         this.userAccountService = userAccountService;
+        this.coreBankingProcessService = coreBankingProcessService;
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Run CBA Accounting Process", notes = "Run CBA Accounting Process", tags = { "ADMIN" })
+    @PostMapping("/cba/run-process/{proccessName}")
+    public ResponseEntity<?> coreBankingRunProcess(HttpServletRequest request,
+            @PathVariable String proccessName) {
+        return coreBankingProcessService.runProcess(proccessName);
+    }
+
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Fix CBA Accounting Entries", notes = "Fix CBA Accounting Entries", tags = { "ADMIN" })
+    @PostMapping("/cba/fix-entries/{transactionId}")
+    public ResponseEntity<?> coreBankingFixEntry(HttpServletRequest request,
+            @PathVariable String transactionId) {
+        return coreBankingProcessService.fixTransactionEntries(request, transactionId);
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Create Account on CBA", notes = "Create CBA Account", tags = { "ADMIN" })
+    @PostMapping("/cba/create-account/{accountNumber}")
+    public ResponseEntity<?> coreBankingCreateAccount(HttpServletRequest request,
+            @PathVariable String accountNumber) {
+        return userAccountService.setupAccountOnExternalCBA(accountNumber);
     }
 
     @ApiImplicitParams({
@@ -564,7 +595,8 @@ public class AdminController {
     @ApiOperation(value = "Waya Admin to create multiple transaction", notes = "Transfer amount from one wallet to another wallet", tags = {
             "ADMIN" })
     @PostMapping(path = "/credit/bulk-transaction-excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> createCreditBulkTransExcel(HttpServletRequest request, @RequestPart("file") MultipartFile file) {
+    public ResponseEntity<?> createCreditBulkTransExcel(HttpServletRequest request,
+            @RequestPart("file") MultipartFile file) {
         ResponseEntity<?> res = transAccountService.createBulkExcelTrans(request, file);
         if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
@@ -573,9 +605,9 @@ public class AdminController {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
-     @ApiImplicitParams({
+    @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true),
-            @ApiImplicitParam(name = "pin", value = "pin", paramType = "header", required = true)})
+            @ApiImplicitParam(name = "pin", value = "pin", paramType = "header", required = true) })
     @ApiOperation(value = "Waya Admin to create multiple transaction", notes = "Transfer amount from one wallet to another wallet", tags = {
             "ADMIN" })
     @PostMapping("/debit/bulk-transaction")
@@ -592,11 +624,12 @@ public class AdminController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true),
             @ApiImplicitParam(name = "pin", value = "pin", paramType = "header", required = true)
-             })
+    })
     @ApiOperation(value = "Waya Admin to create multiple debit transaction", notes = "Transfer amount from one wallet to another wallet", tags = {
             "ADMIN" })
     @PostMapping(path = "/debit/bulk-transaction-excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<?> createDebitBulkTransExcel(HttpServletRequest request, @RequestPart("file") MultipartFile file) {
+    public ResponseEntity<?> createDebitBulkTransExcel(HttpServletRequest request,
+            @RequestPart("file") MultipartFile file) {
         ResponseEntity<?> res = transAccountService.createBulkDebitExcelTrans(request, file);
         if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
@@ -604,8 +637,7 @@ public class AdminController {
         log.info("Send Money: {}", file);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
-    
-    
+
     @ApiOperation(value = "For Admin to view all waya transaction", notes = "To view all transaction for wallet/waya", tags = {
             "ADMIN" })
     @GetMapping("/admin/statement/{acctNo}")
@@ -690,7 +722,8 @@ public class AdminController {
 
     @ApiOperation(value = "Create a Simulated User", tags = { "ADMIN" })
     @PostMapping(path = "simulated/account")
-    public ResponseEntity<?> createSIMUser(@Valid @RequestBody AccountPojo2 user, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<?> createSIMUser(@Valid @RequestBody AccountPojo2 user,
+            @RequestHeader("Authorization") String token) {
         log.info("Request input: {}", user);
         return userAccountService.createAccount(user, token);
     }
@@ -699,8 +732,9 @@ public class AdminController {
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Create a wallet account", tags = { "ADMIN" })
     @PostMapping(path = "/official/user/account")
-    public ResponseEntity<?> createUserAccount(@Valid @RequestBody AccountPojo2 accountPojo, @RequestHeader("Authorization") String token) {
-        return userAccountService.createAccount(accountPojo,token);
+    public ResponseEntity<?> createUserAccount(@Valid @RequestBody AccountPojo2 accountPojo,
+            @RequestHeader("Authorization") String token) {
+        return userAccountService.createAccount(accountPojo, token);
     }
 
     @ApiImplicitParams({
@@ -877,9 +911,8 @@ public class AdminController {
         }
 
     }
-    
-    
-      @ApiImplicitParams({
+
+    @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "To List All Transaction activities", notes = "To List all Transaction activities", tags = {
             "ADMIN" })
@@ -901,12 +934,13 @@ public class AdminController {
         }
     }
 
-        @ApiImplicitParams({
+    @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "To List All Transaction activities no pagination", notes = "To List all Transaction activities", tags = {
             "ADMIN" })
     @GetMapping("/transaction-list/{accountNo}")
-    public ResponseEntity<?> allTransactionsNoPagination(@RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromdate,
+    public ResponseEntity<?> allTransactionsNoPagination(
+            @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromdate,
             @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate todate,
             @PathVariable("accountNo") String accountNo) {
         ApiResponse<?> res;
@@ -924,18 +958,15 @@ public class AdminController {
 
     }
 
-
-
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Generate All users transaction analysis", notes = "To Users transaction analysis", tags = {
             "ADMIN" })
     @GetMapping("/all/users/analysis")
-    public ResponseEntity<ApiResponse<?>> fetchAllUserAccountStats(){
+    public ResponseEntity<ApiResponse<?>> fetchAllUserAccountStats() {
         ApiResponse<?> response = userAccountService.fetchAllUsersTransactionAnalysis();
-        return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
+        return new ResponseEntity<>(response, HttpStatus.valueOf(response.getCode()));
     }
-
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
@@ -949,37 +980,50 @@ public class AdminController {
         return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
     }
 
-
-
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
-    @ApiOperation(value = "Fetch user transaction by reference number", notes = "get user transaction by ref number", tags = {"ADMIN"})
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Fetch user transaction by reference number", notes = "get user transaction by ref number", tags = {
+            "ADMIN" })
     @GetMapping(path = "/fetchTransByReferenceNumber/{referenceNumber}")
     public ResponseEntity<?> fetchTransactionByRefNumber(@PathVariable String referenceNumber) {
         ApiResponse<?> response = transAccountService.fetchUserTransactionsByReferenceNumber(referenceNumber);
-        return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
+        return new ResponseEntity<>(response, HttpStatus.valueOf(response.getCode()));
     }
 
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
-    @ApiOperation(value = "Fetch user account transaction by reference number", notes = "get user account transaction by ref number", tags = {"ADMIN"})
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Fetch user account transaction by reference number", notes = "get user account transaction by ref number", tags = {
+            "ADMIN" })
     @GetMapping(path = "/fetchTransByReferenceNumber/{referenceNumber}/accountNumber/{accountNumber}")
     public ResponseEntity<?> fetchAccountTransactionByRefNumberAndAcctNumber(@PathVariable String referenceNumber,
-                                                                             @PathVariable String accountNumber) {
-        ApiResponse<?> response = transAccountService.fetchTransactionsByReferenceNumberAndAccountNumber(accountNumber,referenceNumber);
-        return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
+            @PathVariable String accountNumber) {
+        ApiResponse<?> response = transAccountService.fetchTransactionsByReferenceNumberAndAccountNumber(accountNumber,
+                referenceNumber);
+        return new ResponseEntity<>(response, HttpStatus.valueOf(response.getCode()));
     }
-
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Update account description", notes = "update account description", tags = {
             "ADMIN" })
-     @PostMapping("/update/account-description/{accountNumber}")
-    public ResponseEntity<?> updateAccountDEscription(@PathVariable String accountNumber, @RequestParam String description,
-            @RequestHeader("Authorization") String token){
+    @PostMapping("/update/account-description/{accountNumber}")
+    public ResponseEntity<?> updateAccountDEscription(@PathVariable String accountNumber,
+            @RequestParam String description,
+            @RequestHeader("Authorization") String token) {
         ResponseEntity<?> response = userAccountService.updateAccountDescription(accountNumber, token, description);
-        return new ResponseEntity<>(response,HttpStatus.valueOf(response.getStatusCodeValue()));
+        return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatusCodeValue()));
+    }
+    
+    
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Update account description", notes = "update account description", tags = {
+            "ADMIN" })
+     @PostMapping("/update/account-name/{accountNumber}")
+    public ResponseEntity<?> updateAccountName(@PathVariable String accountNumber, @RequestParam String name,
+            @RequestHeader("Authorization") String token){
+        ApiResponse<?> response = userAccountService.updateAccountName(accountNumber, token, name);
+        return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
     }
 
 }

@@ -148,7 +148,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     @Override
     public ResponseEntity<?> createAccount(WalletUser userInfo, WalletAccount sAcct) {
-        log.info("createAccount: {} ", sAcct.getAccountNo());
+        log.info("createAccount: {}", sAcct.getAccountNo(), sAcct.getAcct_name());
         Provider provider = switchWalletService.getActiveProvider();
         if (provider == null) {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.NO_PROVIDER.getValue()),
@@ -207,8 +207,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     accountCredit.getGl_code(), transactionPojo.getPaymentReference(),
                     String.valueOf(transactionPojo.getUserToken().getId()), transactionPojo.getUserToken().getEmail(),
                     transactionPojo.getTranPart(), transactionPojo.getTransactionCategory(),
-                    transactionPojo.getSenderName(), transactionPojo.getReceiverName(),
-                    transactionPojo.getChargeAmount(),transactionPojo.getVat());
+                    transactionPojo.getSenderName(), transactionPojo.getReceiverName());
             walletTransactionRepository.saveAndFlush(tranCredit);
 
             CompletableFuture.runAsync(() -> sendTransactionNotification(Constant.CREDIT_TRANSACTION_ALERT,
@@ -256,8 +255,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     accountDebit.getGl_code(), transactionPojo.getPaymentReference(),
                     String.valueOf(transactionPojo.getUserToken().getId()), transactionPojo.getUserToken().getEmail(),
                     transactionPojo.getTranPart(), transactionPojo.getTransactionCategory(),
-                    transactionPojo.getSenderName(), transactionPojo.getReceiverName(),
-                    transactionPojo.getChargeAmount(),transactionPojo.getVat());
+                    transactionPojo.getSenderName(), transactionPojo.getReceiverName());
             walletTransactionRepository.saveAndFlush(tranDebit);
 
             CompletableFuture.runAsync(() -> sendTransactionNotification(Constant.DEBIT_TRANSACTION_ALERT,
