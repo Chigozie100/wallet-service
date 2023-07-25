@@ -5,6 +5,7 @@ import com.wayapaychat.temporalwallet.enumm.TransactionTypeEnum;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
+import com.wayapaychat.temporalwallet.service.CoreBankingProcessService;
 import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
 import com.wayapaychat.temporalwallet.service.UserAccountService;
@@ -45,16 +46,37 @@ import java.util.List;
 @Slf4j
 @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
 public class AdminController {
+
     private final TransAccountService transAccountService;
     private final CoreBankingService coreBankingService;
     private final UserAccountService userAccountService;
+    private final CoreBankingProcessService coreBankingProcessService;
 
     @Autowired
     public AdminController(TransAccountService transAccountService, CoreBankingService coreBankingService,
-            UserAccountService userAccountService) {
+        UserAccountService userAccountService, CoreBankingProcessService coreBankingProcessService) {
         this.transAccountService = transAccountService;
         this.coreBankingService = coreBankingService;
         this.userAccountService = userAccountService;
+        this.coreBankingProcessService = coreBankingProcessService;
+    }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Run CBA Accounting Process", notes = "Run CBA Accounting Process", tags = { "ADMIN" })
+    @PostMapping("/cba/run-process/{proccessName}")
+    public ResponseEntity<?> coreBankingRunProcess(HttpServletRequest request,
+            @PathVariable String proccessName) {
+        return coreBankingProcessService.runProcess(proccessName);
+    }
+
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Fix CBA Accounting Entries", notes = "Fix CBA Accounting Entries", tags = { "ADMIN" })
+    @PostMapping("/cba/fix-entries/{transactionId}")
+    public ResponseEntity<?> coreBankingFixEntry(HttpServletRequest request,
+            @PathVariable String transactionId) {
+        return coreBankingProcessService.fixTransactionEntries(request, transactionId);
     }
 
     @ApiImplicitParams({
