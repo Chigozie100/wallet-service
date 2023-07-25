@@ -15,6 +15,9 @@ public class NonWayaBenefDTO {
 	@NotBlank(message = "Merchant ID must not be Null or Blank")
 	@Size(min=1, max=10, message = "Merchant ID must be between 1 to 10 digit")
     private Long merchantId;
+
+	@NotBlank(message = "Profile ID must not be Null or Blank")
+	private String profileId;
    
 	@NotNull
 	@Min(value = 100, message ="Amount must be greater or equal to 1000")

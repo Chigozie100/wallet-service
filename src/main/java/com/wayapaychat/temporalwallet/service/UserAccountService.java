@@ -53,15 +53,15 @@ public interface UserAccountService {
 
     ResponseEntity<?> fetchVirtualAccountDetail(String accountNo);
 
-    ResponseEntity<?> getUserAccountList(long userId, String token);
+    ResponseEntity<?> getUserAccountList(long userId, String token,String profileId);
 
     ResponseEntity<?> getAllAccount();
 
-    ResponseEntity<?> getUserCommissionList(long userId, Boolean isAdmin);
+    ResponseEntity<?> getUserCommissionList(long userId, Boolean isAdmin,String profileId);
 
     ResponseEntity<?> makeDefaultWallet(String accountNo);
 
-    ResponseEntity<?> UserWalletLimit(long userId);
+    ResponseEntity<?> UserWalletLimit(long userId,String profileId);
 
     ResponseEntity<?> getALLCommissionAccount();
 
@@ -71,7 +71,7 @@ public interface UserAccountService {
 
     ResponseEntity<?> nameEnquiry(String accountNo);
 
-    ResponseEntity<?> getAccountDefault(Long user_id) throws JsonProcessingException;
+    ResponseEntity<?> getAccountDefault(Long user_id,String profileId) throws JsonProcessingException;
 
     ResponseEntity<?> searchAccount(String search);
 
@@ -87,7 +87,7 @@ public interface UserAccountService {
 
     ApiResponse<?> fetchFilterTransaction(String acctNo, Date fromdate, Date todate);
 
-    ApiResponse<?> fetchRecentTransaction(Long user_id);
+    ApiResponse<?> fetchRecentTransaction(Long user_id,String profileId);
 
     ResponseEntity<?> getListWalletAccount();
 
@@ -107,7 +107,7 @@ public interface UserAccountService {
 
     ResponseEntity<?> getListSimulatedAccount();
 
-    ResponseEntity<?> getUserAccountCount(Long userId);
+    ResponseEntity<?> getUserAccountCount(Long userId,String profileId);
 
     ResponseEntity<?> ListUserAccount(long userId);
 
@@ -119,11 +119,11 @@ public interface UserAccountService {
 
     ResponseEntity<?> countInActiveAccount();
 
-    ResponseEntity<?> createDefaultWallet(MyData user, String token);
+    ResponseEntity<?> createDefaultWallet(MyData user, String token,String profileId);
 
-    ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount);
+    ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount,String profileId);
 
-    void securityCheck(long userId);
+    void securityCheck(long userId,String profileId);
 
     ResponseEntity<?> createExternalAccount(String accountNumber);
 
@@ -139,11 +139,11 @@ public interface UserAccountService {
 
     ApiResponse<?> transTypeStatus(long userId);
     
-    ApiResponse<?> totalTransactionByUserId(Long user_id, boolean filter, LocalDate fromdate, LocalDate todate);
+    ApiResponse<?> totalTransactionByUserId(Long user_id, boolean filter, LocalDate fromdate, LocalDate todate,String profileId);
 
     ApiResponse<?> fetchAllUsersTransactionAnalysis();
 
-    ApiResponse<?> fetchUserTransactionStatForReferral(String user_id, String accountNo);
+    ApiResponse<?> fetchUserTransactionStatForReferral(String user_id, String accountNo,String profileId);
     
     ResponseEntity<?> updateAccountDescription(String accountNo, String token, String description);
 

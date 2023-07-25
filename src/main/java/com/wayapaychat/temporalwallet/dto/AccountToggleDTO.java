@@ -13,6 +13,9 @@ public class AccountToggleDTO {
 	
 	@NotBlank
 	private String newDefaultAcctNo;
+
+	@NotBlank(message = "Profile Id can not be Blank Or Null")
+	private String profileId;
 	
 
 }

@@ -114,7 +114,7 @@ public interface TransAccountService {
 
     ApiResponse<?> PaymentAccountTrans(Date date, Date todate, String wayaNo);
 
-    ApiResponse<?> viewTransActivities(String userId);
+    ApiResponse<?> viewTransActivities(String userId,String profileId);
 
     ApiResponse<?> PaymentOffTrans(int page, int size, String filter);
 
@@ -222,7 +222,7 @@ public interface TransAccountService {
 
     ResponseEntity<?> getSingleAccountByEventID(String eventId);
 
-    WalletAccount findByEmailOrPhoneNumberOrId(Boolean isAccountNumber, String value, String userId, String accountNo);
+    WalletAccount findByEmailOrPhoneNumberOrId(Boolean isAccountNumber, String value, String userId, String accountNo,String profileId);
 
     ApiResponse<?> OfficialAccountReports(int page, int size, LocalDate fromdate, LocalDate todate, String fillter);
 

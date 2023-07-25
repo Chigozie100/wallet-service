@@ -16,6 +16,9 @@ public class EventPaymentRequestReversal {
     private String senderId;
 
     @NotNull
+    private String profileId;
+
+    @NotNull
     private BigDecimal amount;
 
     @NotNull

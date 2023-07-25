@@ -6,7 +6,7 @@ import com.wayapaychat.temporalwallet.pojo.TransactionReport;
 import org.springframework.http.ResponseEntity;
 
 public interface TransactionCountService {
-    ResponseEntity<?> getUserCount(String userId);
+    ResponseEntity<?> getUserCount(String userId,String profileId);
 
     ResponseEntity<?> getAllUserCount();
 

@@ -132,7 +132,11 @@ public class WalletTransactionController {
         try {
 
             // get user by email or phone
-            WalletAccount account = transAccountService.findByEmailOrPhoneNumberOrId(transfer.getIsAccountNumber(), transfer.getEmailOrPhone(), transfer.getSenderUserId(), transfer.getSenderAccountNumber());
+            WalletAccount account = transAccountService.findByEmailOrPhoneNumberOrId(
+                    transfer.getIsAccountNumber(),
+                    transfer.getEmailOrPhone(),
+                    transfer.getSenderUserId(),
+                    transfer.getSenderAccountNumber(),transfer.getSenderProfileId());
             TransferTransactionDTO data = new TransferTransactionDTO(transfer.getSenderAccountNumber(),
                     account.getAccountNo(),
                     transfer.getAmount(),
@@ -727,9 +731,9 @@ public class WalletTransactionController {
     }
 
     @ApiOperation(value = "User Transaction Count by User Id ", notes = "User Transaction Count by User Id", tags = {"TRANSACTION-WALLET"})
-    @GetMapping("/transaction/get-user-transaction-count/{userId}")
-    public ResponseEntity<?> getUserCount(@PathVariable String userId) {
-        return transactionCountService.getUserCount(userId);
+    @GetMapping("/transaction/get-user-transaction-count/{userId}/{profileId}")
+    public ResponseEntity<?> getUserCount(@PathVariable String userId,@PathVariable String profileId) {
+        return transactionCountService.getUserCount(userId,profileId);
     }
 
     @ApiImplicitParams({

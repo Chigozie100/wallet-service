@@ -34,6 +34,12 @@ public class PaymentRequest {
     @NotBlank(message = "please enter the senders id")
     private String senderId;
 
+    @NotBlank(message = "please enter the receivers profile id")
+    private String receiverProfileId;
+
+    @NotBlank(message = "please enter the senders profile id")
+    private String senderProfileId;
+
     @NotNull(message = "please enter the amount")
     private BigDecimal amount;
     //once the payment request is sent to kafka and after the maximum retires is exceeded change this field to true.
