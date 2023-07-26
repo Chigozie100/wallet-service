@@ -177,9 +177,9 @@ public class WalletUserAccountController {
     @ApiOperation(value = "Get User list of wallets", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/accounts/{user_id}/{profileId}")
     public ResponseEntity<?> getAccounts(@PathVariable long user_id,
-                                         @RequestHeader("Authorization") String token,
-                                         @PathVariable String profileId) {
-        return userAccountService.getUserAccountList(user_id, token,profileId);
+                                         @PathVariable String profileId,
+                                         @RequestHeader("Authorization") String token) {
+        return userAccountService.getUserAccountList(user_id,profileId,token);
     }
 
     @ApiOperation(value = "Get User Wallet Commission Account", tags = {"USER-ACCOUNT-WALLET"})

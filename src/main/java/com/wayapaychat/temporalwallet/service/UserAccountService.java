@@ -53,7 +53,7 @@ public interface UserAccountService {
 
     ResponseEntity<?> fetchVirtualAccountDetail(String accountNo);
 
-    ResponseEntity<?> getUserAccountList(long userId, String token,String profileId);
+    ResponseEntity<?> getUserAccountList(long userId,String profileId,String token);
 
     ResponseEntity<?> getAllAccount();
 

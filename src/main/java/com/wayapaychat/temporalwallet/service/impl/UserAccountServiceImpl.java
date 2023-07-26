@@ -155,6 +155,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             return new ResponseEntity<>(existingUser, HttpStatus.ACCEPTED);
         }
 
+        log.info("::Id, ProfileId, ",userid+ "/"+profileId);
         UserProfileResponse userDetailsResponse = authProxy.getProfileByIdAndUserId(userid,profileId, token);
         log.info("userDetailsResponse1 {} ", userDetailsResponse);
         if (ObjectUtils.isEmpty(userDetailsResponse)) {
@@ -548,6 +549,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         if(user.getProfileType() != null)
             profileAccountType = user.getProfileType();
 
+        log.info("::WalletUserDTO {}",user);
         ResponseEntity<?> response = createClient(user.getUserId(), token,profileId,profileAccountType);
         log.info(":::CreateClient Response {} ", response);
         if (!response.getStatusCode().is2xxSuccessful()) {
@@ -2540,7 +2542,8 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     private void updateExistingWalletUser(Long userId, String profileId,boolean corporate){
         try {
-            List<WalletUser> walletUserList = walletUserRepository.findUserIdAndProfileIdIsNull(userId);
+            List<WalletUser> walletUserList = walletUserRepository.findAllByUserIdAndProfileIdIsNull(userId);
+            log.info("WalletSize:: {}",walletUserList.size());
             if(walletUserList.size() > 0 && walletUserList.size() == 1){
                 for (WalletUser user: walletUserList){
                     if(user.getProfileId() == null || user.getProfileId().isEmpty()){
@@ -2550,10 +2553,11 @@ public class UserAccountServiceImpl implements UserAccountService {
                         }else {
                             user.setAccountType("PERSONAL");
                         }
-                        walletUserRepository.saveAndFlush(user);
+                        walletUserRepository.save(user);
                         log.info("::DEFAULT WALLET USER SUCCESSFULLY UPDATED {}",userId);
                     }
                 }
+                log.info("::I reach here:::");
             }
         }catch (Exception ex){
             log.error("::Error updateExistingWalletUser {}",ex.getLocalizedMessage());

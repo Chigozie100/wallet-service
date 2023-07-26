@@ -57,6 +57,8 @@ public interface WalletUserRepository extends JpaRepository<WalletUser, Long> {
 	@Query(value = "SELECT u FROM WalletUser u WHERE u.del_flg = false AND (u.userId) = (:userId) AND profileId IS NULL ")
 	List<WalletUser> findUserIdAndProfileIdIsNull(Long userId);
 
+	List<WalletUser> findAllByUserIdAndProfileIdIsNull(Long userId);
+
     Optional<WalletUser> findByEmailAddressOrMobileNoAndProfileId(String email,String phone, String profileId);
 
     //Select CASE WHEN ID = 5 THEN 1 ELSE 2 END as ord, ID FROM tbl ORDER BY ord ASC, ID ASC
