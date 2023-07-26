@@ -37,11 +37,11 @@ public class TransactionCountServiceImpl implements TransactionCountService {
     }
 
     @Override
-    public ResponseEntity<?> getUserCount(String userId) {
+    public ResponseEntity<?> getUserCount(String userId,String profileId) {
         List<TransactionCountDto> allList = new ArrayList<>();
         List<TransactionCountDto> trdto = transactionCountRepository.findSurveyCount();
         for (TransactionCountDto transactionCountDto : trdto) {
-            WalletUser user = walletUserRepository.findByUserId(Long.parseLong(transactionCountDto.getUserId()));
+            WalletUser user = walletUserRepository.findByUserIdAndProfileId(Long.parseLong(transactionCountDto.getUserId()),profileId);
             allList.add(new TransactionCountDto(transactionCountDto.getUserId(), transactionCountDto.getTotalCount(), user));
         }
 
@@ -58,10 +58,12 @@ public class TransactionCountServiceImpl implements TransactionCountService {
         List<TransactionCountDto> transactionCountDtos = getGetTransactionConuntList();
         List<TransactionCountDto> trdto = transactionCountRepository.findSurveyCount();
         for (TransactionCountDto transactionCountDto : trdto) {
-            WalletUser user = walletUserRepository.findByUserId(Long.parseLong(transactionCountDto.getUserId()));
-            transactionCountDtos.add(new TransactionCountDto(transactionCountDto.getUserId(), transactionCountDto.getTotalCount(), user));
+//            WalletUser user = walletUserRepository.findByUserId(Long.parseLong(transactionCountDto.getUserId()));
+            List<WalletUser> walletUserList = walletUserRepository.findAllWalletByUserId(Long.parseLong(transactionCountDto.getUserId()));
+            for (WalletUser user: walletUserList){
+                transactionCountDtos.add(new TransactionCountDto(transactionCountDto.getUserId(), transactionCountDto.getTotalCount(), user));
+            }
         }
-
         return new ResponseEntity<>(transactionCountDtos, HttpStatus.ACCEPTED);
     }
 

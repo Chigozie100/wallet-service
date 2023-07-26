@@ -14,6 +14,9 @@ public class AdminWalletTransactionDTO {
 	
 	@NotNull(message = "Admin User Id must not Null")
 	private Long adminUserId;
+
+	@NotBlank(message = "Profile Id must not Null or Blank")
+	private String profileId;
 	
 	@NotBlank(message = "Account must not Null or Blank")
 	@Size(min=10, max=10, message = "Account must be 10 digit")

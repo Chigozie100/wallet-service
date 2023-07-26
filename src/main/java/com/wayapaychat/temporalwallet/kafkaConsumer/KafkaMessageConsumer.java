@@ -14,6 +14,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -49,16 +51,32 @@ public class KafkaMessageConsumer {
         try {
             KycTierDataDto kycTierDataDto = objectMapper.readValue(message,KycTierDataDto.class);
             log.debug("::::CONVERT MESSAGE TO KYC DTO CLASS::: {}",kycTierDataDto);
-            Optional<WalletUser> walletUser = walletUserRepository.findUserId(kycTierDataDto.getUserId());
-            if(walletUser.isPresent()){
-                walletUser.get().setCust_debit_limit(kycTierDataDto.getDailyTransactionLimit().doubleValue());
-                walletUserRepository.save(walletUser.get());
-                log.info("::::SUCCESSFUL UPDATED CUSTOMER DEBIT LIMIT::::LIMIT {}, USERID {}",kycTierDataDto.getDailyTransactionLimit().doubleValue(),kycTierDataDto.getUserId());
-                log.info(":::FINISH PROCESSING CUST_DEBIT_LIMIT::::LIMIT {}, TIERNAME {}, USERID {}",
-                        kycTierDataDto.getUserId(), kycTierDataDto.getTierName(),kycTierDataDto.getUserId());
-            }else {
-                log.debug("::::USER WALLET NOT FOUND {}",kycTierDataDto);
-                log.info("::::UNABLE TO UPDATE CUST_DEBIT_LIMIT {}",kycTierDataDto);
+//            kycTierDataDto.getTierName().equalsIgnoreCase("TIER_2")
+            if(kycTierDataDto.getOrderLevel() > 0 && kycTierDataDto.getOrderLevel() <= 3){
+
+                List<WalletUser> walletUserList = walletUserRepository.findAllWalletByUserId(kycTierDataDto.getUserId());
+                if(walletUserList.size() > 0){
+                    List<WalletUser> walletAccts = new ArrayList<>();
+                    for (WalletUser walletUser: walletUserList){
+                        walletUser.setCust_debit_limit(kycTierDataDto.getDailyTransactionLimit().doubleValue());
+                        walletAccts.add(walletUser);
+                    }
+                    walletUserRepository.saveAllAndFlush(walletAccts);
+                }
+
+            } else {
+
+                Optional<WalletUser> walletUser = walletUserRepository.findUserIdAndProfileId(kycTierDataDto.getUserId(), kycTierDataDto.getProfileId());
+                if(walletUser.isPresent()){
+                    walletUser.get().setCust_debit_limit(kycTierDataDto.getDailyTransactionLimit().doubleValue());
+                    walletUserRepository.save(walletUser.get());
+                    log.info("::::SUCCESSFUL UPDATED CUSTOMER DEBIT LIMIT::::LIMIT {}, USERID {}",kycTierDataDto.getDailyTransactionLimit().doubleValue(),kycTierDataDto.getUserId());
+                    log.info(":::FINISH PROCESSING CUST_DEBIT_LIMIT::::LIMIT {}, TIERNAME {}, USERID {}",
+                            kycTierDataDto.getUserId(), kycTierDataDto.getTierName(),kycTierDataDto.getUserId());
+                }else {
+                    log.debug("::::USER WALLET NOT FOUND {}",kycTierDataDto);
+                    log.info("::::UNABLE TO UPDATE CUST_DEBIT_LIMIT {}",kycTierDataDto);
+                }
             }
         }catch (Exception ex){
             log.error(":::::ERR ProcessKycData {}",ex.getLocalizedMessage());
@@ -116,6 +134,8 @@ public class KafkaMessageConsumer {
         walletUserDTO.setCustDebitLimit(0.0);
         walletUserDTO.setDescription("");
         walletUserDTO.setAccountType("");
+        walletUserDTO.setProfileId(signUpDto.getProfileId());
+        walletUserDTO.setProfileType(signUpDto.getProfileType());
         return walletUserDTO;
     }
 }

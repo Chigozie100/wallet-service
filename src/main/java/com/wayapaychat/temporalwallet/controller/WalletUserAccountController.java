@@ -175,15 +175,17 @@ public class WalletUserAccountController {
     }
 
     @ApiOperation(value = "Get User list of wallets", tags = {"USER-ACCOUNT-WALLET"})
-    @GetMapping(path = "/accounts/{user_id}")
-    public ResponseEntity<?> getAccounts(@PathVariable long user_id, @RequestHeader("Authorization") String token) {
-        return userAccountService.getUserAccountList(user_id, token);
+    @GetMapping(path = "/accounts/{user_id}/{profileId}")
+    public ResponseEntity<?> getAccounts(@PathVariable long user_id,
+                                         @RequestHeader("Authorization") String token,
+                                         @PathVariable String profileId) {
+        return userAccountService.getUserAccountList(user_id, token,profileId);
     }
 
     @ApiOperation(value = "Get User Wallet Commission Account", tags = {"USER-ACCOUNT-WALLET"})
-    @GetMapping(path = "/commission-accounts/{user_id}")
-    public ResponseEntity<?> getCommissionAccounts(@PathVariable long user_id) {
-        return userAccountService.getUserCommissionList(user_id, false);
+    @GetMapping(path = "/commission-accounts/{user_id}/{profileId}")
+    public ResponseEntity<?> getCommissionAccounts(@PathVariable long user_id,@PathVariable String profileId) {
+        return userAccountService.getUserCommissionList(user_id, false,profileId);
     }
 
     @ApiOperation(value = "Get User Wallet Commission Detail", tags = {"USER-ACCOUNT-WALLET"})
@@ -195,9 +197,9 @@ public class WalletUserAccountController {
     @ApiImplicitParams({
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Get User Wallet Transaction Limit", tags = {"USER-ACCOUNT-WALLET"})
-    @GetMapping(path = "/user/account/{user_id}")
-    public ResponseEntity<?> setDefaultWallet(@PathVariable Long user_id) {
-        return userAccountService.UserWalletLimit(user_id);
+    @GetMapping(path = "/user/account/{user_id}/{profileId}")
+    public ResponseEntity<?> setDefaultWallet(@PathVariable Long user_id,@PathVariable String profileId) {
+        return userAccountService.UserWalletLimit(user_id,profileId);
     }
 
     @ApiOperation(value = "Create Cooperate account, this creates a default account and a commission account", notes = "Create Cooperate account, this creates a default account and a commission account", tags = {"USER-ACCOUNT-WALLET"})
@@ -229,9 +231,9 @@ public class WalletUserAccountController {
     @ApiImplicitParams({
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Get Wallet Default Account", tags = {"USER-ACCOUNT-WALLET"})
-    @GetMapping(path = "/default/{user_id}")
-    public ResponseEntity<?> getAcctDefault(@PathVariable Long user_id) throws JsonProcessingException {
-        return userAccountService.getAccountDefault(user_id);
+    @GetMapping(path = "/default/{user_id}/{profileId}")
+    public ResponseEntity<?> getAcctDefault(@PathVariable Long user_id,@PathVariable String profileId) throws JsonProcessingException {
+        return userAccountService.getAccountDefault(user_id,profileId);
     }
 
     @ApiOperation(value = "To Search For Account(s) with Phone or Email or WayaID", tags = {"USER-ACCOUNT-WALLET"})
@@ -257,10 +259,10 @@ public class WalletUserAccountController {
     @ApiImplicitParams({
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Recent Transaction Details for User Accounts", tags = {"USER-ACCOUNT-WALLET"})
-    @GetMapping(path = "/recent/accounts/transaction/{user_id}")
-    public ResponseEntity<?> GenerateRecentTransaction(@PathVariable Long user_id) {
+    @GetMapping(path = "/recent/accounts/transaction/{user_id}/{profileId}")
+    public ResponseEntity<?> GenerateRecentTransaction(@PathVariable Long user_id,String profileId) {
         // check if the userI passed is same with token
-        ApiResponse<?> res = userAccountService.fetchRecentTransaction(user_id);
+        ApiResponse<?> res = userAccountService.fetchRecentTransaction(user_id,profileId);
         if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
@@ -268,9 +270,9 @@ public class WalletUserAccountController {
     }
 
     @ApiOperation(value = "Get Wallet User account count", tags = {"USER-ACCOUNT-WALLET"})
-    @GetMapping(path = "/account/count/{userId}")
-    public ResponseEntity<?> TotalUserAccountCount(@PathVariable Long userId) {
-        return userAccountService.getUserAccountCount(userId);
+    @GetMapping(path = "/account/count/{userId}/{profileId}")
+    public ResponseEntity<?> TotalUserAccountCount(@PathVariable Long userId,@PathVariable String profileId) {
+        return userAccountService.getUserAccountCount(userId,profileId);
     }
 
     @ApiOperation(value = "Total Active Accounts", notes = "Total Transaction", tags = {"USER-ACCOUNT-WALLET"})
@@ -295,8 +297,10 @@ public class WalletUserAccountController {
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "updateCustomerDebitLimit", notes = "updateCustomerDebitLimit", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping("/updateCustomerDebitLimit")
-    public ResponseEntity<?> updateCustomerDebitLimit(@RequestParam("userId") String userId, @RequestParam("amount") BigDecimal amount) {
-        ResponseEntity<?> res = userAccountService.updateCustomerDebitLimit(userId, amount);
+    public ResponseEntity<?> updateCustomerDebitLimit(@RequestParam("userId") String userId,
+                                                      @RequestParam("amount") BigDecimal amount,
+                                                      @RequestParam String profileId) {
+        ResponseEntity<?> res = userAccountService.updateCustomerDebitLimit(userId, amount,profileId);
         if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
@@ -333,13 +337,14 @@ public class WalletUserAccountController {
     @ApiImplicitParams({
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Transaction Analysis for User", tags = {"USER-ACCOUNT-WALLET"})
-    @GetMapping(path = "/analysis/transaction/{user_id}")
+    @GetMapping(path = "/analysis/transaction/{user_id}/{profileId}")
     public ResponseEntity<?> userTransactionAnalysis(@PathVariable Long user_id,
             @RequestParam(value = "filter", required = false) boolean filter,
             @RequestParam(value = "fromdate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromdate,
-            @RequestParam(value = "todate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate todate) {
+            @RequestParam(value = "todate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate todate,
+                                                     @PathVariable String profileId) {
         // check if the userI passed is same with token
-        ApiResponse<?> res = userAccountService.totalTransactionByUserId(user_id, filter, fromdate, todate);
+        ApiResponse<?> res = userAccountService.totalTransactionByUserId(user_id, filter, fromdate, todate,profileId);
         if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
@@ -347,9 +352,11 @@ public class WalletUserAccountController {
     }
 
     @ApiOperation(value = "Createcommission account", notes = "Create Cooperate account, this creates a default account and a commission account", tags = {"USER-ACCOUNT-WALLET"})
-    @PostMapping("/create/commission_account/{userId}")
-    public ApiResponse<?> createCommissionAccount(@PathVariable("userId") long userId, @RequestHeader("Authorization") String token) {
-        return userAccountService.createCommisionAccount(userId, token);
+    @PostMapping("/create/commission_account/{userId}/{profileId}")
+    public ApiResponse<?> createCommissionAccount(@PathVariable("userId") long userId,
+                                                  @RequestHeader("Authorization") String token,
+                                                  @PathVariable String profileId) {
+        return userAccountService.createCommisionAccount(userId, token,profileId);
     }
 
 }

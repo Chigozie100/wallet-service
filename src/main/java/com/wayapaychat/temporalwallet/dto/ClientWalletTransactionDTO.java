@@ -20,6 +20,9 @@ public class ClientWalletTransactionDTO {
 	@NotBlank(message = "Email must not be Null or Blank")
 	@Size(min=1, max=50)
     private String emailOrPhoneNumberOrUserId;
+
+	@NotBlank(message = "Profile ID must not be Null or Blank")
+	private String profileId;
    
 	@NotNull
 	@Min(value = (long) 0.01, message ="Amount must be greater than zero")

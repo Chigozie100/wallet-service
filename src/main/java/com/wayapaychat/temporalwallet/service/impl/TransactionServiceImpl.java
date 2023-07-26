@@ -419,7 +419,7 @@ public class TransactionServiceImpl implements TransactionService {
              if (!accountDebit.getAcct_ownership().equals("O")) {
 
                  Long userID = Long.parseLong(keyDebit[0]);
-                 WalletUser user = walletUserRepository.findByUserId(userID);
+                 WalletUser user = walletUserRepository.findByUserIdAndAccount(userID,accountDebit);
                  BigDecimal AmtVal = BigDecimal.valueOf(user.getCust_debit_limit());
                  if (AmtVal.compareTo(amount) == -1) {
                      throw new CustomException("DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED",HttpStatus.EXPECTATION_FAILED);
@@ -595,7 +595,7 @@ public class TransactionServiceImpl implements TransactionService {
          if (!accountDebit.getAcct_ownership().equals("O")) {
 
              Long userId = Long.parseLong(keyDebit[0]);
-             WalletUser user = walletUserRepository.findByUserId(userId);
+             WalletUser user = walletUserRepository.findByUserIdAndAccount(userId,accountDebit);
              BigDecimal AmtVal = new BigDecimal(user.getCust_debit_limit());
              if (AmtVal.compareTo(amount) == -1) {
                  return "DJGO|DEBIT ACCOUNT TRANSACTION AMOUNT LIMIT EXCEEDED";

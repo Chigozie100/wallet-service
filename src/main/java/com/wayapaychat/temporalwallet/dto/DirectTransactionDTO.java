@@ -14,7 +14,10 @@ public class DirectTransactionDTO {
 	    
 	    @NotNull
 	    private Long vId;
-	
+
+	@NotBlank(message = "Profile ID must not Null or Blank")
+	private String profileId;
+
 		@NotBlank(message = "Virtual Account must not Null or Blank")
 		@Size(min=10, max=10, message = "Virual Account must be 10 digit")
 	    private String vAccountNo;

@@ -1,7 +1,6 @@
 package com.wayapaychat.temporalwallet;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.waya.security.auth.annotation.EnableWayaAuthAuditApi;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -26,10 +25,10 @@ public class TemporalWalletApplication {
 		SpringApplication.run(TemporalWalletApplication.class, args);
 	}
 
-
 	@Bean
     RestTemplate restTemplate(){
         return new RestTemplate();
     }
+
 
 }

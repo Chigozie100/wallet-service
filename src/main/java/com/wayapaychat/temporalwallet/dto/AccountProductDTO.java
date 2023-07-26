@@ -3,6 +3,8 @@ package com.wayapaychat.temporalwallet.dto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import javax.validation.constraints.NotBlank;
+
 @Data
 @NoArgsConstructor
 public class AccountProductDTO {
@@ -14,5 +16,7 @@ public class AccountProductDTO {
 	private String accountType;
 
 	private String description;
+	@NotBlank(message = "Profile Id can not be Blank or Null")
+	private String profileId;
 
 }

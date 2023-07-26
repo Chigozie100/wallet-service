@@ -44,6 +44,11 @@ public interface AuthProxy {
     TokenCheckResponse getUserById(@PathVariable("id") long id, @RequestHeader("Authorization") String token);
 
     @GetMapping("/profile/{userId}")
-    UserProfileResponse getUserProfileById(@PathVariable("userId") long id, @RequestHeader("Authorization") String token);
+    UserProfileResponse getUserProfileByUserId(@PathVariable("userId") long id, @RequestHeader("Authorization") String token);
+
+    @GetMapping("/profile/{userId}/{profileId}")
+    UserProfileResponse getProfileByIdAndUserId(@PathVariable("userId") long userId,
+                                           @PathVariable String profileId,
+                                           @RequestHeader("Authorization") String token);
 
 }
