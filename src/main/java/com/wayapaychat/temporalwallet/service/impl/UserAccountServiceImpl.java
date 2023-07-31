@@ -1253,7 +1253,6 @@ public class UserAccountServiceImpl implements UserAccountService {
         UserIdentityData _userToken = (UserIdentityData) SecurityContextHolder.getContext().getAuthentication()
                 .getPrincipal();
         MyData tokenData = MyData.newInstance(_userToken);
-
         if (tokenData == null) {
             return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
         }
@@ -2543,7 +2542,6 @@ public class UserAccountServiceImpl implements UserAccountService {
     private void updateExistingWalletUser(Long userId, String profileId,boolean corporate){
         try {
             List<WalletUser> walletUserList = walletUserRepository.findAllByUserIdAndProfileIdIsNull(userId);
-            log.info("WalletSize:: {}",walletUserList.size());
             if(walletUserList.size() > 0 && walletUserList.size() == 1){
                 for (WalletUser user: walletUserList){
                     if(user.getProfileId() == null || user.getProfileId().isEmpty()){
@@ -2557,7 +2555,6 @@ public class UserAccountServiceImpl implements UserAccountService {
                         log.info("::DEFAULT WALLET USER SUCCESSFULLY UPDATED {}",userId);
                     }
                 }
-                log.info("::I reach here:::");
             }
         }catch (Exception ex){
             log.error("::Error updateExistingWalletUser {}",ex.getLocalizedMessage());
