@@ -13,14 +13,12 @@ import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.kafkaConsumer.KafkaMessageConsumer;
 import com.wayapaychat.temporalwallet.pojo.*;
+import com.wayapaychat.temporalwallet.pojo.signupKafka.InWardDataDto;
 import com.wayapaychat.temporalwallet.pojo.signupKafka.RegistrationDataDto;
 import com.wayapaychat.temporalwallet.proxy.AuthProxy;
 import com.wayapaychat.temporalwallet.repository.*;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
-import com.wayapaychat.temporalwallet.service.CoreBankingService;
-import com.wayapaychat.temporalwallet.service.SwitchWalletService;
-import com.wayapaychat.temporalwallet.service.UserAccountService;
-import com.wayapaychat.temporalwallet.service.UserPricingService;
+import com.wayapaychat.temporalwallet.service.*;
 import com.wayapaychat.temporalwallet.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -69,6 +67,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     private final CoreBankingService coreBankingService;
     private final SwitchWalletService switchWalletService;
     private final WalletTransactionRepository walletTransactionRepository;
+    private final MessageQueueProducer messageQueueProducer;
     @Autowired
     private KafkaMessageConsumer kafkaMessageConsumer;
     @Autowired
@@ -112,7 +111,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             WalletEventRepository walletEventRepo,
             TokenImpl tokenService, UserPricingService userPricingService,
             CoreBankingService coreBankingService, SwitchWalletService switchWalletService,
-            WalletTransactionRepository walletTransactionRepository) {
+            WalletTransactionRepository walletTransactionRepository, MessageQueueProducer messageQueueProducer) {
         this.walletUserRepository = walletUserRepository;
         this.walletAccountRepository = walletAccountRepository;
         this.walletProductRepository = walletProductRepository;
@@ -128,6 +127,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         this.coreBankingService = coreBankingService;
         this.switchWalletService = switchWalletService;
         this.walletTransactionRepository = walletTransactionRepository;
+        this.messageQueueProducer = messageQueueProducer;
     }
 
     public String generateRandomNumber(int length) {
@@ -1231,7 +1231,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
         AccountDetailDTO account = new AccountDetailDTO(acct.getId(), acct.getSol_id(), acct.getAccountNo(),
                 acct.getAcct_name(), acct.getProduct_code(), BigDecimal.valueOf(acct.getClr_bal_amt()),
-                acct.getAcct_crncy_code(), acct.isWalletDefault());
+                acct.getAcct_crncy_code(), acct.isWalletDefault(),acct.isAcct_cls_flg(),acct.isDel_flg(),acct.getNubanAccountNo());
         return new ResponseEntity<>(new SuccessResponse("Success", account), HttpStatus.OK);
     }
 
@@ -1392,7 +1392,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             throw new CustomException("You Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
         }
 
-        if (user.getUserId() != userId) {
+        if (!user.getUserId().equals(userId)) {
             throw new CustomException("You Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
         }
     }
@@ -1767,14 +1767,17 @@ public class UserAccountServiceImpl implements UserAccountService {
                 account.setAcct_cls_date(LocalDate.now());
                 account.setAcct_cls_flg(true);
                 walletAccountRepository.save(account);
+                //Push to NIP-INWARD FOR ACCT UPDATE
+                pushAcctClosureOrBlockToInWardService(account,true);
                 CompletableFuture.runAsync(() -> blockAccount(account, request, true));
                 return new ResponseEntity<>(new SuccessResponse("Account blocked successfully.", account),
                         HttpStatus.OK);
-
             } else {
                 account.setAcct_cls_date(LocalDate.now());
                 account.setAcct_cls_flg(false);
                 walletAccountRepository.save(account);
+                //Push to NIP-INWARD FOR ACCT UPDATE
+                pushAcctClosureOrBlockToInWardService(account,false);
                 CompletableFuture.runAsync(() -> blockAccount(account, request, false));
                 return new ResponseEntity<>(new SuccessResponse("Account Unblock successfully.", account),
                         HttpStatus.OK);
@@ -1834,6 +1837,8 @@ public class UserAccountServiceImpl implements UserAccountService {
                         HttpStatus.NOT_FOUND);
             }
             walletAccountRepository.save(account);
+            //Push to NIP-INWARD FOR ACCT UPDATE
+            pushAcctClosureOrBlockToInWardService(account,true);
             return new ResponseEntity<>(new SuccessResponse("Account closed successfully.", account), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage() + " : " + e.getMessage()),
@@ -2563,4 +2568,33 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
     }
 
+    private void pushAcctClosureOrBlockToInWardService(WalletAccount account,boolean closure){
+        try {
+            InWardDataDto dataDto = new InWardDataDto();
+            dataDto.setAccountName(account.getAcct_name());
+            dataDto.setNubanAccountNumber(account.getNubanAccountNo());
+            dataDto.setAccountNumber(account.getAccountNo());
+            dataDto.setDeleteFlag(account.isDel_flg());
+            dataDto.setWalletDefault(account.isWalletDefault());
+            dataDto.setCloseFlag(closure);
+            if(account.getUser() != null){
+                dataDto.setUserId(account.getUser().getUserId());
+                dataDto.setWalletUserId(account.getUser().getId());
+                dataDto.setEmailAddress(account.getUser().getEmailAddress());
+                dataDto.setMobileNo(account.getUser().getMobileNo());
+            }
+            dataDto.setWalletAccountId(account.getId());
+            if(account.getAccountType() != null)
+                dataDto.setAccountType(account.getAccountType());
+
+            log.info("::ABOUT TO PROCESS ACCT ACTION OF TYPE CLOSURE/BLOCK/DELETE {}",dataDto);
+            CompletableFuture.runAsync(() -> {
+                messageQueueProducer.send(Constant.IN_WARD_SERVICE, dataDto);
+                log.info("::::ACCT UPDATE DTO SUCCESSFULLY PUBLISHED TO KAFKA MESSAGE QUEUE {}",dataDto);
+            });
+        }catch (Exception ex){
+            log.error("::Error pushAcctClosureOrBlockToInWardService {}",ex.getLocalizedMessage());
+            log.error("::FAIL TO PUBLISH DATA TO KAFKA MESSAGE");
+        }
+    }
 }
