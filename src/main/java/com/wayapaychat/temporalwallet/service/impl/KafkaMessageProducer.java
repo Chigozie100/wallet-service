@@ -35,7 +35,7 @@ public class KafkaMessageProducer implements MessageQueueProducer {
      */
     @Override
     public void send(String topic, Object event) {
-        System.out.println("Event :: " + event);
+        logger.info("Event:: " + event);
 
         ListenableFuture<SendResult<String, Object>> future = template.send(topic, gson.toJson(event));
         //future.addCallback(new KafkaSendCallback<>() {

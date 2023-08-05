@@ -52,7 +52,7 @@ public class KafkaMessageConsumer {
             KycTierDataDto kycTierDataDto = objectMapper.readValue(message,KycTierDataDto.class);
             log.debug("::::CONVERT MESSAGE TO KYC DTO CLASS::: {}",kycTierDataDto);
 //            kycTierDataDto.getTierName().equalsIgnoreCase("TIER_2")
-            if(kycTierDataDto.getOrderLevel() > 0 && kycTierDataDto.getOrderLevel() <= 3){
+            if(kycTierDataDto.getOrderLevel() > 0 && kycTierDataDto.getProfileId() == null){
 
                 List<WalletUser> walletUserList = walletUserRepository.findAllWalletByUserId(kycTierDataDto.getUserId());
                 if(walletUserList.size() > 0){
@@ -83,6 +83,7 @@ public class KafkaMessageConsumer {
             log.error(":::::ERR-CAUSE ProcessKycData {}",ex.getCause());
         }
     }
+
 
     private void processAccountRegMessage(String message){
         try {
