@@ -55,13 +55,14 @@ public class KafkaMessageConsumer {
             if(kycTierDataDto.getOrderLevel() > 0 && kycTierDataDto.getProfileId() == null){
 
                 List<WalletUser> walletUserList = walletUserRepository.findAllWalletByUserId(kycTierDataDto.getUserId());
-                if(walletUserList.size() > 0){
+                if(walletUserList.size() > 0 && walletUserList.size() == 1){
                     List<WalletUser> walletAccts = new ArrayList<>();
                     for (WalletUser walletUser: walletUserList){
                         walletUser.setCust_debit_limit(kycTierDataDto.getDailyTransactionLimit().doubleValue());
                         walletAccts.add(walletUser);
                     }
                     walletUserRepository.saveAllAndFlush(walletAccts);
+                    log.info("::::SUCCESSFUL UPDATED CUSTOMER DEBIT LIMIT::::LIMIT {}, USERID {}",kycTierDataDto.getDailyTransactionLimit().doubleValue(),kycTierDataDto.getUserId());
                 }
 
             } else {
