@@ -1387,6 +1387,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     public void securityCheck(long userId,String profileId) {
+
         WalletUser user = walletUserRepository.findByUserIdAndProfileId(userId,profileId);
         if (Objects.isNull(user)) {
             throw new CustomException("You Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
