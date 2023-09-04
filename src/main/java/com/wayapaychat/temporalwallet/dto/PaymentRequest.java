@@ -28,13 +28,13 @@ public class PaymentRequest {
     @NotBlank(message = "please enter the receiver's name ")
     private String senderName;
 
-    @NotBlank(message = "please enter the receivers id")
+//    @NotBlank(message = "please enter the receivers id")
     private String receiverId;
 
     @NotBlank(message = "please enter the senders id")
     private String senderId;
 
-    @NotBlank(message = "please enter the receivers profile id")
+//    @NotBlank(message = "please enter the receivers profile id")
     private String receiverProfileId;
 
     @NotBlank(message = "please enter the senders profile id")

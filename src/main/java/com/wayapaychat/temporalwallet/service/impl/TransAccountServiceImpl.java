@@ -2702,30 +2702,30 @@ public class TransAccountServiceImpl implements TransAccountService {
     public ResponseEntity<?> WayaPaymentRequestUsertoUser(HttpServletRequest request, WayaPaymentRequest transfer) {
         try {
 
-            if (transfer.getPaymentRequest().getStatus().name().equals("PENDING")) {
-                WalletPaymentRequest mPayRequest = walletPaymentRequestRepo
-                        .findByReference(transfer.getPaymentRequest().getReference()).orElse(null);
-                if (mPayRequest != null) {
-                    throw new CustomException("Reference ID already exist", HttpStatus.BAD_REQUEST);
-                }
+            log.info("::WayaPaymentRequestDto {}",transfer);
+            if (transfer.getPaymentRequest().getStatus().equals(PaymentRequestStatus.PENDING)) {
+                WalletPaymentRequest mPayRequest = walletPaymentRequestRepo.findByReference(transfer.getPaymentRequest().getReference()).orElse(null);
+                if (mPayRequest != null)
+                    throw new CustomException("Request code already exist", HttpStatus.BAD_REQUEST);
 
                 WalletPaymentRequest spay = new WalletPaymentRequest(transfer.getPaymentRequest());
+                spay.setSenderProfileId(transfer.getPaymentRequest().getSenderProfileId());
                 WalletPaymentRequest mPay = walletPaymentRequestRepo.save(spay);
                 return new ResponseEntity<>(new SuccessResponse("SUCCESS", mPay), HttpStatus.CREATED);
-            } else if (transfer.getPaymentRequest().getStatus().name().equals("PAID")) {
 
-                WalletPaymentRequest mPayRequest = walletPaymentRequestRepo
-                        .findByReference(transfer.getPaymentRequest().getReference()).orElse(null);
-                log.info("mPayRequest reSPONSE :: {}", mPayRequest);
-                if (mPayRequest == null) {
-                    throw new CustomException("Reference ID does not exist", HttpStatus.BAD_REQUEST);
-                }
-                if (mPayRequest.getStatus().name().equals("PENDING") && (mPayRequest.isWayauser())) {
-                    log.info(" INSIDE IS WAYA IS TRUE: {}", transfer);
+            } else if (transfer.getPaymentRequest().getStatus().equals(PaymentRequestStatus.PAID)) {
+
+                WalletPaymentRequest mPayRequest = walletPaymentRequestRepo.findByReference(transfer.getPaymentRequest().getReference()).orElse(null);
+                if (mPayRequest == null)
+                    throw new CustomException("Request code does not exist", HttpStatus.BAD_REQUEST);
+
+                log.info("::WalletPaymentRequest {}", mPayRequest);
+                if (mPayRequest.getStatus().name().equals("PENDING") && mPayRequest.isWayauser()) {
+                    log.info("::ABOUT TO PROCESS WAYA TO WAYA PAYMENT REQUEST {}",transfer.getPaymentRequest().getReference());
                     WalletAccount creditAcct = getAcount(Long.valueOf(mPayRequest.getSenderId()),transfer.getPaymentRequest().getSenderProfileId());
-                    log.info(" INSIDE creditAcct : {}", creditAcct);
+                    log.info("::Sender Account To Credit {}", creditAcct.getAccountNo());
                     WalletAccount debitAcct = getAcount(Long.valueOf(mPayRequest.getReceiverId()),transfer.getPaymentRequest().getReceiverProfileId());
-                    log.info(" INSIDE debitAcct : {}", debitAcct);
+                    log.info("::Receiver Account To Debit : {}", debitAcct.getAccountNo());
 
                     TransferTransactionDTO txt = new TransferTransactionDTO(debitAcct.getAccountNo(),
                             creditAcct.getAccountNo(), mPayRequest.getAmount(), "TRANSFER", "NGN",
@@ -2733,31 +2733,34 @@ public class TransAccountServiceImpl implements TransAccountService {
                             mPayRequest.getReference(), mPayRequest.getCategory().getValue(),
                             transfer.getPaymentRequest().getReceiverName(),
                             transfer.getPaymentRequest().getSenderName());
-                    try {
-                        ResponseEntity<?> res = sendMoney(request, txt);
-                        log.info(" SEND MONEY RESPONSE : {}", res);
-                        if (res.getStatusCodeValue() == 200 || res.getStatusCodeValue() == 201) {
 
-                            log.info("Send Money: {}", transfer);
+                    mPayRequest.setReceiverId(transfer.getPaymentRequest().getReceiverId());
+                    mPayRequest.setReceiverProfileId(transfer.getPaymentRequest().getReceiverProfileId());
+                    walletPaymentRequestRepo.save(mPayRequest);
+                    try {
+                        log.info("::TransferTransactionDTO {}",txt);
+                        ResponseEntity<?> res = sendMoney(request, txt);
+                        log.info("::SEND-MONEY-RESPONSE {}", res);
+                        if(res.getStatusCodeValue() == 200 || res.getStatusCodeValue() == 201) {
                             mPayRequest.setStatus(PaymentRequestStatus.PAID);
                             walletPaymentRequestRepo.save(mPayRequest);
                             return res;
-                            // return new ResponseEntity<>(new SuccessResponse("SUCCESS", res),
-                            // HttpStatus.CREATED);
                         }
                     } catch (Exception e) {
-                        log.info("Send Money Error: {}", e.getMessage());
+                        log.error("::Error WayaPaymentRequestUsertoUser {}", e.getLocalizedMessage());
+                        e.printStackTrace();
                         throw new CustomException(e.getMessage(), HttpStatus.EXPECTATION_FAILED);
                     }
 
-                } else if (mPayRequest.getStatus().name().equals("PENDING") && (!mPayRequest.isWayauser())) {
-                    log.info(" INSIDE IS WAYA IS TRUE: {}", transfer);
-                    log.info("Inside here == " + transfer.getPaymentRequest());
+                } else if (mPayRequest.getStatus().equals(PaymentRequestStatus.PENDING) && !mPayRequest.isWayauser()) {
+                    log.info("::Non-Waya-Payment-Dto", transfer.getPaymentRequest());
                     PaymentRequest mPay = transfer.getPaymentRequest();
+                    mPay.setReceiverProfileId(transfer.getPaymentRequest().getReceiverProfileId());
+                    mPay.setReceiverId(transfer.getPaymentRequest().getReceiverId());
+
                     WalletAccount debitAcct;
                     WalletAccount creditAcct;
-                    // if this request comes from an official
-                    // transfer.getPaymentRequest().isWayaOfficial() ||
+
                     if (!StringUtils.isNumeric(mPayRequest.getSenderId())) {
                         creditAcct = getOfficialAccount(mPayRequest.getSenderId());
                         debitAcct = getAcount(Long.valueOf(mPay.getReceiverId()),mPay.getReceiverProfileId());
@@ -2767,9 +2770,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                                 mPayRequest.getReference(), transfer.getPaymentRequest().getReceiverName(),
                                 transfer.getPaymentRequest().getSenderName());
                         ApiResponse<?> res = OfficialUserTransfer(request, transferDTO, false);
-
                         if (res.getStatus()) {
-                            mPayRequest.setReceiverId(mPay.getReceiverId());
+//                            mPayRequest.setReceiverId(mPay.getReceiverId());
                             mPayRequest.setStatus(PaymentRequestStatus.PAID);
                             walletPaymentRequestRepo.save(mPayRequest);
 
@@ -2790,41 +2792,40 @@ public class TransAccountServiceImpl implements TransAccountService {
 
                         try {
                             ResponseEntity<?> res = sendMoney(request, txt);
-
                             if (res.getStatusCodeValue() == 200 || res.getStatusCodeValue() == 201) {
-                                log.info("Send Money: {}", transfer);
-                                mPayRequest.setReceiverId(mPay.getReceiverId());
                                 mPayRequest.setStatus(PaymentRequestStatus.PAID);
                                 walletPaymentRequestRepo.save(mPayRequest);
                                 return res;
                             }
                         } catch (Exception e) {
+                            log.error("::Error Non-User {}",e.getLocalizedMessage());
+                            e.printStackTrace();
                             throw new CustomException(e.getMessage(), HttpStatus.EXPECTATION_FAILED);
                         }
 
                     }
-
                 } else {
-                    return new ResponseEntity<>(new ErrorResponse("Error occurred"), HttpStatus.NOT_FOUND);
+                    return new ResponseEntity<>(new ErrorResponse("Oops!\n Unable to process payment request, try again later"), HttpStatus.NOT_FOUND);
                 }
-            } else if (transfer.getPaymentRequest().getStatus().name().equals("REJECT")) {
-                WalletPaymentRequest mPayRequest = walletPaymentRequestRepo
-                        .findByReference(transfer.getPaymentRequest().getReference()).orElse(null);
-                if (mPayRequest == null) {
-                    throw new CustomException("Reference ID does not exist", HttpStatus.BAD_REQUEST);
-                }
+            } else if (transfer.getPaymentRequest().getStatus().equals(PaymentRequestStatus.REJECTED)) {
+                WalletPaymentRequest mPayRequest = walletPaymentRequestRepo.findByReference(transfer.getPaymentRequest().getReference()).orElse(null);
+                if(mPayRequest == null)
+                    throw new CustomException("Request code does not exist", HttpStatus.BAD_REQUEST);
+
                 mPayRequest.setStatus(PaymentRequestStatus.REJECTED);
                 mPayRequest.setRejected(true);
                 WalletPaymentRequest mPay = walletPaymentRequestRepo.save(mPayRequest);
-                return new ResponseEntity<>(new SuccessResponse("SUCCESS", mPay), HttpStatus.CREATED);
+                return new ResponseEntity<>(new SuccessResponse("SUCCESS\n Payment request rejected", mPay), HttpStatus.CREATED);
             } else {
-                return new ResponseEntity<>(new ErrorResponse("Error occurred"), HttpStatus.NOT_FOUND);
+                return new ResponseEntity<>(new ErrorResponse("Oops!\n Unable to process payment request, try again later"), HttpStatus.NOT_FOUND);
             }
         } catch (Exception ex) {
             throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
         return null;
     }
+
+
 
     @Override
     public ResponseEntity<?> PostOTPGenerate(HttpServletRequest request, String emailPhone) {
