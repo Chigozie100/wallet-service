@@ -2743,9 +2743,11 @@ public class TransAccountServiceImpl implements TransAccountService {
                         log.info("::SEND-MONEY-RESPONSE {}", res);
                         if(res.getStatusCodeValue() == 200 || res.getStatusCodeValue() == 201) {
                             mPayRequest.setStatus(PaymentRequestStatus.PAID);
-                            walletPaymentRequestRepo.save(mPayRequest);
-                            return res;
+                        }else {
+                            mPayRequest.setStatus(PaymentRequestStatus.FAILED);
                         }
+                        walletPaymentRequestRepo.save(mPayRequest);
+                        return res;
                     } catch (Exception e) {
                         log.error("::Error WayaPaymentRequestUsertoUser {}", e.getLocalizedMessage());
                         e.printStackTrace();
@@ -2783,7 +2785,6 @@ public class TransAccountServiceImpl implements TransAccountService {
                             walletPaymentRequestRepo.save(mPayRequest);
                             throw new CustomException(res.getMessage(), HttpStatus.EXPECTATION_FAILED);
                         }
-
                     } else {
                         creditAcct = getAcount(Long.valueOf(mPayRequest.getSenderId()),mPay.getSenderProfileId());
                         debitAcct = getAcount(Long.valueOf(mPay.getReceiverId()),mPay.getReceiverProfileId());
@@ -2798,9 +2799,11 @@ public class TransAccountServiceImpl implements TransAccountService {
                             ResponseEntity<?> res = sendMoney(request, txt);
                             if (res.getStatusCodeValue() == 200 || res.getStatusCodeValue() == 201) {
                                 mPayRequest.setStatus(PaymentRequestStatus.PAID);
-                                walletPaymentRequestRepo.save(mPayRequest);
-                                return res;
+                            }else {
+                                mPayRequest.setStatus(PaymentRequestStatus.FAILED);
                             }
+                            walletPaymentRequestRepo.save(mPayRequest);
+                            return res;
                         } catch (Exception e) {
                             log.error("::Error Non-User {}",e.getLocalizedMessage());
                             e.printStackTrace();
@@ -2808,7 +2811,6 @@ public class TransAccountServiceImpl implements TransAccountService {
                             walletPaymentRequestRepo.save(mPayRequest);
                             throw new CustomException(e.getMessage(), HttpStatus.EXPECTATION_FAILED);
                         }
-
                     }
                 } else {
                     return new ResponseEntity<>(new ErrorResponse("Oops!\n Unable to process payment request, try again later"), HttpStatus.NOT_FOUND);
@@ -2828,7 +2830,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         } catch (Exception ex) {
             throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
         }
-        return null;
+//        return null;
     }
 
 
