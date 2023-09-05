@@ -78,6 +78,12 @@ public class WalletPaymentRequest {
     @Enumerated(EnumType.STRING)
     private CategoryType category;
 
+	@Column(name = "receiver_profile_id")
+	private String receiverProfileId;
+
+	@Column(name = "sender_profile_id")
+	private String senderProfileId;
+
 	public WalletPaymentRequest(
 			@NotBlank(message = "please enter the receiver's email") @Email(message = "please enter a valid email") String receiverEmail,
 			@NotBlank(message = "please enter the receiver's phone number") String receiverPhoneNumber,
