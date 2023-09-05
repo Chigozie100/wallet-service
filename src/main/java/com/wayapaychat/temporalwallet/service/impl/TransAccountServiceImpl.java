@@ -2749,6 +2749,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                     } catch (Exception e) {
                         log.error("::Error WayaPaymentRequestUsertoUser {}", e.getLocalizedMessage());
                         e.printStackTrace();
+                        mPayRequest.setStatus(PaymentRequestStatus.FAILED);
+                        walletPaymentRequestRepo.save(mPayRequest);
                         throw new CustomException(e.getMessage(), HttpStatus.EXPECTATION_FAILED);
                     }
 
@@ -2777,6 +2779,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 
                             return new ResponseEntity<>(res.getData(), HttpStatus.CREATED);
                         } else {
+                            mPayRequest.setStatus(PaymentRequestStatus.FAILED);
+                            walletPaymentRequestRepo.save(mPayRequest);
                             throw new CustomException(res.getMessage(), HttpStatus.EXPECTATION_FAILED);
                         }
 
@@ -2800,6 +2804,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                         } catch (Exception e) {
                             log.error("::Error Non-User {}",e.getLocalizedMessage());
                             e.printStackTrace();
+                            mPayRequest.setStatus(PaymentRequestStatus.FAILED);
+                            walletPaymentRequestRepo.save(mPayRequest);
                             throw new CustomException(e.getMessage(), HttpStatus.EXPECTATION_FAILED);
                         }
 
