@@ -855,9 +855,7 @@ public class TransAccountServiceImpl implements TransAccountService {
     public ResponseEntity<?> NonWayaPaymentRedeem(HttpServletRequest request, NonWayaRedeemDTO transfer) {
         try {
             // check if Transaction is still valid
-
-            WalletNonWayaPayment data1 = walletNonWayaPaymentRepo
-                    .findByToken(transfer.getToken()).orElse(null);
+            WalletNonWayaPayment data1 = walletNonWayaPaymentRepo.findByToken(transfer.getToken()).orElse(null);
             if (Objects.requireNonNull(data1).getStatus().equals(PaymentStatus.REJECT)) {
                 return new ResponseEntity<>(new ErrorResponse("TOKEN IS NO LONGER VALID"), HttpStatus.BAD_REQUEST);
             } else if (data1.getStatus().equals(PaymentStatus.PAYOUT)) {
@@ -874,8 +872,7 @@ public class TransAccountServiceImpl implements TransAccountService {
             if (userToken == null) {
                 return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
             }
-            WalletNonWayaPayment redeem = walletNonWayaPaymentRepo
-                    .findByTransaction(transfer.getToken(), transfer.getTranCrncy()).orElse(null);
+            WalletNonWayaPayment redeem = walletNonWayaPaymentRepo.findByTransaction(transfer.getToken(), transfer.getTranCrncy()).orElse(null);
             if (redeem == null) {
                 return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN.PLEASE CHECK IT"), HttpStatus.BAD_REQUEST);
             }
@@ -899,8 +896,7 @@ public class TransAccountServiceImpl implements TransAccountService {
                             redeem.getEmailOrPhone(), message, userToken.getId(), TRANSACTION_HAS_OCCURRED));
                     walletNonWayaPaymentRepo.save(redeem);
                 } else {
-                    return new ResponseEntity<>(new ErrorResponse("TRANSACTION MUST BE RESERVED FIRST"),
-                            HttpStatus.BAD_REQUEST);
+                    return new ResponseEntity<>(new ErrorResponse("TRANSACTION MUST BE RESERVED FIRST"), HttpStatus.BAD_REQUEST);
                 }
             } else if (redeem.getStatus().name().equals("RESERVED")) {
                 if (transfer.getTranStatus().equals("PAYOUT")) {
@@ -2713,14 +2709,15 @@ public class TransAccountServiceImpl implements TransAccountService {
                 WalletPaymentRequest mPay = walletPaymentRequestRepo.save(spay);
                 return new ResponseEntity<>(new SuccessResponse("SUCCESS", mPay), HttpStatus.CREATED);
 
-            } else if (transfer.getPaymentRequest().getStatus().equals(PaymentRequestStatus.PAID)) {
+            } else if (transfer.getPaymentRequest().getStatus().equals(PaymentRequestStatus.PAID) ||
+                    transfer.getPaymentRequest().getStatus().equals(PaymentRequestStatus.FAILED)) {
 
                 WalletPaymentRequest mPayRequest = walletPaymentRequestRepo.findByReference(transfer.getPaymentRequest().getReference()).orElse(null);
                 if (mPayRequest == null)
                     throw new CustomException("Request code does not exist", HttpStatus.BAD_REQUEST);
 
                 log.info("::WalletPaymentRequest {}", mPayRequest);
-                if (mPayRequest.getStatus().name().equals("PENDING") && mPayRequest.isWayauser()) {
+                if (checkRequestStatus(mPayRequest.getStatus()) && mPayRequest.isWayauser()) {
                     log.info("::ABOUT TO PROCESS WAYA TO WAYA PAYMENT REQUEST {}",transfer.getPaymentRequest().getReference());
                     WalletAccount creditAcct = getAcount(Long.valueOf(mPayRequest.getSenderId()),transfer.getPaymentRequest().getSenderProfileId());
                     log.info("::Sender Account To Credit {}", creditAcct.getAccountNo());
@@ -2756,7 +2753,7 @@ public class TransAccountServiceImpl implements TransAccountService {
                         throw new CustomException(e.getMessage(), HttpStatus.EXPECTATION_FAILED);
                     }
 
-                } else if (mPayRequest.getStatus().equals(PaymentRequestStatus.PENDING) && !mPayRequest.isWayauser()) {
+                } else if (checkRequestStatus(mPayRequest.getStatus()) && !mPayRequest.isWayauser()) {
                     log.info("::Non-Waya-Payment-Dto", transfer.getPaymentRequest());
                     PaymentRequest mPay = transfer.getPaymentRequest();
                     mPay.setReceiverProfileId(transfer.getPaymentRequest().getReceiverProfileId());
@@ -2834,6 +2831,11 @@ public class TransAccountServiceImpl implements TransAccountService {
     }
 
 
+    private boolean checkRequestStatus(PaymentRequestStatus status){
+        if(status.name().equals(PaymentRequestStatus.PENDING.name()) || status.name().equals(PaymentRequestStatus.FAILED.name()))
+            return true;
+        return false;
+    }
 
     @Override
     public ResponseEntity<?> PostOTPGenerate(HttpServletRequest request, String emailPhone) {
