@@ -1232,6 +1232,36 @@ public class UserAccountServiceImpl implements UserAccountService {
         AccountDetailDTO account = new AccountDetailDTO(acct.getId(), acct.getSol_id(), acct.getAccountNo(),
                 acct.getAcct_name(), acct.getProduct_code(), BigDecimal.valueOf(acct.getClr_bal_amt()),
                 acct.getAcct_crncy_code(), acct.isWalletDefault(),acct.isAcct_cls_flg(),acct.isDel_flg(),acct.getNubanAccountNo());
+        WalletUser xUser = walletUserRepository.findByAccount(acct);
+        if(xUser != null){
+            account.setEmail(xUser.getEmailAddress());
+            account.setPhoneNumber(xUser.getMobileNo());
+            account.setProfileId(xUser.getProfileId());
+            account.setUserId(xUser.getUserId());
+        }
+        return new ResponseEntity<>(new SuccessResponse("Success", account), HttpStatus.OK);
+    }
+
+
+    public ResponseEntity<?> fetchUserByAccountNo(String accountNo) {
+
+        WalletAccount acct = walletAccountRepository.findByAccountNo(accountNo);
+        if (acct == null) {
+            return new ResponseEntity<>(new ErrorResponse("Invalid Account"), HttpStatus.NOT_FOUND);
+        }
+        AccountUserDetail account = new AccountUserDetail();
+        account.setAccountNo(acct.getAccountNo());
+        account.setAccountName(acct.getAcct_name());
+        account.setAccountDefault(acct.isWalletDefault());
+        account.setNubanAccountNo(acct.getNubanAccountNo());
+        account.setCurrencyCode(acct.getAcct_crncy_code());
+        WalletUser xUser = walletUserRepository.findByAccount(acct);
+        if(xUser != null){
+            account.setEmail(xUser.getEmailAddress());
+            account.setPhoneNumber(xUser.getMobileNo());
+            account.setProfileId(xUser.getProfileId());
+            account.setUserId(xUser.getUserId());
+        }
         return new ResponseEntity<>(new SuccessResponse("Success", account), HttpStatus.OK);
     }
 

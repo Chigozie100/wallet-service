@@ -161,6 +161,14 @@ public class WalletUserAccountController {
     }
 
     @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
+    @ApiOperation(value = "Get User Info By Account Number", tags = {"USER-ACCOUNT-WALLET"})
+    @GetMapping(path = "/fetchUserByAccountNo/{accountNo}")
+    public ResponseEntity<?> fetchUserByAccountNo(@PathVariable String accountNo) {
+        return userAccountService.fetchUserByAccountNo(accountNo);
+    }
+
+    @ApiImplicitParams({
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Do Name Enquiry", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/name-enquiry/{accountNo}")

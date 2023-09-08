@@ -27,6 +27,10 @@ public class AccountDetailDTO {
 
 	private boolean acctClosureFlag;
 	private boolean acctDeleteFlag;
+	private String email;
+	private String phoneNumber;
+	private Long userId;
+	private String profileId;
 
 	public AccountDetailDTO(long id, String branchId, String accountNo, String accountName, String productCode,
 							BigDecimal balance, String currencyCode, boolean accountDefault,boolean acctClosureFlag,

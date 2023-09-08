@@ -51,6 +51,8 @@ public interface UserAccountService {
 
     ResponseEntity<?> fetchAccountDetail(String accountNo, Boolean isAdmin);
 
+    ResponseEntity<?> fetchUserByAccountNo(String accountNo);
+
     ResponseEntity<?> fetchVirtualAccountDetail(String accountNo);
 
     ResponseEntity<?> getUserAccountList(long userId,String profileId,String token);
