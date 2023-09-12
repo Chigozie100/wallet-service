@@ -2706,6 +2706,12 @@ public class TransAccountServiceImpl implements TransAccountService {
 
                 WalletPaymentRequest spay = new WalletPaymentRequest(transfer.getPaymentRequest());
                 spay.setSenderProfileId(transfer.getPaymentRequest().getSenderProfileId());
+                if(transfer.getPaymentRequest().getReceiverProfileId() != null)
+                    spay.setReceiverProfileId(transfer.getPaymentRequest().getReceiverProfileId());
+
+                if(transfer.getPaymentRequest().getReceiverId() != null)
+                    spay.setReceiverId(transfer.getPaymentRequest().getReceiverId());
+
                 WalletPaymentRequest mPay = walletPaymentRequestRepo.save(spay);
                 return new ResponseEntity<>(new SuccessResponse("SUCCESS", mPay), HttpStatus.CREATED);
 
