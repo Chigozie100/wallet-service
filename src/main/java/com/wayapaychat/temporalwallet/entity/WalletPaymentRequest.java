@@ -46,7 +46,7 @@ public class WalletPaymentRequest {
     @NotBlank(message = "please enter the receiver's name ")
     private String receiverName;
 
-    @NotBlank(message = "please enter the receivers id")
+//    @NotBlank(message = "please enter the receivers id")
     private String receiverId;
 
     @NotBlank(message = "please enter the senders id")
@@ -78,11 +78,18 @@ public class WalletPaymentRequest {
     @Enumerated(EnumType.STRING)
     private CategoryType category;
 
+	@Column(name = "receiver_profile_id")
+	private String receiverProfileId;
+
+	@Column(name = "sender_profile_id")
+	private String senderProfileId;
+
 	public WalletPaymentRequest(
-			@NotBlank(message = "please enter the receiver's email") @Email(message = "please enter a valid email") String receiverEmail,
+			@NotBlank(message = "please enter the receiver's email")
+			@Email(message = "please enter a valid email") String receiverEmail,
 			@NotBlank(message = "please enter the receiver's phone number") String receiverPhoneNumber,
 			@NotBlank(message = "please enter the receiver's name ") String receiverName,
-			@NotBlank(message = "please enter the receivers id") String receiverId,
+			String receiverId,
 			@NotBlank(message = "please enter the senders id") String senderId,
 			@NotNull(message = "please enter the amount") BigDecimal amount, boolean deleted,
 			PaymentRequestStatus status, boolean rejected, boolean wayauser,
@@ -110,7 +117,6 @@ public class WalletPaymentRequest {
 		this.receiverEmail = request.getReceiverEmail();
 		this.receiverPhoneNumber = request.getReceiverPhoneNumber();
 		this.receiverName = request.getReceiverName();
-		this.receiverId = request.getReceiverId();
 		this.senderId = request.getSenderId();
 		this.amount = request.getAmount();
 		this.deleted = request.isDeleted();

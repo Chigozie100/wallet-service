@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.util;
 
 public class Constant {
 
+    public static final String IN_WARD_SERVICE = "inward-account-update";
     public static final String SUCCESS_MESSAGE = "SUCCESSFUL";
     public static final String ERROR_MESSAGE = "ERROR";
     public static final Long WAYA_USER_ID = 786567886789L;

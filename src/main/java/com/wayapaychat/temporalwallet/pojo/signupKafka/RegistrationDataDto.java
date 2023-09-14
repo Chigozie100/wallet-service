@@ -37,6 +37,8 @@ public class RegistrationDataDto {
 
     private String token;
 
+    private String profileId;
+    private String profileType;
     public RegistrationDataDto() {
         super();
     }

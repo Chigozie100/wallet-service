@@ -26,5 +26,6 @@ public class SendMoneyToEmailOrPhone {
     private Boolean isAccountNumber;
     private String senderName;
     private String receiverName;
+    private String senderProfileId;
 			
 }

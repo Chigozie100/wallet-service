@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 @Data @AllArgsConstructor @NoArgsConstructor
 public class KycTierDataDto {
     private long userId;
+    private String profileId;
     private String tierName;
     private long orderLevel;
     private BigDecimal singleTransactionLimit;

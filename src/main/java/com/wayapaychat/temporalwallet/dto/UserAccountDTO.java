@@ -4,6 +4,7 @@ import java.util.Date;
 
 //import javax.validation.constraints.Email;
 //import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 //import javax.validation.constraints.Size;
 
@@ -14,6 +15,9 @@ public class UserAccountDTO {
 	
 	@NotNull
 	private Long userId;
+
+	@NotBlank(message = "Profile Id can not be Blank or Null")
+	private String profileId;
 	
 	//@NotNull
 	//@NotBlank(message = "Email must not be Null or Blank")

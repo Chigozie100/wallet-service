@@ -27,7 +27,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "m_wallet_user", uniqueConstraints = {
-        @UniqueConstraint(name = "UniqueEmailAndPhoneNumberAndDelFlg", columnNames = {"userId", "mobileNo", "emailAddress", "del_flg"})})
+        @UniqueConstraint(name = "UniqueEmailAndPhoneNumberAndUserIdAndProfileIdAndDelFlg", columnNames = {"mobileNo", "emailAddress","userId","profileId", "del_flg"})})
 public class WalletUser {
 
 	@Id
@@ -41,7 +41,7 @@ public class WalletUser {
 
 	private String sol_id;
 	
-	@Column(unique = true, nullable = false)
+	@Column(nullable = false)
     private Long userId;
 
 	private String firstName;
@@ -85,6 +85,12 @@ public class WalletUser {
 	private boolean isVirtualAccount = false;
 
 	private boolean isCorporate = false;
+
+	@Column(name = "account_type")
+	private String accountType;
+
+	@Column(name = "profile_id")
+	private String profileId;
 
 	public WalletUser(String sol_id, Long userId, String firstName,
 			String lastName, String emailAddress, String mobileNo, String cust_name, String cust_title_code,

@@ -39,5 +39,7 @@ public class MyData {
         BeanUtils.copyProperties(_userData, myData);
         return myData;
     }
+    private ProfileSubscriptionDto profileSubscription;
+
 
 }

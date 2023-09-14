@@ -3,6 +3,7 @@ package com.wayapaychat.temporalwallet.dto;
 import java.util.Date;
 
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -64,5 +65,10 @@ public class WalletUserDTO {
 	private boolean isCorporate;
 
 	private String description;
+
+	@NotBlank(message = "Profile Id can not be NULL or BLANK")
+	private String profileId;
+
+	private String profileType;
 
 }

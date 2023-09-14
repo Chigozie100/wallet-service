@@ -13,14 +13,12 @@ import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.kafkaConsumer.KafkaMessageConsumer;
 import com.wayapaychat.temporalwallet.pojo.*;
+import com.wayapaychat.temporalwallet.pojo.signupKafka.InWardDataDto;
 import com.wayapaychat.temporalwallet.pojo.signupKafka.RegistrationDataDto;
 import com.wayapaychat.temporalwallet.proxy.AuthProxy;
 import com.wayapaychat.temporalwallet.repository.*;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
-import com.wayapaychat.temporalwallet.service.CoreBankingService;
-import com.wayapaychat.temporalwallet.service.SwitchWalletService;
-import com.wayapaychat.temporalwallet.service.UserAccountService;
-import com.wayapaychat.temporalwallet.service.UserPricingService;
+import com.wayapaychat.temporalwallet.service.*;
 import com.wayapaychat.temporalwallet.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -69,6 +67,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     private final CoreBankingService coreBankingService;
     private final SwitchWalletService switchWalletService;
     private final WalletTransactionRepository walletTransactionRepository;
+    private final MessageQueueProducer messageQueueProducer;
     @Autowired
     private KafkaMessageConsumer kafkaMessageConsumer;
     @Autowired
@@ -112,7 +111,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             WalletEventRepository walletEventRepo,
             TokenImpl tokenService, UserPricingService userPricingService,
             CoreBankingService coreBankingService, SwitchWalletService switchWalletService,
-            WalletTransactionRepository walletTransactionRepository) {
+            WalletTransactionRepository walletTransactionRepository, MessageQueueProducer messageQueueProducer) {
         this.walletUserRepository = walletUserRepository;
         this.walletAccountRepository = walletAccountRepository;
         this.walletProductRepository = walletProductRepository;
@@ -128,6 +127,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         this.coreBankingService = coreBankingService;
         this.switchWalletService = switchWalletService;
         this.walletTransactionRepository = walletTransactionRepository;
+        this.messageQueueProducer = messageQueueProducer;
     }
 
     public String generateRandomNumber(int length) {
@@ -148,14 +148,15 @@ public class UserAccountServiceImpl implements UserAccountService {
         return (int) (Math.random() * (max - min + 1) + min);
     }
 
-    private ResponseEntity<?> createClient(Long userid, String token) {
+    private ResponseEntity<?> createClient(Long userid, String token,String profileId,String profileType) {
 
-        WalletUser existingUser = walletUserRepository.findByUserId(userid);
+        WalletUser existingUser = walletUserRepository.findByUserIdAndProfileId(userid,profileId);
         if (!ObjectUtils.isEmpty(existingUser)) {
             return new ResponseEntity<>(existingUser, HttpStatus.ACCEPTED);
         }
 
-        UserProfileResponse userDetailsResponse = authProxy.getUserProfileById(userid, token);
+        log.info("::Id, ProfileId, ",userid+ "/"+profileId);
+        UserProfileResponse userDetailsResponse = authProxy.getProfileByIdAndUserId(userid,profileId, token);
         log.info("userDetailsResponse1 {} ", userDetailsResponse);
         if (ObjectUtils.isEmpty(userDetailsResponse)) {
             return new ResponseEntity<>(new ErrorResponse("User does not exists"), HttpStatus.BAD_REQUEST);
@@ -190,6 +191,9 @@ public class UserAccountServiceImpl implements UserAccountService {
                     emailAddress, phoneNumber, acct_name,
                     custTitle, custSex, dob, code, new Date(), LocalDate.now(), 0);
 
+
+            userInfo.setProfileId(profileId);
+            userInfo.setAccountType(profileType);
             userInfo.setCorporate(userDetailsResponse.getData().isCorporate());
             WalletUser newUserDetails = walletUserRepository.save(userInfo);
 
@@ -363,8 +367,17 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     public ResponseEntity<?> createUser(UserDTO user, String token) {
+        String profileId = null;
+        if(user.getProfileId() != null)
+            profileId = user.getProfileId();
 
-        ResponseEntity<?> response = createClient(user.getUserId(), token);
+        String profileAccountType;
+        if(user.isCorporate()){
+            profileAccountType = "BUSINESS";
+        }else {
+            profileAccountType = "PERSONAL";
+        }
+        ResponseEntity<?> response = createClient(user.getUserId(), token,profileId,profileAccountType);
 
         if (!response.getStatusCode().is2xxSuccessful()) {
             return response;
@@ -376,7 +389,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     @Override
     public WalletAccount createNubanAccount(WalletUserDTO user) {
-        WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
+        WalletUser existingUser = walletUserRepository.findByUserIdAndProfileId(user.getUserId(),user.getProfileId());
         if (existingUser != null) {
             log.info("Wallet User already exists");
             return null;
@@ -528,7 +541,16 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     // Call by Aut-service and others
     public ResponseEntity<?> createUserAccount(WalletUserDTO user, String token) {
-        ResponseEntity<?> response = createClient(user.getUserId(), token);
+        String profileId = null;
+        if(user.getProfileId() != null)
+            profileId = user.getProfileId();
+
+        String profileAccountType = null;
+        if(user.getProfileType() != null)
+            profileAccountType = user.getProfileType();
+
+        log.info("::WalletUserDTO {}",user);
+        ResponseEntity<?> response = createClient(user.getUserId(), token,profileId,profileAccountType);
         log.info(":::CreateClient Response {} ", response);
         if (!response.getStatusCode().is2xxSuccessful()) {
             log.error("ERROR CreateUserAccount::: {}", response);
@@ -543,7 +565,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     public ResponseEntity<?> modifyUserAccount(UserAccountDTO user) {
-        WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
+        WalletUser existingUser = walletUserRepository.findByUserIdAndProfileId(user.getUserId(),user.getProfileId());
         if (existingUser == null) {
             return new ResponseEntity<>(new ErrorResponse("Wallet User does not exists"), HttpStatus.NOT_FOUND);
         }
@@ -608,7 +630,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     public ResponseEntity<?> ToggleAccount(AccountToggleDTO user) {
-        WalletUser existingUser = walletUserRepository.findByUserId(user.getUserId());
+        WalletUser existingUser = walletUserRepository.findByUserIdAndProfileId(user.getUserId(),user.getProfileId());
         if (existingUser == null) {
             return new ResponseEntity<>(new ErrorResponse("Wallet User does not exists"), HttpStatus.NOT_FOUND);
         }
@@ -887,11 +909,11 @@ public class UserAccountServiceImpl implements UserAccountService {
         if (user == null) {
             return new ResponseEntity<>(new ErrorResponse("Auth User ID does not exist"), HttpStatus.BAD_REQUEST);
         }
-        WalletUser y = walletUserRepository.findByUserId(accountPojo.getUserId());
-        WalletUser x = walletUserRepository.findByEmailAddress(user.getEmail());
+        WalletUser y = walletUserRepository.findByUserIdAndProfileId(accountPojo.getUserId(),accountPojo.getProfileId());
+        WalletUser x = walletUserRepository.findByEmailAddressAndProfileId(user.getEmail(),accountPojo.getProfileId());
 
         if (x == null && y == null && Long.compare(accountPojo.getUserId(), tokenData.getId()) == 0) {
-            return createDefaultWallet(tokenData, token);
+            return createDefaultWallet(tokenData, token,accountPojo.getProfileId());
         } else if (x == null && y == null) {
             return new ResponseEntity<>(new ErrorResponse("Default Wallet Not Created"), HttpStatus.BAD_REQUEST);
         }
@@ -1020,8 +1042,8 @@ public class UserAccountServiceImpl implements UserAccountService {
         if (fProduct == null) {
             return new ResponseEntity<>(new ErrorResponse("Product Code does not exist"), HttpStatus.BAD_REQUEST);
         }
-        WalletUser y = walletUserRepository.findByUserId(accountPojo.getUserId());
-        WalletUser x = walletUserRepository.findByEmailAddress(user.getEmail());
+        WalletUser y = walletUserRepository.findByUserIdAndProfileId(accountPojo.getUserId(),accountPojo.getProfileId());
+        WalletUser x = walletUserRepository.findByEmailAddressAndProfileId(user.getEmail(),accountPojo.getProfileId());
         if (x == null && y == null) {
             return new ResponseEntity<>(new ErrorResponse("Default Wallet Not Created"), HttpStatus.BAD_REQUEST);
         }
@@ -1209,7 +1231,37 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
         AccountDetailDTO account = new AccountDetailDTO(acct.getId(), acct.getSol_id(), acct.getAccountNo(),
                 acct.getAcct_name(), acct.getProduct_code(), BigDecimal.valueOf(acct.getClr_bal_amt()),
-                acct.getAcct_crncy_code(), acct.isWalletDefault());
+                acct.getAcct_crncy_code(), acct.isWalletDefault(),acct.isAcct_cls_flg(),acct.isDel_flg(),acct.getNubanAccountNo());
+        WalletUser xUser = walletUserRepository.findByAccount(acct);
+        if(xUser != null){
+            account.setEmail(xUser.getEmailAddress());
+            account.setPhoneNumber(xUser.getMobileNo());
+            account.setProfileId(xUser.getProfileId());
+            account.setUserId(xUser.getUserId());
+        }
+        return new ResponseEntity<>(new SuccessResponse("Success", account), HttpStatus.OK);
+    }
+
+
+    public ResponseEntity<?> fetchUserByAccountNo(String accountNo) {
+
+        WalletAccount acct = walletAccountRepository.findByAccountNo(accountNo);
+        if (acct == null) {
+            return new ResponseEntity<>(new ErrorResponse("Invalid Account"), HttpStatus.NOT_FOUND);
+        }
+        AccountUserDetail account = new AccountUserDetail();
+        account.setAccountNo(acct.getAccountNo());
+        account.setAccountName(acct.getAcct_name());
+        account.setAccountDefault(acct.isWalletDefault());
+        account.setNubanAccountNo(acct.getNubanAccountNo());
+        account.setCurrencyCode(acct.getAcct_crncy_code());
+        WalletUser xUser = walletUserRepository.findByAccount(acct);
+        if(xUser != null){
+            account.setEmail(xUser.getEmailAddress());
+            account.setPhoneNumber(xUser.getMobileNo());
+            account.setProfileId(xUser.getProfileId());
+            account.setUserId(xUser.getUserId());
+        }
         return new ResponseEntity<>(new SuccessResponse("Success", account), HttpStatus.OK);
     }
 
@@ -1226,12 +1278,11 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     @Override
-    public ResponseEntity<?> getUserAccountList(long userId, String token) {
+    public ResponseEntity<?> getUserAccountList(long userId,String profileId, String token) {
 
         UserIdentityData _userToken = (UserIdentityData) SecurityContextHolder.getContext().getAuthentication()
                 .getPrincipal();
         MyData tokenData = MyData.newInstance(_userToken);
-
         if (tokenData == null) {
             return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
         }
@@ -1239,18 +1290,19 @@ public class UserAccountServiceImpl implements UserAccountService {
         if (!isAllowed(tokenData, userId)) {
             return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
         }
+        //Todo: update existing walleruser without profileId
+        updateExistingWalletUser(userId,profileId,tokenData.isCorporate());
 
-        Optional<WalletUser> walletUser = walletUserRepository.findUserId(userId);
-
-        if (!walletUser.isPresent() && Long.compare(userId, tokenData.getId()) == 0) {
-            return createDefaultWallet(tokenData, token);
+        Optional<WalletUser> walletUser = walletUserRepository.findUserIdAndProfileId(userId,profileId);
+        if (!walletUser.isPresent() && userId == tokenData.getId()) {
+            return createDefaultWallet(tokenData, token,profileId);
         } else if (!walletUser.isPresent()) {
             return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
         }
 
         List<WalletAccount> accounts = walletAccountRepository.findByUser(walletUser.get());
         if (ObjectUtils.isEmpty(accounts)) {
-            return createDefaultWallet(tokenData, token);
+            return createDefaultWallet(tokenData, token,profileId);
         }
 
         CompletableFuture.runAsync(() -> updateTractionLimit(walletUser.get(), tokenData.getTransactionLimit()));
@@ -1321,12 +1373,12 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     @Override
-    public ResponseEntity<?> getUserCommissionList(long userId, Boolean isAdmin) {
+    public ResponseEntity<?> getUserCommissionList(long userId, Boolean isAdmin,String profileId) {
         if (!isAdmin) {
-            securityCheck(userId);
+            securityCheck(userId,profileId);
         }
 
-        WalletUser userx = walletUserRepository.findByUserId(userId);
+        WalletUser userx = walletUserRepository.findByUserIdAndProfileId(userId,profileId);
         if (userx == null) {
             return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
         }
@@ -1358,29 +1410,30 @@ public class UserAccountServiceImpl implements UserAccountService {
         try {
             WalletAccount walletAccount = walletAccountRepository.findByAccountNo(accountNo);
             WalletUser xUser = walletUserRepository.findByAccount(walletAccount);
-            securityCheck(Long.valueOf(xUser.getUserId()));
+            securityCheck(Long.valueOf(xUser.getUserId()),xUser.getProfileId());
         } catch (CustomException ex) {
             throw new CustomException("You Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
         }
     }
 
-    public void securityCheck(long userId) {
-        WalletUser user = walletUserRepository.findByUserId(userId);
+    public void securityCheck(long userId,String profileId) {
+
+        WalletUser user = walletUserRepository.findByUserIdAndProfileId(userId,profileId);
         if (Objects.isNull(user)) {
             throw new CustomException("You Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
         }
 
-        if (user.getUserId() != userId) {
+        if (!user.getUserId().equals(userId)) {
             throw new CustomException("You Lack credentials to perform this action", HttpStatus.BAD_REQUEST);
         }
     }
 
     @Override
-    public ResponseEntity<?> UserWalletLimit(long userId) {
+    public ResponseEntity<?> UserWalletLimit(long userId,String profileId) {
         // security check
-        securityCheck(userId);
+        securityCheck(userId,profileId);
 
-        WalletUser user = walletUserRepository.findByUserId(userId);
+        WalletUser user = walletUserRepository.findByUserIdAndProfileId(userId,profileId);
         if (user == null) {
             return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
         }
@@ -1433,10 +1486,10 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     @Override
-    public ResponseEntity<?> getAccountDefault(Long user_id) {
+    public ResponseEntity<?> getAccountDefault(Long user_id,String profileId) {
         try {
-            securityCheck(user_id);
-            WalletUser user = walletUserRepository.findByUserId(user_id);
+            securityCheck(user_id,profileId);
+            WalletUser user = walletUserRepository.findByUserIdAndProfileId(user_id,profileId);
             if (user == null) {
                 return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
             }
@@ -1523,9 +1576,9 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     @Override
-    public ApiResponse<?> fetchRecentTransaction(Long user_id) {
-        securityCheck(user_id);
-        WalletUser user = walletUserRepository.findByUserId(user_id);
+    public ApiResponse<?> fetchRecentTransaction(Long user_id,String profileId) {
+        securityCheck(user_id,profileId);
+        WalletUser user = walletUserRepository.findByUserIdAndProfileId(user_id,profileId);
         if (user == null) {
             return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "USER ID DOES NOT EXIST", null);
         }
@@ -1651,7 +1704,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     public ResponseEntity<?> AccountAccessDelete(UserAccountDelete user) {
         try {
 
-            WalletUser userDelete = walletUserRepository.findByUserId(user.getUserId());
+            WalletUser userDelete = walletUserRepository.findByUserIdAndProfileId(user.getUserId(),user.getProfileId());
             if (userDelete == null) {
                 return new ResponseEntity<>(new ErrorResponse("Wallet User Account does not exists"),
                         HttpStatus.NOT_FOUND);
@@ -1745,14 +1798,17 @@ public class UserAccountServiceImpl implements UserAccountService {
                 account.setAcct_cls_date(LocalDate.now());
                 account.setAcct_cls_flg(true);
                 walletAccountRepository.save(account);
+                //Push to NIP-INWARD FOR ACCT UPDATE
+                pushAcctClosureOrBlockToInWardService(account,true);
                 CompletableFuture.runAsync(() -> blockAccount(account, request, true));
                 return new ResponseEntity<>(new SuccessResponse("Account blocked successfully.", account),
                         HttpStatus.OK);
-
             } else {
                 account.setAcct_cls_date(LocalDate.now());
                 account.setAcct_cls_flg(false);
                 walletAccountRepository.save(account);
+                //Push to NIP-INWARD FOR ACCT UPDATE
+                pushAcctClosureOrBlockToInWardService(account,false);
                 CompletableFuture.runAsync(() -> blockAccount(account, request, false));
                 return new ResponseEntity<>(new SuccessResponse("Account Unblock successfully.", account),
                         HttpStatus.OK);
@@ -1812,6 +1868,8 @@ public class UserAccountServiceImpl implements UserAccountService {
                         HttpStatus.NOT_FOUND);
             }
             walletAccountRepository.save(account);
+            //Push to NIP-INWARD FOR ACCT UPDATE
+            pushAcctClosureOrBlockToInWardService(account,true);
             return new ResponseEntity<>(new SuccessResponse("Account closed successfully.", account), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage() + " : " + e.getMessage()),
@@ -1891,8 +1949,8 @@ public class UserAccountServiceImpl implements UserAccountService {
         return new ResponseEntity<>(new SuccessResponse("LIST SIMULATED ACCOUNT", account), HttpStatus.OK);
     }
 
-    public ResponseEntity<?> getUserAccountCount(Long userId) {
-        WalletUser user = walletUserRepository.findByUserId(userId);
+    public ResponseEntity<?> getUserAccountCount(Long userId,String profileId) {
+        WalletUser user = walletUserRepository.findByUserIdAndProfileId(userId,profileId);
         if (user == null) {
             return new ResponseEntity<>(new ErrorResponse("User Doesn't Exist"), HttpStatus.BAD_REQUEST);
         }
@@ -1935,7 +1993,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     @Override
-    public ResponseEntity<?> createDefaultWallet(MyData tokenData, String token) {
+    public ResponseEntity<?> createDefaultWallet(MyData tokenData, String token, String profileId) {
         WalletUserDTO createAccount = new WalletUserDTO();
         // Default Debit Limit SetUp
         createAccount.setCustDebitLimit(0.0);
@@ -1956,22 +2014,28 @@ public class UserAccountServiceImpl implements UserAccountService {
         createAccount.setSolId("0000");
         createAccount.setAccountType("saving");
         createAccount.setCorporate(tokenData.isCorporate());
+        createAccount.setProfileId(profileId);
+        if(tokenData.isCorporate()){
+            createAccount.setProfileType("BUSINESS");
+        }else {
+            createAccount.setProfileType("PERSONAL");
+        }
         log.info("retrying to create wallet for {}", createAccount.getEmailId());
         return createUserAccount(createAccount, token);
     }
 
-    public ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount) {
+    public ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount,String profileId) {
         System.out.println("updateCustomerDebitLimit :: " + amount);
         log.info("updateCustomerDebitLimit userId :: " + userId);
         try {
-            Optional<WalletUser> walletUser = walletUserRepository.findUserId(Long.parseLong(userId));
+            Optional<WalletUser> walletUser = walletUserRepository.findUserIdAndProfileId(Long.parseLong(userId),profileId);
             if (walletUser.isPresent()) {
                 WalletUser walletUser1 = walletUser.get();
                 walletUser1.setCust_debit_limit(amount.doubleValue());
                 walletUserRepository.save(walletUser1);
             }
             return new ResponseEntity<>(
-                    new SuccessResponse("SUCCESS", walletUserRepository.findUserId(Long.parseLong(userId))),
+                    new SuccessResponse("SUCCESS", walletUserRepository.findUserIdAndProfileId(Long.parseLong(userId),profileId)),
                     HttpStatus.OK);
         } catch (CustomException ex) {
             throw new CustomException("error", HttpStatus.EXPECTATION_FAILED);
@@ -2178,9 +2242,9 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     @Override
-    public ApiResponse<?> totalTransactionByUserId(Long user_id, boolean filter, LocalDate fromdate, LocalDate todate) {
+    public ApiResponse<?> totalTransactionByUserId(Long user_id, boolean filter, LocalDate fromdate, LocalDate todate,String profileId) {
         try {
-            WalletUser user = walletUserRepository.findByUserId(user_id);
+            WalletUser user = walletUserRepository.findByUserIdAndProfileId(user_id,profileId);
             if (user == null) {
                 return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "USER ID DOES NOT EXIST", null);
             }
@@ -2298,9 +2362,9 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     @Override
-    public ApiResponse<?> fetchUserTransactionStatForReferral(String user_id, String accountNo) {
+    public ApiResponse<?> fetchUserTransactionStatForReferral(String user_id, String accountNo,String profileId) {
         try {
-            WalletUser user = walletUserRepository.findByUserId(Long.valueOf(user_id));
+            WalletUser user = walletUserRepository.findByUserIdAndProfileId(Long.valueOf(user_id),profileId);
             if (user == null) {
                 return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "USER ID DOES NOT EXIST", null);
             }
@@ -2446,7 +2510,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     @Override
-    public ApiResponse<?> createCommisionAccount(long userId, String token) {
+    public ApiResponse<?> createCommisionAccount(long userId, String token,String profileId) {
         try {
           
             String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, "");
@@ -2458,7 +2522,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                     + "NGN");
 
             // check if user is corporate
-            WalletUser walletUser = walletUserRepository.findByUserId(userId);
+            WalletUser walletUser = walletUserRepository.findByUserIdAndProfileId(userId,profileId);
     
             if (walletUser.isCorporate()) {
                 String commisionName = "COMMISSION ACCOUNT";
@@ -2510,4 +2574,58 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
     }
 
+
+    private void updateExistingWalletUser(Long userId, String profileId,boolean corporate){
+        try {
+            List<WalletUser> walletUserList = walletUserRepository.findAllByUserIdAndProfileIdIsNull(userId);
+            if(walletUserList.size() > 0 && walletUserList.size() == 1){
+                for (WalletUser user: walletUserList){
+                    if(user.getProfileId() == null || user.getProfileId().isEmpty()){
+                        user.setProfileId(profileId);
+                        if(corporate){
+                            user.setAccountType("BUSINESS");
+                        }else {
+                            user.setAccountType("PERSONAL");
+                        }
+                        walletUserRepository.save(user);
+                        log.info("::DEFAULT WALLET USER SUCCESSFULLY UPDATED {}",userId);
+                    }
+                }
+            }
+        }catch (Exception ex){
+            log.error("::Error updateExistingWalletUser {}",ex.getLocalizedMessage());
+            ex.printStackTrace();
+            return;
+        }
+    }
+
+    private void pushAcctClosureOrBlockToInWardService(WalletAccount account,boolean closure){
+        try {
+            InWardDataDto dataDto = new InWardDataDto();
+            dataDto.setAccountName(account.getAcct_name());
+            dataDto.setNubanAccountNumber(account.getNubanAccountNo());
+            dataDto.setAccountNumber(account.getAccountNo());
+            dataDto.setDeleteFlag(account.isDel_flg());
+            dataDto.setWalletDefault(account.isWalletDefault());
+            dataDto.setCloseFlag(closure);
+            if(account.getUser() != null){
+                dataDto.setUserId(account.getUser().getUserId());
+                dataDto.setWalletUserId(account.getUser().getId());
+                dataDto.setEmailAddress(account.getUser().getEmailAddress());
+                dataDto.setMobileNo(account.getUser().getMobileNo());
+            }
+            dataDto.setWalletAccountId(account.getId());
+            if(account.getAccountType() != null)
+                dataDto.setAccountType(account.getAccountType());
+
+            log.info("::ABOUT TO PROCESS ACCT ACTION OF TYPE CLOSURE/BLOCK/DELETE {}",dataDto);
+            CompletableFuture.runAsync(() -> {
+                messageQueueProducer.send(Constant.IN_WARD_SERVICE, dataDto);
+                log.info("::::ACCT UPDATE DTO SUCCESSFULLY PUBLISHED TO KAFKA MESSAGE QUEUE {}",dataDto);
+            });
+        }catch (Exception ex){
+            log.error("::Error pushAcctClosureOrBlockToInWardService {}",ex.getLocalizedMessage());
+            log.error("::FAIL TO PUBLISH DATA TO KAFKA MESSAGE");
+        }
+    }
 }

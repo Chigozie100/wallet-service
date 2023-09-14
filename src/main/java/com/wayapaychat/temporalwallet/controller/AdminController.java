@@ -882,9 +882,9 @@ public class AdminController {
     }
 
     @ApiOperation(value = "Admin Get User Wallet Commission Account", tags = { "ADMIN" })
-    @GetMapping(path = "/admin/commission-accounts/{user_id}")
-    public ResponseEntity<?> getCommissionAccounts(@PathVariable long user_id) {
-        return userAccountService.getUserCommissionList(user_id, true);
+    @GetMapping(path = "/admin/commission-accounts/{user_id}/{profileId}")
+    public ResponseEntity<?> getCommissionAccounts(@PathVariable long user_id,@PathVariable String profileId) {
+        return userAccountService.getUserCommissionList(user_id, true,profileId);
     }
 
     @ApiImplicitParams({
@@ -972,11 +972,12 @@ public class AdminController {
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Fetch single user transactions analysis for referral commission", notes = "customer transactions analysis for referral commission", tags = {
             "ADMIN" })
-    @GetMapping("/user/trns/analysis/{userId}")
+    @GetMapping("/user/trns/analysis/{userId}/{profileId}")
     public ResponseEntity<ApiResponse<?>> fetchUserTransactionStatForReferral(@PathVariable String userId,
-            @RequestParam String accountNumber) {
-        ApiResponse<?> response = userAccountService.fetchUserTransactionStatForReferral(userId, accountNumber);
-        return new ResponseEntity<>(response, HttpStatus.valueOf(response.getCode()));
+                                                                              @RequestParam String accountNumber,
+                                                                              @PathVariable String profileId){
+        ApiResponse<?> response = userAccountService.fetchUserTransactionStatForReferral(userId,accountNumber,profileId);
+        return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
     }
 
     @ApiImplicitParams({
