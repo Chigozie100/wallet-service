@@ -27,7 +27,7 @@ import lombok.*;
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "m_wallet_user", uniqueConstraints = {
-        @UniqueConstraint(name = "UniqueEmailAndPhoneNumberAndUserIdAndProfileIdAndDelFlg", columnNames = {"mobile_no", "email_address","user_id","profile_id", "del_flg"})})
+        @UniqueConstraint(name = "UniqueEmailAndPhoneNumberAndUserIdAndProfileIdAndDelFlg", columnNames = {"mobileNo", "emailAddress","userId","profile_id", "del_flg"})})
 public class WalletUser {
 
 	@Id
