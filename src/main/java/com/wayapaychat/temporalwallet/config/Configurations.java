@@ -16,11 +16,11 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.TimeZone;
+
+import javax.annotation.PostConstruct;
 
 
 @Configuration
@@ -28,6 +28,11 @@ public class Configurations {
 
     @Autowired
     private Environment environment;
+
+    @PostConstruct
+    public void init() {
+        TimeZone.setDefault(TimeZone.getTimeZone("Africa/Lagos"));
+    }
 
     @Bean
     public ModelMapper modelMapper() {
