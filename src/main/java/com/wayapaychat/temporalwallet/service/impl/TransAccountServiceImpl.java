@@ -3329,7 +3329,7 @@ public class TransAccountServiceImpl implements TransAccountService {
             if(!acctUserId.equals(walletUserId))
                 return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "YOU LACK CREDENTIALS TO PERFORM THIS ACTION", null);
 
-            Optional<List<WalletTransaction>> transactionList = walletTransactionRepository.findByReferenceAndAccount(referenceNumber,accountNumber);
+            Optional<List<WalletTransaction>> transactionList = walletTransactionRepository.findAllByPaymentReferenceAndAcctNum(referenceNumber,accountNumber);
             if(transactionList.isPresent())
                 return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION NOT FOUND", null);
 

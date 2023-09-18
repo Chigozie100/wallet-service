@@ -73,6 +73,8 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
     @Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.paymentReference) = UPPER(:ref) " + " AND UPPER(u.acctNum) = UPPER(:account)" + " AND u.del_flg = false")
     Optional<List<WalletTransaction>> findByReferenceAndAccount(String ref, String account);
 
+    Optional<List<WalletTransaction>> findAllByPaymentReferenceAndAcctNum(String ref, String account);
+
     @Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.acctNum) = UPPER(:account) " + "AND UPPER(u.tranType) = UPPER('REVERSAL') " + " AND u.del_flg = false" + " AND u.tranDate BETWEEN  (:fromtranDate)" + " AND (:totranDate)")
     List<WalletTransaction> findByAccountReverse(LocalDate fromtranDate, LocalDate totranDate, String account);
 
