@@ -775,4 +775,16 @@ public class WalletTransactionController {
         return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
+    @ApiOperation(value = "Fetch user transaction TSQ by reference number and account number", notes = "get TSQ reference number and account number", tags = {"TRANSACTION-WALLET"})
+    @GetMapping(path = "/fetchByReferenceNumberTsq/{accountNumber}/{referenceNumber}")
+    public ResponseEntity<?> doMerchantTsqByReferenceAndAcctNo(@RequestHeader("Authorization") String token,
+                                                               @PathVariable String accountNumber,
+                                                               @PathVariable String referenceNumber) {
+        ApiResponse<?> response = transAccountService.fetchMerchantTransactionTqs(token,accountNumber,referenceNumber);
+        return new ResponseEntity<>(response, HttpStatus.valueOf(response.getCode()));
+    }
+
+
 }

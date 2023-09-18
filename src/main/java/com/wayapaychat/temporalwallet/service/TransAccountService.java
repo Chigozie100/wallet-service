@@ -238,5 +238,7 @@ public interface TransAccountService {
     ApiResponse<?> fetchTransactionsByReferenceNumberAndAccountNumber(String accountNumber,String referenceNumber);
 
     ApiResponse<CustomerStatement> accountstatementReport2(Date fromdate, Date todate, String acctNo);
+
+    ApiResponse<?> fetchMerchantTransactionTqs(String token, String accountNumber,String referenceNumber);
         
 }
