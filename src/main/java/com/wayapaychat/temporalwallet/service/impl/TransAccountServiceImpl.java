@@ -3324,8 +3324,12 @@ public class TransAccountServiceImpl implements TransAccountService {
             if (account == null)
                 return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID ACCOUNT NO", null);
 
+            WalletUser walletUser = walletUserRepository.findByAccount(account);
+            if(walletUser == null)
+                return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "ACCOUNT DETAILS NOT FOUND", null);
+
             String acctUserId = String.valueOf(tokenCheckResponse.getData().getId());
-            String walletUserId = String.valueOf(account.getUser().getUserId());
+            String walletUserId = String.valueOf(walletUser.getUserId());
             if(!acctUserId.equals(walletUserId))
                 return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "YOU LACK CREDENTIALS TO PERFORM THIS ACTION", null);
 
