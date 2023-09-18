@@ -3312,6 +3312,34 @@ public class TransAccountServiceImpl implements TransAccountService {
         }
     }
 
+
+    @Override
+    public ApiResponse<?> fetchMerchantTransactionTqs(String token, String accountNumber,String referenceNumber) {
+        try {
+            TokenCheckResponse tokenCheckResponse = authProxy.getUserDataToken(token);
+            if(!tokenCheckResponse.isStatus())
+                return new ApiResponse<>(false, ApiResponse.Code.UNAUTHORIZED, "UNAUTHORIZED", null);
+
+            WalletAccount account = walletAccountRepository.findByAccountNo(accountNumber);
+            if (account == null)
+                return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID ACCOUNT NO", null);
+
+            String acctUserId = String.valueOf(tokenCheckResponse.getData().getId());
+            String walletUserId = String.valueOf(account.getUser().getUserId());
+            if(!acctUserId.equals(walletUserId))
+                return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "YOU LACK CREDENTIALS TO PERFORM THIS ACTION", null);
+
+            Optional<List<WalletTransaction>> transactionList = walletTransactionRepository.findByReferenceAndAccount(referenceNumber,accountNumber);
+            if(transactionList.isPresent())
+                return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION NOT FOUND", null);
+
+            return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", transactionList.get());
+        }catch (Exception ex){
+            log.error("::FetchMerchantTransactionTqs {}",ex.getLocalizedMessage());
+            return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "ERROR FETCHING TRANSACTION", null);
+        }
+    }
+
     @Override
     public ApiResponse<?> fetchTransactionsByReferenceNumberAndAccountNumber(String accountNumber, String referenceNumber) {
         try {
