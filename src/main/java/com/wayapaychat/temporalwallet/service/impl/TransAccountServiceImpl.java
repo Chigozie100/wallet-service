@@ -3326,7 +3326,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
             WalletUser walletUser = walletUserRepository.findByAccount(account);
             if(walletUser == null)
-                return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "ACCOUNT DETAILS NOT FOUND", null);
+                return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "ACCOUNT PROFILE NOT FOUND", null);
 
             String acctUserId = String.valueOf(tokenCheckResponse.getData().getId());
             String walletUserId = String.valueOf(walletUser.getUserId());
