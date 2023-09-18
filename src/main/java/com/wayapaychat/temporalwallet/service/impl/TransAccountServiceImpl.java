@@ -3334,7 +3334,7 @@ public class TransAccountServiceImpl implements TransAccountService {
                 return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "YOU LACK CREDENTIALS TO PERFORM THIS ACTION", null);
 
             Optional<List<WalletTransaction>> transactionList = walletTransactionRepository.findAllByPaymentReferenceAndAcctNum(referenceNumber,accountNumber);
-            if(transactionList.isPresent())
+            if(!transactionList.isPresent())
                 return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION NOT FOUND", null);
 
             return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", transactionList.get());
