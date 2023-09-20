@@ -26,6 +26,9 @@ public interface WalletUserRepository extends JpaRepository<WalletUser, Long> {
 
 	@Query(value = "SELECT u FROM WalletUser u " + "WHERE (u.userId) = (:Id) " + " AND u.del_flg = false AND (u.profileId) = (:profileId) ")
 	Optional<WalletUser> findUserIdAndProfileId(Long Id,String profileId);
+
+	List<WalletUser> findAllByUserIdAndProfileId(Long userId,String profileId);
+	List<WalletUser> findAllByUserId(Long userId);
 	
 	@Query(value = "SELECT u FROM WalletUser u " + "WHERE u.isVirtualAccount = false " + " AND u.del_flg = false")
 	List<WalletUser> findUserVirtual();

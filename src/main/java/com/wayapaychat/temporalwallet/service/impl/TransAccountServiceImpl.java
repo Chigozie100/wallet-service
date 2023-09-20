@@ -984,6 +984,22 @@ public class TransAccountServiceImpl implements TransAccountService {
     }
 
 
+    public WalletAccount findUserAccount(Long userId, String profileId){
+        WalletUser walletUser = walletUserRepository.findByUserIdAndProfileId(userId,profileId);
+        if(walletUser == null){
+            List<WalletUser> walletUserList = walletUserRepository.findAllByUserId(userId);
+            if(walletUserList.size() > 0 && walletUserList.size() == 1){
+                walletUser = walletUserList.get(0);
+            }else {
+                return  null;
+            }
+        }
+        Optional<WalletAccount> walletAccount = walletAccountRepository.findByDefaultAccount(walletUser);
+        if(walletAccount.isPresent())
+            return walletAccount.get();
+        return null;
+    }
+
     public WalletAccount findByEmailOrPhoneNumberOrId(Boolean isAccountNumber, String value, String userId, String accountNo,String profileId) {
         
         userAccountService.securityCheck(Long.valueOf(userId),profileId);
@@ -997,7 +1013,8 @@ public class TransAccountServiceImpl implements TransAccountService {
             if (!isAccountNumber) {
                 return walletAccountRepository.findByAccount(value).get();
             }
-            Optional<WalletUser> user;
+            Optional<WalletUser> user ;
+//                    = walletUserRepository.findUserIdAndProfileId(Long.parseLong(value),profileId);
             if (value.startsWith("234") || value.contains("@")) {
                 user = walletUserRepository.findByEmailOrPhoneNumber(value);
             } else {
@@ -3334,7 +3351,7 @@ public class TransAccountServiceImpl implements TransAccountService {
                 return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "YOU LACK CREDENTIALS TO PERFORM THIS ACTION", null);
 
             Optional<List<WalletTransaction>> transactionList = walletTransactionRepository.findAllByPaymentReferenceAndAcctNum(referenceNumber,accountNumber);
-            if(transactionList.isPresent())
+            if(!transactionList.isPresent())
                 return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION NOT FOUND", null);
 
             return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", transactionList.get());
