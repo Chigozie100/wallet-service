@@ -95,6 +95,8 @@ public class CustomNotification {
 		emailEvent.setTransactionId(tranId);
 		emailEvent.setTransactionDate(CryptoUtils.getNigeriaDate(tranDate));
 		emailEvent.setNarration(narrate);
+		emailEvent.setTransactionType("TRANSFER");
+		emailEvent.setSubject("Non Waya Transfer");
 
 		try {
 			postEmailNotification(emailEvent, token);
@@ -119,6 +121,7 @@ public class CustomNotification {
 
 		try {
 			boolean check = smsNotification(smsEvent, token);
+			log.info("::::smsNotification {}",check);
 		} catch (Exception ex) {
 			log.error("Unable to pushWayaSMS: " + ex.getLocalizedMessage());
 		}
