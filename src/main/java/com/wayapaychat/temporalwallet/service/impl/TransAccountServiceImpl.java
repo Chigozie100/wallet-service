@@ -71,8 +71,7 @@ public class TransAccountServiceImpl implements TransAccountService {
     @Value("${waya.wallet.PAYSTACKGL}")
     String paystackgl;
 
-    @Value("${mobile.app.store}")
-    private String mobileDownloadLink;
+    public static final String mobileDownloadLink = "https://wayabank.ng/";
 
     private final WalletUserRepository walletUserRepository;
     private final WalletAccountRepository walletAccountRepository;
