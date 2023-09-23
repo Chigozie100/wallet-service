@@ -38,7 +38,7 @@ public class NonWayaRedeemDTO {
 //	@Size(min=3, max=10, message = "Transaction Status must be between 1 to 20 digit")
 //    private String tranStatus;
 
-	@NotBlank(message = "status action must not Null or Blank")
+//	@NotBlank(message = "status action must not Null or Blank")
 	private NonWayaPaymentStatusAction statusAction = NonWayaPaymentStatusAction.ACCEPTED;
 
 	@NotBlank(message = "Receiver Name can not be Null Or Blank")
