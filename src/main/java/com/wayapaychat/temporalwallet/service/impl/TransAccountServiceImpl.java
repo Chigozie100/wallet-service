@@ -960,9 +960,9 @@ public class TransAccountServiceImpl implements TransAccountService {
                 CompletableFuture.runAsync(() -> customNotification.pushInApp(token, nonWayaPayment.get().getFullName(),
                         nonWayaPayment.get().getEmailOrPhone(), message, userToken.getId(), TRANSACTION_REJECTED));
 
-                if (!rejectResponse.getStatusCode().is2xxSuccessful()) {
+                if(!rejectResponse.getStatusCode().is2xxSuccessful())
                     return rejectResponse;
-                }
+
                 return new ResponseEntity<>(new SuccessResponse(messageStatus, null), HttpStatus.CREATED);
             }
 
@@ -1003,6 +1003,9 @@ public class TransAccountServiceImpl implements TransAccountService {
                 NonWayaBenefDTO merchant = nonWayaBenefDTO(nonWayaPayment.get(),payRef,tranNarrate);
                 ResponseEntity<?> redeemedResponse = TransferNonRedeem(request, merchant);
                 log.info("::TransferNonRedeem {}",redeemedResponse);
+                if(!redeemedResponse.getStatusCode().is2xxSuccessful())
+                    return redeemedResponse;
+
                 String message = formatMessageRedeem(nonWayaPayment.get().getTranAmount(), payRef);
                 CompletableFuture.runAsync(() -> customNotification.pushInApp(token, nonWayaPayment.get().getFullName(),
                         nonWayaPayment.get().getEmailOrPhone(), message, userToken.getId(), TRANSACTION_PAYOUT));
