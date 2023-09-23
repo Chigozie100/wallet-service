@@ -934,7 +934,7 @@ public class TransAccountServiceImpl implements TransAccountService {
             if (nonWayaPayment.get().getStatus() != null && nonWayaPayment.get().getStatus().equals(PaymentStatus.REJECT)) {
                 return new ResponseEntity<>(new ErrorResponse("TOKEN IS NO LONGER VALID, CAN NOT REDEEMED THIS CREDIT"), HttpStatus.BAD_REQUEST);
             } else if (nonWayaPayment.get().getStatus() != null && nonWayaPayment.get().getStatus().equals(PaymentStatus.PAYOUT)) {
-                return new ResponseEntity<>(new ErrorResponse("TRANSACTION HAS BEEN PAYED OUT"), HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(new ErrorResponse("TRANSACTION HAS BEEN PAID OUT"), HttpStatus.BAD_REQUEST);
             } else if (nonWayaPayment.get().getStatus() != null && nonWayaPayment.get().getStatus().equals(PaymentStatus.EXPIRED)) {
                 return new ResponseEntity<>(new ErrorResponse("TOKEN FOR THIS TRANSACTION HAS EXPIRED"), HttpStatus.BAD_REQUEST);
             }
@@ -1043,7 +1043,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
             WalletNonWayaPayment check = walletNonWayaPaymentRepo.findByConfirmPIN(transfer.getTokenPIN()).orElse(null);
             if (check == null) {
-                return new ResponseEntity<>(new ErrorResponse("INVALID PIN, PLEASE TRY IT"), HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(new ErrorResponse("INVALID PIN, PLEASE TRY AGAIN"), HttpStatus.BAD_REQUEST);
             } else if (check.getStatus().equals(PaymentStatus.REJECT)) {
                 return new ResponseEntity<>(new ErrorResponse("TRANSFER REQUEST ALREADY REJECTED!"), HttpStatus.BAD_REQUEST);
             }else if (check.getStatus().equals(PaymentStatus.EXPIRED)) {
