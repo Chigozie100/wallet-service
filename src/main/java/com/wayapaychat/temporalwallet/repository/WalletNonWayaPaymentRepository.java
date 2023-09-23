@@ -34,6 +34,8 @@ public interface WalletNonWayaPaymentRepository extends JpaRepository<WalletNonW
 			+ " AND u.confirmPIN = UPPER(:pin)")
 	Optional<WalletNonWayaPayment> findByTokenPIN(String tokenId, String pin);
 
+	Optional<WalletNonWayaPayment> findByConfirmPIN(String pin);
+
 	@Query("SELECT u FROM WalletNonWayaPayment u " + "WHERE UPPER(u.tokenId) = UPPER(:tokenId) ")
 	Optional<WalletNonWayaPayment> findByToken(String tokenId);
 

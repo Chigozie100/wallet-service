@@ -19,7 +19,7 @@ public class NonWayaPaymentDTO {
 	@NotBlank(message = "Sender Name must not Null or Blank")
 	private String senderName;
 	
-	@NotBlank(message = "Receiver Name must not Null or Blank")
+//	@NotBlank(message = "Receiver Name must not Null or Blank")
     private String receiverName;
 	
 	@NotBlank(message = "EmailOrPhone must not be Null or Blank")
@@ -45,5 +45,8 @@ public class NonWayaPaymentDTO {
 	@NotBlank(message = "payment Reference must not Null or Blank")
 	@Size(min=3, max=50, message = "paymentReference must be aleast 3 alphanumeric")
 	private String paymentReference;
+
+	@NotBlank(message = "Sender profile info can not be Null or Blank")
+	private String senderProfileId;
 
 }
