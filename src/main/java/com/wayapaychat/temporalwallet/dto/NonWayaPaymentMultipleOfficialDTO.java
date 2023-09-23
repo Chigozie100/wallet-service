@@ -42,6 +42,9 @@ public class NonWayaPaymentMultipleOfficialDTO {
     @NotBlank(message = "Sender Name can not be Null or Blank")
     private String senderName;
 
-    @NotBlank(message = "Receiver Name can not be Blank or Null")
+//    @NotBlank(message = "Receiver Name can not be Blank or Null")
     private String receiverName;
+
+    @NotBlank(message = "Sender profile Info can not be Blank or Null")
+    private String senderProfileId;
 }

@@ -2366,7 +2366,12 @@ public class UserAccountServiceImpl implements UserAccountService {
         try {
             WalletUser user = walletUserRepository.findByUserIdAndProfileId(Long.valueOf(user_id),profileId);
             if (user == null) {
-                return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "USER ID DOES NOT EXIST", null);
+                List<WalletUser> walletUserList = walletUserRepository.findAllByUserId(Long.valueOf(user_id));
+                if(walletUserList.size() > 0 && walletUserList.size() == 1){
+                   user = walletUserList.get(0);
+                }else {
+                    return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "USER ID DOES NOT EXIST", null);
+                }
             }
             List<WalletAccount> accountList = walletAccountRepository.findByUser(user);
             if (accountList.isEmpty()) {

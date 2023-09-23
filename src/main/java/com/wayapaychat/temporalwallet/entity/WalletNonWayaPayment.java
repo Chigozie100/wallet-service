@@ -116,6 +116,11 @@ public class WalletNonWayaPayment {
     private String fullName;
     
     private Long merchantId;
+    private String senderProfileId;
+    private String senderName;
+    private String receiverName;
+    private String beneficiaryProfileId;
+    private String beneficiaryUserId;
 
 	public WalletNonWayaPayment(String tokenId, String emailOrPhone, String tranId,
 			String debitAccountNo, BigDecimal tranAmount, String tranNarrate,
