@@ -950,7 +950,6 @@ public class TransAccountServiceImpl implements TransAccountService {
                 nonWayaPayment.get().setRedeemedAt(LocalDateTime.now());
                 String tranNarrate = "REJECT " + nonWayaPayment.get().getTranNarrate();
                 String payRef = "REJECT" + nonWayaPayment.get().getPaymentReference();
-                walletNonWayaPaymentRepo.save(nonWayaPayment.get());
 
                 ResponseEntity<?> rejectResponse = TransferNonReject(request, nonWayaPayment.get().getDebitAccountNo(), nonWayaPayment.get().getTranAmount(),
                         nonWayaPayment.get().getCrncyCode(), tranNarrate, payRef, transfer.getReceiverName(), nonWayaPayment.get().getSenderName());
@@ -962,6 +961,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 
                 if(!rejectResponse.getStatusCode().is2xxSuccessful())
                     return rejectResponse;
+
+                walletNonWayaPaymentRepo.save(nonWayaPayment.get());
 
                 return new ResponseEntity<>(new SuccessResponse(messageStatus, null), HttpStatus.CREATED);
             }
@@ -997,7 +998,7 @@ public class TransAccountServiceImpl implements TransAccountService {
                 nonWayaPayment.get().setRedeemedEmail(userToken.getEmail());
                 nonWayaPayment.get().setRedeemedBy(userToken.getId().toString());
                 nonWayaPayment.get().setRedeemedAt(LocalDateTime.now());
-                walletNonWayaPaymentRepo.save(nonWayaPayment.get());
+
                 String tranNarrate = "REDEEM " + nonWayaPayment.get().getTranNarrate();
                 String payRef = "REDEEM" + nonWayaPayment.get().getPaymentReference();
                 NonWayaBenefDTO merchant = nonWayaBenefDTO(nonWayaPayment.get(),payRef,tranNarrate);
@@ -1006,6 +1007,7 @@ public class TransAccountServiceImpl implements TransAccountService {
                 if(!redeemedResponse.getStatusCode().is2xxSuccessful())
                     return redeemedResponse;
 
+                walletNonWayaPaymentRepo.save(nonWayaPayment.get());
                 String message = formatMessageRedeem(nonWayaPayment.get().getTranAmount(), payRef);
                 CompletableFuture.runAsync(() -> customNotification.pushInApp(token, nonWayaPayment.get().getFullName(),
                         nonWayaPayment.get().getEmailOrPhone(), message, userToken.getId(), TRANSACTION_PAYOUT));
