@@ -17,8 +17,8 @@ public class NonWayaPayPIN {
 	@Size(min=3, max=10, message = "PIN must be between 1 to 10 digit")
     private String tokenPIN;
 	
-//	@NotNull(message = "Merchant ID must not be Null or Blank")
-//    private Long merchantId;
+	@NotNull(message = "Beneficiary user info must not be Null or Blank")
+    private String beneficiaryUserId;
 
 //	@NotBlank(message = "Receiver Name can not be Null or Blank")
 //	private String receiverName;

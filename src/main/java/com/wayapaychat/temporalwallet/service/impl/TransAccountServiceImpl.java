@@ -921,10 +921,6 @@ public class TransAccountServiceImpl implements TransAccountService {
             if (userToken == null)
                 return new ResponseEntity<>(new ErrorResponse("UNAUTHORIZED, PLEASE LOGIN"), HttpStatus.BAD_REQUEST);
 
-            String userId = String.valueOf(userToken.getId());
-            if(!transfer.getBeneficiaryUserId().equals(userId))
-                return new ResponseEntity<>(new ErrorResponse("YOU LACK CREDENTIAL TO PERFORM THIS ACTION"), HttpStatus.FORBIDDEN);
-
             // check if Transaction is still valid
             Optional<WalletNonWayaPayment> nonWayaPayment = walletNonWayaPaymentRepo.findByToken(transfer.getToken());
             if(!nonWayaPayment.isPresent())
@@ -938,6 +934,10 @@ public class TransAccountServiceImpl implements TransAccountService {
                 return new ResponseEntity<>(new ErrorResponse("TOKEN FOR THIS TRANSACTION HAS EXPIRED"), HttpStatus.BAD_REQUEST);
             }
 
+            String userId = String.valueOf(nonWayaPayment.get().getMerchantId());
+            if(transfer.getBeneficiaryUserId().equals(userId))
+                return new ResponseEntity<>(new ErrorResponse("SAME MERCHANT CAN'T PROCESS AND REDEEM NON-WAYA TRANSFER REQUEST, PLEASE CONTACT SUPPORT!"), HttpStatus.FORBIDDEN);
+
             if(transfer.getStatusAction() == null)
                 return new ResponseEntity<>(new ErrorResponse("KINDLY SPECIFY YOUR REDEEM STATUS ACTION"), HttpStatus.BAD_REQUEST);
 
@@ -947,7 +947,7 @@ public class TransAccountServiceImpl implements TransAccountService {
                 nonWayaPayment.get().setUpdatedAt(LocalDateTime.now());
                 nonWayaPayment.get().setRedeemedEmail(userToken.getEmail());
                 nonWayaPayment.get().setRedeemedBy(userToken.getId().toString());
-                nonWayaPayment.get().setRedeemedAt(LocalDateTime.now());
+                nonWayaPayment.get().setRedeemedAt(LocalDateTime.now().plusHours(1));
                 String tranNarrate = "REJECT " + nonWayaPayment.get().getTranNarrate();
                 String payRef = "REJECT" + nonWayaPayment.get().getPaymentReference();
 
@@ -1044,8 +1044,8 @@ public class TransAccountServiceImpl implements TransAccountService {
             MyData userToken = tokenService.getTokenUser(token);
             if (userToken == null)
                 return new ResponseEntity<>(new ErrorResponse("UNAUTHORIZED, PLEASE LOGIN"), HttpStatus.BAD_REQUEST);
-
-            WalletNonWayaPayment check = walletNonWayaPaymentRepo.findByConfirmPIN(transfer.getTokenPIN()).orElse(null);
+//            beneficiaryUserId
+            WalletNonWayaPayment check = walletNonWayaPaymentRepo.findByConfirmPINAndBeneficiaryUserId(transfer.getTokenPIN(),transfer.getBeneficiaryUserId()).orElse(null);
             if (check == null) {
                 return new ResponseEntity<>(new ErrorResponse("INVALID PIN, PLEASE TRY AGAIN"), HttpStatus.BAD_REQUEST);
             } else if (check.getStatus().equals(PaymentStatus.REJECT)) {
@@ -1063,11 +1063,10 @@ public class TransAccountServiceImpl implements TransAccountService {
                 return new ResponseEntity<>(new ErrorResponse("INVALID PIN, PIN DOES NOT MATCH GENERATED TOKEN"), HttpStatus.BAD_REQUEST);
 
             String senderUserId = String.valueOf(redeem.getMerchantId());
-            String redeemerUserId = String.valueOf(userToken.getId());
-            if (senderUserId.equals(redeemerUserId)) {
-                return new ResponseEntity<>(new ErrorResponse("SAME MERCHANT CAN'T PROCESS NON-WAYA TRANSACTION REQUEST, PLEASE CONTACT SUPPORT!"),
-                        HttpStatus.BAD_REQUEST);
-            }
+            String redeemerUserId = transfer.getBeneficiaryUserId();
+            if(senderUserId.equals(redeemerUserId))
+                return new ResponseEntity<>(new ErrorResponse("SAME MERCHANT CAN'T PROCESS AND REDEEM NON-WAYA TRANSFER REQUEST, PLEASE CONTACT SUPPORT!"), HttpStatus.BAD_REQUEST);
+
             NonWayaRedeemDTO waya = new NonWayaRedeemDTO();
             waya.setReceiverName(redeem.getReceiverName());
             waya.setToken(redeem.getTokenId());
@@ -1077,8 +1076,13 @@ public class TransAccountServiceImpl implements TransAccountService {
 
             ResponseEntity<?> nonWayaPaymentRedeemResponse = NonWayaPaymentRedeem(request, waya);
             log.info("::nonWayaPaymentRedeemResponse {}",nonWayaPaymentRedeemResponse);
+            if(!nonWayaPaymentRedeemResponse.getStatusCode().is2xxSuccessful()){
+                log.info("::CAN'T REDEEMED THIS TRANSACTION {}",redeem.getPaymentReference());
+                redeem.setStatus(PaymentStatus.PENDING);
+                redeem.setUpdatedAt(LocalDateTime.now().plusHours(1));
+                walletNonWayaPaymentRepo.save(redeem);
+            }
             return nonWayaPaymentRedeemResponse;
-
         }catch (Exception ex){
             log.error("::NonWayaRedeemPIN {}",ex.getLocalizedMessage());
             ex.printStackTrace();
@@ -2760,7 +2764,7 @@ public class TransAccountServiceImpl implements TransAccountService {
     public String formatMessagePIN(String pin) {
 
 //        String message = "" + "\n";
-        String message = "" + "Message :" + "Kindly confirm the reserved transaction with received pin: " + pin;
+        String message = "" + "Message : " + "Kindly confirm the reserved transaction with received pin: " + pin;
         return message;
     }
 

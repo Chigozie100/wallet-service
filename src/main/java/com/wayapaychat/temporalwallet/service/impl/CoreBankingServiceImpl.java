@@ -16,6 +16,7 @@ import com.wayapaychat.temporalwallet.util.Constant;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.math3.util.Precision;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -86,6 +87,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     private final UserPricingRepository userPricingRepository;
     private final TransactionCountService transactionCountService;
     private final TokenImpl tokenImpl;
+
 
     @Autowired
     public CoreBankingServiceImpl(SwitchWalletService switchWalletService,
@@ -921,8 +923,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         if (!isOwner && !isWriteAdmin) {
             log.error("owner check {} {}", isOwner, isWriteAdmin);
             return new ResponseEntity<>(new ErrorResponse(String.format("%s %s %s %s",
-                    ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accountNumber, isOwner, isWriteAdmin)),
-                    HttpStatus.BAD_REQUEST);
+                    ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accountNumber, isOwner, isWriteAdmin)), HttpStatus.BAD_REQUEST);
         }
 
         addLien(ownerAccount.get(), amount);
