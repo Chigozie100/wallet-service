@@ -83,11 +83,9 @@ public class TokenImpl {
 			HashMap<String, String> map = new HashMap();
 			map.put("pin", pin);
 			ApiResponse validaResponse = authProxy.validatePostPin(map, token);
-
 			if (!validaResponse.getStatus()) {
 				log.error("Unable to validate pin :: {}", validaResponse);
 			}
-
 			return validaResponse.getStatus();
 		} catch (Exception ex) {
 			log.error("Unable to validate pin :: {}", ex);
