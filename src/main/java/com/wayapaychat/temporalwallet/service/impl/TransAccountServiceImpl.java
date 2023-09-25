@@ -1407,6 +1407,8 @@ public class TransAccountServiceImpl implements TransAccountService {
         transactionDTO.setDebitAccountNumber(transfer.getDebitAccountNumber());
         transactionDTO.setBenefAccountNumber(toAccountNumber);
         transactionDTO.setAmount(transfer.getAmount());
+        transactionDTO.setSenderName(transfer.getSenderName());
+        transactionDTO.setBeneficiaryName(transfer.getBeneficiaryName());
 
         ResponseEntity<?> debitResponse = coreBankingService.processTransaction(transactionDTO, "WAYATRAN", request);
 
@@ -2849,6 +2851,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 
                 WalletPaymentRequest spay = new WalletPaymentRequest(transfer.getPaymentRequest());
                 spay.setSenderProfileId(transfer.getPaymentRequest().getSenderProfileId());
+                spay.setSenderName(transfer.getPaymentRequest().getSenderName());
+                spay.setSenderEmail(transfer.getPaymentRequest().getSenderEmail());
+                spay.setReceiverName(transfer.getPaymentRequest().getReceiverName());
+                spay.setReceiverPhoneNumber(transfer.getPaymentRequest().getReceiverPhoneNumber());
+                spay.setReceiverEmail(transfer.getPaymentRequest().getReceiverEmail());
                 if(transfer.getPaymentRequest().getReceiverProfileId() != null)
                     spay.setReceiverProfileId(transfer.getPaymentRequest().getReceiverProfileId());
 
@@ -2877,8 +2884,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                             creditAcct.getAccountNo(), mPayRequest.getAmount(), "TRANSFER", "NGN",
                             mPayRequest.getReason(),
                             mPayRequest.getReference(), mPayRequest.getCategory().getValue(),
-                            transfer.getPaymentRequest().getReceiverName(),
-                            transfer.getPaymentRequest().getSenderName());
+                            mPayRequest.getReceiverName(),
+                            mPayRequest.getSenderName());
 
                     mPayRequest.setReceiverId(transfer.getPaymentRequest().getReceiverId());
                     mPayRequest.setReceiverProfileId(transfer.getPaymentRequest().getReceiverProfileId());
@@ -2917,8 +2924,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                         OfficeUserTransferDTO transferDTO = new OfficeUserTransferDTO(creditAcct.getAccountNo(),
                                 debitAcct.getAccountNo(), mPayRequest.getAmount(), "TRANSFER", "NGN",
                                 mPayRequest.getReason(),
-                                mPayRequest.getReference(), transfer.getPaymentRequest().getReceiverName(),
-                                transfer.getPaymentRequest().getSenderName());
+                                mPayRequest.getReference(), mPay.getReceiverName(),
+                                mPay.getSenderName());
                         ApiResponse<?> res = OfficialUserTransfer(request, transferDTO, false);
                         if (res.getStatus()) {
 //                            mPayRequest.setReceiverId(mPay.getReceiverId());
@@ -2938,8 +2945,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                                 creditAcct.getAccountNo(), mPayRequest.getAmount(), "TRANSFER", "NGN",
                                 mPayRequest.getReason(),
                                 mPayRequest.getReference(), mPay.getTransactionCategory().getValue(),
-                                transfer.getPaymentRequest().getReceiverName(),
-                                transfer.getPaymentRequest().getSenderName());
+                                mPay.getReceiverName(),
+                                mPay.getSenderName());
 
                         try {
                             ResponseEntity<?> res = sendMoney(request, txt);
