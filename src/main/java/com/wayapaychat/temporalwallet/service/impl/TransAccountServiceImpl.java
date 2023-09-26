@@ -995,8 +995,16 @@ public class TransAccountServiceImpl implements TransAccountService {
                 messageStatus = "TRANSACTION PAYOUT.";
                 nonWayaPayment.get().setStatus(PaymentStatus.PAYOUT);
                 nonWayaPayment.get().setUpdatedAt(LocalDateTime.now());
-                nonWayaPayment.get().setRedeemedEmail(userToken.getEmail());
-                nonWayaPayment.get().setRedeemedBy(userToken.getId().toString());
+                if(transfer.getRedeemerEmail() != null){
+                    nonWayaPayment.get().setRedeemedEmail(transfer.getRedeemerEmail());
+                }else {
+                    nonWayaPayment.get().setRedeemedEmail(userToken.getEmail());
+                }
+                if(transfer.getRedeemerId() != null){
+                    nonWayaPayment.get().setRedeemedBy(transfer.getRedeemerId());
+                }else {
+                    nonWayaPayment.get().setRedeemedBy(userToken.getId().toString());
+                }
                 nonWayaPayment.get().setRedeemedAt(LocalDateTime.now());
 
                 String tranNarrate = "REDEEM " + nonWayaPayment.get().getTranNarrate();
@@ -1084,7 +1092,7 @@ public class TransAccountServiceImpl implements TransAccountService {
             }
             return nonWayaPaymentRedeemResponse;
         }catch (Exception ex){
-            log.error("::NonWayaRedeemPIN {}",ex.getLocalizedMessage());
+            log.error("::Erro NonWayaRedeemPIN {}",ex.getLocalizedMessage());
             ex.printStackTrace();
 //            return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
             throw new CustomException(ex.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
