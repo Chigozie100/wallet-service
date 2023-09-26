@@ -50,8 +50,8 @@ public class NonWayaRedeemDTO {
 	@NotBlank(message = "Receiver Name can not be Null Or Blank")
 	private String beneficiaryUserId;
 
-//	@NotBlank(message = "Sender Name can not be Blank or Null")
-//	private String senderName;
+	private String redeemerEmail;
+	private String redeemerId;
 
 //	public NonWayaRedeemDTO(
 //			Long merchantId,
