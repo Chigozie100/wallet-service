@@ -1080,11 +1080,11 @@ public class TransAccountServiceImpl implements TransAccountService {
             waya.setToken(redeem.getTokenId());
             waya.setStatusAction(NonWayaPaymentStatusAction.ACCEPTED);
             waya.setBeneficiaryProfileId(redeem.getBeneficiaryProfileId());
-            waya.setBeneficiaryUserId(redeem.getBeneficiaryUserId());
-            if(waya.getRedeemerId() !=null)
-                waya.setRedeemerId(waya.getRedeemerId());
-            if(waya.getRedeemerEmail() != null)
-                waya.setRedeemerEmail(waya.getRedeemerEmail());
+            waya.setBeneficiaryUserId(transfer.getBeneficiaryUserId());
+            if(transfer.getRedeemerId() !=null)
+                waya.setRedeemerId(transfer.getRedeemerId());
+            if(transfer.getRedeemerEmail() != null)
+                waya.setRedeemerEmail(transfer.getRedeemerEmail());
 
             ResponseEntity<?> nonWayaPaymentRedeemResponse = NonWayaPaymentRedeem(request, waya);
             log.info("::nonWayaPaymentRedeemResponse {}",nonWayaPaymentRedeemResponse);
