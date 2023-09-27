@@ -46,25 +46,20 @@ public class TokenImpl {
 	}
 
 	public MyData getTokenUser(String token) {
-		MyData data = null;
 		try {
 			TokenCheckResponse tokenResponse = authProxy.getUserDataToken(token);
+			log.info("Authorization Token: {}", tokenResponse);
 			if (tokenResponse == null)
 				throw new CustomException("UNABLE TO AUTHENTICATE", HttpStatus.BAD_REQUEST);
 
-			if (tokenResponse.isStatus())
+			if(tokenResponse.isStatus())
 				return tokenResponse.getData();
-
-			log.info("Authorization Token: {}", tokenResponse.toString());
+			return null;
 		} catch (Exception ex) {
-			if (ex instanceof FeignException) {
-				String httpStatus = Integer.toString(((FeignException) ex).status());
-				log.error("Feign Exception Status {}", httpStatus);
-			}
-			log.error("Higher Wahala {}", ex.getMessage());
-			data = null;
+			log.error("::Error getTokenUser {}", ex.getLocalizedMessage());
+			ex.printStackTrace();
+			return null;
 		}
-		return data;
 	}
 
 	public String getToken() {
@@ -76,9 +71,7 @@ public class TokenImpl {
 			map.put("otp", "");
 
 			TokenCheckResponse tokenData = authProxy.getToken(map);
-
 			return tokenData.getData().getToken();
-
 		} catch (Exception ex) {
 			log.error("Unable to get system token :: {}", ex);
 			return null;
@@ -90,11 +83,9 @@ public class TokenImpl {
 			HashMap<String, String> map = new HashMap();
 			map.put("pin", pin);
 			ApiResponse validaResponse = authProxy.validatePostPin(map, token);
-
 			if (!validaResponse.getStatus()) {
 				log.error("Unable to validate pin :: {}", validaResponse);
 			}
-
 			return validaResponse.getStatus();
 		} catch (Exception ex) {
 			log.error("Unable to validate pin :: {}", ex);

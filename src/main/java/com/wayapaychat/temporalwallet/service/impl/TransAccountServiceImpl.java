@@ -71,6 +71,8 @@ public class TransAccountServiceImpl implements TransAccountService {
     @Value("${waya.wallet.PAYSTACKGL}")
     String paystackgl;
 
+    public static final String mobileDownloadLink = "https://wayabank.ng/";
+
     private final WalletUserRepository walletUserRepository;
     private final WalletAccountRepository walletAccountRepository;
     private final WalletAcountVirtualRepository walletAcountVirtualRepository;
@@ -573,6 +575,11 @@ public class TransAccountServiceImpl implements TransAccountService {
         UserIdentityData _userToken = (UserIdentityData) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         MyData userToken = MyData.newInstance(_userToken);
 
+        Optional<WalletAccount> walletAccount = walletAccountRepository.findByAccount(transfer.getCustomerDebitAccountNo());
+        if(!walletAccount.isPresent())
+            return new ResponseEntity<>(new ErrorResponse("CUSTOMER DEBIT ACCOUNT NOT FOUND, CAN NOT PROCESS TRANSFER"),HttpStatus.NOT_FOUND);
+
+        transfer.setReceiverName(transfer.getFullName());
         String nonWayaDisbursementAccount = coreBankingService.getEventAccountNumber("DISBURSE_NONWAYAPT");
         ResponseEntity<?> debitResponse = coreBankingService.processTransaction(new TransferTransactionDTO(
                 transfer.getCustomerDebitAccountNo(), nonWayaDisbursementAccount, transfer.getAmount(),
@@ -590,38 +597,48 @@ public class TransAccountServiceImpl implements TransAccountService {
                 transfer.getTranNarration(),
                 transfer.getTranCrncy(), transfer.getPaymentReference(), userToken.getId().toString(),
                 userToken.getEmail(), PaymentStatus.PENDING, transfer.getFullName());
+        nonpay.setMerchantId(userToken.getId());
+        nonpay.setSenderName(transfer.getSenderName());
+        nonpay.setSenderProfileId(transfer.getSenderProfileId());
         walletNonWayaPaymentRepo.save(nonpay);
 
         String tranDate = getCurrentDate();
         String tranId = transfer.getPaymentReference();
         String token = request.getHeader(SecurityConstants.HEADER_STRING);
-        String message = formatMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
-                transfer.getTranNarration(), transactionToken);
-        String noneWaya = formatMoneWayaMessage(transfer.getAmount(), transfer.getPaymentReference(), tranDate,
-                transfer.getTranCrncy(), transfer.getTranNarration(), transactionToken);
+        String nonWayaSms = formatMessage(transfer.getAmount(), transactionToken, tranDate, transfer.getTranNarration(),transfer.getReceiverName(),transfer.getSenderName());
+        String nonWayaEmail = formatEmailMessage(transfer.getAmount(), transactionToken,transfer.getReceiverName(),transfer.getSenderName());
 
         if (!StringUtils.isNumeric(transfer.getEmailOrPhoneNo())) {
-            log.info("EMAIL: " + transfer.getEmailOrPhoneNo());
+            log.info("SEND EMAIL NOTIFICATION TO WAYA AND NOW WAYA: " + transfer.getEmailOrPhoneNo());
+            String wayaUserSms = formatMoneWayaMessage(transfer.getAmount(), transfer.getPaymentReference(), tranDate,
+                    transfer.getTranCrncy(), transfer.getTranNarration(), transactionToken,transfer.getReceiverName(),transfer.getEmailOrPhoneNo(),false);
+
             CompletableFuture.runAsync(() -> customNotification.pushNonWayaEMAIL(token, transfer.getFullName(),
-                    transfer.getEmailOrPhoneNo(), message, userToken.getId(), transfer.getAmount().toString(),
+                    transfer.getEmailOrPhoneNo(), nonWayaEmail, userToken.getId(), transfer.getAmount().toString(),
                     tranId, tranDate, transfer.getTranNarration()));
 
             CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
-                    userToken.getPhoneNumber(), noneWaya, userToken.getId()));
+                    userToken.getPhoneNumber(), wayaUserSms, userToken.getId()));
 
             CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
-                    transfer.getEmailOrPhoneNo(), message, userToken.getId(), NON_WAYA_PAYMENT_REQUEST));
+                    transfer.getEmailOrPhoneNo(), nonWayaEmail, userToken.getId(), NON_WAYA_PAYMENT_REQUEST));
         } else {
-            log.info("PHONE: " + transfer.getEmailOrPhoneNo());
+            log.info("SEND PHONE(SMS) NOTIFICATION TO NON-WAYA AND WAYA USER: " + transfer.getEmailOrPhoneNo());
+            String wayaUserSms = formatMoneWayaMessage(transfer.getAmount(), transfer.getPaymentReference(), tranDate,
+                    transfer.getTranCrncy(), transfer.getTranNarration(), transactionToken,transfer.getReceiverName(),transfer.getEmailOrPhoneNo(),true);
+
             CompletableFuture.runAsync(() -> customNotification.pushNonWayaEMAIL(token, transfer.getFullName(),
-                    userToken.getEmail(), message, userToken.getId(), transfer.getAmount().toString(), tranId,
+                    userToken.getEmail(), nonWayaEmail, userToken.getId(), transfer.getAmount().toString(), tranId,
                     tranDate, transfer.getTranNarration()));
 
             CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
-                    transfer.getEmailOrPhoneNo(), noneWaya, userToken.getId()));
+                    transfer.getEmailOrPhoneNo(), nonWayaSms, userToken.getId()));
+
+            CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
+                    userToken.getPhoneNumber(), wayaUserSms, userToken.getId()));
 
             CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
-                    transfer.getEmailOrPhoneNo(), message, userToken.getId(), NON_WAYA_PAYMENT_REQUEST));
+                    transfer.getEmailOrPhoneNo(), nonWayaEmail, userToken.getId(), NON_WAYA_PAYMENT_REQUEST));
         }
 
         return debitResponse;
@@ -646,12 +663,13 @@ public class TransAccountServiceImpl implements TransAccountService {
         String token = request.getHeader(SecurityConstants.HEADER_STRING);
         MyData userToken = tokenService.getTokenUser(token);
         if (userToken == null) {
-            return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>(new ErrorResponse("UNAUTHORIZED, PLEASE LOGIN"), HttpStatus.UNAUTHORIZED);
         }
 
         String transactionToken = tempwallet.generateToken();
         String debitAccountNumber = transfer.getOfficialAccountNumber();
 
+        transfer.setReceiverName(transfer.getFullName());
         String nonWayaDisbursementAccount = coreBankingService.getEventAccountNumber("DISBURSE_NONWAYAPT");
         ResponseEntity<?> debitResponse = coreBankingService
                 .processTransaction(
@@ -665,37 +683,82 @@ public class TransAccountServiceImpl implements TransAccountService {
             return debitResponse;
         }
 
+        WalletNonWayaPayment nonpay = new WalletNonWayaPayment(transactionToken, transfer.getEmailOrPhoneNo(),
+                transfer.getPaymentReference(), transfer.getOfficialAccountNumber(), transfer.getAmount(),
+                transfer.getTranNarration(),
+                transfer.getTranCrncy(), transfer.getPaymentReference(), userToken.getId().toString(),
+                userToken.getEmail(), PaymentStatus.PENDING, transfer.getFullName());
+        nonpay.setMerchantId(userToken.getId());
+        nonpay.setSenderName(transfer.getSenderName());
+        nonpay.setSenderProfileId(transfer.getSenderProfileId());
+        walletNonWayaPaymentRepo.save(nonpay);
+
         String tranDate = getCurrentDate();
         String tranId = transfer.getPaymentReference();
-
-        String message = formatMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
-                transfer.getTranNarration(), transactionToken);
-        String noneWaya = formatMoneWayaMessage(transfer.getAmount(), transfer.getPaymentReference(), tranDate,
-                transfer.getTranCrncy(), transfer.getTranNarration(), transactionToken);
+        String nonWayaSms = formatMessage(transfer.getAmount(), transactionToken, tranDate, transfer.getTranNarration(),transfer.getReceiverName(),transfer.getSenderName());
+        String nonWayaEmail = formatEmailMessage(transfer.getAmount(), transactionToken,transfer.getReceiverName(),transfer.getSenderName());
 
         if (!StringUtils.isNumeric(transfer.getEmailOrPhoneNo())) {
-            log.info("EMAIL: " + transfer.getEmailOrPhoneNo());
+            log.info("SEND EMAIL NOTIFICATION TO WAYA AND NOW WAYA: " + transfer.getEmailOrPhoneNo());
+            String wayaUserSms = formatMoneWayaMessage(transfer.getAmount(), transfer.getPaymentReference(), tranDate,
+                    transfer.getTranCrncy(), transfer.getTranNarration(), transactionToken,transfer.getReceiverName(),transfer.getEmailOrPhoneNo(),false);
+
             CompletableFuture.runAsync(() -> customNotification.pushNonWayaEMAIL(token, transfer.getFullName(),
-                    transfer.getEmailOrPhoneNo(), message, userToken.getId(), transfer.getAmount().toString(),
+                    transfer.getEmailOrPhoneNo(), nonWayaEmail, userToken.getId(), transfer.getAmount().toString(),
                     tranId, tranDate, transfer.getTranNarration()));
 
             CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
-                    userToken.getPhoneNumber(), noneWaya, userToken.getId()));
+                    userToken.getPhoneNumber(), wayaUserSms, userToken.getId()));
 
             CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
-                    transfer.getEmailOrPhoneNo(), message, userToken.getId(), NON_WAYA_PAYMENT_REQUEST));
+                    transfer.getEmailOrPhoneNo(), nonWayaEmail, userToken.getId(), NON_WAYA_PAYMENT_REQUEST));
         } else {
-            log.info("PHONE: " + transfer.getEmailOrPhoneNo());
+            log.info("SEND PHONE(SMS) NOTIFICATION TO NON-WAYA AND WAYA USER: " + transfer.getEmailOrPhoneNo());
+            String wayaUserSms = formatMoneWayaMessage(transfer.getAmount(), transfer.getPaymentReference(), tranDate,
+                    transfer.getTranCrncy(), transfer.getTranNarration(), transactionToken,transfer.getReceiverName(),transfer.getEmailOrPhoneNo(),true);
+
             CompletableFuture.runAsync(() -> customNotification.pushNonWayaEMAIL(token, transfer.getFullName(),
-                    userToken.getEmail(), message, userToken.getId(), transfer.getAmount().toString(), tranId,
+                    userToken.getEmail(), nonWayaEmail, userToken.getId(), transfer.getAmount().toString(), tranId,
                     tranDate, transfer.getTranNarration()));
 
             CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
-                    transfer.getEmailOrPhoneNo(), noneWaya, userToken.getId()));
+                    transfer.getEmailOrPhoneNo(), nonWayaSms, userToken.getId()));
+
+            CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
+                    userToken.getPhoneNumber(), wayaUserSms, userToken.getId()));
 
             CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
-                    transfer.getEmailOrPhoneNo(), message, userToken.getId(), NON_WAYA_PAYMENT_REQUEST));
+                    transfer.getEmailOrPhoneNo(), nonWayaEmail, userToken.getId(), NON_WAYA_PAYMENT_REQUEST));
         }
+
+//        String message = formatMessage(transfer.getAmount(), tranId, tranDate, transfer.getTranCrncy(),
+//                transfer.getTranNarration(), transactionToken);
+//        String noneWaya = formatMoneWayaMessage(transfer.getAmount(), transfer.getPaymentReference(), tranDate,
+//                transfer.getTranCrncy(), transfer.getTranNarration(), transactionToken,transfer.getReceiverName(),);
+//
+//        if (!StringUtils.isNumeric(transfer.getEmailOrPhoneNo())) {
+//            log.info("EMAIL: " + transfer.getEmailOrPhoneNo());
+//            CompletableFuture.runAsync(() -> customNotification.pushNonWayaEMAIL(token, transfer.getFullName(),
+//                    transfer.getEmailOrPhoneNo(), message, userToken.getId(), transfer.getAmount().toString(),
+//                    tranId, tranDate, transfer.getTranNarration()));
+//
+//            CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
+//                    userToken.getPhoneNumber(), noneWaya, userToken.getId()));
+//
+//            CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
+//                    transfer.getEmailOrPhoneNo(), message, userToken.getId(), NON_WAYA_PAYMENT_REQUEST));
+//        } else {
+//            log.info("PHONE: " + transfer.getEmailOrPhoneNo());
+//            CompletableFuture.runAsync(() -> customNotification.pushNonWayaEMAIL(token, transfer.getFullName(),
+//                    userToken.getEmail(), message, userToken.getId(), transfer.getAmount().toString(), tranId,
+//                    tranDate, transfer.getTranNarration()));
+//
+//            CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
+//                    transfer.getEmailOrPhoneNo(), noneWaya, userToken.getId()));
+//
+//            CompletableFuture.runAsync(() -> customNotification.pushInApp(token, transfer.getFullName(),
+//                    transfer.getEmailOrPhoneNo(), message, userToken.getId(), NON_WAYA_PAYMENT_REQUEST));
+//        }
 
         return debitResponse;
     }
@@ -762,30 +825,28 @@ public class TransAccountServiceImpl implements TransAccountService {
 
         String token = request.getHeader(SecurityConstants.HEADER_STRING);
         MyData userToken = tokenService.getTokenUser(token);
-        if (userToken == null) {
-            throw new CustomException("INVALID TOKEN", HttpStatus.BAD_REQUEST);
-        }
+        if (userToken == null)
+            throw new CustomException("UNAUTHORIZED, PLEASE LOGIN", HttpStatus.BAD_REQUEST);
 
-        WalletUser user = walletUserRepository.findByUserIdAndProfileId(transfer.getMerchantId(),transfer.getProfileId());
-        if (user == null) {
-            throw new CustomException("INVALID MERCHANT ID", HttpStatus.BAD_REQUEST);
-        }
+        WalletUser user = walletUserRepository.findByUserIdAndProfileId(Long.valueOf(transfer.getBeneficiaryUserId()),transfer.getBeneficiaryProfileId());
+        if (user == null)
+            throw new CustomException("BENEFICIARY INFO NOT FOUND", HttpStatus.BAD_REQUEST);
+
         String fullName = user.getCust_name();
         String emailAddress = user.getEmailAddress();
         String phoneNo = user.getMobileNo();
 
-        List<WalletAccount> account = user.getAccount();
-        String beneAccount = null;
-        for (WalletAccount mAccount : account) {
-            if (mAccount.isWalletDefault()) {
-                beneAccount = mAccount.getAccountNo();
-            }
-        }
+        Optional<WalletAccount> walletAccount = walletAccountRepository.findByDefaultAccount(user);
+        if(!walletAccount.isPresent())
+            throw new CustomException("BENEFICIARY ACCOUNT NOT FOUND", HttpStatus.BAD_REQUEST);
+
+        String beneAccount = walletAccount.get().getAccountNo();
 
         String transactionToken = tempwallet.generateToken();
-
         // Debit NONWAYAPT can credit Customer account
         String noneWayaAccount = coreBankingService.getEventAccountNumber("DISBURSE_NONWAYAPT");
+        if(noneWayaAccount == null)
+            throw new CustomException("DISBURSEMENT ACCOUNT NOT FOUND", HttpStatus.BAD_REQUEST);
 
         ResponseEntity<?> debitResponse = coreBankingService
                 .processTransaction(new TransferTransactionDTO(noneWayaAccount, beneAccount, transfer.getAmount(),
@@ -854,135 +915,216 @@ public class TransAccountServiceImpl implements TransAccountService {
     @Override
     public ResponseEntity<?> NonWayaPaymentRedeem(HttpServletRequest request, NonWayaRedeemDTO transfer) {
         try {
-            // check if Transaction is still valid
-            WalletNonWayaPayment data1 = walletNonWayaPaymentRepo.findByToken(transfer.getToken()).orElse(null);
-            if (Objects.requireNonNull(data1).getStatus().equals(PaymentStatus.REJECT)) {
-                return new ResponseEntity<>(new ErrorResponse("TOKEN IS NO LONGER VALID"), HttpStatus.BAD_REQUEST);
-            } else if (data1.getStatus().equals(PaymentStatus.PAYOUT)) {
-                return new ResponseEntity<>(new ErrorResponse("TRANSACTION HAS BEEN PAYED OUT"),
-                        HttpStatus.BAD_REQUEST);
-            } else if (data1.getStatus().equals(PaymentStatus.EXPIRED)) {
-                return new ResponseEntity<>(new ErrorResponse("TOKEN FOR THIS TRANSACTION HAS EXPIRED"),
-                        HttpStatus.BAD_REQUEST);
-            }
-
             // To fetch the token used
             String token = request.getHeader(SecurityConstants.HEADER_STRING);
             MyData userToken = tokenService.getTokenUser(token);
-            if (userToken == null) {
-                return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
+            if (userToken == null)
+                return new ResponseEntity<>(new ErrorResponse("UNAUTHORIZED, PLEASE LOGIN"), HttpStatus.BAD_REQUEST);
+
+            // check if Transaction is still valid
+            Optional<WalletNonWayaPayment> nonWayaPayment = walletNonWayaPaymentRepo.findByToken(transfer.getToken());
+            if(!nonWayaPayment.isPresent())
+                return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN, CAN NOT REDEEMED THIS CREDIT"), HttpStatus.BAD_REQUEST);
+
+            if (nonWayaPayment.get().getStatus() != null && nonWayaPayment.get().getStatus().equals(PaymentStatus.REJECT)) {
+                return new ResponseEntity<>(new ErrorResponse("TOKEN IS NO LONGER VALID, CAN NOT REDEEMED THIS CREDIT"), HttpStatus.BAD_REQUEST);
+            } else if (nonWayaPayment.get().getStatus() != null && nonWayaPayment.get().getStatus().equals(PaymentStatus.PAYOUT)) {
+                return new ResponseEntity<>(new ErrorResponse("TRANSACTION HAS BEEN PAID OUT"), HttpStatus.BAD_REQUEST);
+            } else if (nonWayaPayment.get().getStatus() != null && nonWayaPayment.get().getStatus().equals(PaymentStatus.EXPIRED)) {
+                return new ResponseEntity<>(new ErrorResponse("TOKEN FOR THIS TRANSACTION HAS EXPIRED"), HttpStatus.BAD_REQUEST);
             }
-            WalletNonWayaPayment redeem = walletNonWayaPaymentRepo.findByTransaction(transfer.getToken(), transfer.getTranCrncy()).orElse(null);
-            if (redeem == null) {
-                return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN.PLEASE CHECK IT"), HttpStatus.BAD_REQUEST);
+
+            String userId = String.valueOf(nonWayaPayment.get().getMerchantId());
+            if(transfer.getBeneficiaryUserId().equals(userId))
+                return new ResponseEntity<>(new ErrorResponse("SAME MERCHANT CAN'T PROCESS AND REDEEM NON-WAYA TRANSFER REQUEST, PLEASE CONTACT SUPPORT!"), HttpStatus.FORBIDDEN);
+
+            if(transfer.getStatusAction() == null)
+                return new ResponseEntity<>(new ErrorResponse("KINDLY SPECIFY YOUR REDEEM STATUS ACTION"), HttpStatus.BAD_REQUEST);
+
+            if(transfer.getStatusAction().equals(NonWayaPaymentStatusAction.REJECTED)){
+                String messageStatus = "TRANSACTION REJECT.";
+                nonWayaPayment.get().setStatus(PaymentStatus.REJECT);
+                nonWayaPayment.get().setUpdatedAt(LocalDateTime.now());
+                nonWayaPayment.get().setRedeemedEmail(userToken.getEmail());
+                nonWayaPayment.get().setRedeemedBy(userToken.getId().toString());
+                nonWayaPayment.get().setRedeemedAt(LocalDateTime.now().plusHours(1));
+                String tranNarrate = "REJECT " + nonWayaPayment.get().getTranNarrate();
+                String payRef = "REJECT" + nonWayaPayment.get().getPaymentReference();
+
+                ResponseEntity<?> rejectResponse = TransferNonReject(request, nonWayaPayment.get().getDebitAccountNo(), nonWayaPayment.get().getTranAmount(),
+                        nonWayaPayment.get().getCrncyCode(), tranNarrate, payRef, transfer.getReceiverName(), nonWayaPayment.get().getSenderName());
+                log.info("TransferNonReject =" + rejectResponse);
+
+                String message = formatMessengerRejection(nonWayaPayment.get().getTranAmount(), payRef,nonWayaPayment.get().getFullName(),nonWayaPayment.get().getEmailOrPhone());
+                CompletableFuture.runAsync(() -> customNotification.pushInApp(token, nonWayaPayment.get().getFullName(),
+                        nonWayaPayment.get().getEmailOrPhone(), message, userToken.getId(), TRANSACTION_REJECTED));
+
+                if(!rejectResponse.getStatusCode().is2xxSuccessful())
+                    return rejectResponse;
+
+                walletNonWayaPaymentRepo.save(nonWayaPayment.get());
+
+                return new ResponseEntity<>(new SuccessResponse(messageStatus, null), HttpStatus.CREATED);
             }
 
             String messageStatus;
-            if (redeem.getStatus().name().equals("PENDING")) {
-                if (transfer.getTranStatus().equals("RESERVED")) {
-                    messageStatus = "TRANSACTION RESERVED: Kindly note that confirm PIN has been sent";
-                    redeem.setStatus(PaymentStatus.RESERVED);
-                    String pinToken = tempwallet.generatePIN();
-                    redeem.setConfirmPIN(pinToken);
-                    redeem.setUpdatedAt(LocalDateTime.now());
-                    redeem.setMerchantId(transfer.getMerchantId());
-                    String message = formatMessagePIN(pinToken);
-                    CompletableFuture.runAsync(() -> customNotification.pushEMAIL(REDEEM_NON_WAYA_TRANSACTION_ALERT,
-                            token, redeem.getFullName(),
-                            redeem.getEmailOrPhone(), message, userToken.getId()));
-                    CompletableFuture.runAsync(() -> customNotification.pushSMS(token, redeem.getFullName(),
-                            redeem.getEmailOrPhone(), message, userToken.getId()));
-                    CompletableFuture.runAsync(() -> customNotification.pushInApp(token, redeem.getFullName(),
-                            redeem.getEmailOrPhone(), message, userToken.getId(), TRANSACTION_HAS_OCCURRED));
-                    walletNonWayaPaymentRepo.save(redeem);
-                } else {
-                    return new ResponseEntity<>(new ErrorResponse("TRANSACTION MUST BE RESERVED FIRST"), HttpStatus.BAD_REQUEST);
-                }
-            } else if (redeem.getStatus().name().equals("RESERVED")) {
-                if (transfer.getTranStatus().equals("PAYOUT")) {
-                    messageStatus = "TRANSACTION PAYOUT.";
-                    redeem.setStatus(PaymentStatus.PAYOUT);
-                    redeem.setUpdatedAt(LocalDateTime.now());
-                    redeem.setRedeemedEmail(userToken.getEmail());
-                    redeem.setRedeemedBy(userToken.getId().toString());
-                    redeem.setRedeemedAt(LocalDateTime.now());
-                    walletNonWayaPaymentRepo.save(redeem);
-                    String tranNarrate = "REDEEM " + redeem.getTranNarrate();
-                    String payRef = "REDEEM" + redeem.getPaymentReference();
-                    NonWayaBenefDTO merchant = new NonWayaBenefDTO(redeem.getMerchantId(), redeem.getTranAmount(),
-                            redeem.getCrncyCode(), tranNarrate, payRef);
-                    ResponseEntity<?> ress = TransferNonRedeem(request, merchant);
-                    log.info(ress.toString());
-                    // BigDecimal amount, String tranId, String tranDate
-                    String message = formatMessageRedeem(redeem.getTranAmount(), payRef);
-                    CompletableFuture.runAsync(() -> customNotification.pushInApp(token, redeem.getFullName(),
-                            redeem.getEmailOrPhone(), message, userToken.getId(), TRANSACTION_PAYOUT));
-                } else {
-                    if (transfer.getTranStatus().equals("REJECT")) {
-                        messageStatus = "TRANSACTION REJECT.";
-                        redeem.setStatus(PaymentStatus.REJECT);
-                        redeem.setUpdatedAt(LocalDateTime.now());
-                        redeem.setRedeemedEmail(userToken.getEmail());
-                        redeem.setRedeemedBy(userToken.getId().toString());
-                        redeem.setRedeemedAt(LocalDateTime.now());
-                        String tranNarrate = "REJECT " + redeem.getTranNarrate();
-                        String payRef = "REJECT" + redeem.getPaymentReference();
-                        walletNonWayaPaymentRepo.save(redeem);
-                        ResponseEntity<?> res = TransferNonReject(request, redeem.getDebitAccountNo(),
-                                redeem.getTranAmount(),
-                                redeem.getCrncyCode(), tranNarrate, payRef, transfer.getReceiverName(),
-                                transfer.getSenderName());
-                        log.info("res =" + res);
-                        String message = formatMessengerRejection(redeem.getTranAmount(), payRef);
-                        CompletableFuture.runAsync(() -> customNotification.pushInApp(token, redeem.getFullName(),
-                                redeem.getEmailOrPhone(), message, userToken.getId(), TRANSACTION_REJECTED));
-                    } else {
-                        return new ResponseEntity<>(new ErrorResponse("UNABLE TO CONFIRMED TRANSACTION WITH PIN SENT"),
-                                HttpStatus.BAD_REQUEST);
-                    }
-                }
-            } else {
-                return new ResponseEntity<>(new ErrorResponse("UNABLE TO PAYOUT.PLEASE CHECK YOUR TOKEN"),
-                        HttpStatus.BAD_REQUEST);
-            }
-            return new ResponseEntity<>(new SuccessResponse(messageStatus, null), HttpStatus.CREATED);
+            if (nonWayaPayment.get().getStatus() != null && nonWayaPayment.get().getStatus().equals(PaymentStatus.PENDING)) {
+                messageStatus = "TRANSACTION RESERVED: Kindly note that a confirm PIN has been sent to "+nonWayaPayment.get().getEmailOrPhone();
+                nonWayaPayment.get().setStatus(PaymentStatus.RESERVED);
+                String pinToken = tempwallet.generatePIN();
+                nonWayaPayment.get().setConfirmPIN(pinToken);
+                nonWayaPayment.get().setUpdatedAt(LocalDateTime.now());
+                nonWayaPayment.get().setBeneficiaryUserId(transfer.getBeneficiaryUserId());
+                nonWayaPayment.get().setBeneficiaryProfileId(transfer.getBeneficiaryProfileId());
+                nonWayaPayment.get().setReceiverName(transfer.getReceiverName());
+                walletNonWayaPaymentRepo.save(nonWayaPayment.get());
+                String message = formatMessagePIN(pinToken);
 
+                if(nonWayaPayment.get().getEmailOrPhone().contains("@")){
+                    CompletableFuture.runAsync(() -> customNotification.pushEMAIL(REDEEM_NON_WAYA_TRANSACTION_ALERT,
+                            token, nonWayaPayment.get().getFullName(), nonWayaPayment.get().getEmailOrPhone(), message, userToken.getId()));
+                }else {
+                    CompletableFuture.runAsync(() -> customNotification.pushSMS(token, nonWayaPayment.get().getFullName(),
+                            nonWayaPayment.get().getEmailOrPhone(), message, userToken.getId()));
+                }
+                CompletableFuture.runAsync(() -> customNotification.pushInApp(token, nonWayaPayment.get().getFullName(),
+                        nonWayaPayment.get().getEmailOrPhone(), message, userToken.getId(), TRANSACTION_HAS_OCCURRED));
+
+                return new ResponseEntity<>(new SuccessResponse(messageStatus, null), HttpStatus.CREATED);
+            } else if (nonWayaPayment.get().getStatus() != null && nonWayaPayment.get().getStatus().equals(PaymentStatus.RESERVED)) {
+                messageStatus = "TRANSACTION PAYOUT.";
+                nonWayaPayment.get().setStatus(PaymentStatus.PAYOUT);
+                nonWayaPayment.get().setUpdatedAt(LocalDateTime.now());
+                if(transfer.getRedeemerEmail() != null){
+                    nonWayaPayment.get().setRedeemedEmail(transfer.getRedeemerEmail());
+                }else {
+                    nonWayaPayment.get().setRedeemedEmail(userToken.getEmail());
+                }
+                if(transfer.getRedeemerId() != null){
+                    nonWayaPayment.get().setRedeemedBy(transfer.getRedeemerId());
+                }else {
+                    nonWayaPayment.get().setRedeemedBy(userToken.getId().toString());
+                }
+                nonWayaPayment.get().setRedeemedAt(LocalDateTime.now());
+
+                String tranNarrate = "REDEEM " + nonWayaPayment.get().getTranNarrate();
+                String payRef = "REDEEM" + nonWayaPayment.get().getPaymentReference();
+                NonWayaBenefDTO merchant = nonWayaBenefDTO(nonWayaPayment.get(),payRef,tranNarrate);
+                ResponseEntity<?> redeemedResponse = TransferNonRedeem(request, merchant);
+                log.info("::TransferNonRedeem {}",redeemedResponse);
+                if(!redeemedResponse.getStatusCode().is2xxSuccessful())
+                    return redeemedResponse;
+
+                walletNonWayaPaymentRepo.save(nonWayaPayment.get());
+                String message = formatMessageRedeem(nonWayaPayment.get().getTranAmount(), payRef);
+                CompletableFuture.runAsync(() -> customNotification.pushInApp(token, nonWayaPayment.get().getFullName(),
+                        nonWayaPayment.get().getEmailOrPhone(), message, userToken.getId(), TRANSACTION_PAYOUT));
+
+                return new ResponseEntity<>(new SuccessResponse(messageStatus, null), HttpStatus.CREATED);
+            } else {
+                return new ResponseEntity<>(new ErrorResponse("UNABLE TO PAYOUT.PLEASE TRY AGAIN"), HttpStatus.BAD_REQUEST);
+            }
         } catch (Exception ex) {
-            log.error(ex.getMessage());
+            log.error("::Error NonWayaPaymentRedeem {}",ex.getLocalizedMessage());
+            ex.printStackTrace();
             throw new CustomException(ex.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
-    @Override
-    public ResponseEntity<?> NonWayaRedeemPIN(HttpServletRequest request, NonWayaPayPIN transfer) {
 
-        WalletNonWayaPayment check = walletNonWayaPaymentRepo
-                .findByToken(transfer.getTokenId()).orElse(null);
-        if (check == null) {
-            return new ResponseEntity<>(new ErrorResponse("INVALID PIN.PLEASE CHECK IT"), HttpStatus.BAD_REQUEST);
-        } else if (check.getStatus().equals(PaymentStatus.REJECT)) {
-            return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN OR TOKEN HAS EXPIRED AFTER 30DAYs"),
-                    HttpStatus.BAD_REQUEST);
-        }
-
-        WalletNonWayaPayment redeem = walletNonWayaPaymentRepo
-                .findByTokenPIN(transfer.getTokenId(), transfer.getTokenPIN()).orElse(null);
-        if (redeem == null) {
-            return new ResponseEntity<>(new ErrorResponse("INVALID PIN.PLEASE CHECK IT"), HttpStatus.BAD_REQUEST);
-        }
-
-        if (redeem.getMerchantId().compareTo(transfer.getMerchantId()) != 0) {
-            return new ResponseEntity<>(
-                    new ErrorResponse("TWO MERCHANT CAN'T PROCESS NON-WAYA TRANSACTION. PLEASE CONTACT ADMIN"),
-                    HttpStatus.BAD_REQUEST);
-        }
-        NonWayaRedeemDTO waya = new NonWayaRedeemDTO(redeem.getMerchantId(), redeem.getTranAmount(),
-                redeem.getCrncyCode(), redeem.getTokenId(), "PAYOUT", transfer.getReceiverName(),
-                transfer.getSenderName());
-        NonWayaPaymentRedeem(request, waya);
-        return new ResponseEntity<>(new SuccessResponse("SUCCESS", null), HttpStatus.CREATED);
+    private NonWayaBenefDTO nonWayaBenefDTO(WalletNonWayaPayment nonWayaPayment, String ref, String narration){
+        NonWayaBenefDTO wayaBenefDTO = new NonWayaBenefDTO();
+        wayaBenefDTO.setAmount(nonWayaPayment.getTranAmount());
+        wayaBenefDTO.setPaymentReference(ref);
+        wayaBenefDTO.setTranCrncy(nonWayaPayment.getCrncyCode());
+        wayaBenefDTO.setTranNarration(narration);
+        wayaBenefDTO.setReceiverName(nonWayaPayment.getReceiverName());
+        wayaBenefDTO.setSenderName(nonWayaPayment.getSenderName());
+        wayaBenefDTO.setBeneficiaryUserId(nonWayaPayment.getBeneficiaryUserId());
+        wayaBenefDTO.setBeneficiaryProfileId(nonWayaPayment.getBeneficiaryProfileId());
+        return wayaBenefDTO;
     }
 
+    @Override
+    public ResponseEntity<?> NonWayaRedeemPIN(HttpServletRequest request, NonWayaPayPIN transfer) {
+        try {
+            String token = request.getHeader(SecurityConstants.HEADER_STRING);
+            MyData userToken = tokenService.getTokenUser(token);
+            if (userToken == null)
+                return new ResponseEntity<>(new ErrorResponse("UNAUTHORIZED, PLEASE LOGIN"), HttpStatus.BAD_REQUEST);
+//            beneficiaryUserId
+            WalletNonWayaPayment check = walletNonWayaPaymentRepo.findByConfirmPINAndBeneficiaryUserId(transfer.getTokenPIN(),transfer.getBeneficiaryUserId()).orElse(null);
+            if (check == null) {
+                return new ResponseEntity<>(new ErrorResponse("INVALID PIN, PLEASE TRY AGAIN"), HttpStatus.BAD_REQUEST);
+            } else if (check.getStatus().equals(PaymentStatus.REJECT)) {
+                return new ResponseEntity<>(new ErrorResponse("TRANSFER REQUEST ALREADY REJECTED!"), HttpStatus.BAD_REQUEST);
+            }else if (check.getStatus().equals(PaymentStatus.EXPIRED)) {
+                return new ResponseEntity<>(new ErrorResponse("TOKEN HAS EXPIRED AFTER 30DAYs"), HttpStatus.BAD_REQUEST);
+            }else if (check.getStatus().equals(PaymentStatus.PAYOUT)) {
+                return new ResponseEntity<>(new ErrorResponse("TRANSFER ALREADY REDEEMED BY "+check.getRedeemedEmail()), HttpStatus.BAD_REQUEST);
+            }else if (check.getStatus().equals(PaymentStatus.PENDING)) {
+                return new ResponseEntity<>(new ErrorResponse("OTP IS NEED TO PERFORM THIS ACTION, KINDLY REQUEST REDEEMER OTP"), HttpStatus.BAD_REQUEST);
+            }
+
+            WalletNonWayaPayment redeem = walletNonWayaPaymentRepo.findByTokenPIN(check.getTokenId(), transfer.getTokenPIN()).orElse(null);
+            if (redeem == null)
+                return new ResponseEntity<>(new ErrorResponse("INVALID PIN, PIN DOES NOT MATCH GENERATED TOKEN"), HttpStatus.BAD_REQUEST);
+
+            String senderUserId = String.valueOf(redeem.getMerchantId());
+            String redeemerUserId = transfer.getBeneficiaryUserId();
+            if(senderUserId.equals(redeemerUserId))
+                return new ResponseEntity<>(new ErrorResponse("SAME MERCHANT CAN'T PROCESS AND REDEEM NON-WAYA TRANSFER REQUEST, PLEASE CONTACT SUPPORT!"), HttpStatus.BAD_REQUEST);
+
+            NonWayaRedeemDTO waya = new NonWayaRedeemDTO();
+            waya.setReceiverName(redeem.getReceiverName());
+            waya.setToken(redeem.getTokenId());
+            waya.setStatusAction(NonWayaPaymentStatusAction.ACCEPTED);
+            waya.setBeneficiaryProfileId(redeem.getBeneficiaryProfileId());
+            waya.setBeneficiaryUserId(transfer.getBeneficiaryUserId());
+            if(transfer.getRedeemerId() !=null)
+                waya.setRedeemerId(transfer.getRedeemerId());
+            if(transfer.getRedeemerEmail() != null)
+                waya.setRedeemerEmail(transfer.getRedeemerEmail());
+
+            ResponseEntity<?> nonWayaPaymentRedeemResponse = NonWayaPaymentRedeem(request, waya);
+            log.info("::nonWayaPaymentRedeemResponse {}",nonWayaPaymentRedeemResponse);
+            if(!nonWayaPaymentRedeemResponse.getStatusCode().is2xxSuccessful()){
+                log.info("::CAN'T REDEEMED THIS TRANSACTION {}",redeem.getPaymentReference());
+                redeem.setStatus(PaymentStatus.PENDING);
+                redeem.setUpdatedAt(LocalDateTime.now().plusHours(1));
+                walletNonWayaPaymentRepo.save(redeem);
+            }
+            return nonWayaPaymentRedeemResponse;
+        }catch (Exception ex){
+            log.error("::Erro NonWayaRedeemPIN {}",ex.getLocalizedMessage());
+            ex.printStackTrace();
+//            return new ResponseEntity<>(new ErrorResponse(ex.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+            throw new CustomException(ex.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+
+    public WalletAccount findUserAccount(Long userId, String profileId){
+        try {
+            WalletUser walletUser = walletUserRepository.findByUserIdAndProfileId(userId,profileId);
+            if(walletUser == null){
+                List<WalletUser> walletUserList = walletUserRepository.findAllByUserId(userId);
+                if(walletUserList.size() > 0 && walletUserList.size() == 1){
+                    walletUser = walletUserList.get(0);
+                }else {
+                    return  null;
+                }
+            }
+            Optional<WalletAccount> walletAccount = walletAccountRepository.findByDefaultAccount(walletUser);
+            if(walletAccount.isPresent())
+                return walletAccount.get();
+            return null;
+        }catch (Exception ex){
+            log.error("findUserAccount {}",ex.getLocalizedMessage());
+            ex.printStackTrace();
+            return null;
+        }
+    }
 
     public WalletAccount findByEmailOrPhoneNumberOrId(Boolean isAccountNumber, String value, String userId, String accountNo,String profileId) {
         
@@ -997,7 +1139,8 @@ public class TransAccountServiceImpl implements TransAccountService {
             if (!isAccountNumber) {
                 return walletAccountRepository.findByAccount(value).get();
             }
-            Optional<WalletUser> user;
+            Optional<WalletUser> user ;
+//                    = walletUserRepository.findUserIdAndProfileId(Long.parseLong(value),profileId);
             if (value.startsWith("234") || value.contains("@")) {
                 user = walletUserRepository.findByEmailOrPhoneNumber(value);
             } else {
@@ -1276,6 +1419,8 @@ public class TransAccountServiceImpl implements TransAccountService {
         transactionDTO.setDebitAccountNumber(transfer.getDebitAccountNumber());
         transactionDTO.setBenefAccountNumber(toAccountNumber);
         transactionDTO.setAmount(transfer.getAmount());
+        transactionDTO.setSenderName(transfer.getSenderName());
+        transactionDTO.setBeneficiaryName(transfer.getBeneficiaryName());
 
         ResponseEntity<?> debitResponse = coreBankingService.processTransaction(transactionDTO, "WAYATRAN", request);
 
@@ -2494,27 +2639,43 @@ public class TransAccountServiceImpl implements TransAccountService {
                 .orElseThrow(() -> new NoSuchElementException("EVENT ID NOT AVAILABLE FOR EventId :" + eventId));
     }
 
-    public String formatMessage(BigDecimal amount, String tranId, String tranDate, String tranCrncy, String narration,
-            String tokenId) {
-        log.info("amt" + amount + "|" + tranId + "|" + tranCrncy + "|" + narration + "|" + tranDate);
-//        String message = "" + "\n";
-        String message = "" + "A transaction has occurred with token id: " + tokenId
-                + "  on your account see details below." + "\n";
+    public String formatMessage(BigDecimal amount, String tokenId, String tranDate, String narration,String receiverName, String senderName) {
+        log.info("amt" + amount + "|" + tokenId + "|" + narration + "|" + tranDate + "|" + receiverName + "|" + senderName);
+        String message = "" + "Dear "+receiverName+",\n";
+        message = message +"" + "You have received a credit alert from "+senderName+" see details below." + "\n";
+        message = message + "" + "Amount : " + amount + "\n";
+        message = message + "" + "TokenId : " + tokenId + "\n";
+        message = message + "" + "TranDate : " + tranDate + "\n";
+        message = message + "" + "Narration : " + narration + "\n";
+        message = message + "" + "To claim this credit, use "+tokenId+" and proceed to download Wayabank App "+mobileDownloadLink+ " or visit any Wayabank outlets."+"\n";
+        return message;
+    }
+
+    public String formatEmailMessage(BigDecimal amount, String tokenId,String receiverName, String senderName) {
+        log.info("amt" + amount + "|" + tokenId + "|" + receiverName + "|" + senderName);
+        String message = "" + "Dear "+receiverName+",\n";
+        message = message +"" + "You have received a credit alert of NGN"+amount+" from "+senderName+", use this token id: "+tokenId+" to claim it by proceeding to download Wayabank App "+mobileDownloadLink+" or visit any Wayabank outlets" + "\n";
         return message;
     }
 
     public String formatMoneWayaMessage(BigDecimal amount, String tranId, String tranDate, String tranCrncy,
             String narration,
-            String tokenId) {
+            String tokenId,String receiver,String receiverMeans, boolean phone) {
 
 //        String message = "" + "\n";
         String message = "" + "A transaction has occurred with token id: " + tokenId
                 + "  on your account see details below." + "\n";
-        message = message + "" + "Amount :" + amount + "\n";
-        message = message + "" + "tranId :" + tranId + "\n";
-        message = message + "" + "tranDate :" + tranDate + "\n";
-        message = message + "" + "Currency :" + tranCrncy + "\n";
-        message = message + "" + "Narration :" + narration + "\n";
+        message = message + "" + "Amount : " + amount + "\n";
+        message = message + "" + "tranId : " + tranId + "\n";
+        message = message + "" + "tranDate : " + tranDate + "\n";
+        message = message + "" + "Currency : " + tranCrncy + "\n";
+        message = message + "" + "Narration : " + narration + "\n";
+        message = message + "" + "Receiver : " + receiver + "\n";
+        if(phone){
+            message = message + "" + "ReceiverPhone : " + receiverMeans + "\n";
+        }else {
+            message = message + "" + "ReceiverEmail : " + receiverMeans + "\n";
+        }
         return message;
     }
 
@@ -2617,23 +2778,19 @@ public class TransAccountServiceImpl implements TransAccountService {
     public String formatMessagePIN(String pin) {
 
 //        String message = "" + "\n";
-        String message = "" + "Message :" + "Kindly confirm the reserved transaction with received pin: " + pin;
+        String message = "" + "Message : " + "Kindly confirm the reserved transaction with received pin: " + pin;
         return message;
     }
 
     public String formatMessageRedeem(BigDecimal amount, String tranId) {
 
-//        String message = "" + "\n";
         String message = "" + "Message :" + "Transaction payout has occurred"
-                + " on your account Amount =" + amount + " Transaction Id = " + tranId;
+                + " on your account, Amount =" + amount + " Transaction Id = " + tranId;
         return message;
     }
 
-    public String formatMessengerRejection(BigDecimal amount, String tranId) {
-
-//        String message = "" + "\n";
-        String message = "" + "Message :" + "Transaction has been request"
-                + " on your account Amount =" + amount + " Transaction Id = " + tranId;
+    public String formatMessengerRejection(BigDecimal amount, String tranId,String name, String phone) {
+        String message = "" + "Message : " + "Transaction Amount: " + amount +", Transaction Id: " +tranId+" request sent to " +name+ ", with "+phone+" on your account has been rejected.";
         return message;
     }
 
@@ -2706,6 +2863,11 @@ public class TransAccountServiceImpl implements TransAccountService {
 
                 WalletPaymentRequest spay = new WalletPaymentRequest(transfer.getPaymentRequest());
                 spay.setSenderProfileId(transfer.getPaymentRequest().getSenderProfileId());
+                spay.setSenderName(transfer.getPaymentRequest().getSenderName());
+                spay.setSenderEmail(transfer.getPaymentRequest().getSenderEmail());
+                spay.setReceiverName(transfer.getPaymentRequest().getReceiverName());
+                spay.setReceiverPhoneNumber(transfer.getPaymentRequest().getReceiverPhoneNumber());
+                spay.setReceiverEmail(transfer.getPaymentRequest().getReceiverEmail());
                 if(transfer.getPaymentRequest().getReceiverProfileId() != null)
                     spay.setReceiverProfileId(transfer.getPaymentRequest().getReceiverProfileId());
 
@@ -2734,8 +2896,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                             creditAcct.getAccountNo(), mPayRequest.getAmount(), "TRANSFER", "NGN",
                             mPayRequest.getReason(),
                             mPayRequest.getReference(), mPayRequest.getCategory().getValue(),
-                            transfer.getPaymentRequest().getReceiverName(),
-                            transfer.getPaymentRequest().getSenderName());
+                            mPayRequest.getReceiverName(),
+                            mPayRequest.getSenderName());
 
                     mPayRequest.setReceiverId(transfer.getPaymentRequest().getReceiverId());
                     mPayRequest.setReceiverProfileId(transfer.getPaymentRequest().getReceiverProfileId());
@@ -2774,8 +2936,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                         OfficeUserTransferDTO transferDTO = new OfficeUserTransferDTO(creditAcct.getAccountNo(),
                                 debitAcct.getAccountNo(), mPayRequest.getAmount(), "TRANSFER", "NGN",
                                 mPayRequest.getReason(),
-                                mPayRequest.getReference(), transfer.getPaymentRequest().getReceiverName(),
-                                transfer.getPaymentRequest().getSenderName());
+                                mPayRequest.getReference(), mPay.getReceiverName(),
+                                mPay.getSenderName());
                         ApiResponse<?> res = OfficialUserTransfer(request, transferDTO, false);
                         if (res.getStatus()) {
 //                            mPayRequest.setReceiverId(mPay.getReceiverId());
@@ -2795,8 +2957,8 @@ public class TransAccountServiceImpl implements TransAccountService {
                                 creditAcct.getAccountNo(), mPayRequest.getAmount(), "TRANSFER", "NGN",
                                 mPayRequest.getReason(),
                                 mPayRequest.getReference(), mPay.getTransactionCategory().getValue(),
-                                transfer.getPaymentRequest().getReceiverName(),
-                                transfer.getPaymentRequest().getSenderName());
+                                mPay.getReceiverName(),
+                                mPay.getSenderName());
 
                         try {
                             ResponseEntity<?> res = sendMoney(request, txt);
@@ -3309,6 +3471,39 @@ public class TransAccountServiceImpl implements TransAccountService {
             log.error("Error fetchUserTransactionsByReferenceNumber:: {}", ex.getLocalizedMessage());
             ex.printStackTrace();
             return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "Oops!, unable to fetch transaction", null);
+        }
+    }
+
+
+    @Override
+    public ApiResponse<?> fetchMerchantTransactionTqs(String token, String accountNumber,String referenceNumber) {
+        try {
+            TokenCheckResponse tokenCheckResponse = authProxy.getUserDataToken(token);
+            if(!tokenCheckResponse.isStatus())
+                return new ApiResponse<>(false, ApiResponse.Code.UNAUTHORIZED, "UNAUTHORIZED", null);
+
+            WalletAccount account = walletAccountRepository.findByAccountNo(accountNumber);
+            if (account == null)
+                return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "INVALID ACCOUNT NO", null);
+
+            WalletUser walletUser = walletUserRepository.findByAccount(account);
+            if(walletUser == null)
+                return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "ACCOUNT PROFILE NOT FOUND", null);
+
+            String acctUserId = String.valueOf(tokenCheckResponse.getData().getId());
+            String walletUserId = String.valueOf(walletUser.getUserId());
+            if(!acctUserId.equals(walletUserId))
+                return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "YOU LACK CREDENTIALS TO PERFORM THIS ACTION", null);
+
+            Optional<List<WalletTransaction>> transactionList = walletTransactionRepository.findAllByPaymentReferenceAndAcctNum(referenceNumber,accountNumber);
+            if(!transactionList.isPresent())
+                return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "TRANSACTION NOT FOUND", null);
+
+            return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", transactionList.get());
+        }catch (Exception ex){
+            log.error("::FetchMerchantTransactionTqs {}",ex.getLocalizedMessage());
+            ex.printStackTrace();
+            return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "ERROR FETCHING TRANSACTION", null);
         }
     }
 

@@ -7,18 +7,19 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-@Data
+@Data @AllArgsConstructor @NoArgsConstructor
 public class NonWayaBenefDTO {
-	
-	@NotBlank(message = "Merchant ID must not be Null or Blank")
-	@Size(min=1, max=10, message = "Merchant ID must be between 1 to 10 digit")
-    private Long merchantId;
 
-	@NotBlank(message = "Profile ID must not be Null or Blank")
-	private String profileId;
-   
+	@NotBlank(message = "Beneficiary user info must not Null or Blank")
+	private String beneficiaryUserId;
+
+	@NotBlank(message = "Beneficiary Profile Info must not Null or Blank")
+	private String beneficiaryProfileId;
+
 	@NotNull
 	@Min(value = 100, message ="Amount must be greater or equal to 1000")
     private BigDecimal amount;
@@ -40,20 +41,4 @@ public class NonWayaBenefDTO {
 
 	@NotBlank(message = "Receiver Name can not be Blank or Null")
 	private String receiverName;
-
-	public NonWayaBenefDTO(
-			Long merchantId,
-			BigDecimal amount,
-			String tranCrncy,
-			String tranNarration,
-			String paymentReference) {
-		super();
-		this.merchantId = merchantId;
-		this.amount = amount;
-		this.tranCrncy = tranCrncy;
-		this.tranNarration = tranNarration;
-		this.paymentReference = paymentReference;
-	}
-	
-
 }

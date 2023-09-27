@@ -135,13 +135,24 @@ public class WalletTransactionController {
         try {
 
             // get user by email or phone
-            WalletAccount account = transAccountService.findByEmailOrPhoneNumberOrId(
-                    transfer.getIsAccountNumber(),
-                    transfer.getEmailOrPhone(),
-                    transfer.getSenderUserId(),
-                    transfer.getSenderAccountNumber(),transfer.getSenderProfileId());
-            TransferTransactionDTO data = new TransferTransactionDTO(transfer.getSenderAccountNumber(),
-                    account.getAccountNo(),
+            String beneficiaryAcctNum;
+            if(transfer.isAccountNumber()){
+                beneficiaryAcctNum = transfer.getBeneficiaryAccountNumber();
+            }else {
+                WalletAccount account = transAccountService.findUserAccount(Long.valueOf(transfer.getBeneficiaryUserId()),transfer.getBeneficiaryProfileId());
+                if(account == null)
+                    return new ResponseEntity<>(new ErrorResponse("BENEFICIARY ACCOUNT NOT FOUND, CAN NOT PROCESS TRANSFER"), HttpStatus.NOT_FOUND);
+
+                beneficiaryAcctNum = account.getAccountNo();
+            }
+//            WalletAccount account = transAccountService.findByEmailOrPhoneNumberOrId(
+//                    transfer.getIsAccountNumber(),
+//                    transfer.getEmailOrPhone(),
+//                    transfer.getSenderUserId(),
+//                    transfer.getSenderAccountNumber(),transfer.getSenderProfileId());
+            TransferTransactionDTO data = new TransferTransactionDTO(
+                    transfer.getSenderAccountNumber(),
+                    beneficiaryAcctNum,
                     transfer.getAmount(),
                     "LOCAL",
                     "NGN",
@@ -774,5 +785,17 @@ public class WalletTransactionController {
         ApiResponse<?> response = transAccountService.fetchUserTransactionsByReferenceNumber(referenceNumber);
         return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
     }
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
+    @ApiOperation(value = "Fetch user transaction TSQ by reference number and account number", notes = "get TSQ reference number and account number", tags = {"TRANSACTION-WALLET"})
+    @GetMapping(path = "/fetchByReferenceNumberTsq/{accountNumber}/{referenceNumber}")
+    public ResponseEntity<?> doMerchantTsqByReferenceAndAcctNo(@RequestHeader("Authorization") String token,
+                                                               @PathVariable String accountNumber,
+                                                               @PathVariable String referenceNumber) {
+        ApiResponse<?> response = transAccountService.fetchMerchantTransactionTqs(token,accountNumber,referenceNumber);
+        return new ResponseEntity<>(response, HttpStatus.valueOf(response.getCode()));
+    }
+
 
 }

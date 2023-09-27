@@ -222,6 +222,8 @@ public interface TransAccountService {
 
     ResponseEntity<?> getSingleAccountByEventID(String eventId);
 
+    WalletAccount findUserAccount(Long userId, String profileId);
+
     WalletAccount findByEmailOrPhoneNumberOrId(Boolean isAccountNumber, String value, String userId, String accountNo,String profileId);
 
     ApiResponse<?> OfficialAccountReports(int page, int size, LocalDate fromdate, LocalDate todate, String fillter);
@@ -238,5 +240,7 @@ public interface TransAccountService {
     ApiResponse<?> fetchTransactionsByReferenceNumberAndAccountNumber(String accountNumber,String referenceNumber);
 
     ApiResponse<CustomerStatement> accountstatementReport2(Date fromdate, Date todate, String acctNo);
+
+    ApiResponse<?> fetchMerchantTransactionTqs(String token, String accountNumber,String referenceNumber);
         
 }
