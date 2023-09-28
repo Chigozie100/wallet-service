@@ -994,8 +994,21 @@ public class TransAccountServiceImpl implements TransAccountService {
                 return new ResponseEntity<>(new SuccessResponse(messageStatus, null), HttpStatus.CREATED);
             } else if (nonWayaPayment.get().getStatus() != null && nonWayaPayment.get().getStatus().equals(PaymentStatus.RESERVED)) {
                 messageStatus = "TRANSACTION PAYOUT.";
+
+                String tranNarrate = "REDEEM " + nonWayaPayment.get().getTranNarrate();
+                String payRef = "REDEEM" + nonWayaPayment.get().getPaymentReference();
+                NonWayaBenefDTO merchant = nonWayaBenefDTO(nonWayaPayment.get(),payRef,tranNarrate);
+                ResponseEntity<?> redeemedResponse = TransferNonRedeem(request, merchant);
+                log.info("::TransferNonRedeem {}",redeemedResponse);
+                if(!redeemedResponse.getStatusCode().is2xxSuccessful()){
+                    log.info("::NonWayaPaymentRedeem CAN'T REDEEMED THIS TRANSACTION {}",nonWayaPayment.get().getPaymentReference());
+                    nonWayaPayment.get().setStatus(PaymentStatus.PENDING);
+                    nonWayaPayment.get().setUpdatedAt(LocalDateTime.now().plusHours(1));
+                    walletNonWayaPaymentRepo.save(nonWayaPayment.get());
+                    return redeemedResponse;
+                }
                 nonWayaPayment.get().setStatus(PaymentStatus.PAYOUT);
-                nonWayaPayment.get().setUpdatedAt(LocalDateTime.now());
+                nonWayaPayment.get().setUpdatedAt(LocalDateTime.now().plusHours(1));
                 if(transfer.getRedeemerEmail() != null){
                     nonWayaPayment.get().setRedeemedEmail(transfer.getRedeemerEmail());
                 }else {
@@ -1006,16 +1019,7 @@ public class TransAccountServiceImpl implements TransAccountService {
                 }else {
                     nonWayaPayment.get().setRedeemedBy(userToken.getId().toString());
                 }
-                nonWayaPayment.get().setRedeemedAt(LocalDateTime.now());
-
-                String tranNarrate = "REDEEM " + nonWayaPayment.get().getTranNarrate();
-                String payRef = "REDEEM" + nonWayaPayment.get().getPaymentReference();
-                NonWayaBenefDTO merchant = nonWayaBenefDTO(nonWayaPayment.get(),payRef,tranNarrate);
-                ResponseEntity<?> redeemedResponse = TransferNonRedeem(request, merchant);
-                log.info("::TransferNonRedeem {}",redeemedResponse);
-                if(!redeemedResponse.getStatusCode().is2xxSuccessful())
-                    return redeemedResponse;
-
+                nonWayaPayment.get().setRedeemedAt(LocalDateTime.now().plusHours(1));
                 walletNonWayaPaymentRepo.save(nonWayaPayment.get());
                 String message = formatMessageRedeem(nonWayaPayment.get().getTranAmount(), payRef);
                 CompletableFuture.runAsync(() -> customNotification.pushInApp(token, nonWayaPayment.get().getFullName(),
