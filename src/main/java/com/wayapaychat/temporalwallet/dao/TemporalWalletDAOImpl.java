@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Random;
+
+import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.HttpStatus;
@@ -112,22 +114,27 @@ public class TemporalWalletDAOImpl implements TemporalWalletDAO {
 		return count;
 	}
 
-	@Override
-	public String generatePIN() {
-		//getSecurity();
-		String sql = "SELECT nextval('pinsequence')";
-		String count = null;
-		try {
-			count = jdbcTemplate.queryForObject(sql, String.class);
-			Random r = new Random( System.currentTimeMillis() );
-			int x = ((1 + r.nextInt(2)) * 100 + r.nextInt(100));
-			count = count + x;
-		} catch (EmptyResultDataAccessException ex) {
-			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
-		}catch (Exception ex) {
-			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
-		}
-		return count;
+//	@Override
+//	public String generatePIN() {
+//		//getSecurity();
+//		String sql = "SELECT nextval('pinsequence')";
+//		String count = null;
+//		try {
+//			count = jdbcTemplate.queryForObject(sql, String.class);
+//			Random r = new Random( System.currentTimeMillis() );
+//			int x = ((1 + r.nextInt(2)) * 100 + r.nextInt(100));
+//			count = count + x;
+//		} catch (EmptyResultDataAccessException ex) {
+//			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
+//		}catch (Exception ex) {
+//			throw new CustomException(ex.getMessage(), HttpStatus.BAD_REQUEST);
+//		}
+//		return count;
+//	}
+
+	public String generateOtpPin(){
+		String otpPin = RandomStringUtils.randomNumeric(6);
+		return otpPin;
 	}
 
 	@Override

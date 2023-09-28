@@ -26,7 +26,9 @@ public interface TemporalWalletDAO {
 
 	String generateToken();
 
-	String generatePIN();
+//	String generatePIN();
+
+	String generateOtpPin();
 
 	String generateRefNo();
 

@@ -971,7 +971,8 @@ public class TransAccountServiceImpl implements TransAccountService {
             if (nonWayaPayment.get().getStatus() != null && nonWayaPayment.get().getStatus().equals(PaymentStatus.PENDING)) {
                 messageStatus = "TRANSACTION RESERVED: Kindly note that a confirm PIN has been sent to "+nonWayaPayment.get().getEmailOrPhone();
                 nonWayaPayment.get().setStatus(PaymentStatus.RESERVED);
-                String pinToken = tempwallet.generatePIN();
+//                String pinToken = tempwallet.generatePIN();
+                String pinToken = tempwallet.generateOtpPin();
                 nonWayaPayment.get().setConfirmPIN(pinToken);
                 nonWayaPayment.get().setUpdatedAt(LocalDateTime.now());
                 nonWayaPayment.get().setBeneficiaryUserId(transfer.getBeneficiaryUserId());
