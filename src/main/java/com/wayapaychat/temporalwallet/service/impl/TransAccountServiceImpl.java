@@ -1013,9 +1013,13 @@ public class TransAccountServiceImpl implements TransAccountService {
                 NonWayaBenefDTO merchant = nonWayaBenefDTO(nonWayaPayment.get(),payRef,tranNarrate);
                 ResponseEntity<?> redeemedResponse = TransferNonRedeem(request, merchant);
                 log.info("::TransferNonRedeem {}",redeemedResponse);
-                if(!redeemedResponse.getStatusCode().is2xxSuccessful())
+                if(!redeemedResponse.getStatusCode().is2xxSuccessful()){
+                    log.info("::NonWayaPaymentRedeem CAN'T REDEEMED THIS TRANSACTION {}",nonWayaPayment.get().getPaymentReference());
+                    nonWayaPayment.get().setStatus(PaymentStatus.PENDING);
+                    nonWayaPayment.get().setUpdatedAt(LocalDateTime.now().plusHours(1));
+                    walletNonWayaPaymentRepo.save(nonWayaPayment.get());
                     return redeemedResponse;
-
+                }
                 walletNonWayaPaymentRepo.save(nonWayaPayment.get());
                 String message = formatMessageRedeem(nonWayaPayment.get().getTranAmount(), payRef);
                 CompletableFuture.runAsync(() -> customNotification.pushInApp(token, nonWayaPayment.get().getFullName(),
