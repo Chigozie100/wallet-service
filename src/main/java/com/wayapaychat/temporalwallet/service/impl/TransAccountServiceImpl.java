@@ -627,9 +627,9 @@ public class TransAccountServiceImpl implements TransAccountService {
             String wayaUserSms = formatMoneWayaMessage(transfer.getAmount(), transfer.getPaymentReference(), tranDate,
                     transfer.getTranCrncy(), transfer.getTranNarration(), transactionToken,transfer.getReceiverName(),transfer.getEmailOrPhoneNo(),true);
 
-            CompletableFuture.runAsync(() -> customNotification.pushNonWayaEMAIL(token, transfer.getFullName(),
-                    userToken.getEmail(), nonWayaEmail, userToken.getId(), transfer.getAmount().toString(), tranId,
-                    tranDate, transfer.getTranNarration()));
+//            CompletableFuture.runAsync(() -> customNotification.pushNonWayaEMAIL(token, transfer.getFullName(),
+//                    userToken.getEmail(), nonWayaEmail, userToken.getId(), transfer.getAmount().toString(), tranId,
+//                    tranDate, transfer.getTranNarration()));
 
             CompletableFuture.runAsync(() -> customNotification.pushSMS(token, transfer.getFullName(),
                     transfer.getEmailOrPhoneNo(), nonWayaSms, userToken.getId()));
