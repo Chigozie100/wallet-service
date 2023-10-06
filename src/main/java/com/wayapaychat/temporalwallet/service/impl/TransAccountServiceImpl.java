@@ -2871,8 +2871,13 @@ public class TransAccountServiceImpl implements TransAccountService {
                 spay.setSenderName(transfer.getPaymentRequest().getSenderName());
                 spay.setSenderEmail(transfer.getPaymentRequest().getSenderEmail());
                 spay.setReceiverName(transfer.getPaymentRequest().getReceiverName());
-                spay.setReceiverPhoneNumber(transfer.getPaymentRequest().getReceiverPhoneNumber());
-                spay.setReceiverEmail(transfer.getPaymentRequest().getReceiverEmail());
+
+                if(transfer.getPaymentRequest().getReceiverPhoneNumber() != null && !transfer.getPaymentRequest().getReceiverPhoneNumber().isEmpty())
+                    spay.setReceiverPhoneNumber(transfer.getPaymentRequest().getReceiverPhoneNumber());
+
+                if(transfer.getPaymentRequest().getReceiverEmail() != null && !transfer.getPaymentRequest().getReceiverEmail().isEmpty())
+                    spay.setReceiverEmail(transfer.getPaymentRequest().getReceiverEmail());
+
                 if(transfer.getPaymentRequest().getReceiverProfileId() != null)
                     spay.setReceiverProfileId(transfer.getPaymentRequest().getReceiverProfileId());
 
