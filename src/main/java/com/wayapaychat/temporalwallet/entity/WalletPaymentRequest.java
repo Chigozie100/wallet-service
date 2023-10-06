@@ -36,11 +36,11 @@ public class WalletPaymentRequest {
 	@Column(unique = true, nullable = false)
 	private Long id;
 
-    @NotBlank(message = "please enter the receiver's email")
-    @Email(message = "please enter a valid email")
+//    @NotBlank(message = "please enter the receiver's email")
+//    @Email(message = "please enter a valid email")
     private String receiverEmail;
 
-    @NotBlank(message = "please enter the receiver's phone number")
+//    @NotBlank(message = "please enter the receiver's phone number")
     private String receiverPhoneNumber;
 
     @NotBlank(message = "please enter the receiver's name ")
