@@ -786,7 +786,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     String.valueOf(Precision.round(currentBalance, 2)));
         }
 
-        if (!ObjectUtils.isEmpty(account.getPhone())) {
+        if (!ObjectUtils.isEmpty(account.getPhone())
+                && !transactionPojo.getAccountNo().contains("NGN")) {
             StringBuilder _sms_message = new StringBuilder();
             _sms_message.append(String.format("Tnx: %s", transactionType.toString()));
             _sms_message.append("\n");
