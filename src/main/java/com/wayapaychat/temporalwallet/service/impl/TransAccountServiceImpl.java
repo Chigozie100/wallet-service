@@ -23,6 +23,7 @@ import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.enumm.*;
 import com.wayapaychat.temporalwallet.pojo.*;
 import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
+import com.wayapaychat.temporalwallet.proxy.SMUProxy;
 import com.wayapaychat.temporalwallet.repository.*;
 import com.wayapaychat.temporalwallet.service.*;
 import com.wayapaychat.temporalwallet.util.*;
@@ -95,6 +96,7 @@ public class TransAccountServiceImpl implements TransAccountService {
     private final CoreBankingService coreBankingService;
     private final ModelMapper modelMapper;
     private final WalletTransAccountRepository walletTransAccountRepo;
+    private final SMUProxy smuProxy;
 
     @Autowired
     WalletTransactionRepository walletTransRepo;
@@ -111,7 +113,7 @@ public class TransAccountServiceImpl implements TransAccountService {
             WalletPaymentRequestRepository walletPaymentRequestRepo,
             AuthProxy authProxy, UserAccountService userAccountService, UserPricingRepository userPricingRepository,
             MifosWalletProxy mifosWalletProxy, CoreBankingService coreBankingService, ModelMapper modelMapper,
-            WalletTransAccountRepository walletTransAccountRepo) {
+            WalletTransAccountRepository walletTransAccountRepo, SMUProxy smuProxy) {
         this.walletUserRepository = walletUserRepository;
         this.walletAccountRepository = walletAccountRepository;
         this.walletAcountVirtualRepository = walletAcountVirtualRepository;
@@ -134,6 +136,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         this.mifosWalletProxy = mifosWalletProxy;
         this.modelMapper = modelMapper;
         this.walletTransAccountRepo = walletTransAccountRepo;
+        this.smuProxy = smuProxy;
     }
 
     @Override
@@ -3294,21 +3297,6 @@ public class TransAccountServiceImpl implements TransAccountService {
         long countWithdrawal = walletTransRepo.countCustomersWithdrawal();
         long countDeposit = walletTransRepo.countCustomersDeposit();
 
-        Map<String, BigDecimal> response = new HashMap<>();
-        response.put("totalBalance", customerTransactionSumary.getTotalBalance());
-        response.put("totalRevenue", totalRevenue);
-        response.put("totalDeposit", customerTransactionSumary.getTotalDeposit());
-        response.put("totalWithdrawal", customerTransactionSumary.getTotalWithdrawal());
-
-        //count response
-        Map<String, String> countresponse = new HashMap<>();
-        countresponse.put("totalRevenue", String.valueOf(totalRevenues));
-        countresponse.put("countDeposit", String.valueOf(countDeposit));
-        countresponse.put("countWithdrawal", String.valueOf(countWithdrawal));
-
-        overall.setSumResponse(response);
-        overall.setCountResponse(countresponse);
-
         //category trans analysis
         CategoryAnalysis category = new CategoryAnalysis();
 
@@ -3316,18 +3304,58 @@ public class TransAccountServiceImpl implements TransAccountService {
         BigDecimal quicketllerPayment = walletTransAccountRepo.findByAllQUICKTELLERTransaction();
         BigDecimal totalOutboundExternal = walletTransRepo.totalNipOutbound(nipgl);
         BigDecimal totalOutboundInternal = walletTransAccountRepo.findByAllOutboundInternalTransaction();
-        BigDecimal totalOutboundExternalReversed = walletTransRepo.totalNipOutboundReversed(nipgl);
         BigDecimal totalPaystack = walletTransRepo.totalPayStack(paystackgl);
         BigDecimal totalNipInbound = walletTransRepo.totalNipInbound(nipgl);
-//        BigDecimal reversedFromSucess = totalOutboundExternal.subtract(totalOutboundExternalReversed);
-        log.info("Outbound:: {}", totalOutboundExternalReversed);
-        //count
+
         long baxiCount = walletTransAccountRepo.countBaxiTransaction();
         long quicktellerCount = walletTransAccountRepo.countQuickTellerTransaction();
         long outboundExternalCount = walletTransRepo.countNipOutbound(nipgl);
         long outboundInternalCount = walletTransAccountRepo.nipOutboundInternalCount();
         long paystackCount = walletTransRepo.countPayStack(paystackgl);
         long nipCount = walletTransRepo.countNipInbound(nipgl);
+
+        try {
+            TransactionAnalysis smuanalysis = smuProxy.GetTransactionAnalytics();
+            if(!ObjectUtils.isEmpty(analysis)){
+                //overall analysis 
+                BigDecimal _totalDeposit = customerTransactionSumary.getTotalDeposit().add(
+                    smuanalysis.getOverallAnalysis().getSumResponse().get("totalDeposit")
+                );
+                customerTransactionSumary.setTotalDeposit(_totalDeposit);
+
+                BigDecimal _totalWithdrawal = customerTransactionSumary.getTotalDeposit().add(
+                    smuanalysis.getOverallAnalysis().getSumResponse().get("totalWithdrawal")
+                );
+                customerTransactionSumary.setTotalWithdrawal(_totalWithdrawal);
+
+                totalRevenue.add(
+                    smuanalysis.getOverallAnalysis().getSumResponse().get("totalRevenue")
+                );
+
+                totalRevenues += Long.parseLong(smuanalysis.getOverallAnalysis().getCountResponse().get("totalRevenue"));
+                countDeposit += Long.parseLong(smuanalysis.getOverallAnalysis().getCountResponse().get("countDeposit"));
+                countWithdrawal += Long.parseLong(smuanalysis.getOverallAnalysis().getCountResponse().get("countWithdrawal"));
+            }    
+        } catch (Exception e) {
+            log.error("unable to fetch smu users");
+        }
+
+
+        Map<String, BigDecimal> overallSum = new HashMap<>();
+        overallSum.put("totalBalance", customerTransactionSumary.getTotalBalance());
+        overallSum.put("totalRevenue", totalRevenue);
+        overallSum.put("totalDeposit", customerTransactionSumary.getTotalDeposit());
+        overallSum.put("totalWithdrawal", customerTransactionSumary.getTotalWithdrawal());
+
+        //count response
+        Map<String, String> overallCount = new HashMap<>();
+        overallCount.put("totalRevenue", String.valueOf(totalRevenues));
+        overallCount.put("countDeposit", String.valueOf(countDeposit));
+        overallCount.put("countWithdrawal", String.valueOf(countWithdrawal));
+
+        overall.setSumResponse(overallSum);
+        overall.setCountResponse(overallCount);
+
 
         Map<String, BigDecimal> categorysum = new HashMap<>();
         categorysum.put("billsPaymentTrans", baxiPayment);
