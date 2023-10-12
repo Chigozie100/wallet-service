@@ -13,5 +13,5 @@ public interface TransactionCountService {
 //    void makeCount(String userId, String transactionRef);
     
     void transReport(TransactionReport report);
-    void pushTransactionToEventQueue(AccountSumary accountSumary, CBAEntryTransaction transaction,double currentBalance);
+    void pushTransactionToEventQueue(AccountSumary accountSumary, CBAEntryTransaction transaction,double currentBalance,String transType);
 }

@@ -28,4 +28,11 @@ public class UserTransactionStatsDataDto {
     private BigDecimal totalUtilityCount = BigDecimal.ZERO;
     private BigDecimal totalCableCount = BigDecimal.ZERO;
     private BigDecimal totalBettingCount = BigDecimal.ZERO;
+
+    private BigDecimal totalPosCount = BigDecimal.ZERO;
+    private BigDecimal totalWebCount = BigDecimal.ZERO;
+    private BigDecimal totalPosAmount = BigDecimal.ZERO;
+    private BigDecimal totalPosCommission = BigDecimal.ZERO;
+    private BigDecimal totalWebAmount = BigDecimal.ZERO;
+    private BigDecimal totalWebCommission = BigDecimal.ZERO;
 }

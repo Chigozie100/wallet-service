@@ -9,6 +9,7 @@ import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.enumm.CategoryType;
 import com.wayapaychat.temporalwallet.enumm.ResponseCodes;
+import com.wayapaychat.temporalwallet.enumm.TransactionChannel;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.kafkaConsumer.KafkaMessageConsumer;
@@ -2364,10 +2365,14 @@ public class UserAccountServiceImpl implements UserAccountService {
     @Override
     public ApiResponse<?> fetchUserTransactionStatForReferral(String user_id, String accountNo,String profileId) {
         try {
-            WalletUser user = walletUserRepository.findByUserIdAndProfileId(Long.valueOf(user_id),profileId);
+            String profileIdData=null;
+            if(profileId != null && !profileId.isEmpty())
+                profileIdData = profileId;
+
+            WalletUser user = walletUserRepository.findByUserIdAndProfileId(Long.valueOf(user_id),profileIdData);
             if (user == null) {
                 List<WalletUser> walletUserList = walletUserRepository.findAllByUserId(Long.valueOf(user_id));
-                if(walletUserList.size() > 0 && walletUserList.size() == 1){
+                if(walletUserList.size() == 1){
                    user = walletUserList.get(0);
                 }else {
                     return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "USER ID DOES NOT EXIST", null);
@@ -2389,6 +2394,16 @@ public class UserAccountServiceImpl implements UserAccountService {
             BigDecimal totalUtility = BigDecimal.ZERO;
             BigDecimal totalDataTopUp = BigDecimal.ZERO;
             BigDecimal totalCableCount = BigDecimal.ZERO;
+
+            BigDecimal posTrans = BigDecimal.ZERO;
+            BigDecimal posTransCommission = BigDecimal.ZERO;
+
+            BigDecimal webTrans = BigDecimal.ZERO;
+            BigDecimal webTransCommission = BigDecimal.ZERO;
+
+            BigDecimal webTotalCount = BigDecimal.ZERO;
+            BigDecimal posTotalCount = BigDecimal.ZERO;
+
             for (WalletAccount acct : accountList) {
 
                 BigDecimal airTimeTopUp = BigDecimal.valueOf(walletTransactionRepository
@@ -2432,6 +2447,23 @@ public class UserAccountServiceImpl implements UserAccountService {
                 BigDecimal totalBalance = walletAccountRepository.totalBalanceByUser(acct.getAccountNo());
                 totalTrans = totalTrans.add(totalBalance == null ? BigDecimal.ZERO : totalBalance);
 
+                //POS , WEB Collection amount,fee
+                BigDecimal posAmountSum = walletTransRepo.posOrWebCollectionAmountSum(acct.getAccountNo(), TransactionChannel.POS_TERMINAL.name());
+                posTrans = posTrans.add(posAmountSum == null ? BigDecimal.ZERO : posAmountSum);
+
+                BigDecimal webAmountSum = walletTransRepo.posOrWebCollectionAmountSum(acct.getAccountNo(), TransactionChannel.WEB_TERMINAL.name());
+                webTrans = webTrans.add(webAmountSum == null ? BigDecimal.ZERO : webAmountSum);
+
+//                BigDecimal posCommSum = walletTransRepo.posOrWebCollectionCommissionSum(acct.getAccountNo(), TransactionChannel.POS_COMMISSION.name());
+//                posTransCommission = posTransCommission.add(posCommSum == null ? BigDecimal.ZERO : posCommSum);
+
+//                BigDecimal webCommSum = walletTransRepo.posOrWebCollectionCommissionSum(acct.getAccountNo(), TransactionChannel.WEB_COMMISSION.name());
+//                webTransCommission = webTransCommission.add(webCommSum == null ? BigDecimal.ZERO : webCommSum);
+
+                BigDecimal webCount = BigDecimal.valueOf(walletTransRepo.countByAcctNumAndTransChannel(acct.getAccountNo(), TransactionChannel.WEB_TERMINAL.name()));
+                webTotalCount = webTotalCount.add(webCount == null ? BigDecimal.ZERO : webCount);
+                BigDecimal posCount = BigDecimal.valueOf(walletTransRepo.countByAcctNumAndTransChannel(acct.getAccountNo(), TransactionChannel.POS_TERMINAL.name()));
+                posTotalCount = posTotalCount.add(posCount == null ? BigDecimal.ZERO : posCount);
             }
             BigDecimal singleAccountWithdrawal = BigDecimal.valueOf(
                     walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.WITHDRAW));
@@ -2467,6 +2499,12 @@ public class UserAccountServiceImpl implements UserAccountService {
             transactionStats.setTotalCableCount(totalCableCount);
             transactionStats.setTotalBettingCount(totalBetting);
             transactionStats.setTotalUtilityCount(totalUtility);
+            transactionStats.setTotalPosAmount(posTrans);
+            transactionStats.setTotalPosCommission(posTransCommission);
+            transactionStats.setTotalWebAmount(webTrans);
+            transactionStats.setTotalWebCommission(webTransCommission);
+            transactionStats.setTotalPosCount(posTotalCount);
+            transactionStats.setTotalWebCount(webTotalCount);
             return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "USER TRANSACTION STATS FETCHED....",
                     transactionStats);
         } catch (Exception ex) {

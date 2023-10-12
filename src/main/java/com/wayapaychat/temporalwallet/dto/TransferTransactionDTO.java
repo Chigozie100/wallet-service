@@ -52,6 +52,9 @@ public class TransferTransactionDTO {
 	@Size(min=3, max=50, message = "Transaction Category must be aleast 3 alphanumeric")
 	private String transactionCategory;
 
+	private BigDecimal fee = BigDecimal.ZERO;
+	private String transactionChannel; //WAYABANK,POS_TERMINAL,POS_COMMISSION,WEB_TERMINAL,WEB_COMMISSION;
+
 	public TransferTransactionDTO(
 			String debitAccountNumber,
 			String benefAccountNumber,
