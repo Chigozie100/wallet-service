@@ -30,6 +30,7 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
     Page<WalletTransaction> findAllByAcctNum(String accountNumber, Pageable pageable);
 
     long countByAcctNumAndTranCategory(String accountNumber, CategoryType tranCategory);
+    long countByAcctNumAndTransChannel(String accountNumber, String transChannel);
 
     @Query("SELECT u FROM WalletTransaction u " + "WHERE UPPER(u.tranId) = UPPER(:tranId) " + " AND u.del_flg = false" + " AND u.tranCrncyCode = UPPER(:tranCrncy)" + " AND u.tranDate = (:tranDate)")
     List<WalletTransaction> findByTransaction(String tranId, LocalDate tranDate, String tranCrncy);
@@ -158,6 +159,12 @@ public interface WalletTransactionRepository extends JpaRepository<WalletTransac
 
     @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'D' AND u.acctNum = :account")
     BigDecimal totalWithdrawalByCustomer(String account);
+
+    @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C' AND u.acctNum = :account AND u.transChannel= :channel")
+    BigDecimal posOrWebCollectionAmountSum(String account, String channel);
+
+    @Query("SELECT sum(u.commissionFee) FROM WalletTransaction u WHERE u.partTranType = 'C' AND u.acctNum = :account AND u.transChannel= :channel")
+    BigDecimal posOrWebCollectionCommissionSum(String account, String channel);
 
     @Query("SELECT sum(u.tranAmount) FROM WalletTransaction u WHERE u.partTranType = 'C' AND "
             + " u.acctNum = :account AND u.tranDate BETWEEN (:fromDate) AND (:toDate) ")

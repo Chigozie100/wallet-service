@@ -31,4 +31,7 @@ public class WalletTransactionDataDto {
     private String receiverName;
     private MyData userToken;
     private Long sessionID;
+    private BigDecimal commissionFee = BigDecimal.ZERO;
+    private String transactionChannel;
+    private String partTranType;
 }

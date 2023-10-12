@@ -68,7 +68,7 @@ public class TransactionCountServiceImpl implements TransactionCountService {
     }
 
     @Override
-    public void pushTransactionToEventQueue(AccountSumary accountSumary, CBAEntryTransaction transaction,double currentBalance) {
+    public void pushTransactionToEventQueue(AccountSumary accountSumary, CBAEntryTransaction transaction,double currentBalance,String transType) {
         WalletTransactionDataDto referralTransDto = new WalletTransactionDataDto();
         referralTransDto.setTransactionReferenceNumber(transaction.getPaymentReference());
         referralTransDto.setUserId(accountSumary.getUId());
@@ -78,6 +78,9 @@ public class TransactionCountServiceImpl implements TransactionCountService {
         referralTransDto.setCustName(accountSumary.getCustName());
         referralTransDto.setCurrentBalance(currentBalance);
         BeanUtils.copyProperties(transaction, referralTransDto);
+        referralTransDto.setCommissionFee(transaction.getFee());
+        referralTransDto.setTransactionChannel(transaction.getTransactionChannel());
+        referralTransDto.setPartTranType(transType);
         // push to kafka
         log.info("::::PUSHING TRANSACTION DTO TO REFERRAL SERVICE KAFKA QUEUE::: {}",referralTransDto);
         CompletableFuture.runAsync(() ->{

@@ -972,10 +972,10 @@ public class AdminController {
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Fetch single user transactions analysis for referral commission", notes = "customer transactions analysis for referral commission", tags = {
             "ADMIN" })
-    @GetMapping("/user/trns/analysis/{userId}/{profileId}")
+    @GetMapping("/user/trns/analysis/{userId}")
     public ResponseEntity<ApiResponse<?>> fetchUserTransactionStatForReferral(@PathVariable String userId,
                                                                               @RequestParam String accountNumber,
-                                                                              @PathVariable String profileId){
+                                                                              @RequestParam String profileId){
         ApiResponse<?> response = userAccountService.fetchUserTransactionStatForReferral(userId,accountNumber,profileId);
         return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
     }
