@@ -54,4 +54,6 @@ public class AdminLocalTransferDTO {
 	@NotBlank(message = "Receiver Name must not be Blank or Null")
 	private String receiverName;
 
+	private BigDecimal fee = BigDecimal.ZERO;
+	private String transactionChannel; //WAYABANK,POS_TERMINAL,POS_COMMISSION,WEB_TERMINAL,WEB_COMMISSION;
 }

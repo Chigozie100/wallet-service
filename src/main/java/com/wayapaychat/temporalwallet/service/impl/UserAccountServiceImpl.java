@@ -1375,14 +1375,38 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     @Override
     public ResponseEntity<?> getUserCommissionList(long userId, Boolean isAdmin,String profileId) {
+        String userProfileId = null;
+        if(profileId != null)
+            userProfileId = profileId;
+
+        WalletUser userx;
         if (!isAdmin) {
-            securityCheck(userId,profileId);
+            if(userProfileId == null)
+                return new ResponseEntity<>(new ErrorResponse("Invalid Profile ID"), HttpStatus.BAD_REQUEST);
+            securityCheck(userId,userProfileId);
+
+            userx = walletUserRepository.findByUserIdAndProfileId(userId,userProfileId);
+            if(userx == null)
+                return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
+        }else {
+            if(userProfileId == null){
+                List<WalletUser> walletUserList = walletUserRepository.findAllByUserId(userId);
+                if (walletUserList.size() == 1) {
+                    userx = walletUserList.get(0);
+                }else {
+                    return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
+                }
+            }else {
+                userx = walletUserRepository.findByUserIdAndProfileId(userId,userProfileId);
+                if(userx == null)
+                    return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
+            }
         }
 
-        WalletUser userx = walletUserRepository.findByUserIdAndProfileId(userId,profileId);
-        if (userx == null) {
-            return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
-        }
+//        WalletUser userx = walletUserRepository.findByUserIdAndProfileId(userId,userProfileId);
+//        if (userx == null) {
+//            return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
+//        }
         Optional<WalletAccount> accounts = walletAccountRepository.findByAccountUser(userx);
         if (!accounts.isPresent()) {
             return new ResponseEntity<>(new ErrorResponse("No Commission Account"), HttpStatus.BAD_REQUEST);

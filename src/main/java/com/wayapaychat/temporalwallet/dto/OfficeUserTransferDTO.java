@@ -45,6 +45,9 @@ public class OfficeUserTransferDTO {
 		@NotBlank(message = "Sender name must not Null or Blank")
 		private String senderName;
 
+	private BigDecimal fee = BigDecimal.ZERO;
+	private String transactionChannel; //WAYABANK,POS_TERMINAL,POS_COMMISSION,WEB_TERMINAL,WEB_COMMISSION;
+
 	public OfficeUserTransferDTO(String officeDebitAccount, String customerCreditAccount, BigDecimal amount,
 								 String tranType,  String tranCrncy,  String tranNarration,  String paymentReference,
 								 String receiverName, String senderName) {
