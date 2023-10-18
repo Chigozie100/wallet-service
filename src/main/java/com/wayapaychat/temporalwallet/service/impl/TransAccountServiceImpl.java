@@ -1560,13 +1560,17 @@ public class TransAccountServiceImpl implements TransAccountService {
 
     public ResponseEntity<?> doOfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer) {
 
-        return coreBankingService.processTransaction(
-                new TransferTransactionDTO(
-                        transfer.getOfficeDebitAccount(), transfer.getCustomerCreditAccount(), transfer.getAmount(),
-                        transfer.getTranType(), transfer.getTranCrncy(), transfer.getTranNarration(),
-                        transfer.getPaymentReference(), CategoryType.FUNDING.getValue(), transfer.getReceiverName(),
-                        transfer.getSenderName()),
-                "WAYATRAN", request);
+        if(transfer.getTransactionChannel() == null)
+            transfer.setTransactionChannel(TransactionChannel.WAYABANK.name());
+
+        TransferTransactionDTO transferTransactionDTO = new TransferTransactionDTO(
+                transfer.getOfficeDebitAccount(), transfer.getCustomerCreditAccount(), transfer.getAmount(),
+                transfer.getTranType(), transfer.getTranCrncy(), transfer.getTranNarration(),
+                transfer.getPaymentReference(), CategoryType.FUNDING.getValue(), transfer.getReceiverName(),
+                transfer.getSenderName());
+        transferTransactionDTO.setFee(transfer.getFee());
+        transferTransactionDTO.setTransactionChannel(transfer.getTransactionChannel());
+        return coreBankingService.processTransaction(transferTransactionDTO, "WAYATRAN", request);
     }
 
     public ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer,
