@@ -1287,8 +1287,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 //                tranDate, transfer.getTranNarration(), xAccount.getAccountNo(), "Alert".toUpperCase(),
 //                String.valueOf(xAccount.getClr_bal_amt())));
 
-        CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, phone,
-                message, userToken.getId()));
+        // CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, phone,
+        //         message, userToken.getId()));
         CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getUserId().toString(),
                 message, userToken.getId(), CategoryType.WITHDRAW.name()));
 
