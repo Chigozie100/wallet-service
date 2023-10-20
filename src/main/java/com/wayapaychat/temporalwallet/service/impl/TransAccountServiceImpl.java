@@ -1282,13 +1282,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         String message = formatNewMessage(transfer.getAmount(), tranId, new Date().toString(), transfer.getTranCrncy(),
                 transfer.getTranNarration(), transfer.getSenderName(), transfer.getReceiverName(),
                 xAccount.getClr_bal_amt(), description, transfer.getBankName());
-//        CompletableFuture.runAsync(() -> customNotification.pushTranEMAIL(TRADE_TRANSACTION_ALERT, token, fullName,
-//                xUser.getEmailAddress(), message, userToken.getId(), transfer.getAmount().toString(), tranId,
-//                tranDate, transfer.getTranNarration(), xAccount.getAccountNo(), "Alert".toUpperCase(),
-//                String.valueOf(xAccount.getClr_bal_amt())));
 
-        CompletableFuture.runAsync(() -> customNotification.pushSMS(token, fullName, phone,
-                message, userToken.getId()));
         CompletableFuture.runAsync(() -> customNotification.pushInApp(token, fullName, xUser.getUserId().toString(),
                 message, userToken.getId(), CategoryType.WITHDRAW.name()));
 
