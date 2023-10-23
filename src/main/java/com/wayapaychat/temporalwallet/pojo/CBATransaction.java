@@ -52,7 +52,6 @@ public class CBATransaction {
 
     private CBAAction action;
 
-    private BigDecimal fee = BigDecimal.ZERO;
     private String transactionChannel;
 
 }

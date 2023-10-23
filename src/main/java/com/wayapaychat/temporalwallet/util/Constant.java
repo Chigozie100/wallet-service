@@ -1,7 +1,8 @@
 package com.wayapaychat.temporalwallet.util;
 
 public class Constant {
-
+    public static final String OTHER_CHANNEL = "OTHER_CHANNELS";
+    public static final String TRANSACTION_CHANNEL = "TRANSACTION_CHANNEL";
     public static final String IN_WARD_SERVICE = "inward-account-update";
     public static final String SUCCESS_MESSAGE = "SUCCESSFUL";
     public static final String ERROR_MESSAGE = "ERROR";

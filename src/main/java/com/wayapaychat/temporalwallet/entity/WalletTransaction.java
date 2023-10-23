@@ -125,8 +125,6 @@ public class WalletTransaction implements Serializable {
     private String receiverName;
 
     private String transChannel;
-    @Column(name = "commission_fee")
-    private BigDecimal commissionFee;
 
     private boolean channel_flg = false;
 
