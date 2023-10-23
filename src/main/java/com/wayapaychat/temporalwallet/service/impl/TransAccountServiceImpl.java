@@ -1562,7 +1562,6 @@ public class TransAccountServiceImpl implements TransAccountService {
                 transfer.getTranType(), transfer.getTranCrncy(), transfer.getTranNarration(),
                 transfer.getPaymentReference(), CategoryType.FUNDING.getValue(), transfer.getReceiverName(),
                 transfer.getSenderName());
-        transferTransactionDTO.setFee(transfer.getFee());
         transferTransactionDTO.setTransactionChannel(transfer.getTransactionChannel());
         return coreBankingService.processTransaction(transferTransactionDTO, "WAYATRAN", request);
     }

@@ -261,12 +261,8 @@ public class CoreBankingProcessServiceImpl implements CoreBankingProcessService 
             debitAccountNumber = customerDepositGL;
         }
         String tChannel = TransactionChannel.WAYABANK.name();
-        BigDecimal commissionFee = BigDecimal.ZERO;
         if(customerWalletTransaction.get(0).getTransChannel() != null)
             tChannel = customerWalletTransaction.get(0).getTransChannel();
-
-        if(customerWalletTransaction.get(0).getCommissionFee() != null)
-            commissionFee = customerWalletTransaction.get(0).getCommissionFee();
 
         CBATransaction cbaTransaction = new CBATransaction(transLog.get().getSenderName(), transLog.get().getBeneficiaryName(), userToken,
         customerWalletTransaction.get(0).getPaymentReference(), 
@@ -275,7 +271,7 @@ public class CoreBankingProcessServiceImpl implements CoreBankingProcessService 
         customerWalletTransaction.get(0).getTranCategory().name(), customerWalletTransaction.get(0).getTranType().name(),
         transLog.get().getTranAmount(), transLog.get().getChargeAmount(), transLog.get().getVatAmount(), 
         provider, transLog.get().getEventId(), customerWalletTransaction.get(0).getRelatedTransId(),
-                CBAAction.MOVE_GL_TO_GL,commissionFee,tChannel);
+                CBAAction.MOVE_GL_TO_GL,tChannel);
 
         String vatCollectionAccount = coreBankingService.getEventAccountNumber("VAT_".concat(cbaTransaction.getChannelEvent()));
         if (vatCollectionAccount == null || cbaTransaction.getVat().doubleValue() <= 0) {
@@ -329,12 +325,8 @@ public class CoreBankingProcessServiceImpl implements CoreBankingProcessService 
             debitAccountNumber = customerDepositGL;
         }
         String tChannel = TransactionChannel.WAYABANK.name();
-        BigDecimal commissionFee = BigDecimal.ZERO;
         if(customerWalletTransaction.get(0).getTransChannel() != null)
             tChannel = customerWalletTransaction.get(0).getTransChannel();
-
-        if(customerWalletTransaction.get(0).getCommissionFee() != null)
-            commissionFee = customerWalletTransaction.get(0).getCommissionFee();
 
         CBATransaction cbaTransaction = new CBATransaction(transLog.get().getSenderName(), transLog.get().getBeneficiaryName(), userToken,
         customerWalletTransaction.get(0).getPaymentReference(), 
@@ -343,7 +335,7 @@ public class CoreBankingProcessServiceImpl implements CoreBankingProcessService 
         customerWalletTransaction.get(0).getTranCategory().name(), customerWalletTransaction.get(0).getTranType().name(),
         transLog.get().getTranAmount(), transLog.get().getChargeAmount(), transLog.get().getVatAmount(), 
         provider, transLog.get().getEventId(), customerWalletTransaction.get(0).getRelatedTransId(),
-                CBAAction.MOVE_GL_TO_GL,commissionFee,tChannel);
+                CBAAction.MOVE_GL_TO_GL,tChannel);
  
         String chargeCollectionAccount = coreBankingService.getEventAccountNumber("INCOME_".concat(cbaTransaction.getChannelEvent()));
         if (chargeCollectionAccount == null || cbaTransaction.getCharge().doubleValue() <= 0) {
@@ -392,12 +384,8 @@ public class CoreBankingProcessServiceImpl implements CoreBankingProcessService 
             debitAccountNumber = customerDepositGL;
         }
         String tChannel = TransactionChannel.WAYABANK.name();
-        BigDecimal commissionFee = BigDecimal.ZERO;
         if(customerWalletTransaction.get(0).getTransChannel() != null)
             tChannel = customerWalletTransaction.get(0).getTransChannel();
-
-        if(customerWalletTransaction.get(0).getCommissionFee() != null)
-            commissionFee = customerWalletTransaction.get(0).getCommissionFee();
 
         CBATransaction cbaTransaction = new CBATransaction(transLog.get().getSenderName(), transLog.get().getBeneficiaryName(), userToken,
         customerWalletTransaction.get(0).getPaymentReference(), 
@@ -406,7 +394,7 @@ public class CoreBankingProcessServiceImpl implements CoreBankingProcessService 
         customerWalletTransaction.get(0).getTranCategory().name(), customerWalletTransaction.get(0).getTranType().name(),
         transLog.get().getTranAmount(), transLog.get().getChargeAmount(), transLog.get().getVatAmount(), 
         provider, transLog.get().getEventId(), customerWalletTransaction.get(0).getRelatedTransId(),
-                CBAAction.MOVE_GL_TO_GL,commissionFee,tChannel);
+                CBAAction.MOVE_GL_TO_GL,tChannel);
                                                 
         return coreBankingService.processCBATransactionGLDoubleEntryWithTransit(cbaTransaction);
 
