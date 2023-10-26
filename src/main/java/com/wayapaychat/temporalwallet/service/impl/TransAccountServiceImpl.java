@@ -3334,7 +3334,7 @@ public class TransAccountServiceImpl implements TransAccountService {
                 countWithdrawal += Long.parseLong(smuanalysis.getOverallAnalysis().getCountResponse().get("countWithdrawal"));
             }    
         } catch (Exception e) {
-            log.error("unable to fetch smu users");
+            log.error("unable to fetch smu analysis");
         }
 
 
