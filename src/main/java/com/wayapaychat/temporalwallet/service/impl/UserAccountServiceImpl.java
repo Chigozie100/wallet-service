@@ -2472,17 +2472,11 @@ public class UserAccountServiceImpl implements UserAccountService {
                 totalTrans = totalTrans.add(totalBalance == null ? BigDecimal.ZERO : totalBalance);
 
                 //POS , WEB Collection amount,fee
-//                BigDecimal posAmountSum = walletTransRepo.posOrWebCollectionAmountSum(acct.getAccountNo(), TransactionChannel.POS_TERMINAL.name());
-//                posTrans = posTrans.add(posAmountSum == null ? BigDecimal.ZERO : posAmountSum);
+                BigDecimal posAmountSum = walletTransRepo.posOrWebCollectionAmountSum(acct.getAccountNo(), TransactionChannel.POS_TERMINAL.name());
+                posTrans = posTrans.add(posAmountSum == null ? BigDecimal.ZERO : posAmountSum);
 
-//                BigDecimal webAmountSum = walletTransRepo.posOrWebCollectionAmountSum(acct.getAccountNo(), TransactionChannel.WEB_TERMINAL.name());
-//                webTrans = webTrans.add(webAmountSum == null ? BigDecimal.ZERO : webAmountSum);
-
-//                BigDecimal posCommSum = walletTransRepo.posOrWebCollectionCommissionSum(acct.getAccountNo(), TransactionChannel.POS_COMMISSION.name());
-//                posTransCommission = posTransCommission.add(posCommSum == null ? BigDecimal.ZERO : posCommSum);
-
-//                BigDecimal webCommSum = walletTransRepo.posOrWebCollectionCommissionSum(acct.getAccountNo(), TransactionChannel.WEB_COMMISSION.name());
-//                webTransCommission = webTransCommission.add(webCommSum == null ? BigDecimal.ZERO : webCommSum);
+                BigDecimal webAmountSum = walletTransRepo.posOrWebCollectionAmountSum(acct.getAccountNo(), TransactionChannel.WEB_TERMINAL.name());
+                webTrans = webTrans.add(webAmountSum == null ? BigDecimal.ZERO : webAmountSum);
 
                 BigDecimal webCount = BigDecimal.valueOf(walletTransRepo.countByAcctNumAndTransChannel(acct.getAccountNo(), TransactionChannel.WEB_TERMINAL.name()));
                 webTotalCount = webTotalCount.add(webCount == null ? BigDecimal.ZERO : webCount);
