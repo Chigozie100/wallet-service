@@ -2524,9 +2524,9 @@ public class UserAccountServiceImpl implements UserAccountService {
             transactionStats.setTotalBettingCount(totalBetting);
             transactionStats.setTotalUtilityCount(totalUtility);
             transactionStats.setTotalPosAmount(posTrans);
-            transactionStats.setTotalPosCommission(posTransCommission);
+            //transactionStats.setTotalPosCommission(posTransCommission);
             transactionStats.setTotalWebAmount(webTrans);
-            transactionStats.setTotalWebCommission(webTransCommission);
+            //transactionStats.setTotalWebCommission(webTransCommission);
             transactionStats.setTotalPosCount(posTotalCount);
             transactionStats.setTotalWebCount(webTotalCount);
             return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "USER TRANSACTION STATS FETCHED....",
