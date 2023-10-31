@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @FeignClient(name = "SMU-SERVICE-API", url = "${waya.smu-service.base-url}")
 public interface SMUProxy {
 
-    @GetMapping("/api/v1/wallet/transaction/overall-based-analysis")
+    @GetMapping("/api/v1/wallet/transaction/overall-smu-based-analysis")
     TransactionAnalysis GetTransactionAnalytics();
  
 }
