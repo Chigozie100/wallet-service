@@ -15,6 +15,8 @@ public class SecurityConstants {
     public static final String TOKEN_PREFIX = "serial ";
     public static final String HEADER_STRING = "Authorization";
     public static final String LOGIN_URL = "/api/users/login";
+    public static final String CLIENT_TYPE = "CLIENT-TYPE";
+    public static final String CLIENT_ID = "CLIENT-ID";
 
 
     private static final Key secret = MacProvider.generateKey(SignatureAlgorithm.HS256);

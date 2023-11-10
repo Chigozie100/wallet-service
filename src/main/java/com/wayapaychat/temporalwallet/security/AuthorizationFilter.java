@@ -39,9 +39,19 @@ public class AuthorizationFilter extends BasicAuthenticationFilter {
             chain.doFilter(req, res);
             return;
         }
+        String clientId = req.getHeader(SecurityConstants.CLIENT_ID);
+        if (clientId == null) {
+            chain.doFilter(req, res);
+            return;
+        }
+        String clientType = req.getHeader(SecurityConstants.CLIENT_TYPE);
+        if (clientType == null) {
+            chain.doFilter(req, res);
+            return;
+        }
 
         GetUserDataService authProxy = (GetUserDataService) SpringApplicationContext.getBean("getUserDataService");
-        TokenCheckResponse tokenResponse = authProxy.getUserData(header);
+        TokenCheckResponse tokenResponse = authProxy.getUserData(header,clientId,clientType);
 
         if(tokenResponse.isStatus()){
             List<GrantedAuthority> grantedAuthorities = tokenResponse.getData().getRoles().stream().map(r -> {

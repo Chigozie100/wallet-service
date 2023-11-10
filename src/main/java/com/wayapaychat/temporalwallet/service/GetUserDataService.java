@@ -16,11 +16,11 @@ public class GetUserDataService {
 	@Autowired
 	private AuthProxy authProxy;
 
-	public TokenCheckResponse getUserData(String token) {
+	public TokenCheckResponse getUserData(String token,String clientId, String clientType) {
 		TokenCheckResponse res = new TokenCheckResponse(null, false, "Failed to validat token", null);
 
 		try {
-			res = authProxy.getUserDataToken(token);
+			res = authProxy.getUserDataToken(token,clientId,clientType);
 			log.info("::::Token::::" + res.getMessage());
 			log.info("::::Token::::" + res.getData().getEmail());
 		} catch (Exception ex) {

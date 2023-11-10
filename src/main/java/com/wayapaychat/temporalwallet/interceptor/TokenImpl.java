@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.interceptor;
 
+import com.wayapaychat.temporalwallet.config.SecurityConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import com.wayapaychat.temporalwallet.util.ApiResponse;
 import feign.FeignException;
 import lombok.extern.slf4j.Slf4j;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.HashMap;
 
 @Service
@@ -26,10 +28,10 @@ public class TokenImpl {
 	@Autowired
 	private Environment environment;
 
-	public MyData getUserInformation() {
+	public MyData getUserInformation(HttpServletRequest request) {
 		MyData data = null;
 		try {
-			TokenCheckResponse tokenResponse = authProxy.getSignedOnUser();
+			TokenCheckResponse tokenResponse = authProxy.getSignedOnUser(request.getHeader(SecurityConstants.HEADER_STRING),request.getHeader(SecurityConstants.CLIENT_ID),request.getHeader(SecurityConstants.CLIENT_TYPE));
 			if (tokenResponse.isStatus())
 				return tokenResponse.getData();
 
@@ -45,9 +47,9 @@ public class TokenImpl {
 		return data;
 	}
 
-	public MyData getTokenUser(String token) {
+	public MyData getTokenUser(String token, HttpServletRequest request) {
 		try {
-			TokenCheckResponse tokenResponse = authProxy.getUserDataToken(token);
+			TokenCheckResponse tokenResponse = authProxy.getUserDataToken(token,request.getHeader(SecurityConstants.CLIENT_ID),request.getHeader(SecurityConstants.CLIENT_TYPE));
 			log.info("Authorization Token: {}", tokenResponse);
 			if (tokenResponse == null)
 				throw new CustomException("UNABLE TO AUTHENTICATE", HttpStatus.BAD_REQUEST);
@@ -69,8 +71,10 @@ public class TokenImpl {
 			map.put("emailOrPhoneNumber", environment.getProperty("waya.service.username"));
 			map.put("password", environment.getProperty("waya.service.password"));
 			map.put("otp", "");
+			String clientId = "WAYABANK";
+			String clientType = "ADMIN";
 
-			TokenCheckResponse tokenData = authProxy.getToken(map);
+			TokenCheckResponse tokenData = authProxy.getToken(map,clientId,clientType);
 			return tokenData.getData().getToken();
 		} catch (Exception ex) {
 			log.error("Unable to get system token :: {}", ex);
@@ -78,11 +82,11 @@ public class TokenImpl {
 		}
 	}
 
-	public boolean validatePIN(String token, String pin) {
+	public boolean validatePIN(String token, String pin,String clientId,String clientType) {
 		try {
 			HashMap<String, String> map = new HashMap();
 			map.put("pin", pin);
-			ApiResponse validaResponse = authProxy.validatePostPin(map, token);
+			ApiResponse validaResponse = authProxy.validatePostPin(map, token,clientId,clientType);
 			if (!validaResponse.getStatus()) {
 				log.error("Unable to validate pin :: {}", validaResponse);
 			}

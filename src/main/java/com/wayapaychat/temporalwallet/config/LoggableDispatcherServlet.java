@@ -111,9 +111,9 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
 		String token = request.getHeader(SecurityConstants.HEADER_STRING);
 
 		if(token !=null){
-			MyData userToken = tokenService.getTokenUser(token);
+			MyData userToken = tokenService.getTokenUser(token,request);
 
-			logRequestAndResponse(logMessage, userToken);
+			logRequestAndResponse(logMessage, userToken,request);
 
 		}
 
@@ -166,7 +166,7 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
 		responseWrapper.copyBodyToResponse();
 	}
 
-	private void logRequestAndResponse(LogMessage message, MyData userToken){
+	private void logRequestAndResponse(LogMessage message, MyData userToken,HttpServletRequest request){
 		String httpMethod = message.getHttpMethod(), action;
 
 		switch(httpMethod){
@@ -202,6 +202,6 @@ public class LoggableDispatcherServlet extends DispatcherServlet {
 		}
 		pojo.setModule(controller);
 		if(userService != null)
-			userService.saveLog(pojo,systemToken);
+			userService.saveLog(pojo,systemToken,request);
 	}
 }
