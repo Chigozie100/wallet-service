@@ -19,17 +19,17 @@ import javax.servlet.http.HttpServletRequest;
 
 public interface UserAccountService {
 
-    ResponseEntity<?> createUser(UserDTO user, String token);
+    ResponseEntity<?> createUser(HttpServletRequest request,UserDTO user, String token);
 
     WalletAccount createNubanAccount(WalletUserDTO user);
 
-    ResponseEntity<?> createUserAccount(WalletUserDTO user, String token);
+    ResponseEntity<?> createUserAccount(String clientId,String clientType,WalletUserDTO user, String token);
 
     ResponseEntity<?> createCashAccount(WalletCashAccountDTO user);
 
     ResponseEntity<?> createEventAccount(WalletEventAccountDTO user);
 
-    ResponseEntity<?> createAccount(AccountPojo2 accountPojo, String token);
+    ResponseEntity<?> createAccount(HttpServletRequest request,AccountPojo2 accountPojo, String token);
 
     ResponseEntity<?> createOfficialAccount(OfficialAccountDTO account);
 
@@ -55,7 +55,7 @@ public interface UserAccountService {
 
     ResponseEntity<?> fetchVirtualAccountDetail(String accountNo);
 
-    ResponseEntity<?> getUserAccountList(long userId,String profileId,String token);
+    ResponseEntity<?> getUserAccountList(HttpServletRequest request,long userId,String profileId,String token);
 
     ResponseEntity<?> getAllAccount();
 
@@ -121,7 +121,7 @@ public interface UserAccountService {
 
     ResponseEntity<?> countInActiveAccount();
 
-    ResponseEntity<?> createDefaultWallet(MyData user, String token,String profileId);
+    ResponseEntity<?> createDefaultWallet(HttpServletRequest request,MyData user, String token,String profileId);
 
     ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount,String profileId);
 
@@ -139,7 +139,7 @@ public interface UserAccountService {
 
     ApiResponse<?> getAllAccounts(int page, int size, String filter, LocalDate fromdate, LocalDate todate);
 
-    ApiResponse<?> toggleTransactionType(long userId, String type, String token);
+    ApiResponse<?> toggleTransactionType(HttpServletRequest request,long userId, String type, String token);
 
     ApiResponse<?> transTypeStatus(long userId);
 

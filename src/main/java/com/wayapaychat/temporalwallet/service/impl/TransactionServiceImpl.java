@@ -332,7 +332,7 @@ public class TransactionServiceImpl implements TransactionService {
          log.info(" ########  REQUEST ########  "+ map);
 
          // Token Fetch
-         MyData tokenData = tokenService.getUserInformation();
+         MyData tokenData = tokenService.getUserInformation(request);
          log.info(" ############### TokenData :: ###############" + tokenData);
          String email = tokenData != null ? tokenData.getEmail() : "";
          String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
@@ -611,7 +611,7 @@ public class TransactionServiceImpl implements TransactionService {
          }
 
          // Token Fetch
-         MyData tokenData = tokenService.getUserInformation();
+         MyData tokenData = tokenService.getUserInformation(request);
          String email = tokenData != null ? tokenData.getEmail() : "";
          String userId = tokenData != null ? String.valueOf(tokenData.getId()) : "";
          // **********************************************

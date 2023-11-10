@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.wayapaychat.temporalwallet.config.SecurityConstants;
 import com.wayapaychat.temporalwallet.enumm.*;
 import com.wayapaychat.temporalwallet.util.Constant;
 import org.apache.commons.lang3.ObjectUtils;
@@ -870,7 +871,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     HttpStatus.BAD_REQUEST);
         }
 
-        if (!tokenImpl.validatePIN(request.getHeader("authorization"), request.getHeader("pin"))) {
+        if (!tokenImpl.validatePIN(request.getHeader("authorization"), request.getHeader("pin"),request.getHeader(SecurityConstants.CLIENT_ID),request.getHeader(SecurityConstants.CLIENT_TYPE))) {
             log.error("pin {} validation failed for debiting account {} with amount{}", request.getHeader("pin"),
                     accountNumber, amount);
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_PIN.getValue()),
