@@ -2479,12 +2479,6 @@ public class UserAccountServiceImpl implements UserAccountService {
                 BigDecimal webAmountSum = walletTransRepo.posOrWebCollectionAmountSum(acct.getAccountNo(), TransactionChannel.WEB_TERMINAL.name());
                 webTrans = webTrans.add(webAmountSum == null ? BigDecimal.ZERO : webAmountSum);
 
-//                BigDecimal posCommSum = walletTransRepo.posOrWebCollectionCommissionSum(acct.getAccountNo(), TransactionChannel.POS_COMMISSION.name());
-//                posTransCommission = posTransCommission.add(posCommSum == null ? BigDecimal.ZERO : posCommSum);
-
-//                BigDecimal webCommSum = walletTransRepo.posOrWebCollectionCommissionSum(acct.getAccountNo(), TransactionChannel.WEB_COMMISSION.name());
-//                webTransCommission = webTransCommission.add(webCommSum == null ? BigDecimal.ZERO : webCommSum);
-
                 BigDecimal webCount = BigDecimal.valueOf(walletTransRepo.countByAcctNumAndTransChannel(acct.getAccountNo(), TransactionChannel.WEB_TERMINAL.name()));
                 webTotalCount = webTotalCount.add(webCount == null ? BigDecimal.ZERO : webCount);
                 BigDecimal posCount = BigDecimal.valueOf(walletTransRepo.countByAcctNumAndTransChannel(acct.getAccountNo(), TransactionChannel.POS_TERMINAL.name()));
