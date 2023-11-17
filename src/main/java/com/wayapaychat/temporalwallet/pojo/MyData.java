@@ -26,6 +26,7 @@ public class MyData {
     private boolean emailVerified;
     private boolean pinCreated;
     private boolean corporate;
+    private boolean admin;
     private List<String> roles;
     private List<String> permits;
     private String transactionLimit;

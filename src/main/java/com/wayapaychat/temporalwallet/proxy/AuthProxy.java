@@ -3,6 +3,7 @@ package com.wayapaychat.temporalwallet.proxy;
 
 import com.waya.security.auth.pojo.SecureConstants;
 import com.wayapaychat.temporalwallet.config.SecurityConstants;
+import com.wayapaychat.temporalwallet.pojo.UserDtoResponse;
 import com.wayapaychat.temporalwallet.util.ApiResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -43,7 +44,7 @@ public interface AuthProxy {
     TokenCheckResponse getToken(@RequestBody HashMap request,@RequestHeader(SecurityConstants.CLIENT_ID) String clientId, @RequestHeader(SecurityConstants.CLIENT_TYPE) String clientType);
     
     @GetMapping("/user/{id}")
-    TokenCheckResponse getUserById(@PathVariable("id") long id, @RequestHeader("Authorization") String token,@RequestHeader(SecurityConstants.CLIENT_ID) String clientId, @RequestHeader(SecurityConstants.CLIENT_TYPE) String clientType);
+    UserDtoResponse getUserById(@PathVariable("id") long id, @RequestHeader("Authorization") String token, @RequestHeader(SecurityConstants.CLIENT_ID) String clientId, @RequestHeader(SecurityConstants.CLIENT_TYPE) String clientType);
 
     @GetMapping("/profile/{userId}")
     UserProfileResponse getUserProfileByUserId(@PathVariable("userId") long id, @RequestHeader("Authorization") String token,@RequestHeader(SecurityConstants.CLIENT_ID) String clientId, @RequestHeader(SecurityConstants.CLIENT_TYPE) String clientType);

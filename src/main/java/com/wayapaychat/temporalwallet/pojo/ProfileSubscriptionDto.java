@@ -1,11 +1,15 @@
 package com.wayapaychat.temporalwallet.pojo;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-@Data
+@Data @JsonIgnoreProperties(ignoreUnknown = true) @AllArgsConstructor @NoArgsConstructor @ToString
 public class ProfileSubscriptionDto {
     private String profileId;
     private String profileUserId;

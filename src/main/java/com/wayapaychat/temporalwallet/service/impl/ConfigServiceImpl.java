@@ -24,6 +24,8 @@ import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.ParamDefaultValidation;
 import com.wayapaychat.temporalwallet.util.SuccessResponse;
 
+import javax.servlet.http.HttpServletRequest;
+
 @Slf4j
 @Service
 public class ConfigServiceImpl implements ConfigService {
@@ -268,7 +270,7 @@ public class ConfigServiceImpl implements ConfigService {
 	}
 
 	@Override
-	public ResponseEntity<?> createdTeller(WalletTellerDTO teller) {
+	public ResponseEntity<?> createdTeller(HttpServletRequest request,WalletTellerDTO teller) {
 		boolean validate = paramValidation.validateDefaultCode(teller.getCrncyCode(),"Currency");
 		if(!validate) {
 			return new ResponseEntity<>(new ErrorResponse("Currency Code Validation Failed"), HttpStatus.BAD_REQUEST);
@@ -277,8 +279,8 @@ public class ConfigServiceImpl implements ConfigService {
 		if(!validate2) {
 			return new ResponseEntity<>(new ErrorResponse("Batch Account Validation Failed"), HttpStatus.BAD_REQUEST);
 		}
-		UserDetailPojo user = authUserService.AuthUser((teller.getUserId().intValue()));
-		if(!user.is_admin()) {
+		UserDetailPojo user = authUserService.AuthUser(request,(teller.getUserId().intValue()));
+		if(!user.isAdmin()) {
 			return new ResponseEntity<>(new ErrorResponse("User Admin Validation Failed"), HttpStatus.BAD_REQUEST);
 		}
 		WalletTeller account = new WalletTeller(teller.getSolId(), teller.getCrncyCode(), teller.getUserId(), teller.getCashAccountCode());

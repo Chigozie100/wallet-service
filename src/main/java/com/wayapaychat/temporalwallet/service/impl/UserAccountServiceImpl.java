@@ -566,14 +566,14 @@ public class UserAccountServiceImpl implements UserAccountService {
                 HttpStatus.OK);
     }
 
-    public ResponseEntity<?> modifyUserAccount(UserAccountDTO user) {
+    public ResponseEntity<?> modifyUserAccount(HttpServletRequest request,UserAccountDTO user) {
         WalletUser existingUser = walletUserRepository.findByUserIdAndProfileId(user.getUserId(),user.getProfileId());
         if (existingUser == null) {
             return new ResponseEntity<>(new ErrorResponse("Wallet User does not exists"), HttpStatus.NOT_FOUND);
         }
         int userId = user.getUserId().intValue();
-        UserDetailPojo wallet = authService.AuthUser(userId);
-        if (wallet.is_deleted()) {
+        UserDetailPojo wallet = authService.AuthUser(request,userId);
+        if (wallet.isAccountDeleted()) {
             return new ResponseEntity<>(new ErrorResponse("Auth User has been deleted"), HttpStatus.BAD_REQUEST);
         }
         if (!user.getNewEmailId().isBlank() && !user.getNewEmailId().isEmpty()) {
@@ -631,14 +631,14 @@ public class UserAccountServiceImpl implements UserAccountService {
                 HttpStatus.OK);
     }
 
-    public ResponseEntity<?> ToggleAccount(AccountToggleDTO user) {
+    public ResponseEntity<?> ToggleAccount(HttpServletRequest request,AccountToggleDTO user) {
         WalletUser existingUser = walletUserRepository.findByUserIdAndProfileId(user.getUserId(),user.getProfileId());
         if (existingUser == null) {
             return new ResponseEntity<>(new ErrorResponse("Wallet User does not exists"), HttpStatus.NOT_FOUND);
         }
         int userId = user.getUserId().intValue();
-        UserDetailPojo wallet = authService.AuthUser(userId);
-        if (wallet.is_deleted()) {
+        UserDetailPojo wallet = authService.AuthUser(request,userId);
+        if (wallet.isAccountDeleted()) {
             return new ResponseEntity<>(new ErrorResponse("Auth User has been deleted"), HttpStatus.BAD_REQUEST);
         }
         // Default Wallet
@@ -771,7 +771,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
     }
 
-    public ResponseEntity<?> createCashAccount(WalletCashAccountDTO user) {
+    public ResponseEntity<?> createCashAccount(HttpServletRequest request,WalletCashAccountDTO user) {
 
         boolean validate = paramValidation.validateDefaultCode(user.getCashAccountCode(), "Batch Account");
         if (!validate) {
@@ -783,8 +783,8 @@ public class UserAccountServiceImpl implements UserAccountService {
             return new ResponseEntity<>(new ErrorResponse("Currency Code Validation Failed"), HttpStatus.BAD_REQUEST);
         }
 
-        UserDetailPojo userd = authService.AuthUser((user.getUserId().intValue()));
-        if (!userd.is_admin()) {
+        UserDetailPojo userd = authService.AuthUser(request,(user.getUserId().intValue()));
+        if (!userd.isAdmin()) {
             return new ResponseEntity<>(new ErrorResponse("User Not Admin"), HttpStatus.BAD_REQUEST);
         }
 
@@ -907,7 +907,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
 
         int userId = accountPojo.getUserId().intValue();
-        UserDetailPojo user = authService.AuthUser(userId);
+        UserDetailPojo user = authService.AuthUser(request,userId);
         if (user == null) {
             return new ResponseEntity<>(new ErrorResponse("Auth User ID does not exist"), HttpStatus.BAD_REQUEST);
         }
@@ -987,7 +987,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
             // Todo: check for corporate/normal user
             String acct_name;
-            if (user.is_corporate()) {
+            if (user.isCorporate()) {
                 String newAccountName = y.getCust_name() + " " + accountPojo.getDescription();
                 acct_name = newAccountName;
             } else {
@@ -1034,9 +1034,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     }
 
-    public ResponseEntity<?> createAccountProduct(AccountProductDTO accountPojo) {
+    public ResponseEntity<?> createAccountProduct(HttpServletRequest request,AccountProductDTO accountPojo) {
         int userId = (int) accountPojo.getUserId();
-        UserDetailPojo user = authService.AuthUser(userId);
+        UserDetailPojo user = authService.AuthUser(request,userId);
         if (user == null) {
             return new ResponseEntity<>(new ErrorResponse("Auth User ID does not exist"), HttpStatus.BAD_REQUEST);
         }
@@ -1338,18 +1338,18 @@ public class UserAccountServiceImpl implements UserAccountService {
         return false;
     }
 
-    public ResponseEntity<?> ListUserAccount(long userId) {
+    public ResponseEntity<?> ListUserAccount(HttpServletRequest request,long userId) {
         // securityCheck(userId);
         try {
             int uId = (int) userId;
-            UserDetailPojo ur = authService.AuthUser(uId);
-            if (ur == null) {
+            UserDetailPojo userPojo = authService.AuthUser(request,uId);
+            if(userPojo == null)
                 return new ResponseEntity<>(new ErrorResponse("User Id is Invalid"), HttpStatus.NOT_FOUND);
-            }
-            WalletUser x = walletUserRepository.findByEmailAddress(ur.getEmail());
-            if (x == null) {
+
+            WalletUser x = walletUserRepository.findByUserId(userPojo.getId());
+            if(x == null)
                 return new ResponseEntity<>(new ErrorResponse("Wallet User does not exist"), HttpStatus.NOT_FOUND);
-            }
+
             List<NewWalletAccount> accounts = new ArrayList<>();
             List<WalletAccount> listAcct = walletAccountRepository.findByUser(x);
             if (listAcct == null) {
@@ -2217,7 +2217,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     public ApiResponse<?> toggleTransactionType(HttpServletRequest request,long userId, String type, String token) {
         try {
             TranasctionPropertie toogle = new TranasctionPropertie();
-            TokenCheckResponse user = authProxy.getUserById(userId, token,request.getHeader(SecurityConstants.CLIENT_ID),request.getHeader(SecurityConstants.CLIENT_TYPE));
+            UserDtoResponse user = authProxy.getUserById(userId, token,request.getHeader(SecurityConstants.CLIENT_ID),request.getHeader(SecurityConstants.CLIENT_TYPE));
             if (!user.isStatus()) {
                 return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "Auth User ID does not exists", null);
             }

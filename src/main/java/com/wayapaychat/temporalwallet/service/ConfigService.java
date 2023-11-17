@@ -5,6 +5,8 @@ import com.wayapaychat.temporalwallet.entity.ChannelProvider;
 import com.wayapaychat.temporalwallet.pojo.RecurrentConfigPojo;
 import org.springframework.http.ResponseEntity;
 
+import javax.servlet.http.HttpServletRequest;
+
 public interface ConfigService {
 	
 	ResponseEntity<?> createDefaultCode(WalletConfigDTO configPojo);
@@ -22,7 +24,7 @@ public interface ConfigService {
 	ResponseEntity<?> createInterestParameter(InterestDTO interest);
 	ResponseEntity<?> createParamCOA(AccountGLDTO chat);
 	ResponseEntity<?> ListCOA();
-	ResponseEntity<?> createdTeller(WalletTellerDTO teller);
+	ResponseEntity<?> createdTeller(HttpServletRequest request,WalletTellerDTO teller);
 	ResponseEntity<?> ListTellersTill();
 	ResponseEntity<?> createdEvents(EventChargeDTO event);
 	ResponseEntity<?> updateEvents(UpdateEventChargeDTO event, Long eventId);

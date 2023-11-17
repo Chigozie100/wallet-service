@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.pojo;
 
 import java.util.Date;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +11,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
+@AllArgsConstructor @JsonIgnoreProperties(ignoreUnknown = true)
 public class TokenCheckResponse {
 
 	private Date timeStamp;
