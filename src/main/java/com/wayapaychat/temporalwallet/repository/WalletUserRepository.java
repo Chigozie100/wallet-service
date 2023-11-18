@@ -17,6 +17,7 @@ public interface WalletUserRepository extends JpaRepository<WalletUser, Long> {
 	
 	//@Query(value = "SELECT u FROM WalletUser u " + "WHERE UPPER(u.emailAddress) = UPPER(:email) " + " AND u.userId = (:userId) " + " AND u.del_flg = false")
 	WalletUser findByEmailAddress(String email);
+	WalletUser findByEmailAddressAndUserId(String email,Long userId);
 	WalletUser findByEmailAddressAndProfileId(String email,String profileId);
 	
 	WalletUser findByUserIdAndProfileId(Long userId,String profileId);
@@ -64,6 +65,8 @@ public interface WalletUserRepository extends JpaRepository<WalletUser, Long> {
 
     Optional<WalletUser> findByEmailAddressOrMobileNoAndProfileId(String email,String phone, String profileId);
 
-    //Select CASE WHEN ID = 5 THEN 1 ELSE 2 END as ord, ID FROM tbl ORDER BY ord ASC, ID ASC
+	WalletUser findByUserId(Long userId);
+
+	//Select CASE WHEN ID = 5 THEN 1 ELSE 2 END as ord, ID FROM tbl ORDER BY ord ASC, ID ASC
 
 }

@@ -25,7 +25,7 @@ public interface UserAccountService {
 
     ResponseEntity<?> createUserAccount(String clientId,String clientType,WalletUserDTO user, String token);
 
-    ResponseEntity<?> createCashAccount(WalletCashAccountDTO user);
+    ResponseEntity<?> createCashAccount(HttpServletRequest request,WalletCashAccountDTO user);
 
     ResponseEntity<?> createEventAccount(WalletEventAccountDTO user);
 
@@ -35,7 +35,7 @@ public interface UserAccountService {
 
     ArrayList<Object> createOfficialAccount(List<OfficialAccountDTO> account);
 
-    ResponseEntity<?> createAccountProduct(AccountProductDTO accountPojo);
+    ResponseEntity<?> createAccountProduct(HttpServletRequest request,AccountProductDTO accountPojo);
 
     ApiResponse<?> findCustWalletById(Long walletId);
 
@@ -77,11 +77,11 @@ public interface UserAccountService {
 
     ResponseEntity<?> searchAccount(String search);
 
-    ResponseEntity<?> modifyUserAccount(UserAccountDTO user);
+    ResponseEntity<?> modifyUserAccount(HttpServletRequest request,UserAccountDTO user);
 
     ResponseEntity<?> createNubbanAccountAuto();
 
-    ResponseEntity<?> ToggleAccount(AccountToggleDTO user);
+    ResponseEntity<?> ToggleAccount(HttpServletRequest request,AccountToggleDTO user);
 
     ResponseEntity<?> UserAccountAccess(AdminAccountRestrictionDTO user);
 
@@ -111,7 +111,7 @@ public interface UserAccountService {
 
     ResponseEntity<?> getUserAccountCount(Long userId,String profileId);
 
-    ResponseEntity<?> ListUserAccount(long userId);
+    ResponseEntity<?> ListUserAccount(HttpServletRequest request,long userId);
 
     ResponseEntity<?> AccountLookUp(String account, SecureDTO secureKey);
 

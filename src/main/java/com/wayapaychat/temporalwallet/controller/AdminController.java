@@ -814,8 +814,8 @@ public class AdminController {
 
     @ApiOperation(value = "Create Admin Cash Wallet - (Admin COnsumption Only)", tags = { "ADMIN" })
     @PostMapping(path = "/cash/account")
-    public ResponseEntity<?> createCashAccounts(@Valid @RequestBody WalletCashAccountDTO user) {
-        return userAccountService.createCashAccount(user);
+    public ResponseEntity<?> createCashAccounts(HttpServletRequest request,@Valid @RequestBody WalletCashAccountDTO user) {
+        return userAccountService.createCashAccount(request,user);
         // return userAccountService.createCashAccount(user);
     }
 
@@ -843,8 +843,8 @@ public class AdminController {
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "List User wallets", tags = { "ADMIN" })
     @GetMapping(path = "/admin/user/accounts/{user_id}")
-    public ResponseEntity<?> GetListAccount(@PathVariable long user_id) {
-        return userAccountService.ListUserAccount(user_id);
+    public ResponseEntity<?> GetListAccount(HttpServletRequest request,@PathVariable long user_id) {
+        return userAccountService.ListUserAccount(request,user_id);
     }
 
     @ApiOperation(value = "Get All Wallets - (Admin Consumption Only)", tags = { "ADMIN" })

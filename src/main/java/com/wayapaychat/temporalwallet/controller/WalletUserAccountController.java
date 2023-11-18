@@ -63,9 +63,9 @@ public class WalletUserAccountController {
 
     @ApiOperation(value = "Modify User Account", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping(path = "/user/account/modify")
-    public ResponseEntity<?> createUserAccount(@Valid @RequestBody UserAccountDTO user) {
+    public ResponseEntity<?> createUserAccount(HttpServletRequest request,@Valid @RequestBody UserAccountDTO user) {
         log.info("Request input: {}", user);
-        return userAccountService.modifyUserAccount(user);
+        return userAccountService.modifyUserAccount(request,user);
     }
 
     @ApiImplicitParams({
@@ -90,9 +90,9 @@ public class WalletUserAccountController {
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Account Toggle", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping(path = "/user/account/toggle")
-    public ResponseEntity<?> createAccountToggle(@Valid @RequestBody AccountToggleDTO user) {
+    public ResponseEntity<?> createAccountToggle(HttpServletRequest request,@Valid @RequestBody AccountToggleDTO user) {
         log.info("Request input: {}", user);
-        return userAccountService.ToggleAccount(user);
+        return userAccountService.ToggleAccount(request,user);
         //return userAccountService.modifyUserAccount(user);
     }
 
@@ -107,8 +107,8 @@ public class WalletUserAccountController {
 
     @ApiOperation(value = "Create a Wallet", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping(path = "/account/product")
-    public ResponseEntity<?> createProductAccount(@Valid @RequestBody AccountProductDTO accountPojo) {
-        return userAccountService.createAccountProduct(accountPojo);
+    public ResponseEntity<?> createProductAccount(HttpServletRequest request,@Valid @RequestBody AccountProductDTO accountPojo) {
+        return userAccountService.createAccountProduct(request,accountPojo);
     }
 
     @ApiImplicitParams({
