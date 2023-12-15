@@ -52,4 +52,6 @@ public class CBATransaction {
 
     private CBAAction action;
 
+    private String transactionChannel;
+
 }

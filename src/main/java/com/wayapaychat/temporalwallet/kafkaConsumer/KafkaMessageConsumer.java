@@ -95,7 +95,7 @@ public class KafkaMessageConsumer {
                 WalletUserDTO walletUserDtoRequest = getWalletUserDto(data);
                 log.debug("::::MAPPED DATA:: {} ",walletUserDtoRequest);
                 CompletableFuture.runAsync(() -> {
-                    ResponseEntity<?> corporateReq = userAccountService.createUserAccount(walletUserDtoRequest, data.getToken());
+                    ResponseEntity<?> corporateReq = userAccountService.createUserAccount(walletUserDtoRequest.getClientId(), walletUserDtoRequest.getClientType(), walletUserDtoRequest, data.getToken());
                     log.debug(":::::PROCESS KAFKA Corporate Acct Response {} ",corporateReq);
                 });
                log.debug("::::FINISH PROCESSING CORPORATE ACCT REG::::: {}",walletUserDtoRequest);
@@ -104,7 +104,7 @@ public class KafkaMessageConsumer {
                 WalletUserDTO walletUserDtoRequest = getWalletUserDto(data);
                 log.debug("::::MAPPED DATA {}",walletUserDtoRequest);
                 CompletableFuture.runAsync(() -> {
-                    ResponseEntity<?> corporateReq = userAccountService.createUserAccount(walletUserDtoRequest, data.getToken());
+                    ResponseEntity<?> corporateReq = userAccountService.createUserAccount(walletUserDtoRequest.getClientId(), walletUserDtoRequest.getClientType(),walletUserDtoRequest, data.getToken());
                     log.debug(":::::PROCESS KAFKA Nor Acct Resp {}",corporateReq);
                 });
                 log.debug("::::FINISH PROCESSING NORMAL ACCT REG::::: {}",walletUserDtoRequest);
@@ -138,6 +138,8 @@ public class KafkaMessageConsumer {
         walletUserDTO.setAccountType("");
         walletUserDTO.setProfileId(signUpDto.getProfileId());
         walletUserDTO.setProfileType(signUpDto.getProfileType());
+        walletUserDTO.setClientId(signUpDto.getClientId());
+        walletUserDTO.setClientType(signUpDto.getClientType());
         return walletUserDTO;
     }
 }

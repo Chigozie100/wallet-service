@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.controller;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 
@@ -135,8 +136,8 @@ public class WalletBankController {
     @ApiOperation(value = "Create a Wallet Teller", tags = { "BANK-WALLET" })
     @PostMapping(path = "/create/teller/till")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
-    public ResponseEntity<?> createTeller(@Valid @RequestBody WalletTellerDTO tellerPojo) {
-        return configService.createdTeller(tellerPojo);
+    public ResponseEntity<?> createTeller(HttpServletRequest request, @Valid @RequestBody WalletTellerDTO tellerPojo) {
+        return configService.createdTeller(request,tellerPojo);
     }
     
     @ApiOperation(value = "List Wallet Product Code", tags = { "BANK-WALLET" })

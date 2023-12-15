@@ -77,8 +77,9 @@ public class WalletTransactionController {
     @ApiOperation(value = "Generate OTP for Payment", notes = "Post Money", tags = {"TRANSACTION-WALLET"})
     @PostMapping("/otp/generate/{emailOrPhoneNumber}")
     public ResponseEntity<?> OtpGenerate(HttpServletRequest request,
-            @PathVariable("emailOrPhoneNumber") String emailOrPhoneNumber) {
-        return transAccountService.PostOTPGenerate(request, emailOrPhoneNumber);
+            @PathVariable("emailOrPhoneNumber") String emailOrPhoneNumber,
+                                         @RequestParam(name = "businessId",required = false)String businessId) {
+        return transAccountService.PostOTPGenerate(request, emailOrPhoneNumber,businessId);
     }
 
     // @ApiImplicitParams({ @ApiImplicitParam(name = "authorization", value =
@@ -764,7 +765,12 @@ public class WalletTransactionController {
         @ApiImplicitParam(name = "authorization", dataTypeClass = String.class, value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Total Overall and category Based Transactions", notes = "Total Overall and category Based Transactions", tags = {"TRANSACTION-WALLET"})
     @GetMapping("/transaction/overall-based-analysis")
-    public ResponseEntity<?> overallBasedAnalysis() {
+    public ResponseEntity<?> overallBasedAnalysis(HttpServletRequest request) {
+        final String xfHeader = request.getHeader("X-Forwarded-For");
+        if (xfHeader != null) {
+            log.info(xfHeader.split(",")[0]);
+        }
+        log.info(request.getRemoteAddr());
         return transAccountService.transactionAnalysis();
     }
 
@@ -790,10 +796,10 @@ public class WalletTransactionController {
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Fetch user transaction TSQ by reference number and account number", notes = "get TSQ reference number and account number", tags = {"TRANSACTION-WALLET"})
     @GetMapping(path = "/fetchByReferenceNumberTsq/{accountNumber}/{referenceNumber}")
-    public ResponseEntity<?> doMerchantTsqByReferenceAndAcctNo(@RequestHeader("Authorization") String token,
+    public ResponseEntity<?> doMerchantTsqByReferenceAndAcctNo(HttpServletRequest request,@RequestHeader("Authorization") String token,
                                                                @PathVariable String accountNumber,
                                                                @PathVariable String referenceNumber) {
-        ApiResponse<?> response = transAccountService.fetchMerchantTransactionTqs(token,accountNumber,referenceNumber);
+        ApiResponse<?> response = transAccountService.fetchMerchantTransactionTqs(request,token,accountNumber,referenceNumber);
         return new ResponseEntity<>(response, HttpStatus.valueOf(response.getCode()));
     }
 

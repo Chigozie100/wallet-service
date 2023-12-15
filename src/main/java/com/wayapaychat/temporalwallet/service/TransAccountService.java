@@ -182,7 +182,7 @@ public interface TransAccountService {
 
     ResponseEntity<?> WayaPaymentRequestUsertoUser(HttpServletRequest request, WayaPaymentRequest transfer);
 
-    ResponseEntity<?> PostOTPGenerate(HttpServletRequest request, String emailPhone);
+    ResponseEntity<?> PostOTPGenerate(HttpServletRequest request, String emailPhone,String businessId);
 
     ResponseEntity<?> PostOTPVerify(HttpServletRequest request, WalletRequestOTP transfer);
 
@@ -241,6 +241,6 @@ public interface TransAccountService {
 
     ApiResponse<CustomerStatement> accountstatementReport2(Date fromdate, Date todate, String acctNo);
 
-    ApiResponse<?> fetchMerchantTransactionTqs(String token, String accountNumber,String referenceNumber);
+    ApiResponse<?> fetchMerchantTransactionTqs(HttpServletRequest request,String token, String accountNumber,String referenceNumber);
         
 }

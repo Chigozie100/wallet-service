@@ -2,9 +2,11 @@ package com.wayapaychat.temporalwallet.controller;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.wayapaychat.temporalwallet.config.SecurityConstants;
 import com.wayapaychat.temporalwallet.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -44,9 +46,9 @@ public class WalletUserAccountController {
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Create a User", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping(path = "/create-user")
-    public ResponseEntity<?> createUser(@Valid @RequestBody UserDTO user, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<?> createUser(HttpServletRequest request,@Valid @RequestBody UserDTO user, @RequestHeader("Authorization") String token) {
         log.info("Request input: {}", user);
-        return userAccountService.createUser(user, token);
+        return userAccountService.createUser(request,user, token);
     }
 
     //Wallet call by other service
@@ -54,16 +56,16 @@ public class WalletUserAccountController {
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Create User Account", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping(path = "/user/account")
-    public ResponseEntity<?> createUserAccount(@Valid @RequestBody WalletUserDTO user, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<?> createUserAccount(HttpServletRequest request,@Valid @RequestBody WalletUserDTO user, @RequestHeader("Authorization") String token) {
         log.info("Request input: {}", user); //, String token
-        return userAccountService.createUserAccount(user, token);
+        return userAccountService.createUserAccount(request.getHeader(SecurityConstants.CLIENT_ID),request.getHeader(SecurityConstants.CLIENT_TYPE),user, token);
     }
 
     @ApiOperation(value = "Modify User Account", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping(path = "/user/account/modify")
-    public ResponseEntity<?> createUserAccount(@Valid @RequestBody UserAccountDTO user) {
+    public ResponseEntity<?> createUserAccount(HttpServletRequest request,@Valid @RequestBody UserAccountDTO user) {
         log.info("Request input: {}", user);
-        return userAccountService.modifyUserAccount(user);
+        return userAccountService.modifyUserAccount(request,user);
     }
 
     @ApiImplicitParams({
@@ -88,9 +90,9 @@ public class WalletUserAccountController {
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Account Toggle", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping(path = "/user/account/toggle")
-    public ResponseEntity<?> createAccountToggle(@Valid @RequestBody AccountToggleDTO user) {
+    public ResponseEntity<?> createAccountToggle(HttpServletRequest request,@Valid @RequestBody AccountToggleDTO user) {
         log.info("Request input: {}", user);
-        return userAccountService.ToggleAccount(user);
+        return userAccountService.ToggleAccount(request,user);
         //return userAccountService.modifyUserAccount(user);
     }
 
@@ -99,14 +101,14 @@ public class WalletUserAccountController {
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Create a Wallet | add additional wallet", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping(path = "/create-wallet")
-    public ResponseEntity<?> createAccount(@Valid @RequestBody AccountPojo2 accountPojo, @RequestHeader("Authorization") String token) {
-        return userAccountService.createAccount(accountPojo, token);
+    public ResponseEntity<?> createAccount(HttpServletRequest request, @Valid @RequestBody AccountPojo2 accountPojo, @RequestHeader("Authorization") String token) {
+        return userAccountService.createAccount(request,accountPojo, token);
     }
 
     @ApiOperation(value = "Create a Wallet", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping(path = "/account/product")
-    public ResponseEntity<?> createProductAccount(@Valid @RequestBody AccountProductDTO accountPojo) {
-        return userAccountService.createAccountProduct(accountPojo);
+    public ResponseEntity<?> createProductAccount(HttpServletRequest request,@Valid @RequestBody AccountProductDTO accountPojo) {
+        return userAccountService.createAccountProduct(request,accountPojo);
     }
 
     @ApiImplicitParams({
@@ -184,10 +186,10 @@ public class WalletUserAccountController {
 
     @ApiOperation(value = "Get User list of wallets", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/accounts/{user_id}/{profileId}")
-    public ResponseEntity<?> getAccounts(@PathVariable long user_id,
+    public ResponseEntity<?> getAccounts(HttpServletRequest request,@PathVariable long user_id,
                                          @PathVariable String profileId,
                                          @RequestHeader("Authorization") String token) {
-        return userAccountService.getUserAccountList(user_id,profileId,token);
+        return userAccountService.getUserAccountList(request,user_id,profileId,token);
     }
 
     @ApiOperation(value = "Get User Wallet Commission Account", tags = {"USER-ACCOUNT-WALLET"})
@@ -212,14 +214,14 @@ public class WalletUserAccountController {
 
     @ApiOperation(value = "Create Cooperate account, this creates a default account and a commission account", notes = "Create Cooperate account, this creates a default account and a commission account", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping("/create/cooperate/user")
-    public ResponseEntity<?> createCooperateAccount(@RequestBody WalletUserDTO createAccountPojo, @RequestHeader("Authorization") String token) {
-        return userAccountService.createUserAccount(createAccountPojo, token);
+    public ResponseEntity<?> createCooperateAccount(HttpServletRequest request,@RequestBody WalletUserDTO createAccountPojo, @RequestHeader("Authorization") String token) {
+        return userAccountService.createUserAccount(request.getHeader(SecurityConstants.CLIENT_ID),request.getHeader(SecurityConstants.CLIENT_TYPE),createAccountPojo, token);
     }
 
     @ApiOperation(value = "Create Nuban account, this creates a default account / commission account / nuban account", notes = "Create Cooperate account, this creates a default account and a commission account", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping("/create/nuban/user")
-    public ResponseEntity<?> createNubanAccount(@RequestBody WalletUserDTO createAccountPojo, @RequestHeader("Authorization") String token) {
-        return userAccountService.createUserAccount(createAccountPojo, token);
+    public ResponseEntity<?> createNubanAccount(HttpServletRequest request,@RequestBody WalletUserDTO createAccountPojo, @RequestHeader("Authorization") String token) {
+        return userAccountService.createUserAccount(request.getHeader(SecurityConstants.CLIENT_ID),request.getHeader(SecurityConstants.CLIENT_TYPE),createAccountPojo, token);
     }
 
     @ApiOperation(value = "Get Wallet Account Info", tags = {"USER-ACCOUNT-WALLET"})
@@ -329,9 +331,9 @@ public class WalletUserAccountController {
 
     @ApiOperation(value = "Toggle transaction property per user")
     @PostMapping("/toggle/{userId}")
-    public ApiResponse<?> toggleTransactionProperty(@PathVariable("userId") long userId,
+    public ApiResponse<?> toggleTransactionProperty(HttpServletRequest request,@PathVariable("userId") long userId,
             @RequestParam("type") String type, @RequestHeader("Authorization") String token) {
-        return userAccountService.toggleTransactionType(userId, type, token);
+        return userAccountService.toggleTransactionType(request,userId, type, token);
     }
 
     @ApiImplicitParams({

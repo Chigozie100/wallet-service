@@ -165,7 +165,7 @@ public class TransAccountServiceImpl implements TransAccountService {
     public ResponseEntity<?> cashTransferByAdmin(HttpServletRequest request, String command,
             WalletAdminTransferDTO transfer) {
         String token = request.getHeader(SecurityConstants.HEADER_STRING);
-        MyData userToken = tokenService.getTokenUser(token);
+        MyData userToken = tokenService.getTokenUser(token,request);
         if (userToken == null) {
             throw new CustomException("INVALID", HttpStatus.NOT_FOUND);
         }
@@ -255,7 +255,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         log.info("Transaction Request Creation: {}", transfer.toString());
 
         String token = request.getHeader(SecurityConstants.HEADER_STRING);
-        MyData userToken = tokenService.getTokenUser(token);
+        MyData userToken = tokenService.getTokenUser(token,request);
         if (userToken == null) {
             return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
         }
@@ -357,7 +357,7 @@ public class TransAccountServiceImpl implements TransAccountService {
     public ResponseEntity<?> EventNonRedeem(HttpServletRequest request, NonWayaPaymentDTO transfer) {
         log.info("Transaction Request Creation: {}", transfer.toString());
         String token = request.getHeader(SecurityConstants.HEADER_STRING);
-        MyData userToken = tokenService.getTokenUser(token);
+        MyData userToken = tokenService.getTokenUser(token,request);
         if (userToken == null) {
             throw new CustomException("INVAILED TOKEN", HttpStatus.NOT_FOUND);
         }
@@ -664,7 +664,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
         log.info("Transaction Request Creation: {}", transfer.toString());
         String token = request.getHeader(SecurityConstants.HEADER_STRING);
-        MyData userToken = tokenService.getTokenUser(token);
+        MyData userToken = tokenService.getTokenUser(token,request);
         if (userToken == null) {
             return new ResponseEntity<>(new ErrorResponse("UNAUTHORIZED, PLEASE LOGIN"), HttpStatus.UNAUTHORIZED);
         }
@@ -770,7 +770,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
         try {
             String token = request.getHeader(SecurityConstants.HEADER_STRING);
-            MyData userToken = tokenService.getTokenUser(token);
+            MyData userToken = tokenService.getTokenUser(token,request);
             if (userToken == null) {
                 return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
             }
@@ -799,7 +799,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
         try {
             String token = request.getHeader(SecurityConstants.HEADER_STRING);
-            MyData userToken = tokenService.getTokenUser(token);
+            MyData userToken = tokenService.getTokenUser(token,request);
             if (userToken == null) {
                 return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
             }
@@ -827,7 +827,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         log.info("Transaction Request Creation: {}", transfer.toString());
 
         String token = request.getHeader(SecurityConstants.HEADER_STRING);
-        MyData userToken = tokenService.getTokenUser(token);
+        MyData userToken = tokenService.getTokenUser(token,request);
         if (userToken == null)
             throw new CustomException("UNAUTHORIZED, PLEASE LOGIN", HttpStatus.BAD_REQUEST);
 
@@ -878,7 +878,7 @@ public class TransAccountServiceImpl implements TransAccountService {
             String tranCrncy, String tranNarration, String paymentReference, String receiverName, String senderName) {
 
         String token = request.getHeader(SecurityConstants.HEADER_STRING);
-        MyData userToken = tokenService.getTokenUser(token);
+        MyData userToken = tokenService.getTokenUser(token,request);
         if (userToken == null) {
             return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
         }
@@ -920,7 +920,7 @@ public class TransAccountServiceImpl implements TransAccountService {
         try {
             // To fetch the token used
             String token = request.getHeader(SecurityConstants.HEADER_STRING);
-            MyData userToken = tokenService.getTokenUser(token);
+            MyData userToken = tokenService.getTokenUser(token,request);
             if (userToken == null)
                 return new ResponseEntity<>(new ErrorResponse("UNAUTHORIZED, PLEASE LOGIN"), HttpStatus.BAD_REQUEST);
 
@@ -1057,7 +1057,7 @@ public class TransAccountServiceImpl implements TransAccountService {
     public ResponseEntity<?> NonWayaRedeemPIN(HttpServletRequest request, NonWayaPayPIN transfer) {
         try {
             String token = request.getHeader(SecurityConstants.HEADER_STRING);
-            MyData userToken = tokenService.getTokenUser(token);
+            MyData userToken = tokenService.getTokenUser(token,request);
             if (userToken == null)
                 return new ResponseEntity<>(new ErrorResponse("UNAUTHORIZED, PLEASE LOGIN"), HttpStatus.BAD_REQUEST);
 //            beneficiaryUserId
@@ -1357,7 +1357,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
         log.info("command" + command);
         String token = request.getHeader(SecurityConstants.HEADER_STRING);
-        MyData userToken = tokenService.getTokenUser(token);
+        MyData userToken = tokenService.getTokenUser(token,request);
         if (userToken == null) {
             return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
         }
@@ -1393,7 +1393,7 @@ public class TransAccountServiceImpl implements TransAccountService {
     public ResponseEntity<?> sendMoney(HttpServletRequest request, TransferTransactionDTO transfer) {
 
         String token = request.getHeader(SecurityConstants.HEADER_STRING);
-        MyData userToken = tokenService.getTokenUser(token);
+        MyData userToken = tokenService.getTokenUser(token,request);
 
         if (userToken == null) {
             return new ResponseEntity<>(new ErrorResponse("INVALID TOKEN"), HttpStatus.BAD_REQUEST);
@@ -1527,7 +1527,7 @@ public class TransAccountServiceImpl implements TransAccountService {
     public ResponseEntity<?> OfficialMoneyTransferSw(HttpServletRequest request, OfficeTransferDTO transfer) {
 
         String token = request.getHeader(SecurityConstants.HEADER_STRING);
-        MyData userToken = tokenService.getTokenUser(token);
+        MyData userToken = tokenService.getTokenUser(token,request);
         if (userToken == null) {
             throw new CustomException("INVALID TOKEN", HttpStatus.NOT_FOUND);
         }
@@ -1554,13 +1554,16 @@ public class TransAccountServiceImpl implements TransAccountService {
 
     public ResponseEntity<?> doOfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer) {
 
-        return coreBankingService.processTransaction(
-                new TransferTransactionDTO(
-                        transfer.getOfficeDebitAccount(), transfer.getCustomerCreditAccount(), transfer.getAmount(),
-                        transfer.getTranType(), transfer.getTranCrncy(), transfer.getTranNarration(),
-                        transfer.getPaymentReference(), CategoryType.FUNDING.getValue(), transfer.getReceiverName(),
-                        transfer.getSenderName()),
-                "WAYATRAN", request);
+        if(transfer.getTransactionChannel() == null)
+            transfer.setTransactionChannel(TransactionChannel.WAYABANK.name());
+
+        TransferTransactionDTO transferTransactionDTO = new TransferTransactionDTO(
+                transfer.getOfficeDebitAccount(), transfer.getCustomerCreditAccount(), transfer.getAmount(),
+                transfer.getTranType(), transfer.getTranCrncy(), transfer.getTranNarration(),
+                transfer.getPaymentReference(), CategoryType.FUNDING.getValue(), transfer.getReceiverName(),
+                transfer.getSenderName());
+        transferTransactionDTO.setTransactionChannel(transfer.getTransactionChannel());
+        return coreBankingService.processTransaction(transferTransactionDTO, "WAYATRAN", request);
     }
 
     public ApiResponse<?> OfficialUserTransfer(HttpServletRequest request, OfficeUserTransferDTO transfer,
@@ -1576,7 +1579,7 @@ public class TransAccountServiceImpl implements TransAccountService {
     public ResponseEntity<?> OfficialUserTransferSystemSwitch(Map<String, String> mapp, String token,
             HttpServletRequest request, OfficeUserTransferDTO transfer) {
 
-        MyData userToken = tokenService.getTokenUser(token);
+        MyData userToken = tokenService.getTokenUser(token,request);
         if (userToken == null) {
             throw new CustomException("INVALID TOKEN", HttpStatus.NOT_FOUND);
         }
@@ -3013,9 +3016,9 @@ public class TransAccountServiceImpl implements TransAccountService {
     }
 
     @Override
-    public ResponseEntity<?> PostOTPGenerate(HttpServletRequest request, String emailPhone) {
+    public ResponseEntity<?> PostOTPGenerate(HttpServletRequest request, String emailPhone,String businessId) {
         try {
-            OTPResponse tokenResponse = authProxy.postOTPGenerate(emailPhone);
+            OTPResponse tokenResponse = authProxy.postOTPGenerate(emailPhone,businessId,request.getHeader(SecurityConstants.CLIENT_ID),request.getHeader(SecurityConstants.CLIENT_TYPE));
             if (tokenResponse == null) {
                 throw new CustomException("Unable to delivered OTP", HttpStatus.BAD_REQUEST);
             }
@@ -3043,7 +3046,7 @@ public class TransAccountServiceImpl implements TransAccountService {
     @Override
     public ResponseEntity<?> PostOTPVerify(HttpServletRequest request, WalletRequestOTP transfer) {
         try {
-            OTPResponse tokenResponse = authProxy.postOTPVerify(transfer);
+            OTPResponse tokenResponse = authProxy.postOTPVerify(transfer,request.getHeader(SecurityConstants.CLIENT_ID),request.getHeader(SecurityConstants.CLIENT_TYPE));
             if (tokenResponse == null) {
                 throw new CustomException("Unable to delivered OTP", HttpStatus.BAD_REQUEST);
             }
@@ -3332,6 +3335,7 @@ public class TransAccountServiceImpl implements TransAccountService {
             }    
         } catch (Exception e) {
             log.error("unable to fetch smu users");
+            e.printStackTrace();
         }
 
 
@@ -3508,9 +3512,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 
     @Override
-    public ApiResponse<?> fetchMerchantTransactionTqs(String token, String accountNumber,String referenceNumber) {
+    public ApiResponse<?> fetchMerchantTransactionTqs(HttpServletRequest request,String token, String accountNumber,String referenceNumber) {
         try {
-            TokenCheckResponse tokenCheckResponse = authProxy.getUserDataToken(token);
+            TokenCheckResponse tokenCheckResponse = authProxy.getUserDataToken(token,request.getHeader(SecurityConstants.CLIENT_ID),request.getHeader(SecurityConstants.CLIENT_TYPE));
             if(!tokenCheckResponse.isStatus())
                 return new ApiResponse<>(false, ApiResponse.Code.UNAUTHORIZED, "UNAUTHORIZED", null);
 

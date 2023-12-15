@@ -27,22 +27,22 @@ public class DBConnectConfig {
 	@Value("${spring.datasource.driver-class-name}")
 	private String hostDriver;
 	
-	public JdbcTemplate jdbcConnect() {
-		final DriverManagerDataSource datasource = new DriverManagerDataSource();
-		try {
-			
-			String jdbcUrl = hostURL.replace("temporal-service", "auth-service");
-			datasource.setDriverClassName(hostDriver);
-			datasource.setUrl(jdbcUrl);
-			datasource.setUsername(hostUsername);
-			datasource.setPassword(hostPassword);
-
-			log.info("JDBC Database Connection: {} ",datasource.getConnection().getSchema());
-		} catch (SQLException e) {
-			log.error("Unable to connect: {} ",e.getMessage());
-			e.printStackTrace();
-		}
-		return new JdbcTemplate(datasource);
-	}
+//	public JdbcTemplate jdbcConnect() {
+//		final DriverManagerDataSource datasource = new DriverManagerDataSource();
+//		try {
+//
+//			String jdbcUrl = hostURL.replace("temporal-service", "auth-service");
+//			datasource.setDriverClassName(hostDriver);
+//			datasource.setUrl(jdbcUrl);
+//			datasource.setUsername(hostUsername);
+//			datasource.setPassword(hostPassword);
+//
+//			log.info("JDBC Database Connection: {} ",datasource.getConnection().getSchema());
+//		} catch (SQLException e) {
+//			log.error("Unable to connect: {} ",e.getMessage());
+//			e.printStackTrace();
+//		}
+//		return new JdbcTemplate(datasource);
+//	}
 
 }

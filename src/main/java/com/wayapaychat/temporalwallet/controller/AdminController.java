@@ -722,19 +722,19 @@ public class AdminController {
 
     @ApiOperation(value = "Create a Simulated User", tags = { "ADMIN" })
     @PostMapping(path = "simulated/account")
-    public ResponseEntity<?> createSIMUser(@Valid @RequestBody AccountPojo2 user,
+    public ResponseEntity<?> createSIMUser(HttpServletRequest request,@Valid @RequestBody AccountPojo2 user,
             @RequestHeader("Authorization") String token) {
         log.info("Request input: {}", user);
-        return userAccountService.createAccount(user, token);
+        return userAccountService.createAccount(request,user, token);
     }
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Create a wallet account", tags = { "ADMIN" })
     @PostMapping(path = "/official/user/account")
-    public ResponseEntity<?> createUserAccount(@Valid @RequestBody AccountPojo2 accountPojo,
+    public ResponseEntity<?> createUserAccount(HttpServletRequest request,@Valid @RequestBody AccountPojo2 accountPojo,
             @RequestHeader("Authorization") String token) {
-        return userAccountService.createAccount(accountPojo, token);
+        return userAccountService.createAccount(request,accountPojo, token);
     }
 
     @ApiImplicitParams({
@@ -814,8 +814,8 @@ public class AdminController {
 
     @ApiOperation(value = "Create Admin Cash Wallet - (Admin COnsumption Only)", tags = { "ADMIN" })
     @PostMapping(path = "/cash/account")
-    public ResponseEntity<?> createCashAccounts(@Valid @RequestBody WalletCashAccountDTO user) {
-        return userAccountService.createCashAccount(user);
+    public ResponseEntity<?> createCashAccounts(HttpServletRequest request,@Valid @RequestBody WalletCashAccountDTO user) {
+        return userAccountService.createCashAccount(request,user);
         // return userAccountService.createCashAccount(user);
     }
 
@@ -843,8 +843,8 @@ public class AdminController {
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "List User wallets", tags = { "ADMIN" })
     @GetMapping(path = "/admin/user/accounts/{user_id}")
-    public ResponseEntity<?> GetListAccount(@PathVariable long user_id) {
-        return userAccountService.ListUserAccount(user_id);
+    public ResponseEntity<?> GetListAccount(HttpServletRequest request,@PathVariable long user_id) {
+        return userAccountService.ListUserAccount(request,user_id);
     }
 
     @ApiOperation(value = "Get All Wallets - (Admin Consumption Only)", tags = { "ADMIN" })
@@ -882,8 +882,9 @@ public class AdminController {
     }
 
     @ApiOperation(value = "Admin Get User Wallet Commission Account", tags = { "ADMIN" })
-    @GetMapping(path = "/admin/commission-accounts/{user_id}/{profileId}")
-    public ResponseEntity<?> getCommissionAccounts(@PathVariable long user_id,@PathVariable String profileId) {
+    @GetMapping(path = "/admin/commission-accounts/{user_id}")
+    public ResponseEntity<?> getCommissionAccounts(@PathVariable long user_id,
+                                                   @RequestParam(name = "profileId",required = false) String profileId) {
         return userAccountService.getUserCommissionList(user_id, true,profileId);
     }
 
@@ -972,10 +973,10 @@ public class AdminController {
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Fetch single user transactions analysis for referral commission", notes = "customer transactions analysis for referral commission", tags = {
             "ADMIN" })
-    @GetMapping("/user/trns/analysis/{userId}/{profileId}")
+    @GetMapping("/user/trns/analysis/{userId}")
     public ResponseEntity<ApiResponse<?>> fetchUserTransactionStatForReferral(@PathVariable String userId,
                                                                               @RequestParam String accountNumber,
-                                                                              @PathVariable String profileId){
+                                                                              @RequestParam String profileId){
         ApiResponse<?> response = userAccountService.fetchUserTransactionStatForReferral(userId,accountNumber,profileId);
         return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
     }

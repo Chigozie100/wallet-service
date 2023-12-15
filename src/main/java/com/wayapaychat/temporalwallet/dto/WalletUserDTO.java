@@ -70,5 +70,7 @@ public class WalletUserDTO {
 	private String profileId;
 
 	private String profileType;
+	private String clientId;
+	private String clientType;
 
 }

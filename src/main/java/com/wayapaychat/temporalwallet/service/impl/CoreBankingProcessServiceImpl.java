@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import javax.servlet.http.HttpServletRequest;
 
+import com.wayapaychat.temporalwallet.enumm.TransactionChannel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -259,13 +260,18 @@ public class CoreBankingProcessServiceImpl implements CoreBankingProcessService 
             creditAccountNumber = customerDepositGL;
             debitAccountNumber = customerDepositGL;
         }
+        String tChannel = TransactionChannel.WAYABANK.name();
+        if(customerWalletTransaction.get(0).getTransChannel() != null)
+            tChannel = customerWalletTransaction.get(0).getTransChannel();
+
         CBATransaction cbaTransaction = new CBATransaction(transLog.get().getSenderName(), transLog.get().getBeneficiaryName(), userToken,
         customerWalletTransaction.get(0).getPaymentReference(), 
         transitAccount, creditAccountNumber, debitAccountNumber, null,
         customerWalletTransaction.get(0).getTranNarrate(),
         customerWalletTransaction.get(0).getTranCategory().name(), customerWalletTransaction.get(0).getTranType().name(),
         transLog.get().getTranAmount(), transLog.get().getChargeAmount(), transLog.get().getVatAmount(), 
-        provider, transLog.get().getEventId(), customerWalletTransaction.get(0).getRelatedTransId(), CBAAction.MOVE_GL_TO_GL);
+        provider, transLog.get().getEventId(), customerWalletTransaction.get(0).getRelatedTransId(),
+                CBAAction.MOVE_GL_TO_GL,tChannel);
 
         String vatCollectionAccount = coreBankingService.getEventAccountNumber("VAT_".concat(cbaTransaction.getChannelEvent()));
         if (vatCollectionAccount == null || cbaTransaction.getVat().doubleValue() <= 0) {
@@ -318,13 +324,18 @@ public class CoreBankingProcessServiceImpl implements CoreBankingProcessService 
             creditAccountNumber = customerDepositGL;
             debitAccountNumber = customerDepositGL;
         }
+        String tChannel = TransactionChannel.WAYABANK.name();
+        if(customerWalletTransaction.get(0).getTransChannel() != null)
+            tChannel = customerWalletTransaction.get(0).getTransChannel();
+
         CBATransaction cbaTransaction = new CBATransaction(transLog.get().getSenderName(), transLog.get().getBeneficiaryName(), userToken,
         customerWalletTransaction.get(0).getPaymentReference(), 
         transitAccount, creditAccountNumber, debitAccountNumber, null,
         customerWalletTransaction.get(0).getTranNarrate(),
         customerWalletTransaction.get(0).getTranCategory().name(), customerWalletTransaction.get(0).getTranType().name(),
         transLog.get().getTranAmount(), transLog.get().getChargeAmount(), transLog.get().getVatAmount(), 
-        provider, transLog.get().getEventId(), customerWalletTransaction.get(0).getRelatedTransId(), CBAAction.MOVE_GL_TO_GL);
+        provider, transLog.get().getEventId(), customerWalletTransaction.get(0).getRelatedTransId(),
+                CBAAction.MOVE_GL_TO_GL,tChannel);
  
         String chargeCollectionAccount = coreBankingService.getEventAccountNumber("INCOME_".concat(cbaTransaction.getChannelEvent()));
         if (chargeCollectionAccount == null || cbaTransaction.getCharge().doubleValue() <= 0) {
@@ -372,13 +383,18 @@ public class CoreBankingProcessServiceImpl implements CoreBankingProcessService 
             creditAccountNumber = customerDepositGL;
             debitAccountNumber = customerDepositGL;
         }
+        String tChannel = TransactionChannel.WAYABANK.name();
+        if(customerWalletTransaction.get(0).getTransChannel() != null)
+            tChannel = customerWalletTransaction.get(0).getTransChannel();
+
         CBATransaction cbaTransaction = new CBATransaction(transLog.get().getSenderName(), transLog.get().getBeneficiaryName(), userToken,
         customerWalletTransaction.get(0).getPaymentReference(), 
         transitAccount, creditAccountNumber, debitAccountNumber, null,
         customerWalletTransaction.get(0).getTranNarrate(),
         customerWalletTransaction.get(0).getTranCategory().name(), customerWalletTransaction.get(0).getTranType().name(),
         transLog.get().getTranAmount(), transLog.get().getChargeAmount(), transLog.get().getVatAmount(), 
-        provider, transLog.get().getEventId(), customerWalletTransaction.get(0).getRelatedTransId(), CBAAction.MOVE_GL_TO_GL);
+        provider, transLog.get().getEventId(), customerWalletTransaction.get(0).getRelatedTransId(),
+                CBAAction.MOVE_GL_TO_GL,tChannel);
                                                 
         return coreBankingService.processCBATransactionGLDoubleEntryWithTransit(cbaTransaction);
 

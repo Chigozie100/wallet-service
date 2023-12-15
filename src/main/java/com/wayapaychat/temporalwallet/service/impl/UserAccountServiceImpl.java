@@ -3,12 +3,14 @@ package com.wayapaychat.temporalwallet.service.impl;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.waya.security.auth.pojo.UserIdentityData;
+import com.wayapaychat.temporalwallet.config.SecurityConstants;
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
 import com.wayapaychat.temporalwallet.dao.TemporalWalletDAO;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.enumm.CategoryType;
 import com.wayapaychat.temporalwallet.enumm.ResponseCodes;
+import com.wayapaychat.temporalwallet.enumm.TransactionChannel;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.kafkaConsumer.KafkaMessageConsumer;
@@ -148,7 +150,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         return (int) (Math.random() * (max - min + 1) + min);
     }
 
-    private ResponseEntity<?> createClient(Long userid, String token,String profileId,String profileType) {
+    private ResponseEntity<?> createClient(String clientId,String clientType,Long userid, String token,String profileId,String profileType) {
 
         WalletUser existingUser = walletUserRepository.findByUserIdAndProfileId(userid,profileId);
         if (!ObjectUtils.isEmpty(existingUser)) {
@@ -156,7 +158,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
 
         log.info("::Id, ProfileId, ",userid+ "/"+profileId);
-        UserProfileResponse userDetailsResponse = authProxy.getProfileByIdAndUserId(userid,profileId, token);
+        UserProfileResponse userDetailsResponse = authProxy.getProfileByIdAndUserId(userid,profileId, token,clientId,clientType);
         log.info("userDetailsResponse1 {} ", userDetailsResponse);
         if (ObjectUtils.isEmpty(userDetailsResponse)) {
             return new ResponseEntity<>(new ErrorResponse("User does not exists"), HttpStatus.BAD_REQUEST);
@@ -366,7 +368,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     }
 
-    public ResponseEntity<?> createUser(UserDTO user, String token) {
+    public ResponseEntity<?> createUser(HttpServletRequest request,UserDTO user, String token) {
         String profileId = null;
         if(user.getProfileId() != null)
             profileId = user.getProfileId();
@@ -377,7 +379,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         }else {
             profileAccountType = "PERSONAL";
         }
-        ResponseEntity<?> response = createClient(user.getUserId(), token,profileId,profileAccountType);
+        ResponseEntity<?> response = createClient(request.getHeader(SecurityConstants.CLIENT_ID),request.getHeader(SecurityConstants.CLIENT_TYPE),user.getUserId(), token,profileId,profileAccountType);
 
         if (!response.getStatusCode().is2xxSuccessful()) {
             return response;
@@ -540,7 +542,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     // Call by Aut-service and others
-    public ResponseEntity<?> createUserAccount(WalletUserDTO user, String token) {
+    public ResponseEntity<?> createUserAccount(String clientId,String clientType,WalletUserDTO user, String token) {
         String profileId = null;
         if(user.getProfileId() != null)
             profileId = user.getProfileId();
@@ -550,7 +552,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             profileAccountType = user.getProfileType();
 
         log.info("::WalletUserDTO {}",user);
-        ResponseEntity<?> response = createClient(user.getUserId(), token,profileId,profileAccountType);
+        ResponseEntity<?> response = createClient(clientId,clientType,user.getUserId(), token,profileId,profileAccountType);
         log.info(":::CreateClient Response {} ", response);
         if (!response.getStatusCode().is2xxSuccessful()) {
             log.error("ERROR CreateUserAccount::: {}", response);
@@ -564,14 +566,14 @@ public class UserAccountServiceImpl implements UserAccountService {
                 HttpStatus.OK);
     }
 
-    public ResponseEntity<?> modifyUserAccount(UserAccountDTO user) {
+    public ResponseEntity<?> modifyUserAccount(HttpServletRequest request,UserAccountDTO user) {
         WalletUser existingUser = walletUserRepository.findByUserIdAndProfileId(user.getUserId(),user.getProfileId());
         if (existingUser == null) {
             return new ResponseEntity<>(new ErrorResponse("Wallet User does not exists"), HttpStatus.NOT_FOUND);
         }
         int userId = user.getUserId().intValue();
-        UserDetailPojo wallet = authService.AuthUser(userId);
-        if (wallet.is_deleted()) {
+        UserDetailPojo wallet = authService.AuthUser(request,userId);
+        if (wallet.isAccountDeleted()) {
             return new ResponseEntity<>(new ErrorResponse("Auth User has been deleted"), HttpStatus.BAD_REQUEST);
         }
         if (!user.getNewEmailId().isBlank() && !user.getNewEmailId().isEmpty()) {
@@ -629,14 +631,14 @@ public class UserAccountServiceImpl implements UserAccountService {
                 HttpStatus.OK);
     }
 
-    public ResponseEntity<?> ToggleAccount(AccountToggleDTO user) {
+    public ResponseEntity<?> ToggleAccount(HttpServletRequest request,AccountToggleDTO user) {
         WalletUser existingUser = walletUserRepository.findByUserIdAndProfileId(user.getUserId(),user.getProfileId());
         if (existingUser == null) {
             return new ResponseEntity<>(new ErrorResponse("Wallet User does not exists"), HttpStatus.NOT_FOUND);
         }
         int userId = user.getUserId().intValue();
-        UserDetailPojo wallet = authService.AuthUser(userId);
-        if (wallet.is_deleted()) {
+        UserDetailPojo wallet = authService.AuthUser(request,userId);
+        if (wallet.isAccountDeleted()) {
             return new ResponseEntity<>(new ErrorResponse("Auth User has been deleted"), HttpStatus.BAD_REQUEST);
         }
         // Default Wallet
@@ -769,7 +771,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
     }
 
-    public ResponseEntity<?> createCashAccount(WalletCashAccountDTO user) {
+    public ResponseEntity<?> createCashAccount(HttpServletRequest request,WalletCashAccountDTO user) {
 
         boolean validate = paramValidation.validateDefaultCode(user.getCashAccountCode(), "Batch Account");
         if (!validate) {
@@ -781,8 +783,8 @@ public class UserAccountServiceImpl implements UserAccountService {
             return new ResponseEntity<>(new ErrorResponse("Currency Code Validation Failed"), HttpStatus.BAD_REQUEST);
         }
 
-        UserDetailPojo userd = authService.AuthUser((user.getUserId().intValue()));
-        if (!userd.is_admin()) {
+        UserDetailPojo userd = authService.AuthUser(request,(user.getUserId().intValue()));
+        if (!userd.isAdmin()) {
             return new ResponseEntity<>(new ErrorResponse("User Not Admin"), HttpStatus.BAD_REQUEST);
         }
 
@@ -894,8 +896,8 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
     }
 
-    public ResponseEntity<?> createAccount(AccountPojo2 accountPojo, String token) {
-        MyData tokenData = tokenService.getUserInformation();
+    public ResponseEntity<?> createAccount(HttpServletRequest request,AccountPojo2 accountPojo, String token) {
+        MyData tokenData = tokenService.getUserInformation(request);
         if (tokenData == null) {
             return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
         }
@@ -905,7 +907,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
 
         int userId = accountPojo.getUserId().intValue();
-        UserDetailPojo user = authService.AuthUser(userId);
+        UserDetailPojo user = authService.AuthUser(request,userId);
         if (user == null) {
             return new ResponseEntity<>(new ErrorResponse("Auth User ID does not exist"), HttpStatus.BAD_REQUEST);
         }
@@ -913,7 +915,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         WalletUser x = walletUserRepository.findByEmailAddressAndProfileId(user.getEmail(),accountPojo.getProfileId());
 
         if (x == null && y == null && Long.compare(accountPojo.getUserId(), tokenData.getId()) == 0) {
-            return createDefaultWallet(tokenData, token,accountPojo.getProfileId());
+            return createDefaultWallet(request,tokenData, token,accountPojo.getProfileId());
         } else if (x == null && y == null) {
             return new ResponseEntity<>(new ErrorResponse("Default Wallet Not Created"), HttpStatus.BAD_REQUEST);
         }
@@ -985,7 +987,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
             // Todo: check for corporate/normal user
             String acct_name;
-            if (user.is_corporate()) {
+            if (user.isCorporate()) {
                 String newAccountName = y.getCust_name() + " " + accountPojo.getDescription();
                 acct_name = newAccountName;
             } else {
@@ -1032,9 +1034,9 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     }
 
-    public ResponseEntity<?> createAccountProduct(AccountProductDTO accountPojo) {
+    public ResponseEntity<?> createAccountProduct(HttpServletRequest request,AccountProductDTO accountPojo) {
         int userId = (int) accountPojo.getUserId();
-        UserDetailPojo user = authService.AuthUser(userId);
+        UserDetailPojo user = authService.AuthUser(request,userId);
         if (user == null) {
             return new ResponseEntity<>(new ErrorResponse("Auth User ID does not exist"), HttpStatus.BAD_REQUEST);
         }
@@ -1278,7 +1280,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     @Override
-    public ResponseEntity<?> getUserAccountList(long userId,String profileId, String token) {
+    public ResponseEntity<?> getUserAccountList(HttpServletRequest request,long userId,String profileId, String token) {
 
         UserIdentityData _userToken = (UserIdentityData) SecurityContextHolder.getContext().getAuthentication()
                 .getPrincipal();
@@ -1295,14 +1297,14 @@ public class UserAccountServiceImpl implements UserAccountService {
 
         Optional<WalletUser> walletUser = walletUserRepository.findUserIdAndProfileId(userId,profileId);
         if (!walletUser.isPresent() && userId == tokenData.getId()) {
-            return createDefaultWallet(tokenData, token,profileId);
+            return createDefaultWallet(request,tokenData, token,profileId);
         } else if (!walletUser.isPresent()) {
             return new ResponseEntity<>(new ErrorResponse("FAILED"), HttpStatus.BAD_REQUEST);
         }
 
         List<WalletAccount> accounts = walletAccountRepository.findByUser(walletUser.get());
         if (ObjectUtils.isEmpty(accounts)) {
-            return createDefaultWallet(tokenData, token,profileId);
+            return createDefaultWallet(request,tokenData, token,profileId);
         }
 
         CompletableFuture.runAsync(() -> updateTractionLimit(walletUser.get(), tokenData.getTransactionLimit()));
@@ -1336,18 +1338,18 @@ public class UserAccountServiceImpl implements UserAccountService {
         return false;
     }
 
-    public ResponseEntity<?> ListUserAccount(long userId) {
+    public ResponseEntity<?> ListUserAccount(HttpServletRequest request,long userId) {
         // securityCheck(userId);
         try {
             int uId = (int) userId;
-            UserDetailPojo ur = authService.AuthUser(uId);
-            if (ur == null) {
+            UserDetailPojo userPojo = authService.AuthUser(request,uId);
+            if(userPojo == null)
                 return new ResponseEntity<>(new ErrorResponse("User Id is Invalid"), HttpStatus.NOT_FOUND);
-            }
-            WalletUser x = walletUserRepository.findByEmailAddress(ur.getEmail());
-            if (x == null) {
+
+            WalletUser x = walletUserRepository.findByUserId(userPojo.getId());
+            if(x == null)
                 return new ResponseEntity<>(new ErrorResponse("Wallet User does not exist"), HttpStatus.NOT_FOUND);
-            }
+
             List<NewWalletAccount> accounts = new ArrayList<>();
             List<WalletAccount> listAcct = walletAccountRepository.findByUser(x);
             if (listAcct == null) {
@@ -1374,14 +1376,38 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     @Override
     public ResponseEntity<?> getUserCommissionList(long userId, Boolean isAdmin,String profileId) {
+        String userProfileId = null;
+        if(profileId != null)
+            userProfileId = profileId;
+
+        WalletUser userx;
         if (!isAdmin) {
-            securityCheck(userId,profileId);
+            if(userProfileId == null)
+                return new ResponseEntity<>(new ErrorResponse("Invalid Profile ID"), HttpStatus.BAD_REQUEST);
+            securityCheck(userId,userProfileId);
+
+            userx = walletUserRepository.findByUserIdAndProfileId(userId,userProfileId);
+            if(userx == null)
+                return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
+        }else {
+            if(userProfileId == null){
+                List<WalletUser> walletUserList = walletUserRepository.findAllByUserId(userId);
+                if (walletUserList.size() == 1) {
+                    userx = walletUserList.get(0);
+                }else {
+                    return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
+                }
+            }else {
+                userx = walletUserRepository.findByUserIdAndProfileId(userId,userProfileId);
+                if(userx == null)
+                    return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
+            }
         }
 
-        WalletUser userx = walletUserRepository.findByUserIdAndProfileId(userId,profileId);
-        if (userx == null) {
-            return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
-        }
+//        WalletUser userx = walletUserRepository.findByUserIdAndProfileId(userId,userProfileId);
+//        if (userx == null) {
+//            return new ResponseEntity<>(new ErrorResponse("Invalid User ID"), HttpStatus.BAD_REQUEST);
+//        }
         Optional<WalletAccount> accounts = walletAccountRepository.findByAccountUser(userx);
         if (!accounts.isPresent()) {
             return new ResponseEntity<>(new ErrorResponse("No Commission Account"), HttpStatus.BAD_REQUEST);
@@ -1993,7 +2019,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     @Override
-    public ResponseEntity<?> createDefaultWallet(MyData tokenData, String token, String profileId) {
+    public ResponseEntity<?> createDefaultWallet(HttpServletRequest request,MyData tokenData, String token, String profileId) {
         WalletUserDTO createAccount = new WalletUserDTO();
         // Default Debit Limit SetUp
         createAccount.setCustDebitLimit(0.0);
@@ -2021,7 +2047,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             createAccount.setProfileType("PERSONAL");
         }
         log.info("retrying to create wallet for {}", createAccount.getEmailId());
-        return createUserAccount(createAccount, token);
+        return createUserAccount(request.getHeader(SecurityConstants.CLIENT_ID),request.getHeader(SecurityConstants.CLIENT_TYPE),createAccount, token);
     }
 
     public ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount,String profileId) {
@@ -2188,10 +2214,10 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     @Override
-    public ApiResponse<?> toggleTransactionType(long userId, String type, String token) {
+    public ApiResponse<?> toggleTransactionType(HttpServletRequest request,long userId, String type, String token) {
         try {
             TranasctionPropertie toogle = new TranasctionPropertie();
-            TokenCheckResponse user = authProxy.getUserById(userId, token);
+            UserDtoResponse user = authProxy.getUserById(userId, token,request.getHeader(SecurityConstants.CLIENT_ID),request.getHeader(SecurityConstants.CLIENT_TYPE));
             if (!user.isStatus()) {
                 return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "Auth User ID does not exists", null);
             }
@@ -2364,10 +2390,14 @@ public class UserAccountServiceImpl implements UserAccountService {
     @Override
     public ApiResponse<?> fetchUserTransactionStatForReferral(String user_id, String accountNo,String profileId) {
         try {
-            WalletUser user = walletUserRepository.findByUserIdAndProfileId(Long.valueOf(user_id),profileId);
+            String profileIdData=null;
+            if(profileId != null && !profileId.isEmpty())
+                profileIdData = profileId;
+
+            WalletUser user = walletUserRepository.findByUserIdAndProfileId(Long.valueOf(user_id),profileIdData);
             if (user == null) {
                 List<WalletUser> walletUserList = walletUserRepository.findAllByUserId(Long.valueOf(user_id));
-                if(walletUserList.size() > 0 && walletUserList.size() == 1){
+                if(walletUserList.size() == 1){
                    user = walletUserList.get(0);
                 }else {
                     return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "USER ID DOES NOT EXIST", null);
@@ -2389,6 +2419,16 @@ public class UserAccountServiceImpl implements UserAccountService {
             BigDecimal totalUtility = BigDecimal.ZERO;
             BigDecimal totalDataTopUp = BigDecimal.ZERO;
             BigDecimal totalCableCount = BigDecimal.ZERO;
+
+            BigDecimal posTrans = BigDecimal.ZERO;
+            BigDecimal posTransCommission = BigDecimal.ZERO;
+
+            BigDecimal webTrans = BigDecimal.ZERO;
+            BigDecimal webTransCommission = BigDecimal.ZERO;
+
+            BigDecimal webTotalCount = BigDecimal.ZERO;
+            BigDecimal posTotalCount = BigDecimal.ZERO;
+
             for (WalletAccount acct : accountList) {
 
                 BigDecimal airTimeTopUp = BigDecimal.valueOf(walletTransactionRepository
@@ -2432,6 +2472,17 @@ public class UserAccountServiceImpl implements UserAccountService {
                 BigDecimal totalBalance = walletAccountRepository.totalBalanceByUser(acct.getAccountNo());
                 totalTrans = totalTrans.add(totalBalance == null ? BigDecimal.ZERO : totalBalance);
 
+                //POS , WEB Collection amount,fee
+                BigDecimal posAmountSum = walletTransRepo.posOrWebCollectionAmountSum(acct.getAccountNo(), TransactionChannel.POS_TERMINAL.name());
+                posTrans = posTrans.add(posAmountSum == null ? BigDecimal.ZERO : posAmountSum);
+
+                BigDecimal webAmountSum = walletTransRepo.posOrWebCollectionAmountSum(acct.getAccountNo(), TransactionChannel.WEB_TERMINAL.name());
+                webTrans = webTrans.add(webAmountSum == null ? BigDecimal.ZERO : webAmountSum);
+
+                BigDecimal webCount = BigDecimal.valueOf(walletTransRepo.countByAcctNumAndTransChannel(acct.getAccountNo(), TransactionChannel.WEB_TERMINAL.name()));
+                webTotalCount = webTotalCount.add(webCount == null ? BigDecimal.ZERO : webCount);
+                BigDecimal posCount = BigDecimal.valueOf(walletTransRepo.countByAcctNumAndTransChannel(acct.getAccountNo(), TransactionChannel.POS_TERMINAL.name()));
+                posTotalCount = posTotalCount.add(posCount == null ? BigDecimal.ZERO : posCount);
             }
             BigDecimal singleAccountWithdrawal = BigDecimal.valueOf(
                     walletTransactionRepository.countByAcctNumAndTranCategory(accountNo, CategoryType.WITHDRAW));
@@ -2467,6 +2518,12 @@ public class UserAccountServiceImpl implements UserAccountService {
             transactionStats.setTotalCableCount(totalCableCount);
             transactionStats.setTotalBettingCount(totalBetting);
             transactionStats.setTotalUtilityCount(totalUtility);
+            transactionStats.setTotalPosAmount(posTrans);
+            transactionStats.setTotalPosCommission(posTransCommission);
+            transactionStats.setTotalWebAmount(webTrans);
+            transactionStats.setTotalWebCommission(webTransCommission);
+            transactionStats.setTotalPosCount(posTotalCount);
+            transactionStats.setTotalWebCount(webTotalCount);
             return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "USER TRANSACTION STATS FETCHED....",
                     transactionStats);
         } catch (Exception ex) {

@@ -3,7 +3,6 @@ package com.wayapaychat.temporalwallet.security;
 import com.wayapaychat.temporalwallet.pojo.MyData;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -95,15 +94,15 @@ public class JwtTokenHelper implements Serializable {
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
-    public String generateToken(Date expiration) {
-        return Jwts.builder()
-                .setSubject("olutimedia@gmail.com")
-                .claim("ROLE", "admin")
-                .signWith(SignatureAlgorithm.HS256, secret)
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(expiration)
-                .compact();
-    }
+//    public String generateToken(Date expiration) {
+//        return Jwts.builder()
+//                .setSubject("olutimedia@gmail.com")
+//                .claim("ROLE", "admin")
+//                .signWith(SignatureAlgorithm.HS256, secret)
+//                .setIssuedAt(new Date(System.currentTimeMillis()))
+//                .setExpiration(expiration)
+//                .compact();
+//    }
 
     /**
      * Generate Authentication
