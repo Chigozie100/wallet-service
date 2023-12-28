@@ -119,6 +119,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         createAccountRequest.setAccountName(accountDetails.getAcct_name());
         createAccountRequest.setProduct(accountDetails.getAcct_ownership());
 
+        if(accountOwnerUser.isCorporate()){
+            createAccountRequest.setMobileNumber("234".concat(accountDetails.getAccountNo()));
+        }
+
         try {
             if (ProviderType.MIFOS.equalsIgnoreCase(provider.getName())) {
                 externalResponse = mifosWalletProxy.createAccount(createAccountRequest);
