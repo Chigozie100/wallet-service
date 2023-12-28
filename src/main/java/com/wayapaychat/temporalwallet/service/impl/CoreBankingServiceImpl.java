@@ -120,7 +120,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         createAccountRequest.setProduct(accountDetails.getAcct_ownership());
 
         if(accountOwnerUser.isCorporate()){
-            createAccountRequest.setMobileNumber("234".concat(accountDetails.getAccountNo()));
+            createAccountRequest.setMobileNumber("100".concat(accountDetails.getAccountNo()));
         }
 
         try {
