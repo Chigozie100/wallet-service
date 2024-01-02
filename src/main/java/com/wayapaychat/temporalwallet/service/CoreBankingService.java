@@ -70,6 +70,8 @@ public interface CoreBankingService {
 
     void addLien(WalletAccount account, BigDecimal amount);
 
+    void removeLien(String account, BigDecimal amount);
+
     ResponseEntity<?> securityCheckOwner(String accountNumber);
 
     ResponseEntity<?> securityCheck(String accountNumber, BigDecimal amount, HttpServletRequest request);

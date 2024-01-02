@@ -415,6 +415,9 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue(), transaction),
                 HttpStatus.CREATED);
         }
+        else{
+            removeLien(customerAccount, transferTransactionRequestData.getAmount());
+        }
 
         return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()), HttpStatus.BAD_REQUEST);        
 
@@ -749,6 +752,19 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         double lienAmt = account.getLien_amt() + amount.doubleValue();
         account.setLien_amt(lienAmt);
         walletAccountRepository.saveAndFlush(account);
+
+    }
+
+     @Override
+    public void removeLien(String account, BigDecimal amount) {
+        WalletAccount accountDebit = walletAccountRepository.findByAccountNo(account);
+        double lienAmt = accountDebit.getLien_amt() - amount.doubleValue();
+        if (lienAmt <= 0) {
+            accountDebit.setLien_reason("");
+            lienAmt = 0;
+        }
+        accountDebit.setLien_amt(lienAmt);
+        walletAccountRepository.saveAndFlush(accountDebit);
 
     }
 
