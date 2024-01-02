@@ -2069,6 +2069,31 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     }
 
+    public ResponseEntity<?> getCustomerDebitLimit(String userId,String profileId) {
+        log.info("getCustomerDebitLimit userId :: " + userId);
+        try {
+            Optional<WalletUser> walletUser = walletUserRepository.findUserIdAndProfileId(Long.parseLong(userId),profileId);
+            BigDecimal totalTransactionToday = new BigDecimal(0);
+            HashMap<String,String> response = new HashMap<>();
+            if (walletUser.isPresent()) {
+                response.put("debitLimit", String.valueOf(walletUser.get().getCust_debit_limit()));
+                for (WalletAccount walletAccount : walletUser.get().getAccount()) {
+                    BigDecimal _totalTransactionToday = walletTransactionRepository
+                                                            .totalTransactionAmountToday(walletAccount.getAccountNo(), LocalDate.now());
+                    totalTransactionToday = _totalTransactionToday == null ? totalTransactionToday 
+                                                            : totalTransactionToday.add(_totalTransactionToday);
+                }
+            }
+            response.put("totalTransactionToday", String.valueOf(totalTransactionToday.doubleValue()));
+            return new ResponseEntity<>(
+                    new SuccessResponse("SUCCESS", walletUserRepository.findUserIdAndProfileId(Long.parseLong(userId),profileId)),
+                    HttpStatus.OK);
+        } catch (CustomException ex) {
+            throw new CustomException("error", HttpStatus.EXPECTATION_FAILED);
+        }
+
+    }
+
     @Override
     public ResponseEntity<?> createExternalAccount(String accountNumber) {
         WalletAccount account = walletAccountRepository.findByAccountNo(accountNumber);
