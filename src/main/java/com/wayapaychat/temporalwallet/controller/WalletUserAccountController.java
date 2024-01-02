@@ -305,6 +305,19 @@ public class WalletUserAccountController {
 
     @ApiImplicitParams({
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
+    @ApiOperation(value = "getCustomerDebitLimit", notes = "getCustomerDebitLimit", tags = {"USER-ACCOUNT-WALLET"})
+    @PostMapping("/getCustomerDebitLimit")
+    public ResponseEntity<?> getCustomerDebitLimit(@RequestParam("userId") String userId, 
+                                                      @RequestParam String profileId) {
+        ResponseEntity<?> res = userAccountService.getCustomerDebitLimit(userId,profileId);
+        if (!res.getStatusCode().is2xxSuccessful()) {
+            return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
+        }
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+
+    @ApiImplicitParams({
+        @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "updateCustomerDebitLimit", notes = "updateCustomerDebitLimit", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping("/updateCustomerDebitLimit")
     public ResponseEntity<?> updateCustomerDebitLimit(@RequestParam("userId") String userId,

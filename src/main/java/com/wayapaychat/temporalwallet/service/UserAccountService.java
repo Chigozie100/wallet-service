@@ -123,6 +123,8 @@ public interface UserAccountService {
 
     ResponseEntity<?> createDefaultWallet(HttpServletRequest request,MyData user, String token,String profileId);
 
+    ResponseEntity<?> getCustomerDebitLimit(String userId,String profileId);
+
     ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount,String profileId);
 
     void securityCheck(long userId,String profileId);

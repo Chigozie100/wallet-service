@@ -917,19 +917,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     HttpStatus.BAD_REQUEST);
         }
 
-        if (amount.doubleValue() > Double.parseDouble(account.getDebitLimit())) {
-            log.error("Debit limit reached :: {}", account.getDebitLimit());
-            return new ResponseEntity<>(
-                    new ErrorResponse(ResponseCodes.DEBIT_LIMIT_REACHED.getValue() + " " + account.getDebitLimit() + " "
-                            + ResponseCodes.DEBIT_LIMIT_REACHED_EX.getValue()),
-                    HttpStatus.BAD_REQUEST);
-        }
-
         BigDecimal totalTransactionToday = walletTransactionRepository.totalTransactionAmountToday(accountNumber,
                 LocalDate.now());
         log.info("totalTransactionToday {}", totalTransactionToday);
         totalTransactionToday = totalTransactionToday == null ? new BigDecimal(0) : totalTransactionToday;
-        if (totalTransactionToday.doubleValue() >= Double.parseDouble(account.getDebitLimit())) {
+        if ((totalTransactionToday.doubleValue()+amount.doubleValue()) >= Double.parseDouble(account.getDebitLimit())) {
             log.error("Debit limit reached :: {}", account.getDebitLimit());
             return new ResponseEntity<>(
                     new ErrorResponse(ResponseCodes.DEBIT_LIMIT_REACHED.getValue() + " " + account.getDebitLimit() + " "
