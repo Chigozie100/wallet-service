@@ -2086,7 +2086,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             }
             response.put("totalTransactionToday", String.valueOf(totalTransactionToday.doubleValue()));
             return new ResponseEntity<>(
-                    new SuccessResponse("SUCCESS", response,
+                    new SuccessResponse("SUCCESS", response),
                     HttpStatus.OK);
         } catch (CustomException ex) {
             throw new CustomException("error", HttpStatus.EXPECTATION_FAILED);
