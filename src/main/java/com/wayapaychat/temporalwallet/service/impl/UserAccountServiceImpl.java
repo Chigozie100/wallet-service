@@ -1339,14 +1339,9 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     public ResponseEntity<?> ListUserAccount(HttpServletRequest request,long userId) {
-        // securityCheck(userId);
         try {
-            int uId = (int) userId;
-            UserDetailPojo userPojo = authService.AuthUser(request,uId);
-            if(userPojo == null)
-                return new ResponseEntity<>(new ErrorResponse("User Id is Invalid"), HttpStatus.NOT_FOUND);
 
-            WalletUser x = walletUserRepository.findByUserId(userPojo.getId());
+            WalletUser x = walletUserRepository.findFirstByUserId(userId);
             if(x == null)
                 return new ResponseEntity<>(new ErrorResponse("Wallet User does not exist"), HttpStatus.NOT_FOUND);
 
@@ -2062,6 +2057,31 @@ public class UserAccountServiceImpl implements UserAccountService {
             }
             return new ResponseEntity<>(
                     new SuccessResponse("SUCCESS", walletUserRepository.findUserIdAndProfileId(Long.parseLong(userId),profileId)),
+                    HttpStatus.OK);
+        } catch (CustomException ex) {
+            throw new CustomException("error", HttpStatus.EXPECTATION_FAILED);
+        }
+
+    }
+
+    public ResponseEntity<?> getCustomerDebitLimit(String userId,String profileId) {
+        log.info("getCustomerDebitLimit userId :: " + userId);
+        try {
+            Optional<WalletUser> walletUser = walletUserRepository.findUserIdAndProfileId(Long.parseLong(userId),profileId);
+            BigDecimal totalTransactionToday = new BigDecimal(0);
+            HashMap<String,String> response = new HashMap<>();
+            if (walletUser.isPresent()) {
+                response.put("debitLimit", String.valueOf(walletUser.get().getCust_debit_limit()));
+                for (WalletAccount walletAccount : walletUser.get().getAccount()) {
+                    BigDecimal _totalTransactionToday = walletTransactionRepository
+                                                            .totalTransactionAmountToday(walletAccount.getAccountNo(), LocalDate.now());
+                    totalTransactionToday = _totalTransactionToday == null ? totalTransactionToday 
+                                                            : totalTransactionToday.add(_totalTransactionToday);
+                }
+            }
+            response.put("totalTransactionToday", String.valueOf(totalTransactionToday.doubleValue()));
+            return new ResponseEntity<>(
+                    new SuccessResponse("SUCCESS", response),
                     HttpStatus.OK);
         } catch (CustomException ex) {
             throw new CustomException("error", HttpStatus.EXPECTATION_FAILED);
