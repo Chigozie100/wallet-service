@@ -67,6 +67,8 @@ public interface WalletUserRepository extends JpaRepository<WalletUser, Long> {
 
 	WalletUser findByUserId(Long userId);
 
+	WalletUser findFirstByUserId(Long userId);
+
 	//Select CASE WHEN ID = 5 THEN 1 ELSE 2 END as ord, ID FROM tbl ORDER BY ord ASC, ID ASC
 
 }
