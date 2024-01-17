@@ -82,6 +82,8 @@ eureka:
    preferIpAddress: true
 
 waya:
+  smu-service:
+    base-url: https://google.com
   wallet:
     auth: AUTHENTICATION-SERVICE
     authurl: ${CONFIG_BASEURL_AUTH:https://services.staging.wayabank.ng/auth-service/api/v1}

@@ -1027,4 +1027,16 @@ public class AdminController {
         return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
     }
 
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Update debit limit", notes = "update debit limit", tags = {
+            "ADMIN" })
+    @PostMapping("/update/debit-limit/{accountNumber}")
+    public ResponseEntity<?> updateDebitLimit(@PathVariable String accountNumber, @RequestParam double limit,
+                                               @RequestHeader("Authorization") String token){
+        log.info("hit endpoint");
+        ApiResponse<?> response = userAccountService.updateDebitLimit(accountNumber, token, limit);
+        return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
+    }
+
 }
