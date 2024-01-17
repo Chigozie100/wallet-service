@@ -308,6 +308,19 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     HttpStatus.BAD_REQUEST);
         }
 
+        WalletAccount foundAcct = walletAccountRepository.findByAccountNo(transferTransactionRequestData.getDebitAccountNumber());
+        if (foundAcct == null) {
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue()),
+                    HttpStatus.BAD_REQUEST);
+        }
+        BigDecimal newAmount = transferTransactionRequestData.getAmount().subtract(BigDecimal.valueOf(foundAcct.getCash_dr_limit()));
+
+        if (transferTransactionRequestData.getAmount().doubleValue() > newAmount.doubleValue()) {
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_AMOUNT.getValue()),
+                    HttpStatus.BAD_REQUEST);
+        }
+
+
         ResponseEntity<?> response = securityCheck(transferTransactionRequestData.getDebitAccountNumber(),
                 transferTransactionRequestData.getAmount(), request);
         if (!response.getStatusCode().is2xxSuccessful()) {
@@ -1238,7 +1251,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         processCBATransactionGLDoubleEntryWithTransit(cbaTransaction);
 
         /**
-         * Todo rever customer deposit on failure
+         * Todo revert customer deposit on failure
          */
         return response;
     }
