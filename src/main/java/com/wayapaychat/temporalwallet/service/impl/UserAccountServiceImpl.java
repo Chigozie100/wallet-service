@@ -2718,7 +2718,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                 return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unable to fetch account", null);
             }
             WalletAccount update = account.get();
-            update.setCash_dr_limit(limit);
+            update.setBlockAmount(BigDecimal.valueOf(limit));
             walletAccountRepository.save(update);
             return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", update);
         } catch (Exception e) {
