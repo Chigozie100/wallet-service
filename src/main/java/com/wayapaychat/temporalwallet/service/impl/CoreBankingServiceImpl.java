@@ -313,10 +313,17 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
-        BigDecimal newAmount = transferTransactionRequestData.getAmount().subtract(BigDecimal.valueOf(foundAcct.getCash_dr_limit()));
+        BigDecimal blockedAmount;
+        if (foundAcct.getBlockAmount() == null) {
+            blockedAmount = BigDecimal.valueOf(0);
+        }
+        else {
+            blockedAmount = foundAcct.getBlockAmount();
+        }
+        BigDecimal newAmount = transferTransactionRequestData.getAmount().subtract(blockedAmount);
 
         if (transferTransactionRequestData.getAmount().doubleValue() > newAmount.doubleValue()) {
-            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_AMOUNT.getValue()),
+            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.EXCEEDED_AMOUNT.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
 
