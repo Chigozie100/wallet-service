@@ -77,7 +77,7 @@ public class WalletAccount  implements Serializable {
 	@Column(nullable = false)
 	private boolean acct_cls_flg;
 
-	private double clr_bal_amt;
+	private double clr_bal_amt; // acct bal
 
 	private double un_clr_bal_amt;
 

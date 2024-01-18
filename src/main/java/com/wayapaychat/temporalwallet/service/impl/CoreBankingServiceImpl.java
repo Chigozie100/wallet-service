@@ -308,26 +308,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     HttpStatus.BAD_REQUEST);
         }
 
-        WalletAccount foundAcct = walletAccountRepository.findByAccountNo(transferTransactionRequestData.getDebitAccountNumber());
-        if (foundAcct == null) {
-            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue()),
-                    HttpStatus.BAD_REQUEST);
-        }
-        BigDecimal blockedAmount;
-        if (foundAcct.getBlockAmount() == null) {
-            blockedAmount = BigDecimal.valueOf(0);
-        }
-        else {
-            blockedAmount = foundAcct.getBlockAmount();
-        }
-        BigDecimal newAmount = transferTransactionRequestData.getAmount().subtract(blockedAmount);
-
-        if (transferTransactionRequestData.getAmount().doubleValue() > newAmount.doubleValue()) {
-            return new ResponseEntity<>(new ErrorResponse(ResponseCodes.EXCEEDED_AMOUNT.getValue()),
-                    HttpStatus.BAD_REQUEST);
-        }
-
-
         ResponseEntity<?> response = securityCheck(transferTransactionRequestData.getDebitAccountNumber(),
                 transferTransactionRequestData.getAmount(), request);
         if (!response.getStatusCode().is2xxSuccessful()) {
@@ -354,6 +334,12 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         String customerAccount;
         String receiverName = transferTransactionRequestData.getBeneficiaryName();
         String senderName = transferTransactionRequestData.getSenderName();
+
+        ErrorResponse resp = validateBlockAmount(transferTransactionRequestData, chargeAmount);
+        if (!resp.getStatus()) {
+            return new ResponseEntity<>(new ErrorResponse(resp.getMessage()),
+                    HttpStatus.BAD_REQUEST);
+        }
 
         Long tranId = logTransaction(receiverName, senderName, transferTransactionRequestData.getDebitAccountNumber(),
                 transferTransactionRequestData.getBenefAccountNumber(),
@@ -442,6 +428,37 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()), HttpStatus.BAD_REQUEST);        
 
     }
+
+    private ErrorResponse validateBlockAmount(TransferTransactionDTO transferTransactionRequestData, BigDecimal chargeAmount) {
+
+        ErrorResponse response = new ErrorResponse();
+        WalletAccount foundAcct = walletAccountRepository.findByAccountNo(transferTransactionRequestData.getDebitAccountNumber());
+        if (foundAcct == null) {
+            response.setMessage(ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue());
+            response.setStatus(false);
+            return response;
+        }
+        BigDecimal blockedAmount;
+        if (foundAcct.getBlockAmount() == null) {
+            blockedAmount = BigDecimal.valueOf(0);
+        }
+        else {
+            blockedAmount = foundAcct.getBlockAmount();
+        }
+
+        BigDecimal allowedWithdrawal = BigDecimal.valueOf(foundAcct.getClr_bal_amt()).subtract(BigDecimal.valueOf(500));
+        BigDecimal availableAmtForWithdrawal = allowedWithdrawal.subtract(blockedAmount).subtract(chargeAmount);
+
+        if (transferTransactionRequestData.getAmount().doubleValue() > availableAmtForWithdrawal.doubleValue()) {
+            response.setMessage(ResponseCodes.EXCEEDED_AMOUNT.getValue());
+            response.setStatus(false);
+            return response;
+        }
+        response.setStatus(true);
+        response.setMessage(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue());
+        return response;
+    }
+
 
     @Override
     public ResponseEntity<?> processTransactionReversal(ReverseTransactionDTO reverseDTO, HttpServletRequest request) {
