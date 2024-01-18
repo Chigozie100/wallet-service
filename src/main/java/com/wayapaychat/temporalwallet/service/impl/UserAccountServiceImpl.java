@@ -2720,7 +2720,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             WalletAccount update = account.get();
             update.setCash_dr_limit(limit);
             walletAccountRepository.save(update);
-            return new ApiResponse<>(false, ApiResponse.Code.SUCCESS, "SUCCESS", update);
+            return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", update);
         } catch (Exception e) {
             log.error("Exception::{}", e.getMessage());
             return new ApiResponse<>(false, ApiResponse.Code.UNKNOWN_ERROR, "An Error occured. Try again", null);
