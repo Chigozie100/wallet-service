@@ -1,6 +1,7 @@
 package com.wayapaychat.temporalwallet.entity;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import javax.persistence.Column;
@@ -76,7 +77,7 @@ public class WalletAccount  implements Serializable {
 	@Column(nullable = false)
 	private boolean acct_cls_flg;
 
-	private double clr_bal_amt;
+	private double clr_bal_amt; // acct bal
 
 	private double un_clr_bal_amt;
 
@@ -136,6 +137,8 @@ public class WalletAccount  implements Serializable {
 	private String description;
 
 	private String notify_email;
+
+	private BigDecimal blockAmount;
 	
 	@JsonIgnore
 	@ManyToOne(fetch = FetchType.LAZY)
@@ -251,6 +254,7 @@ public class WalletAccount  implements Serializable {
 		this.accountType = accountType;
 		this.description = description;
 	}
+
 
 
 }

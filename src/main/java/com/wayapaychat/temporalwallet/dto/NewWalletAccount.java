@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.dto;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
@@ -93,6 +94,8 @@ public class NewWalletAccount {
 
 	private String description;
 
+	private BigDecimal blockAmount;
+
 	public NewWalletAccount(WalletAccount acct, Long userId) {
 		super();
 		this.id = acct.getId();
@@ -137,8 +140,7 @@ public class NewWalletAccount {
 		this.lien_reason = acct.getLien_reason();
 		this.userId = userId;
 		this.description = acct.getDescription();
+		this.blockAmount = acct.getBlockAmount();
 	}
-	
-	
 
 }

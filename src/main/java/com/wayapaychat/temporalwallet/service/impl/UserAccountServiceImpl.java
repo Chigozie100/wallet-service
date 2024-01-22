@@ -13,7 +13,7 @@ import com.wayapaychat.temporalwallet.enumm.ResponseCodes;
 import com.wayapaychat.temporalwallet.enumm.TransactionChannel;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
-import com.wayapaychat.temporalwallet.kafkaConsumer.KafkaMessageConsumer;
+//import com.wayapaychat.temporalwallet.kafkaConsumer.KafkaMessageConsumer;
 import com.wayapaychat.temporalwallet.pojo.*;
 import com.wayapaychat.temporalwallet.pojo.signupKafka.InWardDataDto;
 import com.wayapaychat.temporalwallet.pojo.signupKafka.RegistrationDataDto;
@@ -70,8 +70,8 @@ public class UserAccountServiceImpl implements UserAccountService {
     private final SwitchWalletService switchWalletService;
     private final WalletTransactionRepository walletTransactionRepository;
     private final MessageQueueProducer messageQueueProducer;
-    @Autowired
-    private KafkaMessageConsumer kafkaMessageConsumer;
+//    @Autowired
+//    private KafkaMessageConsumer kafkaMessageConsumer;
     @Autowired
     private ObjectMapper objectMapper;
     @Autowired
@@ -2656,7 +2656,6 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
     }
 
-
     private void updateExistingWalletUser(Long userId, String profileId,boolean corporate){
         try {
             List<WalletUser> walletUserList = walletUserRepository.findAllByUserIdAndProfileIdIsNull(userId);
@@ -2710,4 +2709,21 @@ public class UserAccountServiceImpl implements UserAccountService {
             log.error("::FAIL TO PUBLISH DATA TO KAFKA MESSAGE");
         }
     }
+
+    @Override
+    public ApiResponse<?> updateDebitLimit(String accountNumber, String token, double limit) {
+        try {
+            Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNumber);
+            if (!account.isPresent()) {
+                return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unable to fetch account", null);
+            }
+            WalletAccount update = account.get();
+            update.setBlockAmount(BigDecimal.valueOf(limit));
+            walletAccountRepository.save(update);
+            return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", update);
+        } catch (Exception e) {
+            log.error("Exception::{}", e.getMessage());
+            return new ApiResponse<>(false, ApiResponse.Code.UNKNOWN_ERROR, "An Error occured. Try again", null);
+        }    }
+
 }
