@@ -1777,6 +1777,8 @@ public class UserAccountServiceImpl implements UserAccountService {
                     break;
                 case "T":
                     break;
+                case "U":
+                    break;
                 default:
                     return new ResponseEntity<>(new ErrorResponse("Unknown freeze code"), HttpStatus.NOT_FOUND);
             }
