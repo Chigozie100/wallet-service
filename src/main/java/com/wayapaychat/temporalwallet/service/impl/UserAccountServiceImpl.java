@@ -1777,6 +1777,8 @@ public class UserAccountServiceImpl implements UserAccountService {
                     break;
                 case "T":
                     break;
+                case "U":
+                    break;
                 default:
                     return new ResponseEntity<>(new ErrorResponse("Unknown freeze code"), HttpStatus.NOT_FOUND);
             }
@@ -1795,6 +1797,9 @@ public class UserAccountServiceImpl implements UserAccountService {
             } else if (user.getFreezCode().equalsIgnoreCase("T")) {
                 account.setFrez_code(user.getFreezCode());
                 account.setFrez_reason_code(user.getFreezReason());
+            } else if (user.getFreezCode().equalsIgnoreCase("U")) {
+                account.setFrez_code("");
+                account.setFrez_reason_code("");
             } else {
                 return new ResponseEntity<>(new ErrorResponse("Enter Correct Code"), HttpStatus.NOT_FOUND);
             }
