@@ -430,8 +430,14 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     private ErrorResponse validateBlockAmount(TransferTransactionDTO transferTransactionRequestData, BigDecimal chargeAmount) {
-
+        
         ErrorResponse response = new ErrorResponse();
+        if(transferTransactionRequestData.getDebitAccountNumber().length() > 10){
+            response.setStatus(true);
+            response.setMessage(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue());
+            return response;
+        }
+
         WalletAccount foundAcct = walletAccountRepository.findByAccountNo(transferTransactionRequestData.getDebitAccountNumber());
         if (foundAcct == null) {
             response.setMessage(ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue());
