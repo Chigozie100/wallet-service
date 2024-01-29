@@ -44,7 +44,7 @@ public class VirtualAccountController {
     )
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     public CompletableFuture<ResponseEntity<SuccessResponse>> createVirtualAccount(@RequestBody VirtualAccountRequest accountRequest){
-
+        log.info("Endpoint to create Virtual Account called !!! ---->> {}", accountRequest);
         return CompletableFuture.completedFuture(virtualService.createVirtualAccount(accountRequest));
     }
 
@@ -59,7 +59,7 @@ public class VirtualAccountController {
     @Async
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     public CompletableFuture<ResponseEntity<?>> registerWebhookUrl(@RequestBody VirtualAccountHookRequest accountRequest){
-
+        log.info("Endpoint to get register web hook URL called !!! ---->> {}", accountRequest);
         return CompletableFuture.completedFuture(virtualService.registerWebhookUrl(accountRequest));
     }
 
@@ -77,6 +77,7 @@ public class VirtualAccountController {
             @RequestParam(defaultValue = "2020076821") String accountNumber,
             @RequestParam(defaultValue = "20200724") LocalDate startDate,
             @RequestParam(defaultValue = "20200724") LocalDate endDate) {
+        log.info("Endpoint to get account Transaction Query called !!! ---->> {}", accountNumber);
         return CompletableFuture.completedFuture(virtualService.accountTransactionQuery(accountNumber,startDate,endDate));
     }
 
@@ -86,6 +87,7 @@ public class VirtualAccountController {
     @GetMapping(path = "/accountBalance/{accountNo}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
     public CompletableFuture<SuccessResponse> balanceEnquiry(@PathVariable String accountNo) {
+        log.info("Endpoint balance Enquiry called !!! ---->> {}", accountNo);
         return CompletableFuture.completedFuture(virtualService.balanceEnquiry(accountNo));
     }
 

@@ -92,19 +92,18 @@ public class TransactionServiceImpl implements TransactionService {
 
 
      private void initLien(String debitAccountNumber, BigDecimal actualAmount){
-         System.out.println("############### INSIDE initLien ############## " + debitAccountNumber);
+         log.info("############### INSIDE initLien ############## " + debitAccountNumber);
          // get user current Lien
          WalletAccount accountDebit = getAccountNumber(debitAccountNumber);
 
          // check if lien was placed previously
          double lienActualAmount = accountDebit.getLien_amt() + actualAmount.doubleValue();
 
-         System.out.println("accountDebit.getClr_bal_amt() :: " + accountDebit.getClr_bal_amt());
-         System.out.println("lienActualAmount :: " + lienActualAmount);
+         log.info("accountDebit.getClr_bal_amt() :: " + accountDebit.getClr_bal_amt());
+         log.info("lienActualAmount :: " + lienActualAmount);
          if(accountDebit.getClr_bal_amt() < lienActualAmount){
              throw new CustomException("DJGO|DEBIT ACCOUNT INSUFFICIENT BALANCE",HttpStatus.EXPECTATION_FAILED);
          }
-
 
          AccountLienDTO accountLienDTO = new AccountLienDTO();
          accountLienDTO.setCustomerAccountNo(debitAccountNumber);
@@ -123,35 +122,44 @@ public class TransactionServiceImpl implements TransactionService {
      }
 
 
-
      private UserPricing getUserProduct(WalletAccount accountDebit, String eventId){
-         WalletUser xUser = walletUserRepository.findByAccount(accountDebit);
-         Long xUserId = xUser.getUserId();
-         // get user charge by eventId and userID
-         return userPricingRepository.findDetailsByCode(xUserId,eventId).orElse(null);
+         try {
+             log.info("Getting user product for account debit {} and event ID {}", accountDebit.getAccountNo(), eventId);
+             WalletUser xUser = walletUserRepository.findByAccount(accountDebit);
+             Long xUserId = xUser.getUserId();
+             // get user charge by eventId and userID
+             UserPricing userPricing = userPricingRepository.findDetailsByCode(xUserId, eventId).orElse(null);
+             if (userPricing != null) {
+                 log.info("User product retrieved successfully.");
+             } else {
+                 log.warn("User product not found for account debit {} and event ID {}", accountDebit.getAccountNo(), eventId);
+             }
+             return userPricing;
+         } catch (Exception ex) {
+             log.error("Error getting user product: {}", ex.getMessage());
+             throw new CustomException("Error getting user product", HttpStatus.EXPECTATION_FAILED);
+         }
      }
 
      private BigDecimal getChargesAmount(UserPricing userPricingOptional, BigDecimal amount){
-         BigDecimal percentage = null;
+         try {
+             log.info("Calculating charges amount...");
+             BigDecimal percentage = null;
 
-         if(userPricingOptional.getStatus().equals(ProductPriceStatus.GENERAL)){
-
-             percentage = Util.computePercentage(amount, userPricingOptional.getGeneralAmount());
-             // apply discount if applicable
-
-         }else if (userPricingOptional.getStatus().equals(ProductPriceStatus.CUSTOM)){
-
-             // apply discount if applicable
-             percentage = Util.computePercentage(amount, userPricingOptional.getCustomAmount());
-
+             if (userPricingOptional.getStatus().equals(ProductPriceStatus.GENERAL)) {
+                 percentage = Util.computePercentage(amount, userPricingOptional.getGeneralAmount());
+                 // apply discount if applicable
+             } else if (userPricingOptional.getStatus().equals(ProductPriceStatus.CUSTOM)) {
+                 // apply discount if applicable
+                 percentage = Util.computePercentage(amount, userPricingOptional.getCustomAmount());
+             }
+             log.info("Charges amount calculated successfully: {}", percentage);
+             return percentage;
+         } catch (Exception ex) {
+             log.error("Error calculating charges amount: {}", ex.getMessage());
+             throw new CustomException("Error calculating charges amount", HttpStatus.EXPECTATION_FAILED);
          }
-//         if (percentage.compareTo(userPricingOptional.getCapPrice()) == 1){
-//
-//         }
-         return percentage;
-
      }
-
 
 
      private BigDecimal getWhoToCharge(String eventId, String toAccountNumber, String fromAccountNumber, BigDecimal amount){
@@ -201,6 +209,7 @@ public class TransactionServiceImpl implements TransactionService {
      }
 
      public boolean checkCoreBank() {
+         log.info("About to check core bank");
          Provider provider = switchWalletService.getActiveProvider();
          if (provider == null) {
              throw new CustomException("NO PROVIDER SWITCHED", HttpStatus.BAD_REQUEST);
@@ -217,16 +226,16 @@ public class TransactionServiceImpl implements TransactionService {
 
      private ChannelProvider checkActiveChannel(){
          ChannelProvider channelProvider = configService.findActiveChannel();
-         System.out.println("channelProvider ::" + channelProvider);
+         log.info("channelProvider ::" + channelProvider);
          return channelProvider;
      }
 
      private Long transAccount(HttpServletRequest request, String fromAccountNumber, String toAccountNumber, BigDecimal amount, String transCategory,String tranCrncy, WalletTransStatus status){
-         System.out.println( "##### HERER  transAccount " + request);
-         System.out.println( "##### HERER  transAccount " + fromAccountNumber);
-         System.out.println( "##### HERER  transAccount " + toAccountNumber);
-         System.out.println( "##### HERER  transAccount " + tranCrncy);
-         System.out.println( "##### HERER  transAccount " + status);
+         log.info( "##### HERER  transAccount " + request);
+         log.info( "##### HERER  transAccount " + fromAccountNumber);
+         log.info( "##### HERER  transAccount " + toAccountNumber);
+         log.info( "##### HERER  transAccount " + tranCrncy);
+         log.info( "##### HERER  transAccount " + status);
 
          Util util = new Util();
          String code = util.generateRandomNumber(9);
@@ -235,9 +244,9 @@ public class TransactionServiceImpl implements TransactionService {
 
              Optional<WalletAccount> accountDebitTeller = Optional.empty();
              Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId("WAYABANKTRANS");
-             System.out.println(" ############# WalletEventCharges ############" + eventInfo);
+             log.info(" ############# WalletEventCharges ############" + eventInfo);
              WalletAccount eventAcct = walletAccountRepository.findByAccountNo(toAccountNumber);
-             System.out.println(" ############# eventAcct ############" + eventAcct);
+             log.info(" ############# eventAcct ############" + eventAcct);
              if(eventInfo.isPresent()){
                  WalletEventCharges charge = eventInfo.get();
                  accountDebitTeller = walletAccountRepository
@@ -245,6 +254,7 @@ public class TransactionServiceImpl implements TransactionService {
              }
 
              if (!accountDebitTeller.isPresent()){
+                 log.error("Error accountDebitTeller not present");
                  throw new CustomException("Error accountDebitTeller not present", HttpStatus.EXPECTATION_FAILED);
              }
              WalletAccount accountDebit = accountDebitTeller.get();
@@ -259,26 +269,8 @@ public class TransactionServiceImpl implements TransactionService {
              temp.setTranNarration("Transaction in transit");
              temp.setTransactionCategory(transCategory);
 
-//             System.out.println( "##### before sending request TemporalWalletToOfficialWallet " + temp);
-//             ResponseEntity<?> responseEntity = transAccountService.TemporalWalletToOfficialWallet(request, temp);
-//             System.out.println( "##### after sending request TemporalWalletToOfficialWallet Response " + responseEntity);
-//
-//             ResponseHelper walletTransactions = (ResponseHelper) responseEntity.getBody();
-//             System.out.println("responseEntity :: " + responseEntity.getBody());
-//             System.out.println("walletTransactions :: " + Objects.requireNonNull(walletTransactions).getData());
-//
-//             Optional<List<WalletTransaction>> walletTransactions1 = (Optional<List<WalletTransaction>>) walletTransactions.getData();
-//             System.out.println("walletTransactions1 :: " + walletTransactions1);
-//
-//             String tranI2 = "";
-//             if (walletTransactions1.isPresent()){
-//                 List<WalletTransaction> transactionList = walletTransactions1.get();
-//                 for (WalletTransaction data: transactionList){
-//                     tranI2 = data.getTranId();
-//                 }
-//             }
 
-             System.out.println("here is the new ID  :: " + code);
+             log.info("here is the new ID  :: " + code);
 
              WalletTransAccount walletTransAccount = new WalletTransAccount();
              walletTransAccount.setCreatedAt(LocalDateTime.now());
@@ -291,25 +283,34 @@ public class TransactionServiceImpl implements TransactionService {
              walletTransAccount.setStatus(status);
              return walletTransAccountRepository.save(walletTransAccount).getId();
          }catch (CustomException ex){
-             System.out.println( " TGHis is the error " + ex.getMessage());
+             log.info( " TGHis is the error " + ex.getMessage());
              throw new CustomException("error", HttpStatus.EXPECTATION_FAILED);
          }
      }
 
-     private void updateTransAccount(Long tranId, WalletTransStatus status){
-         try{
-             Optional<WalletTransAccount> walletTransAccount = walletTransAccountRepository.findById(tranId);
-             if (walletTransAccount.isPresent()){
-                 WalletTransAccount walletTransAccount1 = walletTransAccount.get();
-                 walletTransAccount1.setStatus(status);
-                 walletTransAccountRepository.save(walletTransAccount1);
+     private void updateTransAccount(Long tranId, WalletTransStatus status) {
+         try {
+             log.info("Updating transaction account with ID: {}", tranId);
+
+             Optional<WalletTransAccount> walletTransAccountOptional = walletTransAccountRepository.findById(tranId);
+
+             if (walletTransAccountOptional.isPresent()) {
+                 WalletTransAccount walletTransAccount = walletTransAccountOptional.get();
+                 walletTransAccount.setStatus(status);
+                 walletTransAccountRepository.save(walletTransAccount);
+
+                 log.info("Transaction account updated successfully: {}", walletTransAccount);
+             } else {
+                 log.warn("Transaction account with ID {} not found", tranId);
              }
 
-             /// move money from the trans account and be ready to commit transaction
-         }catch (CustomException ex){
-             throw new CustomException("error", HttpStatus.EXPECTATION_FAILED);
+             // Additional logic to move money from the trans account and be ready to commit transaction
+         } catch (Exception ex) {
+             log.error("Error updating transaction account: {}", ex.getMessage());
+             throw new CustomException("Error updating transaction account", HttpStatus.EXPECTATION_FAILED);
          }
      }
+
 
      @Override
      public Map<String, Object> processPayment(HttpServletRequest request, Map<String, Object> map) {
@@ -320,14 +321,6 @@ public class TransactionServiceImpl implements TransactionService {
 
          ChannelProvider channelProvider = checkActiveChannel();  // check active channel provider
          log.info("channelProvider: " + channelProvider);
-
-         // check KYC
-
-         //User James Waya MFB (Mifos) Customer Account is debited with 10,000
-         //WAYA MFB (Mifos) NIP Intransit disbursement account is credited with 10,000
-
-
-         // put the requested amount into a tranAccount
 
          log.info(" ########  REQUEST ########  "+ map);
 

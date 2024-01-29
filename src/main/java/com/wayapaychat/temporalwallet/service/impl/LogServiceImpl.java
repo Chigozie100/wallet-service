@@ -14,7 +14,6 @@ import javax.servlet.http.HttpServletRequest;
 @Service
 public class LogServiceImpl implements LogService {
 
-
     private final LogServiceProxy logServiceProxy;
 
     @Autowired
@@ -24,10 +23,12 @@ public class LogServiceImpl implements LogService {
 
     @Override
     public void saveLog(LogRequest logPojo, String token, HttpServletRequest request) {
+        log.info("Saving log with token: {}", token);
         try {
-            logServiceProxy.saveNewLog(logPojo,token,request.getHeader(SecurityConstants.CLIENT_ID),request.getHeader(SecurityConstants.CLIENT_TYPE));
+            logServiceProxy.saveNewLog(logPojo, token, request.getHeader(SecurityConstants.CLIENT_ID), request.getHeader(SecurityConstants.CLIENT_TYPE));
+            log.info("Log saved successfully");
         } catch (Exception e) {
-            log.error("Error saving Logs:: {}", e.getMessage());
+            log.error("Error saving Logs: {}", e.getMessage());
         }
     }
 }
