@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class AuthorizationFilter extends BasicAuthenticationFilter {
- 
+
     public AuthorizationFilter(AuthenticationManager authManager) {
         super(authManager);
     }
@@ -36,38 +36,40 @@ public class AuthorizationFilter extends BasicAuthenticationFilter {
 
         String header = req.getHeader(SecurityConstants.HEADER_STRING);
         if (header == null) {
+            log.info("Authorization header not found, proceeding with chain");
             chain.doFilter(req, res);
             return;
         }
         String clientId = req.getHeader(SecurityConstants.CLIENT_ID);
         if (clientId == null) {
+            log.info("Client ID header not found, proceeding with chain");
             chain.doFilter(req, res);
             return;
         }
         String clientType = req.getHeader(SecurityConstants.CLIENT_TYPE);
         if (clientType == null) {
+            log.info("Client Type header not found, proceeding with chain");
             chain.doFilter(req, res);
             return;
         }
 
         GetUserDataService authProxy = (GetUserDataService) SpringApplicationContext.getBean("getUserDataService");
-        TokenCheckResponse tokenResponse = authProxy.getUserData(header,clientId,clientType);
+        log.info("Sending request to authProxy for user data retrieval");
+        TokenCheckResponse tokenResponse = authProxy.getUserData(header, clientId, clientType);
+        log.info("Received response from authProxy: {}", tokenResponse);
 
-        if(tokenResponse.isStatus()){
+        if (tokenResponse.isStatus()) {
             List<GrantedAuthority> grantedAuthorities = tokenResponse.getData().getRoles().stream().map(r -> {
-                log.info("Privilege List::: {}, {} and {}", r, 2, 3);
+                log.info("Privilege List::: {}", r);
                 return new SimpleGrantedAuthority(r);
             }).collect(Collectors.toList());
 
             SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken(tokenResponse.getData(), null, grantedAuthorities)
+                    new UsernamePasswordAuthenticationToken(tokenResponse.getData(), null, grantedAuthorities)
             );
         }
 
         chain.doFilter(req, res);
 
     }
-
-
-
 }

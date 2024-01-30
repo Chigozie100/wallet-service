@@ -67,6 +67,7 @@ public class AdminController {
     @PostMapping("/cba/run-process/{proccessName}")
     public ResponseEntity<?> coreBankingRunProcess(HttpServletRequest request,
             @PathVariable String proccessName) {
+        log.info("Endpoint to call core banking run process called!!! ---->> {}", proccessName);
         return coreBankingProcessService.runProcess(proccessName);
     }
 
@@ -76,6 +77,7 @@ public class AdminController {
     @PostMapping("/cba/fix-entries/{transactionId}")
     public ResponseEntity<?> coreBankingFixEntry(HttpServletRequest request,
             @PathVariable String transactionId) {
+        log.info("Endpoint to call core banking fix entry called!!! ---->> {}", transactionId);
         return coreBankingProcessService.fixTransactionEntries(request, transactionId);
     }
 
@@ -85,6 +87,7 @@ public class AdminController {
     @PostMapping("/cba/create-account/{accountNumber}")
     public ResponseEntity<?> coreBankingCreateAccount(HttpServletRequest request,
             @PathVariable String accountNumber) {
+        log.info("Endpoint to call core banking create account called!!! ---->> {}", accountNumber);
         return userAccountService.setupAccountOnExternalCBA(accountNumber);
     }
 
@@ -95,7 +98,7 @@ public class AdminController {
     public ResponseEntity<?> sendMoneyForSimulatedUsers(HttpServletRequest request,
             @Valid @RequestBody List<TransferSimulationDTO> transfer) {
         // implement fraud or kyc check and other || or reverse transaction
-
+        log.info("Endpoint to send Money For Simulated Users called!!! ---->> {}", transfer);
         return transAccountService.sendMoneyToSimulatedUser(request, transfer);
     }
 
@@ -106,7 +109,7 @@ public class AdminController {
     @PostMapping("/official/transfer")
     public ResponseEntity<?> OfficialSendMoney(HttpServletRequest request,
             @Valid @RequestBody OfficeTransferDTO transfer) {
-
+        log.info("Endpoint to Official Send Money called!!! ---->> {}", transfer);
         TransferTransactionDTO transactionDTO = new TransferTransactionDTO();
         BeanUtils.copyProperties(transfer, transactionDTO);
         transactionDTO.setBenefAccountNumber(transfer.getOfficeCreditAccount());
@@ -131,7 +134,7 @@ public class AdminController {
     @PostMapping("/official/user/transfer")
     public ResponseEntity<?> OfficialUserMoneyEventID(HttpServletRequest request,
             @Valid @RequestBody OfficeUserTransferDTO transfer) {
-
+        log.info("Endpoint to Official User Send Money Event ID called!!! ---->> {}", transfer);
         TransferTransactionDTO transactionDTO = new TransferTransactionDTO();
         BeanUtils.copyProperties(transfer, transactionDTO);
         transactionDTO.setBenefAccountNumber(transfer.getCustomerCreditAccount());
@@ -156,7 +159,7 @@ public class AdminController {
     @PostMapping("/official/user/transfer-multiple")
     public ResponseEntity<?> OfficialUserMoneyMultiple(HttpServletRequest request,
             @Valid @RequestBody List<OfficeUserTransferDTO> transfer) {
-
+        log.info("Endpoint to Official User Send Money Multiple called!!! ---->> {}", transfer);
         ResponseEntity<?> res = transAccountService.OfficialUserTransferMultiple(request, transfer);
         if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
@@ -172,7 +175,7 @@ public class AdminController {
     @PostMapping("/Official/fund/bank/account")
     public ResponseEntity<?> officialFundBank(HttpServletRequest request,
             @Valid @RequestBody BankPaymentOfficialDTO transfer) {
-
+        log.info("Endpoint to Official fund bank called!!! ---->> {}", transfer);
         return transAccountService.BankTransferPaymentOfficial(request, transfer);
 
     }
@@ -184,7 +187,7 @@ public class AdminController {
     @PostMapping("/Official/fund/bank/mutilple-account")
     public ResponseEntity<?> officialFundBankMultiple(HttpServletRequest request,
             @Valid @RequestBody List<BankPaymentOfficialDTO> transfer) {
-
+        log.info("Endpoint to Official fund bank multiple called!!! ---->> {}", transfer);
         return transAccountService.BankTransferPaymentOfficialMultiple(request, transfer);
 
     }
@@ -195,8 +198,9 @@ public class AdminController {
     @PostMapping("/admin/sendmoney")
     public ResponseEntity<?> AdminsendMoney(HttpServletRequest request,
             @Valid @RequestBody AdminLocalTransferDTO transfer) {
-
+        log.info("Endpoint Admin send money called!!! ---->> {}", transfer);
         ApiResponse<?> res = transAccountService.AdminsendMoney(request, transfer);
+        log.info("Endpoint Response Admin send money ---->> {}", res);
         if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
@@ -210,11 +214,12 @@ public class AdminController {
     @PostMapping("/admin/sendmoney-multiple")
     public ResponseEntity<?> AdminSendMoneyMultiple(HttpServletRequest request,
             @Valid @RequestBody List<AdminLocalTransferDTO> transfer) {
+        log.info("Endpoint Admin send money multiple called!!! ---->> {}", transfer);
         ApiResponse<?> res = transAccountService.AdminSendMoneyMultiple(request, transfer);
+        log.info("Send Money: {}", transfer);
         if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
-        log.info("Send Money: {}", transfer);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
@@ -225,11 +230,12 @@ public class AdminController {
     @PostMapping("/admin/commission/transfer")
     public ResponseEntity<?> AdminCommissionMoney(HttpServletRequest request,
             @Valid @RequestBody CommissionTransferDTO transfer) {
+        log.info("Endpoint Admin commission money called!!! ---->> {}", transfer);
         ResponseEntity<?> res = transAccountService.AdminCommissionMoney(request, transfer);
+        log.info("Send Money: {}", transfer);
         if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
-        log.info("Send Money: {}", transfer);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
@@ -240,12 +246,12 @@ public class AdminController {
     @PostMapping("/client/commission/transfer")
     public ResponseEntity<?> CommissionMoney(HttpServletRequest request,
             @Valid @RequestBody ClientComTransferDTO transfer) {
-
+        log.info("Endpoint commission money called!!! ---->> {}", transfer);
         ResponseEntity<?> res = transAccountService.ClientCommissionMoney(request, transfer);
+        log.info("commission Money response : {}", transfer);
         if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
-        log.info("Send Money: {}", transfer);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
@@ -255,18 +261,21 @@ public class AdminController {
     @PostMapping("/admin/sendmoney/customer")
     public ResponseEntity<?> AdminSendMoney(HttpServletRequest request,
             @Valid @RequestBody AdminWalletTransactionDTO transfer) {
+        log.info("Endpoint Admin send money called!!! ---->> {}", transfer);
         ApiResponse<?> res = transAccountService.AdminSendMoneyCustomer(request, transfer);
+        log.info("Admin send money response: {}", res);
         if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
-        log.info("Send Money: {}", transfer);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
     @ApiOperation(value = "Report Account Transaction Statement", tags = { "ADMIN" })
     @GetMapping(path = "/official/account/statement/{accountNo}")
     public ResponseEntity<?> GetAccountStatement(@PathVariable String accountNo) {
+        log.info("Endpoint Get account statement called!!! ---->> {}", accountNo);
         ApiResponse<?> res = transAccountService.ReportTransaction(accountNo);
+        log.info("Endpoint Get account statement response !!! ---->> {}", accountNo);
         if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
@@ -280,6 +289,7 @@ public class AdminController {
     @PostMapping("/admin/wallet/funding")
     public ResponseEntity<?> AdminTransferForUser(HttpServletRequest request,
             @RequestBody() AdminUserTransferDTO walletDto, @RequestParam("command") String command) {
+        log.info("Endpoint Admin Transfer For User called!!! ---->> {}", walletDto);
         return transAccountService.adminTransferForUser(request, command, walletDto);
     }
 
@@ -290,7 +300,9 @@ public class AdminController {
     @PostMapping("/admin/wallet/payment")
     public ResponseEntity<?> AdminPaymentService(HttpServletRequest request,
             @RequestBody() WalletAdminTransferDTO walletDto, @RequestParam("command") String command) {
+        log.info("Endpoint Admin Payment Service called!!! ---->> {}", walletDto);
         ResponseEntity<?> res = transAccountService.cashTransferByAdmin(request, command, walletDto);
+        log.info("Endpoint Response Admin Payment Service!!! ---->> {}", res);
         if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
@@ -305,7 +317,7 @@ public class AdminController {
     @PostMapping("/event/office/payment")
     public ResponseEntity<?> EventOfficePayment(HttpServletRequest request,
             @RequestBody() EventOfficePaymentDTO walletDto) {
-
+        log.info("Endpoint Event Office Payment called!!! ---->> {}", walletDto);
         return transAccountService.EventOfficePayment(request, walletDto);
     }
 
@@ -316,6 +328,7 @@ public class AdminController {
     @PostMapping("/event/office/temporal-to-official-multiple")
     public ResponseEntity<?> TemporalToOfficialWalletDTO(HttpServletRequest request,
             @RequestBody() List<TemporalToOfficialWalletDTO> walletDto) {
+        log.info("Endpoint Temporal To Official Wallet multiple called!!! ---->> {}", walletDto);
         return transAccountService.TemporalWalletToOfficialWalletMutiple(request, walletDto);
     }
 
@@ -326,6 +339,7 @@ public class AdminController {
     @PostMapping("/event/office/temporal-to-official")
     public ResponseEntity<?> TemporalToOfficialWallet(HttpServletRequest request,
             @RequestBody() TemporalToOfficialWalletDTO walletDto) {
+        log.info("Endpoint Temporal To Official Wallet called!!! ---->> {}", walletDto);
         return transAccountService.TemporalWalletToOfficialWallet(request, walletDto);
     }
 
@@ -336,6 +350,7 @@ public class AdminController {
     @PostMapping(path = "/non-waya/payment/new-multiple-excel-upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> NonWayaPaymentMultipleUpload(HttpServletRequest request,
             @RequestPart("file") MultipartFile file) {
+        log.info("Endpoint Non Waya Payment Multiple Upload via multipart file called!!! ");
         return transAccountService.TransferNonPaymentMultipleUpload(request, file);
     }
 
@@ -346,6 +361,7 @@ public class AdminController {
     @PostMapping("/non-waya/payment/new-single-waya-official")
     public ResponseEntity<?> NonWayaPaymentSingleWayaOfficial(HttpServletRequest request,
             @Valid @RequestBody() NonWayaPaymentMultipleOfficialDTO walletDto) {
+        log.info("Endpoint Non Waya Payment single waya official called!!! ---->>> {}", walletDto);
         return transAccountService.TransferNonPaymentSingleWayaOfficial(request, walletDto);
     }
 
@@ -356,6 +372,7 @@ public class AdminController {
     @PostMapping("/non-waya/payment/new-multiple-waya-official")
     public ResponseEntity<?> NonWayaPaymentMultipleWayaOfficial(HttpServletRequest request,
             @Valid @RequestBody() List<NonWayaPaymentMultipleOfficialDTO> walletDto) {
+        log.info("Endpoint Non Waya Payment multiple waya official called!!! ---->>> {}", walletDto);
         return transAccountService.TransferNonPaymentMultipleWayaOfficial(request, walletDto);
     }
 
@@ -366,7 +383,7 @@ public class AdminController {
     @PostMapping(path = "/non-waya/payment/new-multiple-official-excel-upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> TransferNonPaymentWayaOfficialExcel(HttpServletRequest request,
             @RequestPart("file") MultipartFile file) {
-
+        log.info("Endpoint Transfer Non Payment Waya Official Excel called!!!");
         return new ResponseEntity<>(transAccountService.TransferNonPaymentWayaOfficialExcel(request, file),
                 HttpStatus.OK);
     }
@@ -377,6 +394,7 @@ public class AdminController {
     @ApiResponses(value = { @io.swagger.annotations.ApiResponse(code = 200, message = "Response Headers") })
     @GetMapping("/download/bulk-none-waya-excel")
     public ResponseEntity<Resource> getFile(@RequestParam("isNoneWaya") String isNoneWaya) {
+        log.info("Endpoint to get file called!!!");
         String filename = "bulk-none-waya-excel.xlsx";
         InputStreamResource file = new InputStreamResource(transAccountService.createExcelSheet(isNoneWaya));
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename)
@@ -391,9 +409,9 @@ public class AdminController {
     @ApiOperation(value = "Event and Service Payment", notes = "Transfer amount from one wallet to another wallet", tags = {
             "ADMIN" })
     @PostMapping("/admin/commission/payment")
-    public ResponseEntity<?> CommissiomPaymentAdmin(HttpServletRequest request,
+    public ResponseEntity<?> CommissionPaymentAdmin(HttpServletRequest request,
             @RequestBody() EventPaymentDTO walletDto) {
-
+        log.info("Endpoint to Commission Payment Admin called!!! --->> {}", walletDto);
         return transAccountService.EventCommissionPayment(request, walletDto);
     }
 
@@ -401,6 +419,7 @@ public class AdminController {
             "ADMIN" })
     @GetMapping("/admin/commission/history")
     public ResponseEntity<?> CommissiomPaymentList() {
+        log.info("Endpoint to Commission Payment list called!!!");
         ApiResponse<?> res = transAccountService.CommissionPaymentHistory();
         if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
@@ -415,9 +434,11 @@ public class AdminController {
             @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
             @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
             @PathVariable("wayaNo") String wayaNo) {
+        log.info("Endpoint for payment waya report called --->>> {}", wayaNo);
         ApiResponse<?> res;
         try {
             res = transAccountService.PaymentAccountTrans(fromdate, todate, wayaNo);
+            log.info("Endpoint Response for payment waya report --->>> {}", res);
             if (!res.getStatus()) {
                 return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
             }
@@ -437,9 +458,11 @@ public class AdminController {
             @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
             @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
             @PathVariable("wayaNo") String wayaNo) {
+        log.info("Endpoint for payment waya report per user called --->>> {}", wayaNo);
         ApiResponse<?> res;
         try {
             res = transAccountService.PaymentAccountTrans(fromdate, todate, wayaNo);
+            log.info("Endpoint Response for payment waya report per user --->>> {}", res);
             if (!res.getStatus()) {
                 return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
             }
@@ -460,9 +483,11 @@ public class AdminController {
     public ResponseEntity<?> PaymentOffWaya(@RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String filter) {
+        log.info("Endpoint for payment off waya ");
         ApiResponse<?> res;
         try {
             res = transAccountService.PaymentOffTrans(page, size, filter);
+            log.info("Endpoint Response for payment off waya --->>> {}", res);
             if (!res.getStatus()) {
                 return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
             }
@@ -485,9 +510,11 @@ public class AdminController {
             @RequestParam(required = false) String filter,
             @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromdate,
             @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate todate) {
+        log.info("Endpoint get all transactions");
         ApiResponse<?> res;
         try {
             res = transAccountService.getAllTransactions(page, size, filter, fromdate, todate);
+            log.info("Endpoint response get all transactions");
             if (!res.getStatus()) {
                 return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
             }
@@ -505,15 +532,17 @@ public class AdminController {
     @ApiOperation(value = "To List All Transaction activities", notes = "To List all Transaction activities", tags = {
             "ADMIN" })
     @GetMapping("/all/transaction/{accountNo}")
-    public ResponseEntity<?> allTransactions(@RequestParam(defaultValue = "0") int page,
+    public ResponseEntity<?> allTransactionsByAcctNo(@RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String filter,
             @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromdate,
             @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate todate,
             @PathVariable("accountNo") String accountNo) {
+        log.info("Endpoint get transactions by acct number ---->> {}", accountNo);
         ApiResponse<?> res;
         try {
             res = transAccountService.getAllTransactionsByAccountNo(page, size, filter, fromdate, todate, accountNo);
+            log.info("Endpoint response get transactions by acct number ---->> {}", res);
             if (!res.getStatus()) {
                 return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
             }
@@ -536,9 +565,11 @@ public class AdminController {
             @RequestParam(required = false) String filter,
             @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromdate,
             @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate todate) {
+        log.info("Endpoint get official account reports called !!!!");
         ApiResponse<?> res;
         try {
             res = transAccountService.OfficialAccountReports(page, size, fromdate, todate, filter);
+            log.info("Endpoint response get official account reports ====>>> {}", res);
             if (!res.getStatus()) {
                 return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
             }
@@ -560,9 +591,11 @@ public class AdminController {
             "ADMIN" })
     @GetMapping("/all/reverse/report")
     public ResponseEntity<?> PaymentAllReverse() {
+        log.info("Endpoint for payment reverse called !!!!!");
         ApiResponse<?> res;
         try {
             res = transAccountService.TranALLReverseReport();
+            log.info("Endpoint response for payment reverse ---->> {}", res);
             if (!res.getStatus()) {
                 return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
             }
@@ -582,7 +615,9 @@ public class AdminController {
     @PostMapping("/credit/bulk-transaction")
     public ResponseEntity<?> createCreditBulkTrans(HttpServletRequest request,
             @Valid @RequestBody BulkTransactionCreationDTO userList) {
+        log.info("Endpoint to create credit bulk trans called ---->>> {}", userList);
         ResponseEntity<?> res = transAccountService.createBulkTransaction(request, userList);
+        log.info("Endpoint response to create credit bulk trans ---->> {}", res);
         if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
@@ -597,7 +632,9 @@ public class AdminController {
     @PostMapping(path = "/credit/bulk-transaction-excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createCreditBulkTransExcel(HttpServletRequest request,
             @RequestPart("file") MultipartFile file) {
+        log.info("Endpoint to create credit bulk trans excel called ");
         ResponseEntity<?> res = transAccountService.createBulkExcelTrans(request, file);
+        log.info("Endpoint response to create credit bulk trans excel ---->> {}", res);
         if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
@@ -613,7 +650,9 @@ public class AdminController {
     @PostMapping("/debit/bulk-transaction")
     public ResponseEntity<?> createDebitBulkTrans(HttpServletRequest request,
             @Valid @RequestBody BulkTransactionCreationDTO userList) {
+        log.info("Endpoint to create debit bulk trans called ---->> {}", userList);
         ResponseEntity<?> res = transAccountService.createBulkDebitTransaction(request, userList);
+        log.info("Endpoint response to create debit bulk trans ---->> {}", res);
         if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
@@ -630,7 +669,9 @@ public class AdminController {
     @PostMapping(path = "/debit/bulk-transaction-excel", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createDebitBulkTransExcel(HttpServletRequest request,
             @RequestPart("file") MultipartFile file) {
+        log.info("Endpoint to create debit bulk trans excel called ");
         ResponseEntity<?> res = transAccountService.createBulkDebitExcelTrans(request, file);
+        log.info("Endpoint response to create debit bulk trans excel ---->> {}", res);
         if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
         }
@@ -645,9 +686,11 @@ public class AdminController {
             @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
             @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
             @PathVariable("acctNo") String acctNo) {
+        log.info("Endpoint for statement report called!!!! ---->> {}", acctNo);
         ApiResponse<?> res;
         try {
             res = transAccountService.statementReport(fromdate, todate, acctNo);
+            log.info("Endpoint response statement report ---->> {}", res);
             if (!res.getStatus()) {
                 return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
             }
@@ -664,6 +707,7 @@ public class AdminController {
             "ADMIN" })
     @GetMapping("/transaction/get-official-debit-credit-count")
     public ResponseEntity<?> getUserCount() {
+        log.info("Endpoint to get user count called !!!");
         return transAccountService.debitAndCreditTransactionAmountOfficial();
     }
 
@@ -671,6 +715,7 @@ public class AdminController {
             "ADMIN" })
     @GetMapping("/transaction/get-official-credit-count")
     public ResponseEntity<?> getCreditTransactionAmountOfficial() {
+        log.info("Endpoint to get Credit Transaction Amount Official called !!!");
         return transAccountService.creditTransactionAmountOffical();
     }
 
@@ -678,6 +723,7 @@ public class AdminController {
             "ADMIN" })
     @GetMapping("/transaction/get-official-debit-transaction-count")
     public ResponseEntity<?> getDebitTransactionAmountOfficial() {
+        log.info("Endpoint to get debit Transaction Amount Official called !!!");
         return transAccountService.debitTransactionAmountOffical();
     }
 
@@ -688,6 +734,7 @@ public class AdminController {
     @PostMapping("/transaction/reverse")
     public ResponseEntity<?> PaymentReversal(HttpServletRequest request,
             @RequestBody() ReverseTransactionDTO reverseDto) throws ParseException {
+        log.info("Endpoint Payment Reversal called !!! ----->>> {}", reverseDto);
         return coreBankingService.processTransactionReversal(reverseDto, request);
     }
 
@@ -697,6 +744,7 @@ public class AdminController {
             "ADMIN" })
     @GetMapping("/offical-account/{eventID}")
     public ResponseEntity<?> getSingleAccountByEventID(@PathVariable("eventID") String eventId) {
+        log.info("Endpoint get Single Account By EventID called !!! ----->>> {}", eventId);
         return transAccountService.getSingleAccountByEventID(eventId);
     }
 
@@ -711,12 +759,14 @@ public class AdminController {
     @ApiOperation(value = "Get simulated Account", tags = { "ADMIN" })
     @GetMapping(path = "/simulated/{user_id}")
     public ResponseEntity<?> GetAcctSimulated(@PathVariable Long user_id) {
+        log.info("Endpoint Get Acct Simulated called !!! ----->>> {}", user_id);
         return userAccountService.getAccountSimulated(user_id);
     }
 
     @ApiOperation(value = "List all simulated accounts", tags = { "ADMIN" })
     @GetMapping(path = "/simulated/account")
     public ResponseEntity<?> ListAllSimulatedAccount() {
+        log.info("Endpoint list of Acct Simulated called !!!");
         return userAccountService.getListSimulatedAccount();
     }
 
@@ -724,7 +774,7 @@ public class AdminController {
     @PostMapping(path = "simulated/account")
     public ResponseEntity<?> createSIMUser(HttpServletRequest request,@Valid @RequestBody AccountPojo2 user,
             @RequestHeader("Authorization") String token) {
-        log.info("Request input: {}", user);
+        log.info("create SIM user input: {}", user);
         return userAccountService.createAccount(request,user, token);
     }
 
@@ -734,6 +784,7 @@ public class AdminController {
     @PostMapping(path = "/official/user/account")
     public ResponseEntity<?> createUserAccount(HttpServletRequest request,@Valid @RequestBody AccountPojo2 accountPojo,
             @RequestHeader("Authorization") String token) {
+        log.info("Endpoint create user account called !!! --->> {}", accountPojo);
         return userAccountService.createAccount(request,accountPojo, token);
     }
 
@@ -742,6 +793,7 @@ public class AdminController {
     @ApiOperation(value = "Create a waya official account", tags = { "ADMIN" })
     @PostMapping(path = "/official/waya/account")
     public ResponseEntity<?> createOfficialAccount(@Valid @RequestBody OfficialAccountDTO account) {
+        log.info("Endpoint create official account called !!! --->> {}", account);
         return userAccountService.createOfficialAccount(account);
     }
 
@@ -749,20 +801,22 @@ public class AdminController {
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Create a waya official account", tags = { "ADMIN" })
     @PostMapping(path = "/official/waya/account-multiple")
-    public ArrayList<Object> createOfficialAccount(@Valid @RequestBody List<OfficialAccountDTO> account) {
+    public ArrayList<Object> createMultipleOfficialAccount(@Valid @RequestBody List<OfficialAccountDTO> account) {
+        log.info("Endpoint create multiple official account called !!! --->> {}", account);
         return userAccountService.createOfficialAccount(account);
     }
 
     @ApiOperation(value = "List all waya official accounts", tags = { "ADMIN" })
     @GetMapping(path = "/waya/official/account")
     public ResponseEntity<?> ListAllWayaAccount() {
+        log.info("Endpoint to list all account called !!!");
         return userAccountService.getListWayaAccount();
     }
 
     @ApiOperation(value = "Delete,Pause and Block User Account", tags = { "ADMIN" })
     @PostMapping(path = "/user/account/access")
     public ResponseEntity<?> postAccountRestriction(@Valid @RequestBody AdminAccountRestrictionDTO user) {
-        log.info("Request input: {}", user);
+        log.info("Endpoint to post Account Restriction called!!!: {}", user);
         return userAccountService.UserAccountAccess(user);
     }
 
@@ -771,35 +825,35 @@ public class AdminController {
     @ApiOperation(value = "Delete User Account", tags = { "ADMIN" })
     @PostMapping(path = "/user/account/delete")
     public ResponseEntity<?> postAccountUser(@Valid @RequestBody UserAccountDelete user) {
-        log.info("Request input: {}", user);
+        log.info("Endpoint to post Account user called!!!: {}", user);
         return userAccountService.AccountAccessDelete(user);
     }
 
     @ApiOperation(value = "Pause Account / Freeze Account", tags = { "ADMIN" })
     @PostMapping(path = "/account/pause")
     public ResponseEntity<?> postAccountPause(@Valid @RequestBody AccountFreezeDTO user) {
-        log.info("Request input: {}", user);
+        log.info("Endpoint to post Account pause called!!!: {}", user);
         return userAccountService.AccountAccessPause(user);
     }
 
     @ApiOperation(value = " Block / UnBlock", tags = { "ADMIN" })
     @PostMapping(path = "/account/block")
     public ResponseEntity<?> postAccountBlock(@Valid @RequestBody AccountBlockDTO user, HttpServletRequest request) {
-        log.info("Request input: {}", user);
+        log.info("Endpoint to post Account block called!!!: {}", user);
         return userAccountService.AccountAccessBlockAndUnblock(user, request);
     }
 
     @ApiOperation(value = "Delete Account / Block / UnBlock", tags = { "ADMIN" })
     @PostMapping(path = "/account/closure")
     public ResponseEntity<?> postAccountClosure(@Valid @RequestBody AccountCloseDTO user) {
-        log.info("Request input: {}", user);
+        log.info("Endpoint to post Account closure called!!!: {}", user);
         return userAccountService.AccountAccessClosure(user);
     }
 
     @ApiOperation(value = "Delete Multiple Account", tags = { "ADMIN" })
     @PostMapping(path = "/account/closure-multiple")
     public ResponseEntity<?> postAccountClosureMultiple(@Valid @RequestBody List<AccountCloseDTO> user) {
-        log.info("Request input: {}", user);
+        log.info("Endpoint to post Account closure multiple called!!!: {}", user);
         return userAccountService.AccountAccessClosureMultiple(user);
     }
 
@@ -808,13 +862,14 @@ public class AdminController {
     @ApiOperation(value = "Transaction account block / unblock", tags = { "ADMIN" })
     @PostMapping(path = "/account/lien/transaction")
     public ResponseEntity<?> postAccountLien(@Valid @RequestBody AccountLienDTO user) {
-        log.info("Request input: {}", user);
+        log.info("Endpoint to post Account lien called!!!: {}", user);
         return userAccountService.AccountAccessLien(user);
     }
 
     @ApiOperation(value = "Create Admin Cash Wallet - (Admin COnsumption Only)", tags = { "ADMIN" })
     @PostMapping(path = "/cash/account")
     public ResponseEntity<?> createCashAccounts(HttpServletRequest request,@Valid @RequestBody WalletCashAccountDTO user) {
+        log.info("Endpoint to create cash accounts called!!!: {}", user);
         return userAccountService.createCashAccount(request,user);
         // return userAccountService.createCashAccount(user);
     }
@@ -824,6 +879,7 @@ public class AdminController {
     @ApiOperation(value = "Create Event Wallet Account - (Admin COnsumption Only)", tags = { "ADMIN" })
     @PostMapping(path = "/event/account")
     public ResponseEntity<?> createEventAccounts(@Valid @RequestBody WalletEventAccountDTO user) {
+        log.info("Endpoint to create event accounts called!!! : {}", user);
         return userAccountService.createEventAccount(user);
         // return userAccountService.createEventAccount(user);
     }
@@ -831,8 +887,9 @@ public class AdminController {
     @ApiOperation(value = "Generate Account Statement", tags = { "ADMIN" })
     @GetMapping(path = "/admin/account/statement/{accountNo}")
     public ResponseEntity<?> GenerateAccountStatement(@PathVariable String accountNo) {
-        // check if the accountNo passed is same with User token
+        log.info("Endpoint to generate account statement called!!! ---->>> {}", accountNo);
         ApiResponse<?> res = userAccountService.fetchTransaction(accountNo);
+        log.info("Endpoint response to generate account statement ---->>> {}", res);
         if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
         }
@@ -844,24 +901,28 @@ public class AdminController {
     @ApiOperation(value = "List User wallets", tags = { "ADMIN" })
     @GetMapping(path = "/admin/user/accounts/{user_id}")
     public ResponseEntity<?> GetListAccount(HttpServletRequest request,@PathVariable long user_id) {
+        log.info("Endpoint to get list of accounts called!!! ---->>> {}", user_id);
         return userAccountService.ListUserAccount(request,user_id);
     }
 
     @ApiOperation(value = "Get All Wallets - (Admin Consumption Only)", tags = { "ADMIN" })
     @GetMapping(path = "/all-wallets")
     public ResponseEntity<?> getAllAccounts() {
+        log.info("Endpoint to get all accounts called!!!");
         return userAccountService.getAllAccount();
     }
 
     @ApiOperation(value = "List all Commission Accounts", tags = { "ADMIN" })
     @GetMapping(path = "/commission-wallets/all")
     public ResponseEntity<?> GetAllCommissionAccounts() {
+        log.info("Endpoint to get all commission accounts called!!!");
         return userAccountService.getALLCommissionAccount();
     }
 
     @ApiOperation(value = "Get List of Commission Accounts", tags = { "ADMIN" })
     @GetMapping(path = "/commission-wallets")
     public ResponseEntity<?> ListAllCommissionAccounts(@RequestBody List<Integer> ids) {
+        log.info("Endpoint to get a list of commission accounts called!!!---->> {}", ids);
         return userAccountService.getListCommissionAccount(ids);
     }
 
@@ -870,6 +931,7 @@ public class AdminController {
     @ApiOperation(value = "Get Wallet Selected Account Detail", tags = { "ADMIN" })
     @GetMapping(path = "admin/account/{accountNo}")
     public ResponseEntity<?> GetAcctDetail(@PathVariable String accountNo) {
+        log.info("Endpoint to fetch account details called!!! ---->> {}", accountNo);
         return userAccountService.fetchAccountDetail(accountNo, true);
     }
 
@@ -878,6 +940,7 @@ public class AdminController {
     @ApiOperation(value = "Get Wallet Account Info By Account Number", tags = { "ADMIN" })
     @GetMapping(path = "admin/user-account/{accountNo}")
     public ResponseEntity<?> getAccountDetails(@PathVariable String accountNo) throws Exception {
+        log.info("Endpoint to get account details called!!! ---->> {}", accountNo);
         return userAccountService.getAccountDetails(accountNo, true);
     }
 
@@ -885,6 +948,7 @@ public class AdminController {
     @GetMapping(path = "/admin/commission-accounts/{user_id}")
     public ResponseEntity<?> getCommissionAccounts(@PathVariable long user_id,
                                                    @RequestParam(name = "profileId",required = false) String profileId) {
+        log.info("Endpoint to get commission accounts called!!!---->> {}", profileId);
         return userAccountService.getUserCommissionList(user_id, true,profileId);
     }
 
@@ -898,6 +962,8 @@ public class AdminController {
             @RequestParam(required = false) String filter,
             @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromdate,
             @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate todate) {
+
+        log.info("Endpoint to get all accounts called!!! ");
         ApiResponse<?> res;
         try {
             res = userAccountService.getAllAccounts(page, size, filter, fromdate, todate);
@@ -921,6 +987,7 @@ public class AdminController {
     public ResponseEntity<?> allTransactionsNoPagiination(
             @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromdate,
             @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate todate) {
+        log.info("Endpoint to get all transactions without pagination called!!! ");
         ApiResponse<?> res;
         try {
             res = transAccountService.getAllTransactionsNoPagination(fromdate, todate);
@@ -944,6 +1011,7 @@ public class AdminController {
             @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromdate,
             @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate todate,
             @PathVariable("accountNo") String accountNo) {
+        log.info("Endpoint to get all transactions with account number without pagination called!!! ---->> {}", accountNo);
         ApiResponse<?> res;
         try {
             res = transAccountService.getAllTransactionsByAccountNo(fromdate, todate, accountNo);
@@ -965,6 +1033,7 @@ public class AdminController {
             "ADMIN" })
     @GetMapping("/all/users/analysis")
     public ResponseEntity<ApiResponse<?>> fetchAllUserAccountStats() {
+        log.info("Endpoint to Fetch All User Account Stats called!!! ");
         ApiResponse<?> response = userAccountService.fetchAllUsersTransactionAnalysis();
         return new ResponseEntity<>(response, HttpStatus.valueOf(response.getCode()));
     }
@@ -977,6 +1046,7 @@ public class AdminController {
     public ResponseEntity<ApiResponse<?>> fetchUserTransactionStatForReferral(@PathVariable String userId,
                                                                               @RequestParam String accountNumber,
                                                                               @RequestParam String profileId){
+        log.info("Endpoint to fetch User Transaction Stat For Referral called!!! --->> {}", profileId);
         ApiResponse<?> response = userAccountService.fetchUserTransactionStatForReferral(userId,accountNumber,profileId);
         return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
     }
@@ -987,6 +1057,7 @@ public class AdminController {
             "ADMIN" })
     @GetMapping(path = "/fetchTransByReferenceNumber/{referenceNumber}")
     public ResponseEntity<?> fetchTransactionByRefNumber(@PathVariable String referenceNumber) {
+        log.info("Endpoint to fetch User Transaction by ref number called!!! --->> {}", referenceNumber);
         ApiResponse<?> response = transAccountService.fetchUserTransactionsByReferenceNumber(referenceNumber);
         return new ResponseEntity<>(response, HttpStatus.valueOf(response.getCode()));
     }
@@ -998,6 +1069,7 @@ public class AdminController {
     @GetMapping(path = "/fetchTransByReferenceNumber/{referenceNumber}/accountNumber/{accountNumber}")
     public ResponseEntity<?> fetchAccountTransactionByRefNumberAndAcctNumber(@PathVariable String referenceNumber,
             @PathVariable String accountNumber) {
+        log.info("Endpoint to fetch User Transaction by ref number {} and account number {} called!!!", referenceNumber, accountNumber);
         ApiResponse<?> response = transAccountService.fetchTransactionsByReferenceNumberAndAccountNumber(accountNumber,
                 referenceNumber);
         return new ResponseEntity<>(response, HttpStatus.valueOf(response.getCode()));
@@ -1008,9 +1080,10 @@ public class AdminController {
     @ApiOperation(value = "Update account description", notes = "update account description", tags = {
             "ADMIN" })
     @PostMapping("/update/account-description/{accountNumber}")
-    public ResponseEntity<?> updateAccountDEscription(@PathVariable String accountNumber,
+    public ResponseEntity<?> updateAccountDescription(@PathVariable String accountNumber,
             @RequestParam String description,
             @RequestHeader("Authorization") String token) {
+        log.info("Endpoint to update Account Description called!!!--->> {}", description);
         ResponseEntity<?> response = userAccountService.updateAccountDescription(accountNumber, token, description);
         return new ResponseEntity<>(response, HttpStatus.valueOf(response.getStatusCodeValue()));
     }
@@ -1023,6 +1096,7 @@ public class AdminController {
      @PostMapping("/update/account-name/{accountNumber}")
     public ResponseEntity<?> updateAccountName(@PathVariable String accountNumber, @RequestParam String name,
             @RequestHeader("Authorization") String token){
+        log.info("Endpoint to update Account name called!!!--->> {}", name);
         ApiResponse<?> response = userAccountService.updateAccountName(accountNumber, token, name);
         return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
     }
@@ -1034,7 +1108,7 @@ public class AdminController {
     @PostMapping("/update/debit-limit/{accountNumber}")
     public ResponseEntity<?> updateDebitLimit(@PathVariable String accountNumber, @RequestParam double limit,
                                                @RequestHeader("Authorization") String token){
-        log.info("hit endpoint");
+        log.info("Endpoint to update debit limit called!!! --->> {}", limit);
         ApiResponse<?> response = userAccountService.updateDebitLimit(accountNumber, token, limit);
         return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
     }

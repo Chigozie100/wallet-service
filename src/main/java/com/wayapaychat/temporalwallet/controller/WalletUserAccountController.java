@@ -47,7 +47,7 @@ public class WalletUserAccountController {
     @ApiOperation(value = "Create a User", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping(path = "/create-user")
     public ResponseEntity<?> createUser(HttpServletRequest request,@Valid @RequestBody UserDTO user, @RequestHeader("Authorization") String token) {
-        log.info("Request input: {}", user);
+        log.info("Endpoint to create user called!!!  {}", user);
         return userAccountService.createUser(request,user, token);
     }
 
@@ -57,14 +57,14 @@ public class WalletUserAccountController {
     @ApiOperation(value = "Create User Account", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping(path = "/user/account")
     public ResponseEntity<?> createUserAccount(HttpServletRequest request,@Valid @RequestBody WalletUserDTO user, @RequestHeader("Authorization") String token) {
-        log.info("Request input: {}", user); //, String token
+        log.info("endpoint createUserAccount input: {}", user); //, String token
         return userAccountService.createUserAccount(request.getHeader(SecurityConstants.CLIENT_ID),request.getHeader(SecurityConstants.CLIENT_TYPE),user, token);
     }
 
     @ApiOperation(value = "Modify User Account", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping(path = "/user/account/modify")
     public ResponseEntity<?> createUserAccount(HttpServletRequest request,@Valid @RequestBody UserAccountDTO user) {
-        log.info("Request input: {}", user);
+        log.info("Endpoint createUserAccount input: {}", user);
         return userAccountService.modifyUserAccount(request,user);
     }
 
@@ -73,7 +73,7 @@ public class WalletUserAccountController {
     @ApiOperation(value = "createExternal CBA Account e.g. MIFOS", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/user/externalcba-account/{accountNumber}")
     public ResponseEntity<?> createAccountOnMIFOS(@PathVariable("accountNumber") String accountNumber) {
-        log.info("Request input: {}", accountNumber);
+        log.info("Endpoint createAccountOnMIFOS input: {}", accountNumber);
         return userAccountService.createExternalAccount(accountNumber);
     }
 
@@ -82,6 +82,7 @@ public class WalletUserAccountController {
     @ApiOperation(value = "createAccountOnMIFOSAuto", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping(path = "/user/mifos-account/auto")
     public ResponseEntity<?> createNubbanAccountAuto() {
+        log.info("Endpoint createNubbanAccountAuto input ");
         return userAccountService.createNubbanAccountAuto();
     }
 
@@ -91,7 +92,7 @@ public class WalletUserAccountController {
     @ApiOperation(value = "Account Toggle", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping(path = "/user/account/toggle")
     public ResponseEntity<?> createAccountToggle(HttpServletRequest request,@Valid @RequestBody AccountToggleDTO user) {
-        log.info("Request input: {}", user);
+        log.info("Endpoint createAccountToggle input: {}", user);
         return userAccountService.ToggleAccount(request,user);
         //return userAccountService.modifyUserAccount(user);
     }
@@ -101,13 +102,15 @@ public class WalletUserAccountController {
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Create a Wallet | add additional wallet", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping(path = "/create-wallet")
-    public ResponseEntity<?> createAccount(HttpServletRequest request, @Valid @RequestBody AccountPojo2 accountPojo, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<?> createAccountToggle(HttpServletRequest request, @Valid @RequestBody AccountPojo2 accountPojo, @RequestHeader("Authorization") String token) {
+        log.info("Endpoint createAccountToggle --->> {}", accountPojo);
         return userAccountService.createAccount(request,accountPojo, token);
     }
 
     @ApiOperation(value = "Create a Wallet", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping(path = "/account/product")
     public ResponseEntity<?> createProductAccount(HttpServletRequest request,@Valid @RequestBody AccountProductDTO accountPojo) {
+        log.info("Endpoint createProductAccount --->> {}", accountPojo);
         return userAccountService.createAccountProduct(request,accountPojo);
     }
 
@@ -116,6 +119,7 @@ public class WalletUserAccountController {
     @ApiOperation(value = "Find wallet by walletId", notes = "Find user wallet by walletId", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping("/find/customer/{walletId}")
     public ResponseEntity<?> findCustomerById(@PathVariable("walletId") Long walletId) {
+        log.info("Endpoint findCustomerById --->> {}", walletId);
         ApiResponse<?> res = userAccountService.findCustWalletById(walletId);
         if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
@@ -128,6 +132,7 @@ public class WalletUserAccountController {
     @ApiOperation(value = "Find wallet by walletId", notes = "Find user wallet by walletId", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping("/find/account/{walletId}")
     public ResponseEntity<?> findAccountById(@PathVariable("walletId") Long walletId) {
+        log.info("Endpoint findAccountById --->> {}", walletId);
         ApiResponse<?> res = userAccountService.findAcctWalletById(walletId);
         if (!res.getStatus()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
@@ -139,18 +144,21 @@ public class WalletUserAccountController {
     @PostMapping("/account/lookup/{accountNo}")
     public ResponseEntity<?> AccountLook(@PathVariable("accountNo") String accountNo,
             @Valid @RequestBody SecureDTO key) {
+        log.info("Endpoint AccountLook --->> {}", accountNo);
         return userAccountService.AccountLookUp(accountNo, key);
     }
 
     @ApiOperation(value = "Get Wallet Account Info", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/info/{accountNo}")
     public ResponseEntity<?> getAcctInfo(@PathVariable String accountNo) {
+        log.info("Endpoint getAcctInfo --->> {}", accountNo);
         return userAccountService.getAccountInfo(accountNo);
     }
 
     @ApiOperation(value = "This method returns the User Object", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/info/user-details/{accountNo}")
     public ResponseEntity<?> getAcctInfoWithUserInfo(@PathVariable String accountNo) {
+        log.info("Endpoint getAcctInfoWithUserInfo --->> {}", accountNo);
         return userAccountService.getAccountInfoWithUserInfo(accountNo);
     }
 
@@ -159,6 +167,7 @@ public class WalletUserAccountController {
     @ApiOperation(value = "Get Wallet Selected Account Detail", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/account/{accountNo}")
     public ResponseEntity<?> GetAcctDetail(@PathVariable String accountNo) {
+        log.info("Endpoint GetAcctDetail --->> {}", accountNo);
         return userAccountService.fetchAccountDetail(accountNo, false);
     }
 
@@ -167,6 +176,7 @@ public class WalletUserAccountController {
     @ApiOperation(value = "Get User Info By Account Number", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/fetchUserByAccountNo/{accountNo}")
     public ResponseEntity<?> fetchUserByAccountNo(@PathVariable String accountNo) {
+        log.info("Endpoint fetchUserByAccountNo --->> {}", accountNo);
         return userAccountService.fetchUserByAccountNo(accountNo);
     }
 
@@ -175,12 +185,14 @@ public class WalletUserAccountController {
     @ApiOperation(value = "Do Name Enquiry", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/name-enquiry/{accountNo}")
     public ResponseEntity<?> nameEquiry(@PathVariable String accountNo) {
+        log.info("Endpoint nameEnquiry --->> {}", accountNo);
         return userAccountService.fetchAccountDetail(accountNo, false);
     }
 
     @ApiOperation(value = "Get Virtual Account Detail", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/account/virtual/{accountNo}")
     public ResponseEntity<?> GetVirtualAcctDetail(@PathVariable String accountNo) {
+            log.info("Endpoint GetVirtualAcctDetail --->> {}", accountNo);
         return userAccountService.fetchVirtualAccountDetail(accountNo);
     }
 
@@ -189,18 +201,21 @@ public class WalletUserAccountController {
     public ResponseEntity<?> getAccounts(HttpServletRequest request,@PathVariable long user_id,
                                          @PathVariable String profileId,
                                          @RequestHeader("Authorization") String token) {
+        log.info("Endpoint getAccounts --->> {}", profileId);
         return userAccountService.getUserAccountList(request,user_id,profileId,token);
     }
 
     @ApiOperation(value = "Get User Wallet Commission Account", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/commission-accounts/{user_id}/{profileId}")
     public ResponseEntity<?> getCommissionAccounts(@PathVariable long user_id,@PathVariable String profileId) {
+        log.info("Endpoint getCommissionAccounts --->> {}", profileId);
         return userAccountService.getUserCommissionList(user_id, false,profileId);
     }
 
     @ApiOperation(value = "Get User Wallet Commission Detail", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/commission-account/user/{accountNo}")
     public ResponseEntity<?> setDefaultWallet(@PathVariable String accountNo) {
+        log.info("Endpoint setDefaultWallet --->> {}", accountNo);
         return userAccountService.makeDefaultWallet(accountNo);
     }
 
@@ -208,25 +223,29 @@ public class WalletUserAccountController {
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Get User Wallet Transaction Limit", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/user/account/{user_id}/{profileId}")
-    public ResponseEntity<?> setDefaultWallet(@PathVariable Long user_id,@PathVariable String profileId) {
+    public ResponseEntity<?> setUserLimit(@PathVariable Long user_id,@PathVariable String profileId) {
+        log.info("Endpoint setUserLimit --->> {}", profileId);
         return userAccountService.UserWalletLimit(user_id,profileId);
     }
 
     @ApiOperation(value = "Create Cooperate account, this creates a default account and a commission account", notes = "Create Cooperate account, this creates a default account and a commission account", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping("/create/cooperate/user")
     public ResponseEntity<?> createCooperateAccount(HttpServletRequest request,@RequestBody WalletUserDTO createAccountPojo, @RequestHeader("Authorization") String token) {
+        log.info("Endpoint createCooperateAccount --->> {}", createAccountPojo);
         return userAccountService.createUserAccount(request.getHeader(SecurityConstants.CLIENT_ID),request.getHeader(SecurityConstants.CLIENT_TYPE),createAccountPojo, token);
     }
 
     @ApiOperation(value = "Create Nuban account, this creates a default account / commission account / nuban account", notes = "Create Cooperate account, this creates a default account and a commission account", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping("/create/nuban/user")
     public ResponseEntity<?> createNubanAccount(HttpServletRequest request,@RequestBody WalletUserDTO createAccountPojo, @RequestHeader("Authorization") String token) {
+        log.info("Endpoint createNubanAccount --->> {}", createAccountPojo);
         return userAccountService.createUserAccount(request.getHeader(SecurityConstants.CLIENT_ID),request.getHeader(SecurityConstants.CLIENT_TYPE),createAccountPojo, token);
     }
 
     @ApiOperation(value = "Get Wallet Account Info", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/commission/{accountNo}")
     public ResponseEntity<?> getAcctCommission(@PathVariable String accountNo) {
+        log.info("Endpoint getAcctCommission --->> {}", accountNo);
         return userAccountService.getAccountCommission(accountNo);
     }
 
@@ -235,6 +254,7 @@ public class WalletUserAccountController {
     @ApiOperation(value = "Get Wallet Account Info By Account Number", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/user-account/{accountNo}")
     public ResponseEntity<?> getAccountDetails(@PathVariable String accountNo) throws Exception {
+        log.info("Endpoint getAccountDetails --->> {}", accountNo);
         return userAccountService.getAccountDetails(accountNo, false);
     }
 
@@ -243,12 +263,14 @@ public class WalletUserAccountController {
     @ApiOperation(value = "Get Wallet Default Account", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/default/{user_id}/{profileId}")
     public ResponseEntity<?> getAcctDefault(@PathVariable Long user_id,@PathVariable String profileId) throws JsonProcessingException {
+        log.info("Endpoint getAcctDefault --->> {}", profileId);
         return userAccountService.getAccountDefault(user_id,profileId);
     }
 
     @ApiOperation(value = "To Search For Account(s) with Phone or Email or WayaID", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/account/search/{item}")
     public ResponseEntity<?> ListAllAccounts(@PathVariable String item) {
+        log.info("Endpoint ListAllAccounts --->> {}", item);
         return userAccountService.searchAccount(item);
     }
 
@@ -258,6 +280,7 @@ public class WalletUserAccountController {
             @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
             @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate) {
 
+        log.info("Endpoint FilterAccountStatement --->> {}", accountNo);
         // check if the accountNo passed is same with User token
         ApiResponse<?> res = userAccountService.fetchFilterTransaction(accountNo, fromdate, todate);
         if (!res.getStatus()) {
@@ -271,6 +294,8 @@ public class WalletUserAccountController {
     @ApiOperation(value = "Recent Transaction Details for User Accounts", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/recent/accounts/transaction/{user_id}/{profileId}")
     public ResponseEntity<?> GenerateRecentTransaction(@PathVariable Long user_id,String profileId) {
+        log.info("Endpoint GenerateRecentTransaction --->> {}", profileId);
+
         // check if the userI passed is same with token
         ApiResponse<?> res = userAccountService.fetchRecentTransaction(user_id,profileId);
         if (!res.getStatus()) {
@@ -282,24 +307,28 @@ public class WalletUserAccountController {
     @ApiOperation(value = "Get Wallet User account count", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping(path = "/account/count/{userId}/{profileId}")
     public ResponseEntity<?> TotalUserAccountCount(@PathVariable Long userId,@PathVariable String profileId) {
+        log.info("Endpoint TotalUserAccountCount --->> {}", profileId);
         return userAccountService.getUserAccountCount(userId,profileId);
     }
 
     @ApiOperation(value = "Total Active Accounts", notes = "Total Transaction", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping("/account/total-active-amount")
     public ResponseEntity<?> getTotalActiveAccount() {
+        log.info("Endpoint getTotalActiveAccount");
         return userAccountService.getTotalActiveAccount();
     }
 
     @ApiOperation(value = "Total Active Accounts", notes = "Total Active Accounts", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping("/account/total-active-count")
     public ResponseEntity<?> countActiveAccount() {
+        log.info("Endpoint countActiveAccount");
         return userAccountService.countActiveAccount();
     }
 
     @ApiOperation(value = "Total InActive Accounts", notes = "Total InActive Accounts", tags = {"USER-ACCOUNT-WALLET"})
     @GetMapping("/account/total-inactive-count")
     public ResponseEntity<?> countInActiveAccount() {
+        log.info("Endpoint countInActiveAccount");
         return userAccountService.countInActiveAccount();
     }
 
@@ -309,6 +338,7 @@ public class WalletUserAccountController {
     @PostMapping("/getCustomerDebitLimit")
     public ResponseEntity<?> getCustomerDebitLimit(@RequestParam("userId") String userId, 
                                                       @RequestParam String profileId) {
+        log.info("Endpoint getCustomerDebitLimit ---->> {}", profileId);
         ResponseEntity<?> res = userAccountService.getCustomerDebitLimit(userId,profileId);
         if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.BAD_REQUEST);
@@ -323,6 +353,7 @@ public class WalletUserAccountController {
     public ResponseEntity<?> updateCustomerDebitLimit(@RequestParam("userId") String userId,
                                                       @RequestParam("amount") BigDecimal amount,
                                                       @RequestParam String profileId) {
+        log.info("Endpoint updateCustomerDebitLimit ---->> {}", profileId);
         ResponseEntity<?> res = userAccountService.updateCustomerDebitLimit(userId, amount,profileId);
         if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
@@ -335,6 +366,7 @@ public class WalletUserAccountController {
     @ApiOperation(value = "updateNotificationEmail", notes = "updateNotificationEmail", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping("/updateNotificationEmail")
     public ResponseEntity<?> updateNotificationEmail(@RequestParam("accountNumber") String accountNumber, @RequestParam("email") String email) {
+        log.info("Endpoint updateNotificationEmail ---->> {}", accountNumber);
         ResponseEntity<?> res = userAccountService.updateNotificationEmail(accountNumber, email);
         if (!res.getStatusCode().is2xxSuccessful()) {
             return new ResponseEntity<>(res, HttpStatus.NOT_FOUND);
@@ -346,6 +378,7 @@ public class WalletUserAccountController {
     @PostMapping("/toggle/{userId}")
     public ApiResponse<?> toggleTransactionProperty(HttpServletRequest request,@PathVariable("userId") long userId,
             @RequestParam("type") String type, @RequestHeader("Authorization") String token) {
+        log.info("Endpoint toggleTransactionProperty ---->> {}", type);
         return userAccountService.toggleTransactionType(request,userId, type, token);
     }
 
@@ -354,6 +387,7 @@ public class WalletUserAccountController {
     @ApiOperation(value = "Toggle transaction property per user")
     @GetMapping("/trans-type/status/{userId}")
     public ApiResponse<?> transactionPropertyStatus(@PathVariable("userId") long userId) {
+        log.info("Endpoint transactionPropertyStatus ---->> {}", userId);
         return userAccountService.transTypeStatus(userId);
     }
 
@@ -366,6 +400,7 @@ public class WalletUserAccountController {
             @RequestParam(value = "fromdate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fromdate,
             @RequestParam(value = "todate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate todate,
                                                      @PathVariable String profileId) {
+        log.info("Endpoint userTransactionAnalysis ---->> {}", profileId);
         // check if the userI passed is same with token
         ApiResponse<?> res = userAccountService.totalTransactionByUserId(user_id, filter, fromdate, todate,profileId);
         if (!res.getStatus()) {
@@ -379,6 +414,7 @@ public class WalletUserAccountController {
     public ApiResponse<?> createCommissionAccount(@PathVariable("userId") long userId,
                                                   @RequestHeader("Authorization") String token,
                                                   @PathVariable String profileId) {
+        log.info("Endpoint createCommissionAccount ---->> {}", profileId);
         return userAccountService.createCommisionAccount(userId, token,profileId);
     }
 

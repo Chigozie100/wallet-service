@@ -18,6 +18,7 @@ import com.wayapaychat.temporalwallet.service.VirtualService;
 import com.wayapaychat.temporalwallet.util.ReqIPUtils;
 import com.wayapaychat.temporalwallet.util.SuccessResponse;
 import com.wayapaychat.temporalwallet.util.Util;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,6 +31,7 @@ import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Service
+@Slf4j
 public class VirtualServiceImpl implements VirtualService {
 
     private final UserAccountService userAccountService;
@@ -46,7 +48,7 @@ public class VirtualServiceImpl implements VirtualService {
 
     @Override
     public ResponseEntity<?> registerWebhookUrl(VirtualAccountHookRequest request) {
-        try{
+        try {
             Util util = new Util();
 
             VirtualAccountHook virtualAccountHook = new VirtualAccountHook();
@@ -57,10 +59,12 @@ public class VirtualServiceImpl implements VirtualService {
             virtualAccountHook.setPassword(encode(request.getPassword()));
             virtualAccountHook.setCallbackUrl(request.getCallbackUrl());
             virtualAccountRepository.save(virtualAccountHook);
+            log.info("Webhook URL registered successfully.");
             return new ResponseEntity<>(new SuccessResponse("Account created successfully", virtualAccountHook), HttpStatus.OK);
 
-        }catch (Exception ex){
-            throw new CustomException("Error " +ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+        } catch (Exception ex) {
+            log.error("Error registering webhook URL: {}", ex.getMessage());
+            throw new CustomException("Error " + ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
     }
 
@@ -71,15 +75,20 @@ public class VirtualServiceImpl implements VirtualService {
 
     @Override
     public ResponseEntity<SuccessResponse> createVirtualAccount(VirtualAccountRequest account) {
-
-        WalletUserDTO walletUserDTO = getUserWalletData(account);
-        // send request to create account
-        WalletAccount walletAccount = userAccountService.createNubanAccount(walletUserDTO);
-        AccountDetailDTO accountDetailDTO = new AccountDetailDTO();
-        if(walletAccount !=null){
-            accountDetailDTO  = getResponse(walletAccount.getNubanAccountNo());
+        try {
+            log.info("Creating virtual account...");
+            WalletUserDTO walletUserDTO = getUserWalletData(account);
+            WalletAccount walletAccount = userAccountService.createNubanAccount(walletUserDTO);
+            AccountDetailDTO accountDetailDTO = new AccountDetailDTO();
+            if (walletAccount != null) {
+                accountDetailDTO = getResponse(walletAccount.getNubanAccountNo());
+            }
+            log.info("Virtual account created successfully.");
+            return new ResponseEntity<>(new SuccessResponse("Account created successfully", accountDetailDTO), HttpStatus.OK);
+        } catch (Exception ex) {
+            log.error("Error creating virtual account: {}", ex.getMessage());
+            throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
-        return new ResponseEntity<>(new SuccessResponse("Account created successfully", accountDetailDTO), HttpStatus.OK);
     }
 
     private AccountDetailDTO getResponse(String accountNo){
@@ -114,6 +123,7 @@ public class VirtualServiceImpl implements VirtualService {
         walletUserDTO.setLastName(keyCredit[1]);
         walletUserDTO.setMobileNo("234");
         walletUserDTO.setSolId("0000");
+        log.info("Wallet user --->>> {}", walletUserDTO);
 
         return walletUserDTO;
 
@@ -141,29 +151,26 @@ public class VirtualServiceImpl implements VirtualService {
         ObjectMapper mapper = new ObjectMapper();
         String jsonString;
 
-        try{
-            // decrypt
+        try {
+            log.info("Performing balance enquiry...");
             WalletAccount walletAccount = walletAccountRepository.findByNubanAccountNo(accountNumber);
             AccountDetailDTO account = new AccountDetailDTO(walletAccount.getId(), walletAccount.getSol_id(), walletAccount.getNubanAccountNo(),
                     walletAccount.getAcct_name(), BigDecimal.valueOf(walletAccount.getClr_bal_amt()),
                     walletAccount.getAcct_crncy_code());
 
-            System.out.println("walletAccount :: " + account);
-
             jsonString = mapper.writeValueAsString(account);
-
-            System.out.println("jsonString :: " + jsonString);
+            log.info("Account details retrieved successfully: {}", jsonString);
 
             String encryptedString = ReqIPUtils.encrypt(jsonString);
+            log.info("Encrypted account details: {}", encryptedString);
 
-            System.out.println("encryptedString :: " + encryptedString);
+            String decryptedString = String.valueOf(decryptString(encryptedString));
+            log.info("Decrypted account details: {}", decryptedString);
 
-            System.out.println("walletAccount :: " + decryptString(encryptedString));
-
-            // encrypt and send response
             return new SuccessResponse("Data retrieved successfully", encryptedString);
-        }catch (Exception ex){
-            throw new CustomException("Error " +ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+        } catch (Exception ex) {
+            log.error("Error performing balance enquiry: {}", ex.getMessage());
+            throw new CustomException("Error " + ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
     }
 
