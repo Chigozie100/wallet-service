@@ -433,8 +433,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         
         ErrorResponse response = new ErrorResponse();
         if(transferTransactionRequestData.getDebitAccountNumber().length() > 10){
-            response.setStatus(true);
-            response.setMessage(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue());
+            response.setStatus(false);
+            response.setMessage(ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue());
             return response;
         }
 
@@ -452,7 +452,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             blockedAmount = foundAcct.getBlockAmount();
         }
 
-        BigDecimal allowedWithdrawal = BigDecimal.valueOf(foundAcct.getClr_bal_amt()).subtract(BigDecimal.valueOf(500));
+        BigDecimal allowedWithdrawal = BigDecimal.valueOf(foundAcct.getClr_bal_amt());
         BigDecimal availableAmtForWithdrawal = allowedWithdrawal.subtract(blockedAmount).subtract(chargeAmount);
 
         if (transferTransactionRequestData.getAmount().doubleValue() > availableAmtForWithdrawal.doubleValue()) {
