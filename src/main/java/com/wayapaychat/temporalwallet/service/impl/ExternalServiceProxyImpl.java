@@ -26,18 +26,19 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 @Slf4j
 public class ExternalServiceProxyImpl {
-	
+
 	@Autowired
 	private CardProxy cardProxy;
-	
+
 	@Autowired
 	private ContactProxy contactProxy;
-	
+
 	@Autowired
 	ReceiptProxy receiptProxy;
-	
+
 	public ResponseEntity<?> getCardPayment(HttpServletRequest req, CardRequestPojo card, Long userId) {
 		String token = req.getHeader(SecurityConstants.HEADER_STRING);
+		log.info("Request to perform card payment: {}", card.toString());
 		if(card.getType().equals("CARD")) {
 			Map<String, String> kCard = new HashMap<>();
 			kCard.put("amount", card.getAmount());
@@ -48,33 +49,36 @@ public class ExternalServiceProxyImpl {
 			kCard.put("senderName",card.getSenderName());
 			kCard.put("receiverName", card.getReceiverName());
 			ResponseEntity<?> resp = cardProxy.cardPayment(kCard, token);
+			log.info("Card payment response: {}", resp.toString());
 			return resp;
 		}else if(card.getType().equals("BANK")) {
 			CardPojo vCard = new CardPojo(card.getAmount(), card.getReference(), card.getEmail(), card.getWalletAccounttNo());
 			ResponseEntity<?> resp = cardProxy.payCheckOut(vCard,userId,token);
+			log.info("Bank payment response: {}", resp.toString());
 			return resp;
 		}else if(card.getType().equals("LOCAL")) {
 			ResponseEntity<?> resp = contactProxy.localTransfer(card.getSenderAccountNo(), card.getBenefAccountNo(), userId, card.getAmount(), token);
+			log.info("Local transfer response: {}", resp.toString());
 			return resp;
 		}
 		return null;
 	}
-	
-	public ReceiptJson printReceipt(BigDecimal amount, String receiverAccount, 
-			String referenceNumber, Date transactionDate, String transactionType, 
-			String userId, String name, String category, String token, String senderName) {
+
+	public ReceiptJson printReceipt(BigDecimal amount, String receiverAccount,
+									String referenceNumber, Date transactionDate, String transactionType,
+									String userId, String name, String category, String token, String senderName) {
 		try {
 
 
-		ReceiptRequest receipt = new ReceiptRequest(amount, "", receiverAccount, "WALLET",
-				name, referenceNumber, senderName, transactionDate, transactionType, category, userId);
-		log.info("Receipt Request: {}", receipt.toString());
-		ReceiptJson receiptResponse = receiptProxy.receiptOut(receipt, token);
+			ReceiptRequest receipt = new ReceiptRequest(amount, "", receiverAccount, "WALLET",
+					name, referenceNumber, senderName, transactionDate, transactionType, category, userId);
+			log.info("Receipt Request: {}", receipt.toString());
+			ReceiptJson receiptResponse = receiptProxy.receiptOut(receipt, token);
 			if(receiptResponse == null)
 				return null;
-			
+
 			log.info("Receipt: {}", receiptResponse.toString());
-			
+
 			if (receiptResponse.isStatus())
 				return receiptResponse;
 		} catch (Exception ex) {

@@ -8,6 +8,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 
 @RestController
+@Slf4j
 @RequestMapping("/api/v1/config")
 @Tag(name = "CONFIGURATIONS", description = "Ability for waya to manage configurations")
 @Validated
@@ -35,6 +37,7 @@ public class SetupController {
     @PostMapping("")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> createReversalDay(@RequestParam("days") Integer days) {
+        log.info("Endpoint create Reversal Day called !!! ------>>> {}", days);
         return reversalSetupService.create(days);
     }
 
@@ -45,6 +48,7 @@ public class SetupController {
     @GetMapping(path = "/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> ViewReversalDay(@PathVariable String id) {
+        log.info("Endpoint View Reversal Day called !!! ------>>> {}", id);
         return reversalSetupService.view(Long.parseLong(id));
     }
 
@@ -54,6 +58,7 @@ public class SetupController {
     @GetMapping("")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> viewAllReversalDays() {
+        log.info("Endpoint View All Reversal Day called !!!");
         return reversalSetupService.viewAll();
     }
 
@@ -63,6 +68,7 @@ public class SetupController {
     @PutMapping(path = "/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> updateReversalDay(@RequestParam("days") Integer days, @PathVariable String id) {
+        log.info("Endpoint update Reversal Day called !!! ------>>> {}", id);
         return reversalSetupService.update(days,Long.parseLong(id));
     }
 
@@ -72,6 +78,7 @@ public class SetupController {
     @PutMapping(path = "/{id}/toggle")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> toggleReversalDay(@PathVariable String id) {
+        log.info("Endpoint toggle Reversal Day called !!! ------>>> {}", id);
         return reversalSetupService.toggle(Long.parseLong(id));
     }
 
@@ -82,6 +89,7 @@ public class SetupController {
     @PostMapping(path = "/recurrent-payment")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> createRecurrentConfig(@Valid @RequestBody RecurrentConfigPojo request) {
+        log.info("Endpoint create Recurrent Config called !!! ------>>> {}", request);
         return configService.createRecurrentPayment(request);
     }
 
@@ -93,6 +101,7 @@ public class SetupController {
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> updateRecurrentPayment(@Valid @RequestBody RecurrentConfigPojo request,
                                                     @PathVariable("id") Long id) {
+        log.info("Endpoint update Recurrent Config called !!! ------>>> {}", request);
         return configService.updateRecurrentPayment(request,id);
     }
 
@@ -102,6 +111,7 @@ public class SetupController {
     @PutMapping(path = "/recurrent-payment/{id}/toggle")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> toggleRecurrentPayment(@PathVariable("id") Long id) {
+        log.info("Endpoint toggle Recurrent Config called !!! ------>>> {}", id);
         return configService.toggleRecurrentPayment(id);
     }
 
@@ -111,6 +121,7 @@ public class SetupController {
     @GetMapping(path = "/recurrent-payment/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> getRecurrentPayment(@PathVariable("id") Long id) {
+        log.info("Endpoint get Recurrent Config called !!! ------>>> {}", id);
         return configService.getRecurrentPayment(id);
     }
 
@@ -121,6 +132,7 @@ public class SetupController {
     @GetMapping(path = "/recurrent-payment")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> getAllRecurrentPayment() {
+        log.info("Endpoint get all Recurrent payment called !!! ");
         return configService.getAllRecurrentPayment();
     }
 
