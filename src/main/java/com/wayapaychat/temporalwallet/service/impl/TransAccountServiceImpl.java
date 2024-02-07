@@ -2439,7 +2439,8 @@ public ResponseEntity<?> NonPayment(HttpServletRequest request, NonWayaPaymentDT
             log.error("Unable to generate statement.");
             return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "UNABLE TO GENERATE STATEMENT", null);
         }
-        statement = new WalletAccountStatement(BigDecimal.valueOf(account.getClr_bal_amt()), transaction);
+        BigDecimal blockedAmount = account.getBlockAmount();
+        statement = new WalletAccountStatement(BigDecimal.valueOf(account.getClr_bal_amt()), transaction, blockedAmount);
         log.info("Statement generated successfully.");
         return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", statement);
     }
