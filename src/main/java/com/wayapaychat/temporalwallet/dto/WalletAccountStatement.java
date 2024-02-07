@@ -16,5 +16,6 @@ public class WalletAccountStatement {
 	
 	BigDecimal currentBalance;
     List<WalletTransaction> transactionHistory;
+    BigDecimal blockedAmount;
 
 }
