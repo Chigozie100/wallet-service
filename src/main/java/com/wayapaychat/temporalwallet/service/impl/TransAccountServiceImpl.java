@@ -3970,13 +3970,18 @@ public ResponseEntity<?> NonPayment(HttpServletRequest request, NonWayaPaymentDT
                 state.setDescription(transList.getTranNarrate());
                 tran.add(state);
             }
+
+            BigDecimal closingBalance = openBal.add(deposit).subtract(with);
+            BigDecimal totalClosingBalance = blockedAmount.add(closingBalance);
+
             custStatement.setAccountName(account.getAcct_name());
             custStatement.setAccountNumber(acctNo);
             custStatement.setClearedal(clearedBal.setScale(2, RoundingMode.HALF_EVEN));
             custStatement.setUnclearedBal(unclearedBal.setScale(2, RoundingMode.HALF_EVEN));
             custStatement.setOpeningBal(openBal);
             custStatement.setTransaction(tran);
-            custStatement.setClosingBal(openBal.add(deposit).subtract(with));
+//            custStatement.setClosingBal(openBal.add(deposit).subtract(with));
+            custStatement.setClosingBal(totalClosingBalance);
             custStatement.setBlockedAmount(blockedAmount);
 
             log.info("Generated account statement: {}", custStatement);
