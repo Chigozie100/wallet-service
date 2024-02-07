@@ -3935,7 +3935,13 @@ public ResponseEntity<?> NonPayment(HttpServletRequest request, NonWayaPaymentDT
             BigDecimal credit = walletTransactionRepository.allDebitAndCredit(fromDate, acctNo, "C");
 
             BigDecimal openBal = credit == null ? BigDecimal.ZERO : credit.subtract(debit == null ? BigDecimal.ZERO : debit);
-            BigDecimal blockedAmount = account.getBlockAmount();
+            BigDecimal blockedAmount ;
+            if (account.getBlockAmount() == null) {
+                blockedAmount = BigDecimal.valueOf(0);
+            }
+            else {
+                blockedAmount = account.getBlockAmount();
+            }
 
             List<AccountStatement> tran = new ArrayList<>();
             List<WalletTransaction> transaction = walletTransactionRepository.transList(fromDate, toDate, acctNo);
@@ -3980,7 +3986,6 @@ public ResponseEntity<?> NonPayment(HttpServletRequest request, NonWayaPaymentDT
             custStatement.setUnclearedBal(unclearedBal.setScale(2, RoundingMode.HALF_EVEN));
             custStatement.setOpeningBal(openBal);
             custStatement.setTransaction(tran);
-//            custStatement.setClosingBal(openBal.add(deposit).subtract(with));
             custStatement.setClosingBal(totalClosingBalance);
             custStatement.setBlockedAmount(blockedAmount);
 
