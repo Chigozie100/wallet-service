@@ -25,6 +25,7 @@ import com.wayapaychat.temporalwallet.notification.EmailRecipient;
 import com.wayapaychat.temporalwallet.proxy.NotificationProxy;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -60,9 +61,10 @@ public class ExportPdf {
     private String closeBal;
     private String clearedBal;
     private String unclearedBal;
+    private BigDecimal blockedAmount;
 
     public ExportPdf(List<AccountStatement> trans, String accountNo, Date startDate, Date endDate, String accountName, String openingBal,
-            String closeBal, String clearedBal, String unclearedBal) {
+            String closeBal, String clearedBal, String unclearedBal, BigDecimal blockedAmount) {
         this.trans = trans;
         this.accountNo = accountNo;
         this.startDate = startDate;
@@ -72,6 +74,7 @@ public class ExportPdf {
         this.closeBal = closeBal;
         this.clearedBal = clearedBal;
         this.unclearedBal = unclearedBal;
+        this.blockedAmount = blockedAmount;
     }
 
     public void export(HttpServletResponse response) {
@@ -132,6 +135,8 @@ public class ExportPdf {
             addAccountDetailTableCell(accountDetail, clearedBal, Element.ALIGN_RIGHT, Font.NORMAL, BaseColor.WHITE);
             addAccountDetailTableCell(accountDetail, "Uncleared Balance", Element.ALIGN_LEFT, Font.NORMAL, new BaseColor(251, 206, 177));
             addAccountDetailTableCell(accountDetail, unclearedBal, Element.ALIGN_RIGHT, Font.NORMAL, new BaseColor(251, 206, 177));
+            addAccountDetailTableCell(accountDetail, "Blocked Amount", Element.ALIGN_LEFT, Font.NORMAL, new BaseColor(251, 206, 177));
+            addAccountDetailTableCell(accountDetail, String.valueOf(blockedAmount), Element.ALIGN_RIGHT, Font.NORMAL, new BaseColor(251, 206, 177));
 
             PdfPTable outer = new PdfPTable(2);
             outer.setWidthPercentage(120);
