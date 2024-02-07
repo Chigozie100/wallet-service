@@ -3935,6 +3935,7 @@ public ResponseEntity<?> NonPayment(HttpServletRequest request, NonWayaPaymentDT
             BigDecimal credit = walletTransactionRepository.allDebitAndCredit(fromDate, acctNo, "C");
 
             BigDecimal openBal = credit == null ? BigDecimal.ZERO : credit.subtract(debit == null ? BigDecimal.ZERO : debit);
+            BigDecimal blockedAmount = account.getBlockAmount();
 
             List<AccountStatement> tran = new ArrayList<>();
             List<WalletTransaction> transaction = walletTransactionRepository.transList(fromDate, toDate, acctNo);
@@ -3976,6 +3977,7 @@ public ResponseEntity<?> NonPayment(HttpServletRequest request, NonWayaPaymentDT
             custStatement.setOpeningBal(openBal);
             custStatement.setTransaction(tran);
             custStatement.setClosingBal(openBal.add(deposit).subtract(with));
+            custStatement.setBlockedAmount(blockedAmount);
 
             log.info("Generated account statement: {}", custStatement);
             return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "TRANSACTION LIST SUCCESSFULLY", custStatement);
