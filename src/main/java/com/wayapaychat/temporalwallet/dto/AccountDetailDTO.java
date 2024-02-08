@@ -14,6 +14,10 @@ public class AccountDetailDTO {
 	private String accountNo;
 	
 	private String accountName;
+
+	private String firstName;
+
+	private String lastName;
 	
 	private String productCode;
 	
@@ -31,6 +35,25 @@ public class AccountDetailDTO {
 	private String phoneNumber;
 	private Long userId;
 	private String profileId;
+
+	public AccountDetailDTO(long id, String branchId, String accountNo, String accountName, String productCode,
+	BigDecimal balance, String currencyCode, boolean accountDefault,boolean acctClosureFlag,
+	boolean acctDeleteFlag, String nubanAccountNo, String firstName, String lastName) {
+		super();
+		this.id = id;
+		this.branchId = branchId;
+		this.accountNo = accountNo;
+		this.accountName = accountName;
+		this.productCode = productCode;
+		this.balance = balance;
+		this.currencyCode = currencyCode;
+		this.accountDefault = accountDefault;
+		this.acctClosureFlag = acctClosureFlag;
+		this.acctDeleteFlag = acctDeleteFlag;
+		this.nubanAccountNo = nubanAccountNo;
+		this.firstName = firstName;
+		this.lastName = lastName;
+	}
 
 	public AccountDetailDTO(long id, String branchId, String accountNo, String accountName, String productCode,
 							BigDecimal balance, String currencyCode, boolean accountDefault,boolean acctClosureFlag,
