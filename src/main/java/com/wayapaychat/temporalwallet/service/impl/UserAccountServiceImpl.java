@@ -1367,6 +1367,8 @@ public class UserAccountServiceImpl implements UserAccountService {
             account.setPhoneNumber(xUser.getMobileNo());
             account.setProfileId(xUser.getProfileId());
             account.setUserId(xUser.getUserId());
+            account.setFirstName(xUser.getFirstName());
+            account.setLastName(xUser.getLastName());
         }
         return new ResponseEntity<>(new SuccessResponse("Success", account), HttpStatus.OK);
     }
