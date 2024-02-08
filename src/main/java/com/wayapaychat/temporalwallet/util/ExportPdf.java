@@ -25,6 +25,7 @@ import com.wayapaychat.temporalwallet.notification.EmailRecipient;
 import com.wayapaychat.temporalwallet.proxy.NotificationProxy;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;

@@ -21,7 +21,8 @@ public class CustomerStatement {
     private BigDecimal unclearedBal;
     private String accountName;
     private String accountNumber;
-    
+    private BigDecimal blockedAmount;
+
     private List<AccountStatement> transaction;
     
 }

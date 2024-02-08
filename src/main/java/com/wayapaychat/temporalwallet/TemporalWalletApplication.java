@@ -28,6 +28,4 @@ public class TemporalWalletApplication {
     RestTemplate restTemplate(){
         return new RestTemplate();
     }
-
-
 }

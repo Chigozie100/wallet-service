@@ -1,12 +1,12 @@
 package com.wayapaychat.temporalwallet.controller;
 
-import com.wayapaychat.temporalwallet.entity.UserPricing;
 import com.wayapaychat.temporalwallet.enumm.PriceCategory;
 import com.wayapaychat.temporalwallet.service.UserPricingService;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +16,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 
@@ -24,6 +23,7 @@ import java.util.concurrent.CompletableFuture;
 @RequestMapping("/api/v1/pricing")
 @Tag(name = "USER-PRICING", description = "Pricing Wallet Service API")
 @Validated
+@Slf4j
 public class UserPricingController {
 
     private final UserPricingService userPricingService;
@@ -39,6 +39,7 @@ public class UserPricingController {
     @GetMapping(value = "/sync-user-products/{apiKey}", produces = MediaType.APPLICATION_JSON_VALUE)
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> syncUsersWithProducts(@PathVariable String apiKey) {
+        log.info("Endpoint to sync Users With Products called !!!  ----->> {}", apiKey);
         return userPricingService.syncWalletUser(apiKey);
     }
 
@@ -50,7 +51,7 @@ public class UserPricingController {
     @Async
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     public CompletableFuture<ResponseEntity<?>> updateCustomPrice(@RequestParam("userId") Long  userId, @RequestParam("discountAmount") BigDecimal discountAmount, @RequestParam("customAmount") BigDecimal customAmount, @RequestParam("capAmount") BigDecimal capAmount , @RequestParam("product") String product, @RequestParam(defaultValue = "FIXED") PriceCategory priceType) {
-
+        log.info("Endpoint to update Custom Price called !!!  ----->> {}", product);
         return CompletableFuture.completedFuture(userPricingService.update(userId, discountAmount, customAmount, capAmount, product, priceType));
     }
 
@@ -77,6 +78,7 @@ public class UserPricingController {
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
     public CompletableFuture<ResponseEntity<?>> getUsersWithProductsList(@RequestParam(defaultValue = "0") int page,
                                                                          @RequestParam(defaultValue = "10") int size) {
+        log.info("Endpoint to get Users With Products List called !!! ");
         return CompletableFuture.completedFuture(userPricingService.getAllUserPricing(page,size));
     }
 
@@ -88,6 +90,7 @@ public class UserPricingController {
     @Async
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
     public CompletableFuture<ResponseEntity<?>> getUsersWithProductsListByUserId(@PathVariable String userId, @PathVariable String product) {
+        log.info("Endpoint to get Users With Products List By User Id called !!!  ----->> {}", product);
         return CompletableFuture.completedFuture(userPricingService.getAllUserPricingUserId(userId,product));
     }
 
@@ -99,7 +102,7 @@ public class UserPricingController {
     @Async
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     public CompletableFuture<ResponseEntity<?>> applyDiscountToAll(@RequestParam("discountAmount") BigDecimal discountAmount) {
-
+        log.info("Endpoint to apply Discount To All called !!!  ----->> {}", discountAmount);
         return CompletableFuture.completedFuture(userPricingService.applyDiscountToAll(discountAmount));
     }
 
@@ -111,7 +114,7 @@ public class UserPricingController {
     @Async
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     public CompletableFuture<ResponseEntity<?>> applyCapToAll(@RequestParam("capAmount") BigDecimal capAmount) {
-
+        log.info("Endpoint to apply cap To All called !!!  ----->> {}", capAmount);
         return CompletableFuture.completedFuture(userPricingService.applyCapToAll(capAmount));
     }
 
@@ -123,7 +126,7 @@ public class UserPricingController {
     @Async
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     public CompletableFuture<ResponseEntity<?>> applyGeneralToAll(@RequestParam("generalPrice") BigDecimal generalPrice, @RequestParam("productType") String productType, @RequestParam("capAmount") BigDecimal capAmount, @RequestParam(defaultValue = "FIXED") PriceCategory priceType) {
-
+        log.info("Endpoint to apply general price To All called !!!  ----->> {}", generalPrice);
         return CompletableFuture.completedFuture(userPricingService.applyGeneralToAll(generalPrice,productType, capAmount, priceType));
     }
 
@@ -136,6 +139,7 @@ public class UserPricingController {
     @Async
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     public CompletableFuture<ResponseEntity<?>> deleteUserPricing(@PathVariable String apiKey) {
+        log.info("Endpoint to delete user pricing called !!!  ----->> {}", apiKey);
         return CompletableFuture.completedFuture(userPricingService.deleteAll(apiKey));
     }
 
@@ -147,6 +151,7 @@ public class UserPricingController {
     @Async
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     public CompletableFuture<ResponseEntity<?>> create(@PathVariable String userId,@PathVariable String profileId) {
+        log.info("Endpoint to create user pricing called !!!  ----->> {}", profileId);
         return CompletableFuture.completedFuture(userPricingService.createUserPricing(userId,profileId));
     }
 
@@ -170,6 +175,7 @@ public class UserPricingController {
 @Async
 @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
 public CompletableFuture<ResponseEntity<?>> createProducts(@RequestParam("name") String name, @RequestParam("description") String description,@RequestParam("eventId") String eventId) {
+    log.info("Endpoint to create products called !!!  ----->> {}", name);
     return CompletableFuture.completedFuture(userPricingService.createProducts(name,description,eventId));
 }
 
@@ -181,6 +187,7 @@ public CompletableFuture<ResponseEntity<?>> createProducts(@RequestParam("name")
 @Async
 @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
 public CompletableFuture<ResponseEntity<?>> editProducts(@PathVariable("id") Long id, @RequestParam("name") String name, @RequestParam("description") String description,@RequestParam("eventId") String eventId) {
+    log.info("Endpoint to edit products called !!!  ----->> {}", name);
     return CompletableFuture.completedFuture(userPricingService.editProducts(id,name,description,eventId));
 }
 
@@ -192,6 +199,7 @@ public CompletableFuture<ResponseEntity<?>> editProducts(@PathVariable("id") Lon
 @Async
 @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
 public CompletableFuture<ResponseEntity<?>> getAllProducts() {
+    log.info("Endpoint to get all products called !!! ");
     return CompletableFuture.completedFuture(userPricingService.getAllProducts());
 }
 
@@ -202,9 +210,8 @@ public CompletableFuture<ResponseEntity<?>> getAllProducts() {
         MediaType.APPLICATION_JSON_VALUE)
 @Async
 @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
-public CompletableFuture<ResponseEntity<?>> getAllProducts(@PathVariable("value") String value) {
+public CompletableFuture<ResponseEntity<?>> searchProducts(@PathVariable("value") String value) {
+    log.info("Endpoint to search products called !!! --->> {}", value);
     return CompletableFuture.completedFuture(userPricingService.search(value));
-}
- 
-
+    }
 }

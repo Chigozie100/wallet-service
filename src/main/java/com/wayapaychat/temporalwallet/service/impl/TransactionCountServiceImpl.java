@@ -22,7 +22,8 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-@Service @Slf4j
+@Service
+@Slf4j
 public class TransactionCountServiceImpl implements TransactionCountService {
 
     private final TransactionCountRepository transactionCountRepository;
@@ -37,38 +38,46 @@ public class TransactionCountServiceImpl implements TransactionCountService {
     }
 
     @Override
-    public ResponseEntity<?> getUserCount(String userId,String profileId) {
+    public ResponseEntity<?> getUserCount(String userId, String profileId) {
+        log.info("Received request to get user count for userId: {} and profileId: {}", userId, profileId);
+
         List<TransactionCountDto> allList = new ArrayList<>();
         List<TransactionCountDto> trdto = transactionCountRepository.findSurveyCount();
         for (TransactionCountDto transactionCountDto : trdto) {
-            WalletUser user = walletUserRepository.findByUserIdAndProfileId(Long.parseLong(transactionCountDto.getUserId()),profileId);
-            allList.add(new TransactionCountDto(transactionCountDto.getUserId(), transactionCountDto.getTotalCount(), user));
+            WalletUser user = walletUserRepository.findByUserIdAndProfileId(Long.parseLong(transactionCountDto.getUserId()), profileId);
+            if (user != null) {
+                allList.add(new TransactionCountDto(transactionCountDto.getUserId(), transactionCountDto.getTotalCount(), user));
+            } else {
+                log.warn("User not found for user ID: {}", transactionCountDto.getUserId());
+            }
         }
 
+        log.info("Retrieved user counts: {}", allList.size());
         return new ResponseEntity<>(new SuccessResponse(allList), HttpStatus.ACCEPTED);
     }
-
     private List<TransactionCountDto> getGetTransactionConuntList() {
         return new ArrayList<>();
     }
 
     @Override
     public ResponseEntity<?> getAllUserCount() {
+        log.info("Received request to get all user counts");
 
-        List<TransactionCountDto> transactionCountDtos = getGetTransactionConuntList();
+        List<TransactionCountDto> transactionCountDtos = new ArrayList<>();
         List<TransactionCountDto> trdto = transactionCountRepository.findSurveyCount();
         for (TransactionCountDto transactionCountDto : trdto) {
-//            WalletUser user = walletUserRepository.findByUserId(Long.parseLong(transactionCountDto.getUserId()));
             List<WalletUser> walletUserList = walletUserRepository.findAllWalletByUserId(Long.parseLong(transactionCountDto.getUserId()));
-            for (WalletUser user: walletUserList){
+            for (WalletUser user: walletUserList) {
                 transactionCountDtos.add(new TransactionCountDto(transactionCountDto.getUserId(), transactionCountDto.getTotalCount(), user));
             }
         }
+
+        log.info("Retrieved all user counts: {}", transactionCountDtos.size());
         return new ResponseEntity<>(transactionCountDtos, HttpStatus.ACCEPTED);
     }
-
     @Override
     public void pushTransactionToEventQueue(AccountSumary accountSumary, CBAEntryTransaction transaction,double currentBalance,String transType) {
+        log.info("Method to push transaction to queue request ---->>> {}", accountSumary);
         WalletTransactionDataDto referralTransDto = new WalletTransactionDataDto();
         referralTransDto.setTransactionReferenceNumber(transaction.getPaymentReference());
         referralTransDto.setUserId(accountSumary.getUId());
