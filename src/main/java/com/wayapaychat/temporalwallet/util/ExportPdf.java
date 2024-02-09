@@ -61,9 +61,10 @@ public class ExportPdf {
     private String closeBal;
     private String clearedBal;
     private String unclearedBal;
+    private BigDecimal blockedAmount;
 
     public ExportPdf(List<AccountStatement> trans, String accountNo, Date startDate, Date endDate, String accountName, String openingBal,
-            String closeBal, String clearedBal, String unclearedBal) {
+            String closeBal, String clearedBal, String unclearedBal, BigDecimal blockedAmount) {
         this.trans = trans;
         this.accountNo = accountNo;
         this.startDate = startDate;
@@ -73,6 +74,7 @@ public class ExportPdf {
         this.closeBal = closeBal;
         this.clearedBal = clearedBal;
         this.unclearedBal = unclearedBal;
+        this.blockedAmount = blockedAmount;
     }
 
     public void export(HttpServletResponse response) {
@@ -310,7 +312,10 @@ public class ExportPdf {
         font.setColor(BaseColor.BLACK);
         font.setSize(7);
 
-        for (AccountStatement data : trans) {
+        for (int i = 0; i < trans.size(); i++) {
+
+            AccountStatement data = trans.get(i);
+
             table.getDefaultCell().setBorderColor(new BaseColor(251, 206, 177));
             table.getDefaultCell().setBorder(3);
             cell.setPhrase(new Phrase(data.getDescription(), font));
@@ -340,6 +345,15 @@ public class ExportPdf {
             cell.setPhrase(new Phrase(data.getBalance().toString(), font));
             table.addCell(cell);
 
+            if (i == trans.size() - 1) {
+                BigDecimal balance = data.getBalance().add(blockedAmount);
+                cell.setPhrase(new Phrase(balance.toString(), font));
+                table.addCell(cell);
+            }
+            else {
+                cell.setPhrase(new Phrase(data.getBalance().toString(), font));
+                table.addCell(cell);
+            }
         }
     }
 

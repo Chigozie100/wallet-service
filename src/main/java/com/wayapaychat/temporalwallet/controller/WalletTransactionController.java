@@ -758,7 +758,7 @@ public class WalletTransactionController {
         
         ExportPdf exporter = new ExportPdf(res.getData().getTransaction(), accountNo, fromdate, todate, 
                 res.getData().getAccountName(), res.getData().getOpeningBal().toString(), res.getData().getClosingBal().toString(), 
-                res.getData().getClearedal().toString(), res.getData().getClosingBal().toString());
+                res.getData().getClearedal().toString(), res.getData().getClosingBal().toString(), res.getData().getBlockedAmount());
         exporter.export(response);
         return new ResponseEntity<>(headerValue, HttpStatus.BAD_REQUEST);
 
