@@ -318,6 +318,7 @@ public class ExportPdf {
 
             table.getDefaultCell().setBorderColor(new BaseColor(251, 206, 177));
             table.getDefaultCell().setBorder(3);
+
             cell.setPhrase(new Phrase(data.getDescription(), font));
             table.addCell(cell);
 
@@ -342,16 +343,13 @@ public class ExportPdf {
             cell.setPhrase(new Phrase(data.getDeposits(), font));
             table.addCell(cell);
 
-            cell.setPhrase(new Phrase(data.getBalance().toString(), font));
-            table.addCell(cell);
-
             if (i == trans.size() - 1) {
                 BigDecimal balance = data.getBalance().add(blockedAmount);
-                cell.setPhrase(new Phrase(balance.toString(), font));
+                cell.setPhrase(new Phrase(String.valueOf(balance), font));
                 table.addCell(cell);
             }
             else {
-                cell.setPhrase(new Phrase(data.getBalance().toString(), font));
+                cell.setPhrase(new Phrase(String.valueOf(data.getBalance()), font));
                 table.addCell(cell);
             }
         }
