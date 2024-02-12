@@ -77,6 +77,15 @@ public class ExportPdf {
         this.blockedAmount = blockedAmount;
     }
 
+    BigDecimal openingBalance = calculateOpeningBalance();
+
+    private BigDecimal calculateOpeningBalance() {
+        if (!trans.isEmpty()) {
+            return trans.get(0).getBalance().add(blockedAmount);
+        }
+        return BigDecimal.ZERO;
+    }
+
     public void export(HttpServletResponse response) {
         try {
             PdfPTable tables = new PdfPTable(2);
@@ -128,7 +137,7 @@ public class ExportPdf {
             addAccountDetailTableCell(accountDetail, "Currency", Element.ALIGN_LEFT, Font.NORMAL, new BaseColor(251, 206, 177));
             addAccountDetailTableCell(accountDetail, "NGN", Element.ALIGN_RIGHT, Font.NORMAL, new BaseColor(251, 206, 177));
             addAccountDetailTableCell(accountDetail, "Opening Balance", Element.ALIGN_LEFT, Font.NORMAL, BaseColor.WHITE);
-            addAccountDetailTableCell(accountDetail, openBal, Element.ALIGN_RIGHT, Font.NORMAL, BaseColor.WHITE);
+            addAccountDetailTableCell(accountDetail, openingBalance.toString(), Element.ALIGN_RIGHT, Font.NORMAL, BaseColor.WHITE);
             addAccountDetailTableCell(accountDetail, "Closing Balance", Element.ALIGN_LEFT, Font.NORMAL, new BaseColor(251, 206, 177));
             addAccountDetailTableCell(accountDetail, closeBal, Element.ALIGN_RIGHT, Font.NORMAL, new BaseColor(251, 206, 177));
 //            addAccountDetailTableCell(accountDetail, "Cleared Balance", Element.ALIGN_LEFT, Font.NORMAL, BaseColor.WHITE);
