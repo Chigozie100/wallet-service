@@ -67,14 +67,6 @@ public class ExportPdf {
         this.blockedAmount = blockedAmount;
     }
 
-    BigDecimal openingBalance = calculateOpeningBalance();
-
-    private BigDecimal calculateOpeningBalance() {
-        if (!trans.isEmpty()) {
-            return trans.get(0).getBalance().add(blockedAmount);
-        }
-        return BigDecimal.ZERO;
-    }
 
     public void export(HttpServletResponse response) {
         try {
@@ -127,7 +119,7 @@ public class ExportPdf {
             addAccountDetailTableCell(accountDetail, "Currency", Element.ALIGN_LEFT, Font.NORMAL, new BaseColor(251, 206, 177));
             addAccountDetailTableCell(accountDetail, "NGN", Element.ALIGN_RIGHT, Font.NORMAL, new BaseColor(251, 206, 177));
             addAccountDetailTableCell(accountDetail, "Opening Balance", Element.ALIGN_LEFT, Font.NORMAL, BaseColor.WHITE);
-            addAccountDetailTableCell(accountDetail, String.valueOf(openingBalance), Element.ALIGN_RIGHT, Font.NORMAL, BaseColor.WHITE);
+            addAccountDetailTableCell(accountDetail, String.valueOf(calculateOpeningBalance()), Element.ALIGN_RIGHT, Font.NORMAL, BaseColor.WHITE);
             addAccountDetailTableCell(accountDetail, "Closing Balance", Element.ALIGN_LEFT, Font.NORMAL, new BaseColor(251, 206, 177));
             addAccountDetailTableCell(accountDetail, closeBal, Element.ALIGN_RIGHT, Font.NORMAL, new BaseColor(251, 206, 177));
 //            addAccountDetailTableCell(accountDetail, "Cleared Balance", Element.ALIGN_LEFT, Font.NORMAL, BaseColor.WHITE);
@@ -187,7 +179,6 @@ public class ExportPdf {
 
         }
     }
-
     private void writeHeader(PdfPTable table) throws IOException, BadElementException {
 
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
@@ -305,7 +296,7 @@ public class ExportPdf {
         table.addCell(cell);
     }
 
-    private void writeTableData(PdfPTable table) throws DocumentException {
+    private void writeTableData(PdfPTable table) {
         PdfPCell cell = new PdfPCell();
         Font font = FontFactory.getFont(FontFactory.HELVETICA);
         font.setColor(BaseColor.BLACK);
@@ -380,5 +371,12 @@ public class ExportPdf {
         } catch (Exception e) {
             log.error("Exception:: {}", e.getMessage());
         }
+    }
+
+    private BigDecimal calculateOpeningBalance() {
+        if (!trans.isEmpty()) {
+            return trans.get(0).getBalance().add(blockedAmount);
+        }
+        return BigDecimal.ZERO;
     }
 }
