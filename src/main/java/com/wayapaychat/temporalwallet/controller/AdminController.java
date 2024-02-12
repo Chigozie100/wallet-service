@@ -1109,7 +1109,7 @@ public class AdminController {
     public ResponseEntity<?> updateDebitLimit(@PathVariable String accountNumber, @RequestParam double limit,
                                                @RequestHeader("Authorization") String token){
         log.info("Endpoint to update debit limit called!!! --->> {}", limit);
-        ApiResponse<?> response = userAccountService.updateDebitLimit(accountNumber, token, limit);
+        ApiResponse<?> response = userAccountService.updateBulkAmount(accountNumber, token, limit);
         return new ResponseEntity<>(response,HttpStatus.valueOf(response.getCode()));
     }
 

@@ -2956,7 +2956,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     @Override
-    public ApiResponse<?> updateDebitLimit(String accountNumber, String token, double limit) {
+    public ApiResponse<?> updateBulkAmount(String accountNumber, String token, double limit) {
         log.info("Update debit limit ---->>> {}", accountNumber);
         try {
             Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNumber);
@@ -2965,10 +2965,6 @@ public class UserAccountServiceImpl implements UserAccountService {
                 return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unable to fetch account", null);
             }
 
-            BigDecimal withdrawalAmount = BigDecimal.valueOf(account.get().getClr_bal_amt());
-            if (limit > withdrawalAmount.doubleValue()) {
-                return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, "Limit is greater than account balance", null);
-            }
             WalletAccount update = account.get();
             update.setBlockAmount(BigDecimal.valueOf(limit));
             walletAccountRepository.save(update);

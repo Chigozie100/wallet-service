@@ -157,5 +157,5 @@ public interface UserAccountService {
     
     ApiResponse<?> createCommisionAccount(long userId,String token,String profileId);
 
-    ApiResponse<?> updateDebitLimit(String accountNumber, String token, double limit);
+    ApiResponse<?> updateBulkAmount(String accountNumber, String token, double limit);
 }
