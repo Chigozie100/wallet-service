@@ -131,10 +131,10 @@ public class ExportPdf {
             addAccountDetailTableCell(accountDetail, openBal, Element.ALIGN_RIGHT, Font.NORMAL, BaseColor.WHITE);
             addAccountDetailTableCell(accountDetail, "Closing Balance", Element.ALIGN_LEFT, Font.NORMAL, new BaseColor(251, 206, 177));
             addAccountDetailTableCell(accountDetail, closeBal, Element.ALIGN_RIGHT, Font.NORMAL, new BaseColor(251, 206, 177));
-            addAccountDetailTableCell(accountDetail, "Cleared Balance", Element.ALIGN_LEFT, Font.NORMAL, BaseColor.WHITE);
-            addAccountDetailTableCell(accountDetail, clearedBal, Element.ALIGN_RIGHT, Font.NORMAL, BaseColor.WHITE);
-            addAccountDetailTableCell(accountDetail, "Uncleared Balance", Element.ALIGN_LEFT, Font.NORMAL, new BaseColor(251, 206, 177));
-            addAccountDetailTableCell(accountDetail, unclearedBal, Element.ALIGN_RIGHT, Font.NORMAL, new BaseColor(251, 206, 177));
+//            addAccountDetailTableCell(accountDetail, "Cleared Balance", Element.ALIGN_LEFT, Font.NORMAL, BaseColor.WHITE);
+//            addAccountDetailTableCell(accountDetail, clearedBal, Element.ALIGN_RIGHT, Font.NORMAL, BaseColor.WHITE);
+//            addAccountDetailTableCell(accountDetail, "Uncleared Balance", Element.ALIGN_LEFT, Font.NORMAL, new BaseColor(251, 206, 177));
+//            addAccountDetailTableCell(accountDetail, unclearedBal, Element.ALIGN_RIGHT, Font.NORMAL, new BaseColor(251, 206, 177));
 
             PdfPTable outer = new PdfPTable(2);
             outer.setWidthPercentage(120);
@@ -343,14 +343,10 @@ public class ExportPdf {
             cell.setPhrase(new Phrase(data.getDeposits(), font));
             table.addCell(cell);
 
-            if (i == trans.size() - 1) {
-                BigDecimal balance = data.getBalance().add(blockedAmount);
-                cell.setPhrase(new Phrase(String.valueOf(balance), font));
-                table.addCell(cell);
-            }
-            else {
-                cell.setPhrase(new Phrase(String.valueOf(data.getBalance()), font));
-                table.addCell(cell);
+            BigDecimal balance = data.getBalance().add(blockedAmount);
+            cell.setPhrase(new Phrase(String.valueOf(balance), font));
+            table.addCell(cell);
+
             }
         }
     }
