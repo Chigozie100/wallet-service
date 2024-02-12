@@ -12,7 +12,7 @@ import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
 import com.wayapaychat.temporalwallet.service.TransactionCountService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
-import com.wayapaychat.temporalwallet.util.ExportPdf2;
+import com.wayapaychat.temporalwallet.util.ExportPdf;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
@@ -737,14 +737,12 @@ public class WalletTransactionController {
         response.setHeader(headerKey, headerValue);
         ApiResponse<CustomerStatement> res = transAccountService.accountstatementReport2(fromdate, todate, accountNo);       
         
-//        ExportPdf exporter = new ExportPdf(res.getData().getTransaction(), accountNo, fromdate, todate,
-//                res.getData().getAccountName(), res.getData().getOpeningBal().toString(), res.getData().getClosingBal().toString(),
-//                res.getData().getClearedal().toString(), res.getData().getClosingBal().toString(), res.getData().getBlockedAmount());
+        ExportPdf exporter = new ExportPdf(res.getData().getTransaction(), accountNo, fromdate, todate,
+                res.getData().getAccountName(), res.getData().getOpeningBal().toString(), res.getData().getClosingBal().toString(),
+                res.getData().getClearedal().toString(), res.getData().getClosingBal().toString(), res.getData().getBlockedAmount());
 
-
-
-                ExportPdf2 exporter = new ExportPdf2(res.getData().getTransaction(), accountNo, fromdate, todate,
-                res.getData().getAccountName(),  res.getData().getBlockedAmount());
+//                ExportPdf2 exporter = new ExportPdf2(res.getData().getTransaction(), accountNo, fromdate, todate,
+//                res.getData().getAccountName(),  res.getData().getBlockedAmount());
         exporter.export(response);
         return new ResponseEntity<>(headerValue, HttpStatus.OK);
 
