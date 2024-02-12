@@ -349,7 +349,6 @@ public class ExportPdf {
 
             }
         }
-    }
 
     public void sendSatement(Date startDate, Date endDate, String name, String email, HttpServletResponse response) {
         try {
