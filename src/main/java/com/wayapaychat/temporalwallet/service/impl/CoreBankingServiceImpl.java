@@ -467,19 +467,12 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             log.error("Invalid source account: {}", transferTransactionRequestData.getDebitAccountNumber());
             return response;
         }
-        BigDecimal blockedAmount;
-        if (foundAcct.getBlockAmount() == null) {
-            blockedAmount = BigDecimal.valueOf(0);
-        }
-        else {
-            blockedAmount = foundAcct.getBlockAmount();
-        }
 
         BigDecimal allowedWithdrawal = BigDecimal.valueOf(foundAcct.getClr_bal_amt());
-        BigDecimal availableAmtForWithdrawal = allowedWithdrawal.subtract(blockedAmount).subtract(chargeAmount);
+        BigDecimal availableAmtForWithdrawal = allowedWithdrawal.subtract(chargeAmount);
 
         if (transferTransactionRequestData.getAmount().doubleValue() > availableAmtForWithdrawal.doubleValue()) {
-            response.setMessage(ResponseCodes.EXCEEDED_AMOUNT.getValue());
+            response.setMessage(ResponseCodes.INSUFFICIENT_FUNDS.getValue());
             response.setStatus(false);
             log.error("Exceeded amount: {}", transferTransactionRequestData.getAmount());
             return response;
