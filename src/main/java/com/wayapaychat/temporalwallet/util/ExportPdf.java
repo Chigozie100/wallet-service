@@ -4,17 +4,7 @@
  */
 package com.wayapaychat.temporalwallet.util;
 
-import com.itextpdf.text.BadElementException;
-import com.itextpdf.text.BaseColor;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Element;
-import com.itextpdf.text.Font;
-import com.itextpdf.text.FontFactory;
-import com.itextpdf.text.Image;
-import com.itextpdf.text.PageSize;
-import com.itextpdf.text.Paragraph;
-import com.itextpdf.text.Phrase;
+import com.itextpdf.text.*;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
@@ -23,7 +13,10 @@ import com.wayapaychat.temporalwallet.notification.EmailEvent;
 import com.wayapaychat.temporalwallet.notification.EmailPayload;
 import com.wayapaychat.temporalwallet.notification.EmailRecipient;
 import com.wayapaychat.temporalwallet.proxy.NotificationProxy;
-import java.io.File;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -32,9 +25,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import javax.servlet.http.HttpServletResponse;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  *
@@ -61,9 +51,10 @@ public class ExportPdf {
     private String closeBal;
     private String clearedBal;
     private String unclearedBal;
+    private BigDecimal blockedAmount;
 
     public ExportPdf(List<AccountStatement> trans, String accountNo, Date startDate, Date endDate, String accountName, String openingBal,
-            String closeBal, String clearedBal, String unclearedBal) {
+            String closeBal, String clearedBal, String unclearedBal, BigDecimal blockedAmount) {
         this.trans = trans;
         this.accountNo = accountNo;
         this.startDate = startDate;
@@ -73,7 +64,9 @@ public class ExportPdf {
         this.closeBal = closeBal;
         this.clearedBal = clearedBal;
         this.unclearedBal = unclearedBal;
+        this.blockedAmount = blockedAmount;
     }
+
 
     public void export(HttpServletResponse response) {
         try {
@@ -126,13 +119,13 @@ public class ExportPdf {
             addAccountDetailTableCell(accountDetail, "Currency", Element.ALIGN_LEFT, Font.NORMAL, new BaseColor(251, 206, 177));
             addAccountDetailTableCell(accountDetail, "NGN", Element.ALIGN_RIGHT, Font.NORMAL, new BaseColor(251, 206, 177));
             addAccountDetailTableCell(accountDetail, "Opening Balance", Element.ALIGN_LEFT, Font.NORMAL, BaseColor.WHITE);
-            addAccountDetailTableCell(accountDetail, openBal, Element.ALIGN_RIGHT, Font.NORMAL, BaseColor.WHITE);
+            addAccountDetailTableCell(accountDetail, String.valueOf(calculateOpeningBalance()), Element.ALIGN_RIGHT, Font.NORMAL, BaseColor.WHITE);
             addAccountDetailTableCell(accountDetail, "Closing Balance", Element.ALIGN_LEFT, Font.NORMAL, new BaseColor(251, 206, 177));
             addAccountDetailTableCell(accountDetail, closeBal, Element.ALIGN_RIGHT, Font.NORMAL, new BaseColor(251, 206, 177));
-            addAccountDetailTableCell(accountDetail, "Cleared Balance", Element.ALIGN_LEFT, Font.NORMAL, BaseColor.WHITE);
-            addAccountDetailTableCell(accountDetail, clearedBal, Element.ALIGN_RIGHT, Font.NORMAL, BaseColor.WHITE);
-            addAccountDetailTableCell(accountDetail, "Uncleared Balance", Element.ALIGN_LEFT, Font.NORMAL, new BaseColor(251, 206, 177));
-            addAccountDetailTableCell(accountDetail, unclearedBal, Element.ALIGN_RIGHT, Font.NORMAL, new BaseColor(251, 206, 177));
+//            addAccountDetailTableCell(accountDetail, "Cleared Balance", Element.ALIGN_LEFT, Font.NORMAL, BaseColor.WHITE);
+//            addAccountDetailTableCell(accountDetail, clearedBal, Element.ALIGN_RIGHT, Font.NORMAL, BaseColor.WHITE);
+//            addAccountDetailTableCell(accountDetail, "Uncleared Balance", Element.ALIGN_LEFT, Font.NORMAL, new BaseColor(251, 206, 177));
+//            addAccountDetailTableCell(accountDetail, unclearedBal, Element.ALIGN_RIGHT, Font.NORMAL, new BaseColor(251, 206, 177));
 
             PdfPTable outer = new PdfPTable(2);
             outer.setWidthPercentage(120);
@@ -186,7 +179,6 @@ public class ExportPdf {
 
         }
     }
-
     private void writeHeader(PdfPTable table) throws IOException, BadElementException {
 
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
@@ -304,15 +296,19 @@ public class ExportPdf {
         table.addCell(cell);
     }
 
-    private void writeTableData(PdfPTable table) throws DocumentException {
+    private void writeTableData(PdfPTable table) {
         PdfPCell cell = new PdfPCell();
         Font font = FontFactory.getFont(FontFactory.HELVETICA);
         font.setColor(BaseColor.BLACK);
         font.setSize(7);
 
-        for (AccountStatement data : trans) {
+        for (int i = 0; i < trans.size(); i++) {
+
+            AccountStatement data = trans.get(i);
+
             table.getDefaultCell().setBorderColor(new BaseColor(251, 206, 177));
             table.getDefaultCell().setBorder(3);
+
             cell.setPhrase(new Phrase(data.getDescription(), font));
             table.addCell(cell);
 
@@ -337,11 +333,12 @@ public class ExportPdf {
             cell.setPhrase(new Phrase(data.getDeposits(), font));
             table.addCell(cell);
 
-            cell.setPhrase(new Phrase(data.getBalance().toString(), font));
+            BigDecimal balance = data.getBalance().add(blockedAmount);
+            cell.setPhrase(new Phrase(String.valueOf(balance), font));
             table.addCell(cell);
 
+            }
         }
-    }
 
     public void sendSatement(Date startDate, Date endDate, String name, String email, HttpServletResponse response) {
         try {
@@ -374,5 +371,12 @@ public class ExportPdf {
         } catch (Exception e) {
             log.error("Exception:: {}", e.getMessage());
         }
+    }
+
+    private BigDecimal calculateOpeningBalance() {
+        if (!trans.isEmpty()) {
+            return trans.get(0).getBalance().add(blockedAmount);
+        }
+        return BigDecimal.ZERO;
     }
 }

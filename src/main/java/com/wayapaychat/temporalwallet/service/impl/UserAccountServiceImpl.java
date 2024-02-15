@@ -2956,7 +2956,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     }
 
     @Override
-    public ApiResponse<?> updateDebitLimit(String accountNumber, String token, double limit) {
+    public ApiResponse<?> updateBulkAmount(String accountNumber, String token, double limit) {
         log.info("Update debit limit ---->>> {}", accountNumber);
         try {
             Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNumber);
@@ -2964,15 +2964,15 @@ public class UserAccountServiceImpl implements UserAccountService {
                 log.error("Unable to fetch account");
                 return new ApiResponse<>(false, ApiResponse.Code.NOT_FOUND, "Unable to fetch account", null);
             }
+
             WalletAccount update = account.get();
             update.setBlockAmount(BigDecimal.valueOf(limit));
             walletAccountRepository.save(update);
-            log.info("Block amount saved successfully");
+            log.info("Block amount set successfully");
             return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "SUCCESS", update);
         } catch (Exception e) {
             log.error("Exception::{}", e.getMessage());
-            return new ApiResponse<>(false, ApiResponse.Code.UNKNOWN_ERROR, "An Error occured. Try again", null);
+            return new ApiResponse<>(false, ApiResponse.Code.UNKNOWN_ERROR, "An Error occurred. Try again", null);
         }
     }
-
 }

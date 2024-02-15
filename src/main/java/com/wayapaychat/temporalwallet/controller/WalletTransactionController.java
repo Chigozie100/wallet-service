@@ -1,58 +1,39 @@
 package com.wayapaychat.temporalwallet.controller;
 
-import com.itextpdf.text.DocumentException;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
-
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.enumm.EventCharge;
 import com.wayapaychat.temporalwallet.exception.CustomException;
-import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
-import com.wayapaychat.temporalwallet.pojo.TransWallet;
-import com.wayapaychat.temporalwallet.service.TransactionCountService;
-import com.wayapaychat.temporalwallet.util.ErrorResponse;
-import com.wayapaychat.temporalwallet.util.PDFExporter;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
 import com.wayapaychat.temporalwallet.pojo.CardRequestPojo;
 import com.wayapaychat.temporalwallet.pojo.WalletRequestOTP;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
 import com.wayapaychat.temporalwallet.response.TransactionsResponse;
 import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.TransAccountService;
+import com.wayapaychat.temporalwallet.service.TransactionCountService;
+import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.ExportPdf;
-
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.time.LocalDate;
-import java.util.ArrayList;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/wallet")
@@ -756,11 +737,14 @@ public class WalletTransactionController {
         response.setHeader(headerKey, headerValue);
         ApiResponse<CustomerStatement> res = transAccountService.accountstatementReport2(fromdate, todate, accountNo);       
         
-        ExportPdf exporter = new ExportPdf(res.getData().getTransaction(), accountNo, fromdate, todate, 
-                res.getData().getAccountName(), res.getData().getOpeningBal().toString(), res.getData().getClosingBal().toString(), 
-                res.getData().getClearedal().toString(), res.getData().getClosingBal().toString());
+        ExportPdf exporter = new ExportPdf(res.getData().getTransaction(), accountNo, fromdate, todate,
+                res.getData().getAccountName(), res.getData().getOpeningBal().toString(), res.getData().getClosingBal().toString(),
+                res.getData().getClearedal().toString(), res.getData().getClosingBal().toString(), res.getData().getBlockedAmount());
+
+//                ExportPdf2 exporter = new ExportPdf2(res.getData().getTransaction(), accountNo, fromdate, todate,
+//                res.getData().getAccountName(),  res.getData().getBlockedAmount());
         exporter.export(response);
-        return new ResponseEntity<>(headerValue, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(headerValue, HttpStatus.OK);
 
     }
 
