@@ -69,6 +69,8 @@ public class WalletUser {
 	private LocalDate cust_opn_date;
 	
 	private double cust_debit_limit;
+
+	private double oneTimeTransactionLimit;
 	
 	@Column(nullable = false)
 	private String rcre_user_id;

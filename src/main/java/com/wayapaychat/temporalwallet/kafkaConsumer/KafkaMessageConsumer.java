@@ -59,6 +59,7 @@ public class KafkaMessageConsumer {
                     List<WalletUser> walletAccts = new ArrayList<>();
                     for (WalletUser walletUser: walletUserList){
                         walletUser.setCust_debit_limit(kycTierDataDto.getDailyTransactionLimit().doubleValue());
+                        walletUser.setOneTimeTransactionLimit(kycTierDataDto.getOneTimeTransactionLimit().doubleValue());
                         walletAccts.add(walletUser);
                     }
                     walletUserRepository.saveAllAndFlush(walletAccts);
@@ -70,6 +71,7 @@ public class KafkaMessageConsumer {
                 Optional<WalletUser> walletUser = walletUserRepository.findUserIdAndProfileId(kycTierDataDto.getUserId(), kycTierDataDto.getProfileId());
                 if(walletUser.isPresent()){
                     walletUser.get().setCust_debit_limit(kycTierDataDto.getDailyTransactionLimit().doubleValue());
+                    walletUser.get().setOneTimeTransactionLimit(kycTierDataDto.getOneTimeTransactionLimit().doubleValue());
                     walletUserRepository.save(walletUser.get());
                     log.info("::::SUCCESSFUL UPDATED CUSTOMER DEBIT LIMIT::::LIMIT {}, USERID {}",kycTierDataDto.getDailyTransactionLimit().doubleValue(),kycTierDataDto.getUserId());
                     log.info(":::FINISH PROCESSING CUST_DEBIT_LIMIT::::LIMIT {}, TIERNAME {}, USERID {}",

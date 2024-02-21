@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -63,6 +64,7 @@ public class WalletUserAccountController {
 
     @ApiOperation(value = "Modify User Account", tags = {"USER-ACCOUNT-WALLET"})
     @PostMapping(path = "/user/account/modify")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     public ResponseEntity<?> createUserAccount(HttpServletRequest request,@Valid @RequestBody UserAccountDTO user) {
         log.info("Endpoint createUserAccount input: {}", user);
         return userAccountService.modifyUserAccount(request,user);
@@ -349,6 +351,7 @@ public class WalletUserAccountController {
     @ApiImplicitParams({
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "updateCustomerDebitLimit", notes = "updateCustomerDebitLimit", tags = {"USER-ACCOUNT-WALLET"})
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
     @PostMapping("/updateCustomerDebitLimit")
     public ResponseEntity<?> updateCustomerDebitLimit(@RequestParam("userId") String userId,
                                                       @RequestParam("amount") BigDecimal amount,
