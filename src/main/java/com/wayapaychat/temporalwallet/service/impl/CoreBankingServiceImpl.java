@@ -1026,9 +1026,11 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         BigDecimal totalTransactionToday = walletTransactionRepository.totalTransactionAmountToday(accountNumber,
                 LocalDate.now());
+        BigDecimal totalTransaction = walletTransactionRepository.totalWithdrawalByCustomer(accountNumber);
         log.info("totalTransactionToday {}", totalTransactionToday);
         totalTransactionToday = totalTransactionToday == null ? new BigDecimal(0) : totalTransactionToday;
-        if ((totalTransactionToday.doubleValue()+amount.doubleValue()) >= Double.parseDouble(account.getDebitLimit())) {
+        if ((totalTransactionToday.doubleValue()+amount.doubleValue()) >= Double.parseDouble(account.getDebitLimit())
+                || (totalTransaction.doubleValue()+amount.doubleValue()) >= Double.parseDouble(account.getOneTimeTransactionLimit()) ) {
             log.error("Debit limit reached :: {}", account.getDebitLimit());
             return new ResponseEntity<>(
                     new ErrorResponse(ResponseCodes.DEBIT_LIMIT_REACHED.getValue() + " " + account.getDebitLimit() + " "
