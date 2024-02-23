@@ -1443,21 +1443,8 @@ public class UserAccountServiceImpl implements UserAccountService {
             return createDefaultWallet(request, tokenData, token, profileId);
         }
 
-        CompletableFuture.runAsync(() -> updateTractionLimit(walletUser.get(), tokenData.getTransactionLimit()));
-
         log.info("User account list fetched successfully for userId={}, profileId={}", userId, profileId);
         return new ResponseEntity<>(new SuccessResponse("SUCCESS", accounts), HttpStatus.OK);
-    }
-
-    private void updateTractionLimit(WalletUser walletUser, String transactionLimit) {
-        log.info("Updating transaction limit for wallet user: {}", walletUser);
-        if (ObjectUtils.isEmpty(walletUser)) {
-            return;
-        }
-
-        walletUser.setCust_debit_limit(Double.parseDouble(transactionLimit));
-        walletUserRepository.save(walletUser);
-        log.info("Transaction limit updated successfully for wallet user: {}", walletUser);
     }
 
     private boolean isAllowed(MyData tokenData, long userId) {

@@ -15,5 +15,6 @@ public class KycTierDataDto {
     private long orderLevel;
     private BigDecimal singleTransactionLimit;
     private BigDecimal dailyTransactionLimit;
+    private BigDecimal oneTimeTransactionLimit;
     private long dailyTransactionLimitCount;
 }
