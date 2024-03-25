@@ -3,15 +3,23 @@ package com.wayapaychat.temporalwallet.util;
 import com.waya.security.auth.pojo.UserIdentityData;
 import com.wayapaychat.temporalwallet.SpringApplicationContext;
 import com.wayapaychat.temporalwallet.dto.AuthData;
+import com.wayapaychat.temporalwallet.dto.ServiceResponse;
 import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.exception.CustomException;
+import com.wayapaychat.temporalwallet.notification.EmailEvent;
+import com.wayapaychat.temporalwallet.notification.EmailPayload;
+import com.wayapaychat.temporalwallet.notification.EmailRecipient;
 import com.wayapaychat.temporalwallet.pojo.MyData;
+import com.wayapaychat.temporalwallet.proxy.NotificationProxy;
 import com.wayapaychat.temporalwallet.repository.WalletUserRepository;
 import com.wayapaychat.temporalwallet.security.JwtTokenHelper;
 
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.stereotype.Component;
 import org.springframework.util.Base64Utils;
 
 import javax.crypto.Cipher;
@@ -26,7 +34,12 @@ import java.security.SecureRandom;
 import java.security.spec.KeySpec;
 import java.util.*;
 
+@Slf4j
+@Component
 public class Util {
+
+    @Autowired
+    NotificationProxy notificationProxy;
 
     private final String SECRET_KEY = "PEAL33550099GOEScatriiendKETTLE001UNITED";
     private final String SALT = "stdsxcitymanjoehhhhh!!!!waya";
@@ -235,4 +248,45 @@ public class Util {
 
     }
 
+    public void pushEMAIL(String subject, String token, String name, String email, String message, Long userId) {
+
+        EmailEvent emailEvent = new EmailEvent();
+
+        emailEvent.setEventType(Constant.EMAIL);
+        emailEvent.setEventCategory("WELCOME");
+        emailEvent.setProductType(Constant.PRODUCT);
+        emailEvent.setSubject(subject);
+        EmailPayload data = new EmailPayload();
+
+        data.setMessage(message);
+
+        EmailRecipient emailRecipient = new EmailRecipient();
+        emailRecipient.setFullName(name);
+        emailRecipient.setEmail(email);
+
+        List<EmailRecipient> addUserId = new ArrayList<>();
+        addUserId.add(emailRecipient);
+        data.setNames(addUserId);
+
+        emailEvent.setData(data);
+        emailEvent.setInitiator(userId.toString());
+        log.debug("REQUEST EMAIL WAYABANK: " + emailEvent.toString());
+
+        try {
+            sendEmailNotification(emailEvent, token);
+        } catch (Exception ex) {
+            throw new CustomException(ex.getMessage(), HttpStatus.NOT_FOUND);
+        }
+
+    }
+
+    public void sendEmailNotification(EmailEvent emailEvent, String token) {
+        try {
+            ServiceResponse responseEntity = notificationProxy.sendEmail(emailEvent, token);
+            log.info(" email sent status :: " + responseEntity);
+        } catch (Exception ex) {
+            log.error("Unable to generate transaction Id", ex);
+            throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+        }
+    }
 }
