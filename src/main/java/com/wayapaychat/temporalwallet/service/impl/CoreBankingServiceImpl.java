@@ -339,6 +339,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         BigDecimal chargeAmount = computeTransactionFee(transferTransactionRequestData.getDebitAccountNumber(),
                 transferTransactionRequestData.getAmount(), channelEventId);
+
         BigDecimal vatAmount = computeVatFee(chargeAmount, channelEventId);
         String customerAccount;
         String receiverName = transferTransactionRequestData.getBeneficiaryName();
@@ -428,7 +429,14 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         if (response.getStatusCode().is2xxSuccessful()) {
             log.info("Transaction processed successfully.");
         } else {
-            log.error("Transaction processing failed.");
+            Util utils = new Util();
+            MyData systemToken = tokenImpl.getToken2();
+            String supportMessage = "Dear Tech Support, User is debited but credit was not initiated to the beneficiary due to network break up or service downtime from NIBBSS. "
+                    + "The auto reversal failed. Kindly resolve the auto reversal and initiate a manual reversal. "
+                    + "Kindly resolve urgently.";
+
+            utils.pushEMAIL("TRANSFER ERROR", systemToken.getToken(), "Tech Support", "wayabank.techsupport@wayapaychat.com", supportMessage, systemToken.getId());
+            log.error("Transaction processing failed......");
         }
 
         updateTransactionLog(tranId, transactionStatus);
@@ -1249,8 +1257,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         ExternalCBAResponse externalResponse = null;
 
+        long startTime = 0;
         try {
             if (ProviderType.MIFOS.equalsIgnoreCase(cbaTransaction.getProvider().getName())) {
+                startTime = System.currentTimeMillis();
                 externalResponse = mifosWalletProxy.processTransaction(mifosTransfer);
             } else {
                 externalResponse = new ExternalCBAResponse(ExternalCBAResponseCodes.R_00);
@@ -1267,7 +1277,22 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return response;
         }
 
-        log.info("Successful transaction");
+        long TIMEOUT_THRESHOLD = 10000; // Threshold in milliseconds
+        long endTime = System.currentTimeMillis();
+        long elapsedTime = endTime - startTime;
+
+        if (elapsedTime > TIMEOUT_THRESHOLD) {
+            log.warn("Mifos Wallet Proxy response took longer than expected: {} milliseconds", elapsedTime);
+            Util utils = new Util();
+            MyData systemToken = tokenImpl.getToken2();
+            String supportMessage = "Dear Tech Support,\ntransfer speed is slow. Kindly check the log below and resolve urgently.";
+
+
+            utils.pushEMAIL("SLOW TRANSFER", systemToken.getToken(), "Tech Support", "wayabank.techsupport@wayapaychat.com", supportMessage, systemToken.getId());
+            log.error("Transaction processing failed......");
+        }
+
+            log.info("Successful transaction");
         return new ResponseEntity<>(new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue()),
                 HttpStatus.ACCEPTED);
     }

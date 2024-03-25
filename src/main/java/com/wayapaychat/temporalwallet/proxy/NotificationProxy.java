@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.proxy;
 
+import com.wayapaychat.temporalwallet.dto.ServiceResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,5 +31,8 @@ public interface NotificationProxy {
 	
 	@PostMapping("/api/v1/email-notification-transaction")
 	NotifyObjectBody emailNotifyTranUser(@RequestBody TransEmailEvent emailDto, @RequestHeader("Authorization") String token);
+	@PostMapping(value = "/email-notification")
+	ServiceResponse sendEmail(@RequestBody EmailEvent evenType, @RequestHeader(value = "authorization") String authorization);
+
 
 }
