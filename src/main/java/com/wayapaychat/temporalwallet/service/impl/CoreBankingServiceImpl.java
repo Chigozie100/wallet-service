@@ -80,6 +80,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     private final UserPricingRepository userPricingRepository;
     private final TransactionCountService transactionCountService;
     private final TokenImpl tokenImpl;
+    private final Util utils;
 
 
     @Autowired
@@ -88,7 +89,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             WalletEventRepository walletEventRepository, WalletTransactionRepository walletTransactionRepository,
             MifosWalletProxy mifosWalletProxy, TemporalWalletDAO tempwallet, CustomNotification customNotification,
             UserPricingRepository userPricingRepository, TransactionCountService transactionCountService,
-            TokenImpl tokenImpl) {
+            TokenImpl tokenImpl, Util utils) {
         this.switchWalletService = switchWalletService;
         this.walletTransAccountRepository = walletTransAccountRepository;
         this.walletAccountRepository = walletAccountRepository;
@@ -100,6 +101,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         this.userPricingRepository = userPricingRepository;
         this.transactionCountService = transactionCountService;
         this.tokenImpl = tokenImpl;
+        this.utils = utils;
     }
 
     @Override
@@ -429,7 +431,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         if (response.getStatusCode().is2xxSuccessful()) {
             log.info("Transaction processed successfully.");
         } else {
-            Util utils = new Util();
             MyData systemToken = tokenImpl.getToken2();
             String supportMessage = "Dear Tech Support, User is debited but credit was not initiated to the beneficiary due to network break up or service downtime from NIBBSS. "
                     + "The auto reversal failed. Kindly resolve the auto reversal and initiate a manual reversal. "
@@ -790,7 +791,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                                String toAccountNumber, BigDecimal amount, BigDecimal chargeAmount, BigDecimal vatAmount,
                                String transCategory, String tranCrncy, String eventId, WalletTransStatus status) {
         log.info("Logging transaction...");
-        String code = new Util().generateRandomNumber(9);
+        String code = utils.generateRandomNumber(9);
         try {
             WalletTransAccount walletTransAccount = new WalletTransAccount();
             walletTransAccount.setCreatedAt(LocalDateTime.now().plusHours(1));
@@ -1283,7 +1284,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         if (elapsedTime > TIMEOUT_THRESHOLD) {
             log.warn("Mifos Wallet Proxy response took longer than expected: {} milliseconds", elapsedTime);
-            Util utils = new Util();
             MyData systemToken = tokenImpl.getToken2();
             String supportMessage = "Dear Tech Support,\ntransfer speed is slow. Kindly check the log below and resolve urgently.";
 

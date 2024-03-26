@@ -37,24 +37,26 @@ public class VirtualServiceImpl implements VirtualService {
     private final UserAccountService userAccountService;
     private final WalletAccountRepository walletAccountRepository;
     private final VirtualAccountRepository virtualAccountRepository;
+    private final Util utils;
 
     @Autowired
-    public VirtualServiceImpl(UserAccountService userAccountService, WalletAccountRepository walletAccountRepository, VirtualAccountRepository virtualAccountRepository) {
+    public VirtualServiceImpl(UserAccountService userAccountService, WalletAccountRepository walletAccountRepository, VirtualAccountRepository virtualAccountRepository, Util utils) {
         this.userAccountService = userAccountService;
         this.walletAccountRepository = walletAccountRepository;
         this.virtualAccountRepository = virtualAccountRepository;
+        this.utils = utils;
     }
 
 
     @Override
     public ResponseEntity<?> registerWebhookUrl(VirtualAccountHookRequest request) {
         try {
-            Util util = new Util();
+//            Util util = new Util();
 
             VirtualAccountHook virtualAccountHook = new VirtualAccountHook();
             virtualAccountHook.setBank(request.getBank());
             virtualAccountHook.setBankCode(request.getBankCode());
-            virtualAccountHook.setVirtualAccountCode(util.generateRandomNumber(4));
+            virtualAccountHook.setVirtualAccountCode(utils.generateRandomNumber(4));
             virtualAccountHook.setUsername(request.getUsername());
             virtualAccountHook.setPassword(encode(request.getPassword()));
             virtualAccountHook.setCallbackUrl(request.getCallbackUrl());
@@ -103,7 +105,7 @@ public class VirtualServiceImpl implements VirtualService {
 
 
     private WalletUserDTO getUserWalletData(VirtualAccountRequest account){
-        Util util = new Util();
+//        Util util = new Util();
 
         WalletUserDTO walletUserDTO = new WalletUserDTO();
         walletUserDTO.setUserId(Long.parseLong(account.getUserId()));
@@ -113,7 +115,7 @@ public class VirtualServiceImpl implements VirtualService {
         ZonedDateTime zdt = time.atZone(ZoneId.systemDefault());
         Date output = Date.from(zdt.toInstant());
         walletUserDTO.setCustExpIssueDate(output);
-        walletUserDTO.setCustIssueId(util.generateRandomNumber(9));
+        walletUserDTO.setCustIssueId(utils.generateRandomNumber(9));
         walletUserDTO.setCustSex("MALE");
         walletUserDTO.setCustTitleCode("MR");
         walletUserDTO.setDob(new Date());
