@@ -38,11 +38,14 @@ import java.util.*;
 @Component
 public class Util {
 
-    @Autowired
-    NotificationProxy notificationProxy;
+    private final NotificationProxy notificationProxy;
 
     private final String SECRET_KEY = "PEAL33550099GOEScatriiendKETTLE001UNITED";
     private final String SALT = "stdsxcitymanjoehhhhh!!!!waya";
+
+    public Util(NotificationProxy notificationProxy) {
+        this.notificationProxy = notificationProxy;
+    }
 
     public static String generateWayaVirtualAccount() {
         Random rand = new Random();

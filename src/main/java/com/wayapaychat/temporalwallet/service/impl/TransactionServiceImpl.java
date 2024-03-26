@@ -49,10 +49,11 @@ public class TransactionServiceImpl implements TransactionService {
      private final SwitchWalletService switchWalletService;
      private final ConfigService configService;
      private final TemporalWalletDAO tempwallet;
+     private final Util utils;
 
 
      @Autowired
-     public TransactionServiceImpl(ParamDefaultValidation paramValidation, WalletAccountRepository walletAccountRepository, ReqIPUtils reqIPUtils, TokenImpl tokenService, UserAccountService userAccountService, WalletEventRepository walletEventRepository, WalletUserRepository walletUserRepository, UserPricingRepository userPricingRepository, WalletTransAccountRepository walletTransAccountRepository, TransAccountService transAccountService, SwitchWalletService switchWalletService, ConfigService configService, TemporalWalletDAO tempwallet) {
+     public TransactionServiceImpl(ParamDefaultValidation paramValidation, WalletAccountRepository walletAccountRepository, ReqIPUtils reqIPUtils, TokenImpl tokenService, UserAccountService userAccountService, WalletEventRepository walletEventRepository, WalletUserRepository walletUserRepository, UserPricingRepository userPricingRepository, WalletTransAccountRepository walletTransAccountRepository, TransAccountService transAccountService, SwitchWalletService switchWalletService, ConfigService configService, TemporalWalletDAO tempwallet, Util utils) {
          this.paramValidation = paramValidation;
          this.walletAccountRepository = walletAccountRepository;
          this.reqIPUtils = reqIPUtils;
@@ -66,6 +67,7 @@ public class TransactionServiceImpl implements TransactionService {
          this.switchWalletService = switchWalletService;
          this.configService = configService;
          this.tempwallet = tempwallet;
+         this.utils = utils;
      }
 
 
@@ -237,8 +239,7 @@ public class TransactionServiceImpl implements TransactionService {
          log.info( "##### HERER  transAccount " + tranCrncy);
          log.info( "##### HERER  transAccount " + status);
 
-         Util util = new Util();
-         String code = util.generateRandomNumber(9);
+         String code = utils.generateRandomNumber(9);
          try{
              //WAYABANKTRANS
 
