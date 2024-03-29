@@ -722,7 +722,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return priceAmount;
         }
 
-        UserPricing userPricingOptional = userPricingRepository.findDetailsByCode(account.getUId(), eventId)
+        UserPricing userPricingOptional = userPricingRepository.findFirstByUserIdAndCode(account.getUId(), eventId)
                 .orElse(null);
         if (userPricingOptional == null) {
             log.error("User pricing details not found for UID: {} and eventId: {}", account.getUId(), eventId);
