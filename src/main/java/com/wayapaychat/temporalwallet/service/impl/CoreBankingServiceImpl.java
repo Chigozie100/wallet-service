@@ -474,6 +474,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             response.setMessage(ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue());
             response.setStatus(false);
             log.error("Invalid source account: {}", transferTransactionRequestData.getDebitAccountNumber());
+            removeLien(transferTransactionRequestData.getDebitAccountNumber(), transferTransactionRequestData.getAmount());
             return response;
         }
 
@@ -484,6 +485,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             response.setMessage(ResponseCodes.INSUFFICIENT_FUNDS.getValue());
             response.setStatus(false);
             log.error("Exceeded amount: {}", transferTransactionRequestData.getAmount());
+            removeLien(transferTransactionRequestData.getDebitAccountNumber(), transferTransactionRequestData.getAmount());
             return response;
         }
         response.setStatus(true);

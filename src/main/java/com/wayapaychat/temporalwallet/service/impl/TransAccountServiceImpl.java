@@ -220,7 +220,16 @@ public class TransAccountServiceImpl implements TransAccountService {
             return new ResponseEntity<>(new ErrorResponse("ERROR PROCESSING TRANSACTION"), HttpStatus.BAD_REQUEST);
         }
 
-        if (eventInfo.get().isChargeWaya()) {
+        if(eventInfo.get().isChargeWaya() && transfer.getEventId().startsWith(EventCharge.COLLECTION_.name())){
+            managementAccount = coreBankingService.getEventAccountNumber(transfer.getEventId());
+            transferTransactionDTO = new TransferTransactionDTO(managementAccount, transfer.getCustomerAccountNumber(),
+                    transfer.getAmount(),
+                    TransactionTypeEnum.TRANSFER.getValue(), "NGN", transfer.getTranNarration(),
+                    transfer.getPaymentReference(), transfer.getTransactionCategory(), transfer.getReceiverName(),
+                    transfer.getSenderName());
+            transfer.setEventId(transfer.getEventId().replace(EventCharge.COLLECTION_.name(), ""));
+        }
+        else if (eventInfo.get().isChargeWaya()) {
             managementAccount = coreBankingService
                     .getEventAccountNumber(EventCharge.COLLECTION_.name().concat(transfer.getEventId()));
             transferTransactionDTO = new TransferTransactionDTO(managementAccount, transfer.getCustomerAccountNumber(),
