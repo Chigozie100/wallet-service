@@ -28,7 +28,7 @@ public interface VirtualService {
 
     ResponseEntity<SuccessResponse> createVirtualAccountVersion2(VirtualAccountRequest account);
 
-    ResponseEntity<SuccessResponse> searchVirtualTransactions(VATransactionSearch account);
+    ResponseEntity<SuccessResponse> searchVirtualTransactions(VATransactionSearch account, int page, int size);
 
     void appendNameToVirtualAccount(AppendToVirtualAccount account);
 

@@ -58,9 +58,11 @@ public class VirtualAccountController {
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
-    public CompletableFuture<ResponseEntity<SuccessResponse>> transactions(@RequestBody VATransactionSearch accountRequest){
+    public CompletableFuture<ResponseEntity<SuccessResponse>> transactions(@RequestBody VATransactionSearch accountRequest,
+                                                                           @RequestParam(defaultValue = "0") int page,
+                                                                           @RequestParam(defaultValue = "10") int size){
         log.info("Endpoint to create Virtual Account called !!! ---->> {}", accountRequest);
-        return CompletableFuture.completedFuture(virtualService.searchVirtualTransactions(accountRequest));
+        return CompletableFuture.completedFuture(virtualService.searchVirtualTransactions(accountRequest, page, size));
     }
 
     @ApiImplicitParams({
