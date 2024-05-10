@@ -7,8 +7,10 @@ import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.WalletUserDTO;
 import com.wayapaychat.temporalwallet.entity.VirtualAccountHook;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
+import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.pojo.AppendToVirtualAccount;
+import com.wayapaychat.temporalwallet.pojo.VATransactionSearch;
 import com.wayapaychat.temporalwallet.pojo.VirtualAccountHookRequest;
 import com.wayapaychat.temporalwallet.pojo.VirtualAccountRequest;
 import com.wayapaychat.temporalwallet.repository.VirtualAccountRepository;
@@ -60,7 +62,7 @@ public class VirtualServiceImpl implements VirtualService {
             virtualAccountHook.setUsername(request.getUsername());
             virtualAccountHook.setPassword(encode(request.getPassword()));
             virtualAccountHook.setCallbackUrl(request.getCallbackUrl());
-            virtualAccountRepository.save(virtualAccountHook);
+            //virtualAccountRepository.save(virtualAccountHook);
             log.info("Webhook URL registered successfully.");
             return new ResponseEntity<>(new SuccessResponse("Account created successfully", virtualAccountHook), HttpStatus.OK);
 
@@ -92,6 +94,34 @@ public class VirtualServiceImpl implements VirtualService {
             throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
     }
+
+    public ResponseEntity<SuccessResponse> createVirtualAccountVersion2(VirtualAccountRequest account) {
+        try {
+            // get wallet details by account number
+            // create a sub account for this user
+            // get the WalletUser
+            log.info("Creating virtual account...");
+            WalletUser walletUserDTO = getUserWallet(account);
+            WalletAccount walletAccount = userAccountService.createNubanAccountVersion2(walletUserDTO);
+            AccountDetailDTO accountDetailDTO = new AccountDetailDTO();
+            if (walletAccount != null) {
+                accountDetailDTO = getResponse(walletAccount.getNubanAccountNo());
+            }
+            log.info("Virtual account created successfully.");
+            return new ResponseEntity<>(new SuccessResponse("Virtual Account created successfully", accountDetailDTO), HttpStatus.OK);
+        } catch (Exception ex) {
+            log.error("Error creating virtual account: {}", ex.getMessage());
+            throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
+        }
+    }
+
+    @Override
+    public ResponseEntity<SuccessResponse> searchVirtualTransactions(VATransactionSearch account) {
+        // with pagination
+
+        return null;
+    }
+
 
     private AccountDetailDTO getResponse(String accountNo){
         WalletAccount acct = walletAccountRepository.findByNubanAccountNo(accountNo);
@@ -219,6 +249,15 @@ public class VirtualServiceImpl implements VirtualService {
         String[] keyDebit = credentials.split(Pattern.quote(" "));
         Optional<VirtualAccountHook> virtualAccountHook = virtualAccountRepository.findByUsernameAndPassword(keyDebit[0],keyDebit[1]);
         return virtualAccountHook.filter(accountHook -> (keyDebit[0].equals(accountHook.getUsername())) && (keyDebit[1].equals(accountHook.getPassword()))).isPresent();
+    }
+
+    private WalletUser getUserWallet(VirtualAccountRequest account){
+        try {
+            return userAccountService.findUserWalletByEmailAndPhone(account.getEmail());
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
+        return null;
     }
 
 }
