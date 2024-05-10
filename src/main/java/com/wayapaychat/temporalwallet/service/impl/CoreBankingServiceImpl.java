@@ -14,12 +14,13 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
 import com.wayapaychat.temporalwallet.config.SecurityConstants;
+import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.enumm.*;
+import com.wayapaychat.temporalwallet.repository.*;
 import com.wayapaychat.temporalwallet.util.Constant;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.math3.util.Precision;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -38,11 +39,6 @@ import com.wayapaychat.temporalwallet.pojo.CBATransaction;
 import com.wayapaychat.temporalwallet.pojo.CreateAccountData;
 import com.wayapaychat.temporalwallet.pojo.MyData;
 import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
-import com.wayapaychat.temporalwallet.repository.UserPricingRepository;
-import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
-import com.wayapaychat.temporalwallet.repository.WalletEventRepository;
-import com.wayapaychat.temporalwallet.repository.WalletTransAccountRepository;
-import com.wayapaychat.temporalwallet.repository.WalletTransactionRepository;
 import com.wayapaychat.temporalwallet.response.ExternalCBAAccountCreationResponse;
 import com.wayapaychat.temporalwallet.service.CoreBankingService;
 import com.wayapaychat.temporalwallet.service.TransactionCountService;
@@ -53,13 +49,6 @@ import com.wayapaychat.temporalwallet.util.Util;
 
 import lombok.extern.slf4j.Slf4j;
 
-import com.wayapaychat.temporalwallet.entity.Provider;
-import com.wayapaychat.temporalwallet.entity.UserPricing;
-import com.wayapaychat.temporalwallet.entity.WalletAccount;
-import com.wayapaychat.temporalwallet.entity.WalletEventCharges;
-import com.wayapaychat.temporalwallet.entity.WalletTransAccount;
-import com.wayapaychat.temporalwallet.entity.WalletTransaction;
-import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.notification.CustomNotification;
@@ -82,14 +71,16 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     private final TokenImpl tokenImpl;
     private final Util utils;
 
+    private final VirtualAccountRepository virtualAccountTransactionsRepository;
+
 
     @Autowired
     public CoreBankingServiceImpl(SwitchWalletService switchWalletService,
-            WalletTransAccountRepository walletTransAccountRepository, WalletAccountRepository walletAccountRepository,
-            WalletEventRepository walletEventRepository, WalletTransactionRepository walletTransactionRepository,
-            MifosWalletProxy mifosWalletProxy, TemporalWalletDAO tempwallet, CustomNotification customNotification,
-            UserPricingRepository userPricingRepository, TransactionCountService transactionCountService,
-            TokenImpl tokenImpl, Util utils) {
+                                  WalletTransAccountRepository walletTransAccountRepository, WalletAccountRepository walletAccountRepository,
+                                  WalletEventRepository walletEventRepository, WalletTransactionRepository walletTransactionRepository,
+                                  MifosWalletProxy mifosWalletProxy, TemporalWalletDAO tempwallet, CustomNotification customNotification,
+                                  UserPricingRepository userPricingRepository, TransactionCountService transactionCountService,
+                                  TokenImpl tokenImpl, Util utils, VirtualAccountRepository virtualAccountTransactionsRepository) {
         this.switchWalletService = switchWalletService;
         this.walletTransAccountRepository = walletTransAccountRepository;
         this.walletAccountRepository = walletAccountRepository;
@@ -102,6 +93,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         this.transactionCountService = transactionCountService;
         this.tokenImpl = tokenImpl;
         this.utils = utils;
+        this.virtualAccountTransactionsRepository = virtualAccountTransactionsRepository;
     }
 
     @Override
@@ -354,11 +346,20 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     HttpStatus.BAD_REQUEST);
         }
 
-        Long tranId = logTransaction(receiverName, senderName, transferTransactionRequestData.getDebitAccountNumber(),
-                transferTransactionRequestData.getBenefAccountNumber(),
-                transferTransactionRequestData.getAmount(), chargeAmount, vatAmount,
-                transferTransactionRequestData.getTransactionCategory(),
-                transferTransactionRequestData.getTranCrncy(), channelEventId, WalletTransStatus.PENDING);
+        Long tranId = Long.valueOf(0);
+        if(TransactionChannel.NIP_FUNDING.equals(channelEventId)){
+            tranId = logVirtualAccountTransaction(receiverName, senderName, transferTransactionRequestData.getDebitAccountNumber(),
+                    transferTransactionRequestData.getBenefAccountNumber(),
+                    transferTransactionRequestData.getAmount(), chargeAmount, vatAmount,
+                    transferTransactionRequestData.getTransactionCategory(),
+                    transferTransactionRequestData.getTranCrncy(), channelEventId, WalletTransStatus.PENDING);
+        }else{
+            tranId = logTransaction(receiverName, senderName, transferTransactionRequestData.getDebitAccountNumber(),
+                    transferTransactionRequestData.getBenefAccountNumber(),
+                    transferTransactionRequestData.getAmount(), chargeAmount, vatAmount,
+                    transferTransactionRequestData.getTransactionCategory(),
+                    transferTransactionRequestData.getTranCrncy(), channelEventId, WalletTransStatus.PENDING);
+        }
         if (tranId == null) {
             log.error("Failed to log transaction.");
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
@@ -1495,5 +1496,37 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         log.info("Using transaction channel from request header.");
         return channel;
     }
+
+    public Long logVirtualAccountTransaction(String beneficiaryName, String senderName, String fromAccountNumber,
+                                             String toAccountNumber, BigDecimal amount, BigDecimal chargeAmount, BigDecimal vatAmount,
+                                             String transCategory, String tranCrncy, String eventId, WalletTransStatus status) {
+        log.info("Logging transaction...");
+        String code = utils.generateRandomNumber(9);
+        try {
+            VirtualAccountTransactions walletTransAccount = new VirtualAccountTransactions();
+            walletTransAccount.setCreatedAt(LocalDateTime.now().plusHours(1));
+            walletTransAccount.setDebitAccountNumber(fromAccountNumber);
+            walletTransAccount.setCreditAccountNumber(toAccountNumber);
+            walletTransAccount.setTranAmount(amount);
+            walletTransAccount.setChargeAmount(chargeAmount);
+            walletTransAccount.setVatAmount(vatAmount);
+            walletTransAccount.setTranId(code);
+            walletTransAccount.setTransactionType(transCategory);
+            walletTransAccount.setTranCrncy(tranCrncy);
+            walletTransAccount.setEventId(eventId);
+            walletTransAccount.setStatus(status);
+            walletTransAccount.setSenderName(senderName);
+            walletTransAccount.setBeneficiaryName(beneficiaryName);
+            Long id = virtualAccountTransactionsRepository.save(walletTransAccount).getId();
+            log.info("Transaction logged with ID: {}", id);
+            log.debug("Transaction details: {}", walletTransAccount);
+            return id;
+        } catch (CustomException ex) {
+            log.error("Error in logging transaction: {}", ex.getMessage());
+            throw new CustomException("Error in logging transaction: " + ex.getMessage(),
+                    HttpStatus.EXPECTATION_FAILED);
+        }
+    }
+
 
 }

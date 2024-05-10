@@ -1,2 +1,10 @@
-package com.wayapaychat.temporalwallet.pojo;public class VATransactionSearch {
+package com.wayapaychat.temporalwallet.pojo;
+
+import lombok.Data;
+
+@Data
+public class VATransactionSearch {
+    private String accountNo;
+    private String startDate;
+    private String endDate;
 }

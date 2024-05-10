@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.controller;
 
+import com.wayapaychat.temporalwallet.pojo.VATransactionSearch;
 import com.wayapaychat.temporalwallet.pojo.VirtualAccountHookRequest;
 import com.wayapaychat.temporalwallet.pojo.VirtualAccountRequest;
 import com.wayapaychat.temporalwallet.service.VirtualService;
@@ -50,16 +51,16 @@ public class VirtualAccountController {
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-    @ApiOperation(value = "Create a Virtual Account", hidden = false, tags = { "BANK-VIRTUAL-ACCOUNT" })
+    @ApiOperation(value = "Virtual Account Transaction Search", hidden = false, tags = { "BANK-VIRTUAL-ACCOUNT" })
     @PostMapping(
             value = "/virtualaccount/transactions",
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
-    public CompletableFuture<ResponseEntity<SuccessResponse>> transactions(@RequestBody VirtualAccountRequest accountRequest){
+    public CompletableFuture<ResponseEntity<SuccessResponse>> transactions(@RequestBody VATransactionSearch accountRequest){
         log.info("Endpoint to create Virtual Account called !!! ---->> {}", accountRequest);
-        return CompletableFuture.completedFuture(virtualService.createVirtualAccountVersion2(accountRequest));
+        return CompletableFuture.completedFuture(virtualService.searchVirtualTransactions(accountRequest));
     }
 
     @ApiImplicitParams({

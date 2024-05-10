@@ -10,6 +10,7 @@ import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.pojo.AppendToVirtualAccount;
+import com.wayapaychat.temporalwallet.pojo.VATransactionSearch;
 import com.wayapaychat.temporalwallet.pojo.VirtualAccountHookRequest;
 import com.wayapaychat.temporalwallet.pojo.VirtualAccountRequest;
 import com.wayapaychat.temporalwallet.repository.VirtualAccountRepository;
@@ -61,7 +62,7 @@ public class VirtualServiceImpl implements VirtualService {
             virtualAccountHook.setUsername(request.getUsername());
             virtualAccountHook.setPassword(encode(request.getPassword()));
             virtualAccountHook.setCallbackUrl(request.getCallbackUrl());
-            virtualAccountRepository.save(virtualAccountHook);
+            //virtualAccountRepository.save(virtualAccountHook);
             log.info("Webhook URL registered successfully.");
             return new ResponseEntity<>(new SuccessResponse("Account created successfully", virtualAccountHook), HttpStatus.OK);
 
@@ -112,6 +113,13 @@ public class VirtualServiceImpl implements VirtualService {
             log.error("Error creating virtual account: {}", ex.getMessage());
             throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
+    }
+
+    @Override
+    public ResponseEntity<SuccessResponse> searchVirtualTransactions(VATransactionSearch account) {
+        // with pagination
+
+        return null;
     }
 
 

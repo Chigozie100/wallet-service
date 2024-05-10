@@ -211,7 +211,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
         log.info("Transaction Request Creation: {}", transfer.toString());
 
-        TransferTransactionDTO transferTransactionDTO;
+        TransferTransactionDTO transferTransactionDTO = null;
         String managementAccount;
 
         Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(transfer.getEventId());
@@ -220,16 +220,14 @@ public class TransAccountServiceImpl implements TransAccountService {
             return new ResponseEntity<>(new ErrorResponse("ERROR PROCESSING TRANSACTION"), HttpStatus.BAD_REQUEST);
         }
 
-        if(eventInfo.get().isChargeWaya() && transfer.getEventId().startsWith(EventCharge.COLLECTION_.name())){
-            managementAccount = coreBankingService.getEventAccountNumber(transfer.getEventId());
-            transferTransactionDTO = new TransferTransactionDTO(managementAccount, transfer.getCustomerAccountNumber(),
-                    transfer.getAmount(),
-                    TransactionTypeEnum.TRANSFER.getValue(), "NGN", transfer.getTranNarration(),
-                    transfer.getPaymentReference(), transfer.getTransactionCategory(), transfer.getReceiverName(),
-                    transfer.getSenderName());
-            transfer.setEventId(transfer.getEventId().replace(EventCharge.COLLECTION_.name(), ""));
+        if(isVirtualAccount(transfer.getCustomerAccountNumber()) && TransactionChannel.NIP_FUNDING.equals(transfer.getEventId())) {
+
+            Optional<WalletAccount> walletAccount = walletAccountRepository.findByAccount(transfer.getCustomerAccountNumber());
+            if(walletAccount.isPresent() ){
+                transfer.setCustomerAccountNumber(getDefaultAccount(walletAccount.get().getUser()));
+            }
         }
-        else if (eventInfo.get().isChargeWaya()) {
+        if (eventInfo.get().isChargeWaya()) {
             managementAccount = coreBankingService
                     .getEventAccountNumber(EventCharge.COLLECTION_.name().concat(transfer.getEventId()));
             transferTransactionDTO = new TransferTransactionDTO(managementAccount, transfer.getCustomerAccountNumber(),
@@ -253,6 +251,25 @@ public class TransAccountServiceImpl implements TransAccountService {
         return response;
     }
 
+
+    private boolean isVirtualAccount(String accountNo){
+        Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
+        if(account.isPresent()){
+            if(account.get().isVirtualAccount()){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String getDefaultAccount(WalletUser walletUser){
+        String defaultAccount = "";
+        Optional<WalletAccount> walletAccount = walletAccountRepository.findByDefaultAccount(walletUser);
+        if(walletAccount.isPresent()){
+            defaultAccount = walletAccount.get().getAccountNo();
+        }
+        return defaultAccount;
+    }
     @Override
     public ResponseEntity<?> TemporalWalletToOfficialWalletMutiple(HttpServletRequest request,
                                                                    List<TemporalToOfficialWalletDTO> transfer) {
