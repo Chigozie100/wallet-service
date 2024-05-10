@@ -5,9 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wayapaychat.temporalwallet.dto.AccountDetailDTO;
 import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.WalletUserDTO;
-import com.wayapaychat.temporalwallet.entity.VirtualAccountHook;
-import com.wayapaychat.temporalwallet.entity.WalletAccount;
-import com.wayapaychat.temporalwallet.entity.WalletUser;
+import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.pojo.AppendToVirtualAccount;
 import com.wayapaychat.temporalwallet.pojo.VATransactionSearch;
@@ -15,6 +13,7 @@ import com.wayapaychat.temporalwallet.pojo.VirtualAccountHookRequest;
 import com.wayapaychat.temporalwallet.pojo.VirtualAccountRequest;
 import com.wayapaychat.temporalwallet.repository.VirtualAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
+import com.wayapaychat.temporalwallet.repository.WalletAcountVirtualRepository;
 import com.wayapaychat.temporalwallet.service.UserAccountService;
 import com.wayapaychat.temporalwallet.service.VirtualService;
 import com.wayapaychat.temporalwallet.util.ReqIPUtils;
@@ -22,14 +21,16 @@ import com.wayapaychat.temporalwallet.util.SuccessResponse;
 import com.wayapaychat.temporalwallet.util.Util;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.*;
-import java.util.Date;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @Service
@@ -39,6 +40,7 @@ public class VirtualServiceImpl implements VirtualService {
     private final UserAccountService userAccountService;
     private final WalletAccountRepository walletAccountRepository;
     private final VirtualAccountRepository virtualAccountRepository;
+
     private final Util utils;
 
     @Autowired
@@ -116,10 +118,22 @@ public class VirtualServiceImpl implements VirtualService {
     }
 
     @Override
-    public ResponseEntity<SuccessResponse> searchVirtualTransactions(VATransactionSearch account) {
+    public ResponseEntity<SuccessResponse> searchVirtualTransactions(VATransactionSearch account, int page, int size) {
         // with pagination
 
-        return null;
+        Pageable pagable = PageRequest.of(page, size);
+        Map<String, Object> response = new HashMap<>();
+
+        LocalDate fromDate = account.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate toDate = account.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        Page<VirtualAccountTransactions> virtualAccountTransactionsPage = virtualAccountRepository.findAllByDateRange(fromDate,toDate,account.getAccountNo(), pagable);
+        List<VirtualAccountTransactions> transaction = virtualAccountTransactionsPage.getContent();
+        response.put("transaction", transaction);
+        response.put("currentPage", virtualAccountTransactionsPage.getNumber());
+        response.put("totalItems", virtualAccountTransactionsPage.getTotalElements());
+        response.put("totalPages", virtualAccountTransactionsPage.getTotalPages());
+        return new ResponseEntity<>(new SuccessResponse("Virtual Account Transactions", response), HttpStatus.OK);
+
     }
 
 
@@ -244,12 +258,12 @@ public class VirtualServiceImpl implements VirtualService {
 
     }
 
-    public boolean validateBasicAuth(String token) throws Exception {
-        final String credentials = Util.WayaDecrypt(token);
-        String[] keyDebit = credentials.split(Pattern.quote(" "));
-        Optional<VirtualAccountHook> virtualAccountHook = virtualAccountRepository.findByUsernameAndPassword(keyDebit[0],keyDebit[1]);
-        return virtualAccountHook.filter(accountHook -> (keyDebit[0].equals(accountHook.getUsername())) && (keyDebit[1].equals(accountHook.getPassword()))).isPresent();
-    }
+//    public boolean validateBasicAuth(String token) throws Exception {
+//        final String credentials = Util.WayaDecrypt(token);
+//        String[] keyDebit = credentials.split(Pattern.quote(" "));
+//        Optional<VirtualAccountHook> virtualAccountHook = virtualAccountRepository.findByUsernameAndPassword(keyDebit[0],keyDebit[1]);
+//        return virtualAccountHook.filter(accountHook -> (keyDebit[0].equals(accountHook.getUsername())) && (keyDebit[1].equals(accountHook.getPassword()))).isPresent();
+//    }
 
     private WalletUser getUserWallet(VirtualAccountRequest account){
         try {
