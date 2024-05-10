@@ -346,7 +346,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     HttpStatus.BAD_REQUEST);
         }
 
-        Long tranId = Long.valueOf(0);
+        Long tranId;
         if(TransactionChannel.NIP_FUNDING.equals(channelEventId)){
             tranId = logVirtualAccountTransaction(receiverName, senderName, transferTransactionRequestData.getDebitAccountNumber(),
                     transferTransactionRequestData.getBenefAccountNumber(),
