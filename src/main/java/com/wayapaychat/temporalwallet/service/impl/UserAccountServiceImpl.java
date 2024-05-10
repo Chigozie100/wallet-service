@@ -2997,4 +2997,14 @@ public class UserAccountServiceImpl implements UserAccountService {
             return new ApiResponse<>(false, ApiResponse.Code.UNKNOWN_ERROR, "An Error occurred. Try again", null);
         }
     }
+
+    public WalletUser findUserWalletByEmailAndPhone(String email) {
+        // Logging wallet retrieval by ID
+        log.info("Retrieving wallet by Email...");
+        Optional<WalletUser> wallet = walletUserRepository.findByEmailOrPhoneNumberOrUserId(email);
+        if (wallet.isPresent()) {
+            return wallet.get();
+        }
+        return new WalletUser();
+    }
 }
