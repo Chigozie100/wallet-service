@@ -524,6 +524,41 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
     }
 
+    public WalletAccount createNubanAccountVersion2(WalletUser user) {
+
+        String acct_name = user.getFirstName().toUpperCase() + " " + user.getLastName().toUpperCase();
+
+        WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
+        WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
+
+        String acct_ownership = null;
+
+        String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, user.getAccountType());
+        try {
+            String hashed_no = reqUtil
+                    .WayaEncrypt(user.getUserId() + "|" + nubanAccountNumber + "|" + wayaProduct + "|" + product.getCrncy_code());
+
+            WalletAccount account = new WalletAccount();
+            if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+                    || product.getProduct_type().equals("ODA"))) {
+                account = new WalletAccount("0000", "", "", nubanAccountNumber, acct_name, user,
+                        code.getGlSubHeadCode(), wayaProduct,
+                        acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
+                        LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
+                        product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
+                        product.getXfer_cr_limit(), false, user.getAccountType(), "Virtual Account", true);
+            }
+
+            coreBankingService.createAccount(user, account);
+            log.info("Exiting createNubanAccount method");
+
+            return account;
+        } catch (Exception e) {
+            throw new CustomException(e.getLocalizedMessage(), HttpStatus.EXPECTATION_FAILED);
+
+        }
+    }
+
     @Override
     public void setupSystemUser() {
         log.info("Entering setupSystemUser method");

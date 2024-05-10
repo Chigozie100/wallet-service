@@ -9,6 +9,7 @@ import java.util.List;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
+import com.wayapaychat.temporalwallet.entity.WalletUser;
 import org.springframework.http.ResponseEntity;
 
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
@@ -22,6 +23,8 @@ public interface UserAccountService {
     ResponseEntity<?> createUser(HttpServletRequest request,UserDTO user, String token);
 
     WalletAccount createNubanAccount(WalletUserDTO user);
+
+    WalletAccount createNubanAccountVersion2(WalletUser user);
 
     ResponseEntity<?> createUserAccount(String clientId,String clientType,WalletUserDTO user, String token);
 
@@ -158,4 +161,6 @@ public interface UserAccountService {
     ApiResponse<?> createCommisionAccount(long userId,String token,String profileId);
 
     ApiResponse<?> updateBulkAmount(String accountNumber, String token, double limit);
+
+    WalletUser findUserWalletByEmailAndPhone(String email);
 }

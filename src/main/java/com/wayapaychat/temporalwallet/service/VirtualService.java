@@ -25,6 +25,8 @@ public interface VirtualService {
 
     ResponseEntity<SuccessResponse> createVirtualAccount(VirtualAccountRequest account);
 
+    ResponseEntity<SuccessResponse> createVirtualAccountVersion2(VirtualAccountRequest account);
+
     void appendNameToVirtualAccount(AppendToVirtualAccount account);
 
     SuccessResponse accountTransactionQuery(String accountNumber, LocalDate startDate, LocalDate endDate);
