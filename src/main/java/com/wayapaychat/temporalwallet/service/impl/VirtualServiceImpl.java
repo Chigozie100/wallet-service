@@ -258,12 +258,12 @@ public class VirtualServiceImpl implements VirtualService {
 
     }
 
-    public boolean validateBasicAuth(String token) throws Exception {
-        final String credentials = Util.WayaDecrypt(token);
-        String[] keyDebit = credentials.split(Pattern.quote(" "));
-        Optional<VirtualAccountHook> virtualAccountHook = virtualAccountRepository.findByUsernameAndPassword(keyDebit[0],keyDebit[1]);
-        return virtualAccountHook.filter(accountHook -> (keyDebit[0].equals(accountHook.getUsername())) && (keyDebit[1].equals(accountHook.getPassword()))).isPresent();
-    }
+//    public boolean validateBasicAuth(String token) throws Exception {
+//        final String credentials = Util.WayaDecrypt(token);
+//        String[] keyDebit = credentials.split(Pattern.quote(" "));
+//        Optional<VirtualAccountHook> virtualAccountHook = virtualAccountRepository.findByUsernameAndPassword(keyDebit[0],keyDebit[1]);
+//        return virtualAccountHook.filter(accountHook -> (keyDebit[0].equals(accountHook.getUsername())) && (keyDebit[1].equals(accountHook.getPassword()))).isPresent();
+//    }
 
     private WalletUser getUserWallet(VirtualAccountRequest account){
         try {

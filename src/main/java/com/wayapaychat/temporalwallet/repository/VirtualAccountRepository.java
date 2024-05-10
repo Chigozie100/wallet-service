@@ -15,8 +15,6 @@ import java.util.Optional;
 @Repository
 public interface VirtualAccountRepository extends JpaRepository<VirtualAccountTransactions, Long> {
 
-    Optional<VirtualAccountHook> findByUsernameAndPassword(String username, String password);
-
     @Query("SELECT v FROM VirtualAccountTransactions v " + "WHERE UPPER(v.creditAccountNumber) = UPPER(:accountNo) "+" AND v.createdAt BETWEEN  (:fromtranDate)" + " AND (:totranDate)" + " order by v.createdAt DESC ")
     Page<VirtualAccountTransactions> findAllByDateRange(LocalDate fromtranDate, LocalDate totranDate, String accountNo, Pageable pageable);
 
