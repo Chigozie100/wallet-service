@@ -103,8 +103,9 @@ public class VirtualServiceImpl implements VirtualService {
             // create a sub account for this user
             // get the WalletUser
             log.info("Creating virtual account...");
-            WalletUser walletUserDTO = getUserWallet(account);
-            WalletAccount walletAccount = userAccountService.createNubanAccountVersion2(walletUserDTO);
+            WalletUser businessObj = getUserWallet(account);
+
+            WalletAccount walletAccount = userAccountService.createNubanAccountVersion2(businessObj, account);
             AccountDetailDTO accountDetailDTO = new AccountDetailDTO();
             if (walletAccount != null) {
                 accountDetailDTO = getResponse(walletAccount.getNubanAccountNo());
@@ -118,15 +119,15 @@ public class VirtualServiceImpl implements VirtualService {
     }
 
     @Override
-    public ResponseEntity<SuccessResponse> searchVirtualTransactions(VATransactionSearch account, int page, int size) {
+    public ResponseEntity<SuccessResponse> searchVirtualTransactions(Date fromdate,Date todate, String accountNo, int page, int size) {
         // with pagination
 
         Pageable pagable = PageRequest.of(page, size);
         Map<String, Object> response = new HashMap<>();
 
-        LocalDate fromDate = account.getStartDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        LocalDate toDate = account.getEndDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        Page<VirtualAccountTransactions> virtualAccountTransactionsPage = virtualAccountRepository.findAllByDateRange(fromDate,toDate,account.getAccountNo(), pagable);
+        LocalDate fromDate = fromdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate toDate = todate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        Page<VirtualAccountTransactions> virtualAccountTransactionsPage = virtualAccountRepository.findAllByDateRange(fromDate,toDate,accountNo, pagable);
         List<VirtualAccountTransactions> transaction = virtualAccountTransactionsPage.getContent();
         response.put("transaction", transaction);
         response.put("currentPage", virtualAccountTransactionsPage.getNumber());

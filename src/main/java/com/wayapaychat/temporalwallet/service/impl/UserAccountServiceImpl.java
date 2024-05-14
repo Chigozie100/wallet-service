@@ -1,8 +1,6 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.util.concurrent.AtomicDouble;
 import com.waya.security.auth.pojo.UserIdentityData;
 import com.wayapaychat.temporalwallet.config.SecurityConstants;
 import com.wayapaychat.temporalwallet.dao.AuthUserServiceDAO;
@@ -14,10 +12,8 @@ import com.wayapaychat.temporalwallet.enumm.ResponseCodes;
 import com.wayapaychat.temporalwallet.enumm.TransactionChannel;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
-//import com.wayapaychat.temporalwallet.kafkaConsumer.KafkaMessageConsumer;
 import com.wayapaychat.temporalwallet.pojo.*;
 import com.wayapaychat.temporalwallet.pojo.signupKafka.InWardDataDto;
-import com.wayapaychat.temporalwallet.pojo.signupKafka.RegistrationDataDto;
 import com.wayapaychat.temporalwallet.proxy.AuthProxy;
 import com.wayapaychat.temporalwallet.repository.*;
 import com.wayapaychat.temporalwallet.response.ApiResponse;
@@ -49,7 +45,6 @@ import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-import org.apache.commons.math3.util.Precision;
 
 @Service
 @Slf4j
@@ -524,32 +519,32 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
     }
 
-    public WalletAccount createNubanAccountVersion2(WalletUser user) {
+    public WalletAccount createNubanAccountVersion2(WalletUser businessObj, VirtualAccountRequest accountRequest) {
 
-        String acct_name = user.getFirstName().toUpperCase() + " " + user.getLastName().toUpperCase();
+        String acct_name = businessObj.getCust_name().toUpperCase()+"_ " + accountRequest.getAccountName();
 
         WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
         WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
 
         String acct_ownership = null;
 
-        String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, user.getAccountType());
+        String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, businessObj.getAccountType());
         try {
             String hashed_no = reqUtil
-                    .WayaEncrypt(user.getUserId() + "|" + nubanAccountNumber + "|" + wayaProduct + "|" + product.getCrncy_code());
+                    .WayaEncrypt(businessObj.getUserId() + "|" + nubanAccountNumber + "|" + wayaProduct + "|" + product.getCrncy_code());
 
             WalletAccount account = new WalletAccount();
             if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
                     || product.getProduct_type().equals("ODA"))) {
-                account = new WalletAccount("0000", "", "", nubanAccountNumber, acct_name, user,
+                account = new WalletAccount("0000", "", "", nubanAccountNumber, acct_name, businessObj,
                         code.getGlSubHeadCode(), wayaProduct,
                         acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
                         LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
                         product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
-                        product.getXfer_cr_limit(), false, user.getAccountType(), "Virtual Account", true);
+                        product.getXfer_cr_limit(), false, businessObj.getAccountType(), "Virtual Account", true);
             }
 
-            coreBankingService.createAccount(user, account);
+            coreBankingService.createAccount(businessObj, account);
             log.info("Exiting createNubanAccount method");
 
             return account;

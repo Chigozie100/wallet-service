@@ -10,6 +10,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
 import com.wayapaychat.temporalwallet.entity.WalletUser;
+import com.wayapaychat.temporalwallet.pojo.VirtualAccountRequest;
 import org.springframework.http.ResponseEntity;
 
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
@@ -24,7 +25,7 @@ public interface UserAccountService {
 
     WalletAccount createNubanAccount(WalletUserDTO user);
 
-    WalletAccount createNubanAccountVersion2(WalletUser user);
+    WalletAccount createNubanAccountVersion2(WalletUser user, VirtualAccountRequest accountRequest);
 
     ResponseEntity<?> createUserAccount(String clientId,String clientType,WalletUserDTO user, String token);
 
