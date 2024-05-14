@@ -103,9 +103,9 @@ public class VirtualServiceImpl implements VirtualService {
             // create a sub account for this user
             // get the WalletUser
             log.info("Creating virtual account...");
-            WalletUser walletUserDTO = getUserWallet(account);
+            WalletUser businessObj = getUserWallet(account);
 
-            WalletAccount walletAccount = userAccountService.createNubanAccountVersion2(walletUserDTO, account);
+            WalletAccount walletAccount = userAccountService.createNubanAccountVersion2(businessObj, account);
             AccountDetailDTO accountDetailDTO = new AccountDetailDTO();
             if (walletAccount != null) {
                 accountDetailDTO = getResponse(walletAccount.getNubanAccountNo());
