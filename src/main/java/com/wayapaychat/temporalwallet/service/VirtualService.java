@@ -17,6 +17,7 @@ import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
+import java.util.Date;
 
 public interface VirtualService {
 
@@ -28,7 +29,7 @@ public interface VirtualService {
 
     ResponseEntity<SuccessResponse> createVirtualAccountVersion2(VirtualAccountRequest account);
 
-    ResponseEntity<SuccessResponse> searchVirtualTransactions(VATransactionSearch account, int page, int size);
+    ResponseEntity<SuccessResponse> searchVirtualTransactions(Date fromdate,Date todate, String accountNo, int page, int size);
 
     void appendNameToVirtualAccount(AppendToVirtualAccount account);
 

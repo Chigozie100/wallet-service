@@ -524,7 +524,7 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
     }
 
-    public WalletAccount createNubanAccountVersion2(WalletUser user) {
+    public WalletAccount createNubanAccountVersion2(WalletUser user, VirtualAccountRequest accountRequest) {
 
         String acct_name = user.getFirstName().toUpperCase() + " " + user.getLastName().toUpperCase();
 
