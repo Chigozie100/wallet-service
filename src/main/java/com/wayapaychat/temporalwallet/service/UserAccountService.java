@@ -25,7 +25,7 @@ public interface UserAccountService {
 
     WalletAccount createNubanAccount(WalletUserDTO user);
 
-    WalletAccount createNubanAccountVersion2(WalletUser user, VirtualAccountRequest accountRequest);
+    WalletAccount createNubanAccountVersion2(WalletUser wayaGramUser, WalletUser user, VirtualAccountRequest accountRequest);
 
     ResponseEntity<?> createUserAccount(String clientId,String clientType,WalletUserDTO user, String token);
 
@@ -164,4 +164,6 @@ public interface UserAccountService {
     ApiResponse<?> updateBulkAmount(String accountNumber, String token, double limit);
 
     WalletUser findUserWalletByEmailAndPhone(String email);
+
+    WalletAccount findUserAccount(String accountNo);
 }

@@ -519,9 +519,9 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
     }
 
-    public WalletAccount createNubanAccountVersion2(WalletUser businessObj, VirtualAccountRequest accountRequest) {
+    public WalletAccount createNubanAccountVersion2(WalletUser wayaGramUser, WalletUser businessObj, VirtualAccountRequest accountRequest) {
 
-        String acct_name = businessObj.getCust_name().toUpperCase()+"_ " + accountRequest.getAccountName();
+        String acct_name = wayaGramUser.getCust_name().toUpperCase()+" "+"/ " +" "+accountRequest.getAccountName();
 
         WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
         WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
@@ -536,7 +536,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             WalletAccount account = new WalletAccount();
             if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
                     || product.getProduct_type().equals("ODA"))) {
-                account = new WalletAccount("0000", "", "", nubanAccountNumber, acct_name, businessObj,
+                account = new WalletAccount("0000", "", "", nubanAccountNumber, acct_name, wayaGramUser,
                         code.getGlSubHeadCode(), wayaProduct,
                         acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
                         LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
@@ -3001,5 +3001,15 @@ public class UserAccountServiceImpl implements UserAccountService {
             return wallet.get();
         }
         return new WalletUser();
+    }
+
+
+    public WalletAccount findUserAccount(String accountNo){
+        //findByAccount
+        Optional<WalletAccount> wallet = walletAccountRepository.findByAccount(accountNo);
+        if (wallet.isPresent()) {
+            return wallet.get();
+        }
+        return new WalletAccount();
     }
 }
