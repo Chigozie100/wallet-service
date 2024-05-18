@@ -19,8 +19,9 @@ public class VirtualAccountRequest {
 
     @NotBlank(message = "Account Name must not be null")
     private String email;
-
     private String bvn;
     private String nin;
+
+    private String wayaGramAccount;
 
 }

@@ -105,11 +105,16 @@ public class VirtualServiceImpl implements VirtualService {
             log.info("Creating virtual account...");
             WalletUser businessObj = getUserWallet(account);
 
-            WalletAccount walletAccount = userAccountService.createNubanAccountVersion2(businessObj, account);
+            // Get Wayagram Wallet
+            WalletAccount wayaGramAcctNo = getWayaGrammAccount(account);
+            WalletUser wayaGramUser = wayaGramAcctNo.getUser();   // create a sub account under the wayagram user
+
+            WalletAccount walletAccount = userAccountService.createNubanAccountVersion2(wayaGramUser, businessObj, account);
             AccountDetailDTO accountDetailDTO = new AccountDetailDTO();
             if (walletAccount != null) {
                 accountDetailDTO = getResponse(walletAccount.getNubanAccountNo());
             }
+
             log.info("Virtual account created successfully.");
             return new ResponseEntity<>(new SuccessResponse("Virtual Account created successfully", accountDetailDTO), HttpStatus.OK);
         } catch (Exception ex) {
@@ -275,4 +280,12 @@ public class VirtualServiceImpl implements VirtualService {
         return null;
     }
 
+    private WalletAccount getWayaGrammAccount(VirtualAccountRequest account){
+        try {
+            return userAccountService.findUserAccount(account.getWayaGramAccount());
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
+        return null;
+    }
 }
