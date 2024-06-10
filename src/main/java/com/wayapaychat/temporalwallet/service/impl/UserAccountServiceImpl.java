@@ -332,7 +332,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                     hashed_no = reqUtil.WayaEncrypt(
                             walletUser.getUserId() + "|" + acctNo + "|" + wayaProductCommission + "|"
                             + product.getCrncy_code());
-                    String acct_name = walletUser.getCust_name() + " " + "COMMISSION ACCOUNT";
+                    String acct_name = walletUser.getCust_name() + " " + commisionName;
                     if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
                             || product.getProduct_type().equals("ODA"))) {
                         caccount = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, walletUser,
@@ -368,6 +368,170 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     }
 
+
+    // This method was constructed out of the previous one so we can have a fall back // Tue May 21:: at 7:42 in lagos
+    private ResponseEntity<?> createClientVirtualAccount(WalletUser walletUser, String accountType, String description) {
+        log.info("Processing createClientAccount {}, {}, {} ", walletUser, accountType, description);
+        Optional<WalletAccount> defaultAccount = walletAccountRepository.findByDefaultAccount(walletUser);
+        WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
+        WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
+        String acctNo = null;
+        Integer rand = reqUtil.getAccountNo();
+        if (rand == 0) {
+            log.error("Unable to generate Wallet Account");
+            return new ResponseEntity<>(new ErrorResponse("Unable to generate Wallet Account"), HttpStatus.BAD_REQUEST);
+        }
+        String acct_ownership = null;
+        if (!walletUser.getCust_sex().equals("S")) {
+            if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+                    || product.getProduct_type().equals("ODA")) && !product.isStaff_product_flg()) {
+                acct_ownership = "C";
+                if (product.getProduct_type().equals("SBA")) {
+                    acctNo = "201" + rand;
+                    if (acctNo.length() < 10) {
+                        acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                    }
+                } else if (product.getProduct_type().equals("CAA")) {
+                    acctNo = "501" + rand;
+                    if (acctNo.length() < 10) {
+                        acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                    }
+                } else if (product.getProduct_type().equals("ODA")) {
+                    acctNo = "401" + rand;
+                    if (acctNo.length() < 10) {
+                        acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                    }
+                }
+            } else if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+                    || product.getProduct_type().equals("ODA")) && product.isStaff_product_flg()) {
+                acct_ownership = "E";
+                if (product.getProduct_type().equals("SBA")) {
+                    acctNo = "291" + rand;
+                    if (acctNo.length() < 10) {
+                        acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                    }
+                } else if (product.getProduct_type().equals("CAA")) {
+                    acctNo = "591" + rand;
+                    if (acctNo.length() < 10) {
+                        acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                    }
+                } else if (product.getProduct_type().equals("ODA")) {
+                    acctNo = "491" + rand;
+                    if (acctNo.length() < 10) {
+                        acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                    }
+                }
+            } else if ((product.getProductCode() == "OAB")) {
+                acct_ownership = "O";
+                acctNo = product.getCrncy_code() + "0000" + rand;
+            }
+            log.info("Processing createClientAccount2 {}, {}, {} ", walletUser, accountType, description);
+        } else {
+            if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+                    || product.getProduct_type().equals("ODA")) && !product.isStaff_product_flg()) {
+                acct_ownership = "C";
+                if (product.getProduct_type().equals("SBA")) {
+                    acctNo = "701" + rand;
+                    if (acctNo.length() < 10) {
+                        acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                    }
+                } else if (product.getProduct_type().equals("CAA")) {
+                    acctNo = "101" + rand;
+                    if (acctNo.length() < 10) {
+                        acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                    }
+                } else if (product.getProduct_type().equals("ODA")) {
+                    acctNo = "717" + rand;
+                    if (acctNo.length() < 10) {
+                        acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                    }
+                }
+            }
+            log.info("Processing createClientAccount2 {}, {}, {} ", walletUser, accountType, description);
+        }
+
+        String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, accountType);
+        log.info("Generated account number -----> {}", nubanAccountNumber);
+        try {
+            String hashed_no = reqUtil
+                    .WayaEncrypt(
+                            walletUser.getUserId() + "|" + acctNo + "|" + wayaProduct + "|" + product.getCrncy_code());
+            accountType = accountType == null ? "SAVINGS" : accountType;
+            description = description == null ? accountType.concat(" ACCOUNT") : description;
+            WalletAccount account = new WalletAccount();
+            if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+                    || product.getProduct_type().equals("ODA"))) {
+                account = new WalletAccount("0000", "", acctNo, nubanAccountNumber, walletUser.getCust_name(),
+                        walletUser,
+                        code.getGlSubHeadCode(), wayaProduct,
+                        acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
+                        LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
+                        product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
+                        product.getXfer_cr_limit(), !defaultAccount.isPresent(), accountType, description);
+            }
+
+            coreBankingService.createAccount(walletUser, account);
+            log.info("Created account in cor banking ");
+
+            WalletAccount caccount = new WalletAccount();
+            // Commission Wallet
+            log.info("Create commission account in progress:{}", walletUser);
+            if (walletUser.isCorporate() && !defaultAccount.isPresent()) {
+                String commisionName = "COMMISSION ACCOUNT";
+                Optional<WalletAccount> acct = walletAccountRepository.findFirstByProduct_codeAndUserAndAcct_nameLike(wayaProductCommission, walletUser);
+                if (!acct.isPresent()) {
+                    code = walletProductCodeRepository.findByProductGLCode(wayaProductCommission, wayaCommGLCode);
+                    product = walletProductRepository.findByProductCode(wayaProductCommission, wayaCommGLCode);
+                    if (!walletUser.getCust_sex().equals("S")) {
+                        acctNo = "901" + rand;
+                        if (acctNo.length() < 10) {
+                            acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                        }
+                    } else {
+                        acctNo = "621" + rand;
+                        if (acctNo.length() < 10) {
+                            acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                        }
+                    }
+                    log.info("Comission Account::{}", acctNo);
+                    hashed_no = reqUtil.WayaEncrypt(
+                            walletUser.getUserId() + "|" + acctNo + "|" + wayaProductCommission + "|"
+                                    + product.getCrncy_code());
+                    String acct_name = walletUser.getCust_name() + " " + commisionName;
+                    if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+                            || product.getProduct_type().equals("ODA"))) {
+                        caccount = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, walletUser,
+                                code.getGlSubHeadCode(),
+                                wayaProductCommission, acct_ownership, hashed_no, product.isInt_paid_flg(),
+                                product.isInt_coll_flg(), "WAYADMIN", LocalDate.now(), product.getCrncy_code(),
+                                product.getProduct_type(), product.isChq_book_flg(), product.getCash_dr_limit(),
+                                product.getXfer_dr_limit(), product.getCash_cr_limit(), product.getXfer_cr_limit(),
+                                false, accountType, description);
+                        log.info("Wallet commission account: {}", caccount);
+                    } else {
+                        log.error("Commission account not created");
+                    }
+
+                    coreBankingService.createAccount(walletUser, caccount);
+                    log.info("Commission account created: {}", caccount.getAccountNo());
+                }
+
+            }
+
+            if (!defaultAccount.isPresent()) {
+                CompletableFuture.runAsync(() -> userPricingService.createUserPricing(walletUser));
+            }
+            log.info("Client account created successfully");
+            return new ResponseEntity<>(new SuccessResponse("Account created successfully.", account),
+                    HttpStatus.CREATED);
+        } catch (Exception e) {
+
+            log.error("Error creating ClientAccount", e.getMessage());
+            e.printStackTrace();
+            return new ResponseEntity<>(new ErrorResponse(e.getLocalizedMessage()), HttpStatus.BAD_REQUEST);
+        }
+
+    }
     public ResponseEntity<?> createUser(HttpServletRequest request, UserDTO user, String token) {
         log.info("Received request to create user: {}", user);
 
@@ -609,6 +773,35 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
         log.info("Exiting createUserAccount method");
         return createClientAccount((WalletUser) response.getBody(), user.getAccountType(), user.getDescription());
+    }
+
+
+    public ResponseEntity<?> createUserAccount2(String clientId,String clientType,WalletUserDTO user, String token) {
+        log.info("Entering createUserAccount method");
+        String profileId = null;
+        if(user.getProfileId() != null)
+            profileId = user.getProfileId();
+
+        String profileAccountType = null;
+        if(user.getProfileType() != null)
+            profileAccountType = user.getProfileType();
+
+
+        // Creating a wayagram Account will not require creating a wallet user
+        // as we are using the Wayagram user to add merchants account under it
+        // at this point we will find the Wayagram user using the wayagram account number
+
+        //WalletAccount wayaGramAccount = this.findUserAccount(user.);
+        log.info("::WalletUserDTO {}",user);
+        ResponseEntity<?> response = createClient(clientId,clientType,user.getUserId(), token,profileId,profileAccountType);
+        log.info(":::CreateClient Response {} ", response);
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            log.error("ERROR CreateUserAccount::: {}", response);
+            return response;
+        }
+        // no Creation of user
+        log.info("Exiting createUserAccount method");
+        return createClientVirtualAccount((WalletUser) response.getBody(), user.getAccountType(), user.getDescription());
     }
 
     public ResponseEntity<?> createNubbanAccountAuto() {

@@ -21,7 +21,6 @@ public class VirtualAccountRequest {
     private String email;
     private String bvn;
     private String nin;
-
-    private String wayaGramAccount;
+    private String wayaGramAccountNumber;
 
 }

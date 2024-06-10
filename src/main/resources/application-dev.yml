@@ -1,6 +1,5 @@
-
 server:
-  port: 9009
+  port: 9191
   servlet:
     context-path: /temporal-service
 spring:
@@ -51,7 +50,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/temporal-service?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
     username: terseer_agbe
-    password: postgres
+    password: flints11
     driver-class-name: org.postgresql.Driver
   hikari:
     minimumIdle: 2

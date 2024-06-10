@@ -83,7 +83,7 @@ public class WalletTransactionController {
         return transAccountService.PostExternalMoney(request, transfer, userId);
     }
 
-    // Wallet call by other service
+    // Wallet call by other serviceƒ
     @ApiImplicitParams({
         @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true)})
     @ApiOperation(value = "Send Money to Wallet", notes = "Post Money", tags = {"TRANSACTION-WALLET"})
