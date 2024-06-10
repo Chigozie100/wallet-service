@@ -1,6 +1,5 @@
 package com.wayapaychat.temporalwallet.service.impl;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wayapaychat.temporalwallet.dto.AccountDetailDTO;
 import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
@@ -8,12 +7,10 @@ import com.wayapaychat.temporalwallet.dto.WalletUserDTO;
 import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.pojo.AppendToVirtualAccount;
-import com.wayapaychat.temporalwallet.pojo.VATransactionSearch;
 import com.wayapaychat.temporalwallet.pojo.VirtualAccountHookRequest;
 import com.wayapaychat.temporalwallet.pojo.VirtualAccountRequest;
 import com.wayapaychat.temporalwallet.repository.VirtualAccountRepository;
 import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
-import com.wayapaychat.temporalwallet.repository.WalletAcountVirtualRepository;
 import com.wayapaychat.temporalwallet.service.UserAccountService;
 import com.wayapaychat.temporalwallet.service.VirtualService;
 import com.wayapaychat.temporalwallet.util.ReqIPUtils;
@@ -282,7 +279,7 @@ public class VirtualServiceImpl implements VirtualService {
 
     private WalletAccount getWayaGrammAccount(VirtualAccountRequest account){
         try {
-            return userAccountService.findUserAccount(account.getWayaGramAccount());
+            return userAccountService.findUserAccount(account.getWayaGramAccountNumber());
         }catch (Exception ex){
             ex.printStackTrace();
         }

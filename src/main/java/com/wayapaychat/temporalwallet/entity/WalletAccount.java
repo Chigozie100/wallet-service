@@ -140,7 +140,7 @@ public class WalletAccount  implements Serializable {
 
 	private BigDecimal blockAmount;
 
-	private boolean isVirtualAccount = false;
+	private boolean isVirtualAccount;
 
 	@Column(nullable = true)
 	private String bvn;
