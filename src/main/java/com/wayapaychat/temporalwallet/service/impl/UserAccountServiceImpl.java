@@ -2125,8 +2125,10 @@ public class UserAccountServiceImpl implements UserAccountService {
                 account.setLien_amt(acctAmt);
                 account.setLien_reason(user.getLienReason());
                 account.setClr_bal_amt(account.getClr_bal_amt() + user.getLienAmount().doubleValue());
-
             }
+            double unClrbalAmt = account.getCum_cr_amt() - account.getCum_dr_amt();
+            account.setClr_bal_amt(Precision.round(unClrbalAmt - acctAmt, 2));
+            account.setUn_clr_bal_amt(Precision.round(unClrbalAmt, 2));
 
             WalletAccount account1 = walletAccountRepository.save(account);
             log.info("Actual Value " + account1);
