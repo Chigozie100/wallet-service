@@ -2786,7 +2786,10 @@ public class UserAccountServiceImpl implements UserAccountService {
             log.info("CountTotalAccountUser {}", countTotalAccountUser);
             log.info("NUMBER OF PAGES {}", numberOfPage);
             log.info("DATA SIZE PER PAGE {}", maxPerPage);
-            List<UserAccountStatsDto> userAccountStatsDtoList = new ArrayList<>();
+
+            List<UserAccountStatsDto> accumulatedUserAccountStatsDtoList = new ArrayList<>();
+            List<UserAccountStatsDto> simulatedUserAccountStatsDtoList = new ArrayList<>();
+
             for (int i = 0; i < numberOfPage; i++) {
                 Sort sort = Sort.by(Sort.Direction.DESC, "id");
                 Pageable pageable = PageRequest.of(i, maxPerPage, sort);
@@ -2810,43 +2813,52 @@ public class UserAccountServiceImpl implements UserAccountService {
                     BigDecimal totalOutgoing = BigDecimal.ZERO;
                     String acctNumber = "";
                     String acctType = "";
-                    for (WalletAccount acct : accountList) {
 
+                    for (WalletAccount acct : accountList) {
                         if (acct.isWalletDefault()) {
                             acctNumber = acct.getAccountNo();
                             acctType = acct.getAccountType();
                         }
                         BigDecimal revenue = walletTransAccountRepo.totalRevenueAmountByUser(acct.getAccountNo());
                         totalRevenue = totalRevenue.add(revenue == null ? BigDecimal.ZERO : revenue);
-                        // total outgoing
                         BigDecimal outgoing = walletTransRepo.totalWithdrawalByCustomer(acct.getAccountNo());
                         totalOutgoing = totalOutgoing.add(outgoing == null ? BigDecimal.ZERO : outgoing);
-                        // total incoming
                         BigDecimal incoming = walletTransRepo.totalDepositByCustomer(acct.getAccountNo());
                         totalIncoming = totalIncoming.add(incoming == null ? BigDecimal.ZERO : incoming);
-                        // total balance
                         BigDecimal totalBalance = walletAccountRepository.totalBalanceByUser(acct.getAccountNo());
                         totalTrans = totalTrans.add(totalBalance == null ? BigDecimal.ZERO : totalBalance);
-
                     }
+
                     userAccountStatsDto.setTotalIncoming(totalIncoming);
                     userAccountStatsDto.setTotalTrans(totalTrans);
                     userAccountStatsDto.setTotalOutgoing(totalOutgoing);
                     userAccountStatsDto.setTotalRevenue(totalRevenue);
                     userAccountStatsDto.setAccountNumber(acctNumber);
                     userAccountStatsDto.setAccountType(acctType);
-                    userAccountStatsDtoList.add(userAccountStatsDto);
 
+                    if (user.isSimulated()) {
+                        simulatedUserAccountStatsDtoList.add(userAccountStatsDto);
+                    } else {
+                        accumulatedUserAccountStatsDtoList.add(userAccountStatsDto);
+                    }
                 }
             }
-            log.info("UserAccountStatsDtoList {}", userAccountStatsDtoList);
-            return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "Record fetched....", userAccountStatsDtoList);
+
+            Map<String, List<UserAccountStatsDto>> responseMap = new HashMap<>();
+            responseMap.put("accumulatedUsers", accumulatedUserAccountStatsDtoList);
+            responseMap.put("simulatedUsers", simulatedUserAccountStatsDtoList);
+
+            log.info("Accumulated UserAccountStatsDtoList {}", accumulatedUserAccountStatsDtoList);
+            log.info("Simulated UserAccountStatsDtoList {}", simulatedUserAccountStatsDtoList);
+
+            return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "Records fetched....", responseMap);
         } catch (Exception ex) {
             log.error("Error FetchAllUsersTransactionAnalysis {}", ex.getLocalizedMessage());
             ex.printStackTrace();
             return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, ex.getMessage(), null);
         }
     }
+
 
     @Override
     public ApiResponse<?> fetchUserTransactionStatForReferral(String user_id, String accountNo, String profileId) {
