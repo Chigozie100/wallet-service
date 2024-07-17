@@ -2852,13 +2852,17 @@ public class UserAccountServiceImpl implements UserAccountService {
             log.info("Accumulated UserAccountStatsDtoList {}", accumulatedUserAccountStatsDtoList);
             log.info("Simulated UserAccountStatsDtoList {}", simulatedUserAccountStatsDtoList);
 
-            return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "Records fetched....", responseMap);
+            String accumulatedMessage = "Accumulated users: " + accumulatedUserAccountStatsDtoList.size();
+            String simulatedMessage = "Simulated users: " + simulatedUserAccountStatsDtoList.size();
+
+            return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "Records fetched. " + accumulatedMessage + " " + simulatedMessage, responseMap);
         } catch (Exception ex) {
             log.error("Error FetchAllUsersTransactionAnalysis {}", ex.getLocalizedMessage());
             ex.printStackTrace();
             return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, ex.getMessage(), null);
         }
     }
+
 
 
     @Override
