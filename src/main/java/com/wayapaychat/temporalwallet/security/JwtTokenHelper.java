@@ -1,10 +1,6 @@
 package com.wayapaychat.temporalwallet.security;
 
-import com.wayapaychat.temporalwallet.config.UserDetail;
 import com.wayapaychat.temporalwallet.pojo.MyData;
-import com.wayapaychat.temporalwallet.pojo.TokenCheckResponse;
-import com.wayapaychat.temporalwallet.proxy.AuthProxy;
-import feign.FeignException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
@@ -34,15 +30,13 @@ public class JwtTokenHelper implements Serializable {
     private String secret;
     private Key key;
 
-    private final AuthProxy authFeignClient;
-
 
     /**
      * retrieve username from jwt token
      * @param userDetail userObject from authService
      * @return subject
      */
-    public String getUsernameFromToken(UserDetail userDetail) {
+    public String getUsernameFromToken(MyData userDetail) {
 //        return getClaimFromToken(token, Claims::getSubject);
         return String.valueOf(userDetail.getId());
     }
@@ -79,12 +73,6 @@ public class JwtTokenHelper implements Serializable {
         return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
     }
 
-    public String getRoleFromToken(UserDetail userDetail){
-//        return getAllClaimsFromToken(token).get(ROLE, String.class);
-        List<String> roles = userDetail.getRoles();
-        return roles.isEmpty() ? "" : roles.get(0);
-    }
-
     /**
      * check if the token has expired
      * @param token jwt
@@ -93,20 +81,6 @@ public class JwtTokenHelper implements Serializable {
     private Boolean isTokenExpired(String token) {
         final Date expiration = getExpirationDateFromToken(token);
         return expiration.before(new Date());
-    }
-
-    public Optional<UserDetail> getUserDetail(String token, String clientId, String clientType){
-        if (Objects.isNull(token)){
-            return Optional.empty();
-        }
-        Optional<AuthResponse> authResponseOptional = Optional.empty();
-        try {
-            authResponseOptional = Optional.of(authFeignClient.getUserDataToken2(token,clientId,clientType));
-        } catch (FeignException exception) {
-            log.error("Unable to validate token : ", exception);
-            return Optional.empty();
-        }
-        return Optional.of(authResponseOptional.orElse(null).getData());
     }
 
     /**

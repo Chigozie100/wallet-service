@@ -4,7 +4,6 @@ package com.wayapaychat.temporalwallet.proxy;
 import com.waya.security.auth.pojo.SecureConstants;
 import com.wayapaychat.temporalwallet.config.SecurityConstants;
 import com.wayapaychat.temporalwallet.pojo.UserDtoResponse;
-import com.wayapaychat.temporalwallet.security.AuthResponse;
 import com.wayapaychat.temporalwallet.util.ApiResponse;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
@@ -25,9 +24,6 @@ public interface AuthProxy {
 
     @PostMapping("/pin/validate-pin")
     ApiResponse validatePostPin(@RequestBody HashMap request, @RequestHeader("Authorization") String token,@RequestHeader(SecurityConstants.CLIENT_ID) String clientId, @RequestHeader(SecurityConstants.CLIENT_TYPE) String clientType);
-
-    @PostMapping("/auth/validate-user")
-    AuthResponse getUserDataToken2(@RequestHeader("Authorization") String token, @RequestHeader(SecurityConstants.CLIENT_ID) String clientId, @RequestHeader(SecurityConstants.CLIENT_TYPE) String clientType);
 
     @PostMapping("/auth/validate-user")
 	TokenCheckResponse getUserDataToken(@RequestHeader("Authorization") String token, @RequestHeader(SecurityConstants.CLIENT_ID) String clientId, @RequestHeader(SecurityConstants.CLIENT_TYPE) String clientType);

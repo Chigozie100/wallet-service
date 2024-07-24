@@ -1,50 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration scan="true" scanPeriod="30 seconds">
-
-
-
-    <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
-        <resetJUL>true</resetJUL>
-    </contextListener>
-
-    <!-- To enable JMX Management -->
-    <jmxConfigurator/>
-
-    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%date{YYYY-MM-dd HH:mm:ss} %level [%thread] %logger{10}
-                [%file:%line] %msg%n</pattern>
-        </encoder>
-    </appender>
-
-    <!--    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">-->
-    <!--        <file>${catalina.home}/logs/third-party-integration-service/app.log</file>-->
-    <!--        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">-->
-    <!--            &lt;!&ndash; daily rollover &ndash;&gt;-->
-    <!--            <fileNamePattern>${catalina.home}/logs/third-party-integration-service/app.%d{yyyy-MM-dd}.%i.log</fileNamePattern>-->
-    <!--            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">-->
-    <!--                &lt;!&ndash; or whenever the file size reaches 50MB &ndash;&gt;-->
-    <!--                <maxFileSize>50MB</maxFileSize>-->
-    <!--            </timeBasedFileNamingAndTriggeringPolicy>-->
-    <!--            <maxHistory>30</maxHistory>-->
-    <!--        </rollingPolicy>-->
-    <!--        <encoder>-->
-    <!--            <pattern>%date{YYYY-MM-dd HH:mm:ss} %level [%thread] %logger{10}-->
-    <!--                [%file:%line] %msg%n</pattern>-->
-    <!--        </encoder>-->
-    <!--    </appender>-->
-
-
-
-    <logger name="com.wayapay" level="TRACE" additivity="false">
-        <appender-ref ref="console"/>
-    </logger>
-    <logger name="org.hibernate.stat" level="INFO" additivity="false">
-        <appender-ref ref="console"/>
-    </logger>
-
-    <root level="INFO">
-        <appender-ref ref="console"/>
-    </root>
-
-</configuration>
+<!DOCTYPE xml>
+<Configuration status="warn">
+    <Appenders>
+    	<!-- Console appender configuration -->
+        <Console name="console" target="SYSTEM_OUT">
+            <PatternLayout
+                pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
+        </Console>
+    </Appenders>
+    <Loggers>
+    	<!-- Root logger referring to console appender -->
+        <Root level="info" additivity="false">
+            <AppenderRef ref="console" />
+        </Root>
+    </Loggers>
+</Configuration>

@@ -100,18 +100,11 @@ public class VirtualServiceImpl implements VirtualService {
             // create a sub account for this user
             // get the WalletUser
             log.info("Creating virtual account...");
-            WalletUser businessObj = new WalletUser();
+            WalletUser businessObj = getUserWallet(account);
 
             // Get Wayagram Wallet
             WalletAccount wayaGramAcctNo = getWayaGrammAccount(account);
-
-            log.info("WAYAGRAM wayaGramAcctNo {} ", wayaGramAcctNo.getUser().getId());
-            if(wayaGramAcctNo == null){
-                throw new CustomException("provide WayaGrammAccount", HttpStatus.EXPECTATION_FAILED);
-            }
-            WalletUser wayaGramUser = getUserWalletById(wayaGramAcctNo.getUser().getId());
-              // create a sub account under the wayagram user
-            log.info("WAYAGRAM wayaGramUser {}", wayaGramUser);
+            WalletUser wayaGramUser = wayaGramAcctNo.getUser();   // create a sub account under the wayagram user
 
             WalletAccount walletAccount = userAccountService.createNubanAccountVersion2(wayaGramUser, businessObj, account);
             AccountDetailDTO accountDetailDTO = new AccountDetailDTO();
@@ -123,7 +116,6 @@ public class VirtualServiceImpl implements VirtualService {
             return new ResponseEntity<>(new SuccessResponse("Virtual Account created successfully", accountDetailDTO), HttpStatus.OK);
         } catch (Exception ex) {
             log.error("Error creating virtual account: {}", ex.getMessage());
-            System.out.println("ex-->" + ex.getMessage());
             throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
     }
@@ -279,15 +271,6 @@ public class VirtualServiceImpl implements VirtualService {
     private WalletUser getUserWallet(VirtualAccountRequest account){
         try {
             return userAccountService.findUserWalletByEmailAndPhone(account.getEmail());
-        }catch (Exception ex){
-            ex.printStackTrace();
-        }
-        return null;
-    }
-
-    private WalletUser getUserWalletById(Long id){
-        try {
-            return userAccountService.findById(id);
         }catch (Exception ex){
             ex.printStackTrace();
         }
