@@ -19,5 +19,4 @@ public class VirtualAccountSettings {
 
     private String accountNo;
 
-
 }

@@ -37,15 +37,16 @@ public class VirtualAccountController {
         this.virtualService = virtualService;
     }
 
+    //ROLE_API_KEY_USER
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+            @ApiImplicitParam(name = "Api-Key", value = "key", paramType = "header", required = true) })
     @ApiOperation(value = "Create a Virtual Account", hidden = false, tags = { "BANK-VIRTUAL-ACCOUNT" })
     @PostMapping(
             value = "/createVirtualAccount",
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP', 'ROLE_USER_OWNER')")
+    @PreAuthorize("hasAnyRole('ROLE_API_KEY_USER')")
     public CompletableFuture<ResponseEntity<SuccessResponse>> createVirtualAccount(@RequestBody VirtualAccountRequest accountRequest){
         log.info("Endpoint to create Virtual Account called !!! ---->> {}", accountRequest);
         return CompletableFuture.completedFuture(virtualService.createVirtualAccountVersion2(accountRequest));

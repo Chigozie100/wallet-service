@@ -104,6 +104,8 @@
 #     officialEmail: info@wayabank.ng
 #     officialPhone: 2347030355396
 #
+#virtualAccount:
+ # apikey: ${API_KEY:y7FQEePAceyfZ1NNi2VeXOMoHcl0X2dVRr8nvdEqw3IDMue72ImKNO427p70sMT5fcRjm-byW7xeQnf2__dfEQ}
 #kafka:
 #  bootstrapServers: http://localhost:9092
 #  groupId: waya

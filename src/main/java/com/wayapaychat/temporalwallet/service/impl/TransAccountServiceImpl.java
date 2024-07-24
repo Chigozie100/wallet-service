@@ -211,6 +211,8 @@ public class TransAccountServiceImpl implements TransAccountService {
 
         log.info("Transaction Request Creation: {}", transfer.toString());
 
+        log.info("Transaction Request: {}", transfer);
+
         TransferTransactionDTO transferTransactionDTO = null;
         String managementAccount;
 

@@ -165,5 +165,7 @@ public interface UserAccountService {
 
     WalletUser findUserWalletByEmailAndPhone(String email);
 
+    WalletUser findById(Long id);
+
     WalletAccount findUserAccount(String accountNo);
 }
