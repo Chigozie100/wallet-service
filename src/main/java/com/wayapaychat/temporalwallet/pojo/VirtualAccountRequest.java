@@ -14,13 +14,16 @@ public class VirtualAccountRequest {
 
     private String userId;
 
-    @NotBlank(message = "Account Name must not be null")
+    @NotBlank(message = "phone Number must not be null")
     private String phoneNumber;
 
-    @NotBlank(message = "Account Name must not be null")
+    @NotBlank(message = "email must not be null")
     private String email;
+
     private String bvn;
     private String nin;
+
+    @NotBlank(message = "wayaGram Account Number must not be null")
     private String wayaGramAccountNumber;
 
 }

@@ -683,19 +683,20 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
     }
 
+
     public WalletAccount createNubanAccountVersion2(WalletUser wayaGramUser, WalletUser businessObj, VirtualAccountRequest accountRequest) {
 
-        String acct_name = wayaGramUser.getCust_name().toUpperCase()+" "+"/ " +" "+accountRequest.getAccountName();
+        String acct_name = accountRequest.getAccountName().toUpperCase()+" "+"/ " +" "+accountRequest.getAccountName();
 
         WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
         WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
 
         String acct_ownership = null;
 
-        String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, businessObj.getAccountType());
+        String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, wayaGramUser.getAccountType());
         try {
             String hashed_no = reqUtil
-                    .WayaEncrypt(businessObj.getUserId() + "|" + nubanAccountNumber + "|" + wayaProduct + "|" + product.getCrncy_code());
+                    .WayaEncrypt(accountRequest.getUserId() + "|" + nubanAccountNumber + "|" + wayaProduct + "|" + product.getCrncy_code());
 
             WalletAccount account = new WalletAccount();
             if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
@@ -705,10 +706,10 @@ public class UserAccountServiceImpl implements UserAccountService {
                         acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
                         LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
                         product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
-                        product.getXfer_cr_limit(), false, businessObj.getAccountType(), "Virtual Account", true);
+                        product.getXfer_cr_limit(), false, wayaGramUser.getAccountType(), "Virtual Account", true);
             }
 
-            coreBankingService.createAccount(businessObj, account);
+            coreBankingService.createAccount(wayaGramUser, account);
             log.info("Exiting createNubanAccount method");
 
             return account;
@@ -3210,6 +3211,11 @@ public class UserAccountServiceImpl implements UserAccountService {
             return wallet.get();
         }
         return new WalletUser();
+    }
+
+    @Override
+    public WalletUser findById(Long id) {
+        return walletUserRepository.findById(id).orElse(new WalletUser());
     }
 
 
