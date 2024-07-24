@@ -48,9 +48,9 @@ spring:
     serialization:
       fail-on-empty-beans: false
   datasource:
-    url: jdbc:postgresql://localhost:55003/temporal-service
-    username: postgres
-    password: postgrespw
+    url: jdbc:postgresql://localhost:5432/temporal-service?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+    username: terseer_agbe
+    password: flints11
     driver-class-name: org.postgresql.Driver
   hikari:
     minimumIdle: 2
@@ -85,7 +85,7 @@ waya:
     base-url: https://google.com
   wallet:
     auth: AUTHENTICATION-SERVICE
-    authurl: ${CONFIG_BASEURL_AUTH:http://localhost:8012/auth-service/api/v1}
+    authurl: ${CONFIG_BASEURL_AUTH:https://services.staging.wayabank.ng/auth-service/api/v1}
     mifos: MIFOS-WALLET-SERVICE
     mifosurl: ${CONFIG_BASEURL_MWALLET:https://services.staging.wayabank.ng/middletier-service}
     productcode: ${CONFIG_PRODUCT_SAVINGS:SB601}
@@ -98,7 +98,7 @@ waya:
   
   secure:
     auth: AUTHENTICATION-SERVICE-API
-    authurl: http://localhost:8012/auth-service/api/v1
+    authurl: https://services.staging.wayabank.ng/auth-service/api/v1
     log: LOGGING-SERVICE-API
     logurl: https://services.staging.wayabank.ng/logs-service/api/v1
   card:
@@ -141,9 +141,6 @@ ofi:
 jwt:
   secret: ${AUTH_JWT_SECRET:2YuUlb+t36yVzrTkYLl8xBlBJSC41CE7uNF3somMDxdYDfcACv9JYIU54z17s4Ah313uKu/4Ll+vDNKpxx6v4Q== ##BvPHGM8C0ia4uOuxxqPD5DTbWC9F9TWvPStp3pb7ARo0oK2mJ3pd3YG4lxA9i8bj6OTbadwezxgeEByY}
   expiration: ${AUTH_JWT_EXPIRATION:31557600000}
-
-virtualAccount:
-  apikey: ${API_KEY:y7FQEePAceyfZ1NNi2VeXOMoHcl0X2dVRr8nvdEqw3IDMue72ImKNO427p70sMT5fcRjm-byW7xeQnf2__dfEQ}
 
 #mobile:
 #  app:

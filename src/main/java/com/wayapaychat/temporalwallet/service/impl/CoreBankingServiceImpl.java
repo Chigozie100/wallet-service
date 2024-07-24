@@ -261,7 +261,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             tranDebit.setTransChannel(transactionPojo.getTransactionChannel());
             walletTransactionRepository.saveAndFlush(tranDebit);
 
-            // check if user is corporate, then use the business name on the receipt
             CompletableFuture.runAsync(() -> sendTransactionNotification(Constant.DEBIT_TRANSACTION_ALERT,
                     accountDebit.getAcct_name(), transactionPojo, accountDebit.getClr_bal_amt(), "DR"));
 

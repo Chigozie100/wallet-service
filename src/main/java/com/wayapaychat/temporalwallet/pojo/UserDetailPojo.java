@@ -12,8 +12,7 @@ import java.util.List;
 import java.util.Set;
 
 @Data @AllArgsConstructor @NoArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@ToString
+@JsonInclude(JsonInclude.Include.NON_NULL) @ToString
 public class UserDetailPojo {
 
 	@JsonProperty("userId")
