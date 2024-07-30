@@ -1,4 +1,4 @@
-//package com.wayapaychat.temporalwallet.security;
-//
-//public class UserPrincipal {
-//}
+package com.wayapaychat.temporalwallet.security;
+
+public class UserPrincipal {
+}
