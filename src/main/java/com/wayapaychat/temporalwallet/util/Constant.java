@@ -40,7 +40,10 @@ public class Constant {
     public static final String SAVINGS_THREE = "savings 3";
 
     public static final String SAVINGS_TWO = "savings 2";
-
+    public static final String USERNAME = "username";
+    public static final String TOKEN = "token";
+    public static final String TOKEN_PREFIX = "serial ";
+    public static final String HEADER_STRING = "Authorization";
 
     public static final String TRANSACTION_PAYOUT = "Transaction Payout";
     public static final String TRANSACTION_REJECTED = "Transaction Rejected";

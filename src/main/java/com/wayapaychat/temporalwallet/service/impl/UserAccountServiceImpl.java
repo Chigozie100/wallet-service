@@ -66,7 +66,7 @@ public class UserAccountServiceImpl implements UserAccountService {
     private final SwitchWalletService switchWalletService;
     private final WalletTransactionRepository walletTransactionRepository;
     private final MessageQueueProducer messageQueueProducer;
-//    @Autowired
+    //    @Autowired
 //    private KafkaMessageConsumer kafkaMessageConsumer;
     @Autowired
     private ObjectMapper objectMapper;
@@ -102,14 +102,14 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     @Autowired
     public UserAccountServiceImpl(WalletUserRepository walletUserRepository,
-            WalletAccountRepository walletAccountRepository, WalletProductRepository walletProductRepository,
-            WalletProductCodeRepository walletProductCodeRepository, AuthUserServiceDAO authService, ReqIPUtils reqUtil,
-            ParamDefaultValidation paramValidation,
-            WalletTellerRepository walletTellerRepository, TemporalWalletDAO tempwallet,
-            WalletEventRepository walletEventRepo,
-            TokenImpl tokenService, UserPricingService userPricingService,
-            CoreBankingService coreBankingService, SwitchWalletService switchWalletService,
-            WalletTransactionRepository walletTransactionRepository, MessageQueueProducer messageQueueProducer) {
+                                  WalletAccountRepository walletAccountRepository, WalletProductRepository walletProductRepository,
+                                  WalletProductCodeRepository walletProductCodeRepository, AuthUserServiceDAO authService, ReqIPUtils reqUtil,
+                                  ParamDefaultValidation paramValidation,
+                                  WalletTellerRepository walletTellerRepository, TemporalWalletDAO tempwallet,
+                                  WalletEventRepository walletEventRepo,
+                                  TokenImpl tokenService, UserPricingService userPricingService,
+                                  CoreBankingService coreBankingService, SwitchWalletService switchWalletService,
+                                  WalletTransactionRepository walletTransactionRepository, MessageQueueProducer messageQueueProducer) {
         this.walletUserRepository = walletUserRepository;
         this.walletAccountRepository = walletAccountRepository;
         this.walletProductRepository = walletProductRepository;
@@ -331,7 +331,7 @@ public class UserAccountServiceImpl implements UserAccountService {
                     log.info("Comission Account::{}", acctNo);
                     hashed_no = reqUtil.WayaEncrypt(
                             walletUser.getUserId() + "|" + acctNo + "|" + wayaProductCommission + "|"
-                            + product.getCrncy_code());
+                                    + product.getCrncy_code());
                     String acct_name = walletUser.getCust_name() + " " + commisionName;
                     if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
                             || product.getProduct_type().equals("ODA"))) {
@@ -683,19 +683,20 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
     }
 
+
     public WalletAccount createNubanAccountVersion2(WalletUser wayaGramUser, WalletUser businessObj, VirtualAccountRequest accountRequest) {
 
-        String acct_name = wayaGramUser.getCust_name().toUpperCase()+" "+"/ " +" "+accountRequest.getAccountName();
+        String acct_name = accountRequest.getAccountName().toUpperCase()+" "+"/ " +" "+accountRequest.getAccountName();
 
         WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
         WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
 
         String acct_ownership = null;
 
-        String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, businessObj.getAccountType());
+        String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, wayaGramUser.getAccountType());
         try {
             String hashed_no = reqUtil
-                    .WayaEncrypt(businessObj.getUserId() + "|" + nubanAccountNumber + "|" + wayaProduct + "|" + product.getCrncy_code());
+                    .WayaEncrypt(accountRequest.getUserId() + "|" + nubanAccountNumber + "|" + wayaProduct + "|" + product.getCrncy_code());
 
             WalletAccount account = new WalletAccount();
             if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
@@ -705,10 +706,10 @@ public class UserAccountServiceImpl implements UserAccountService {
                         acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
                         LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
                         product.getCash_dr_limit(), product.getXfer_dr_limit(), product.getCash_cr_limit(),
-                        product.getXfer_cr_limit(), false, businessObj.getAccountType(), "Virtual Account", true);
+                        product.getXfer_cr_limit(), false, wayaGramUser.getAccountType(), "Virtual Account", true);
             }
 
-            coreBankingService.createAccount(businessObj, account);
+            coreBankingService.createAccount(wayaGramUser, account);
             log.info("Exiting createNubanAccount method");
 
             return account;
@@ -2510,9 +2511,9 @@ public class UserAccountServiceImpl implements UserAccountService {
                 response.put("debitLimit", String.valueOf(walletUser.get().getCust_debit_limit()));
                 for (WalletAccount walletAccount : walletUser.get().getAccount()) {
                     BigDecimal _totalTransactionToday = walletTransactionRepository
-                                                            .totalTransactionAmountToday(walletAccount.getAccountNo(), LocalDate.now());
-                    totalTransactionToday = _totalTransactionToday == null ? totalTransactionToday 
-                                                            : totalTransactionToday.add(_totalTransactionToday);
+                            .totalTransactionAmountToday(walletAccount.getAccountNo(), LocalDate.now());
+                    totalTransactionToday = _totalTransactionToday == null ? totalTransactionToday
+                            : totalTransactionToday.add(_totalTransactionToday);
                 }
             }
             response.put("totalTransactionToday", String.valueOf(totalTransactionToday.doubleValue()));
@@ -2786,10 +2787,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             log.info("CountTotalAccountUser {}", countTotalAccountUser);
             log.info("NUMBER OF PAGES {}", numberOfPage);
             log.info("DATA SIZE PER PAGE {}", maxPerPage);
-
-            List<UserAccountStatsDto> accumulatedUserAccountStatsDtoList = new ArrayList<>();
-            List<UserAccountStatsDto> simulatedUserAccountStatsDtoList = new ArrayList<>();
-
+            List<UserAccountStatsDto> userAccountStatsDtoList = new ArrayList<>();
             for (int i = 0; i < numberOfPage; i++) {
                 Sort sort = Sort.by(Sort.Direction.DESC, "id");
                 Pageable pageable = PageRequest.of(i, maxPerPage, sort);
@@ -2813,56 +2811,43 @@ public class UserAccountServiceImpl implements UserAccountService {
                     BigDecimal totalOutgoing = BigDecimal.ZERO;
                     String acctNumber = "";
                     String acctType = "";
-
                     for (WalletAccount acct : accountList) {
+
                         if (acct.isWalletDefault()) {
                             acctNumber = acct.getAccountNo();
                             acctType = acct.getAccountType();
                         }
                         BigDecimal revenue = walletTransAccountRepo.totalRevenueAmountByUser(acct.getAccountNo());
                         totalRevenue = totalRevenue.add(revenue == null ? BigDecimal.ZERO : revenue);
+                        // total outgoing
                         BigDecimal outgoing = walletTransRepo.totalWithdrawalByCustomer(acct.getAccountNo());
                         totalOutgoing = totalOutgoing.add(outgoing == null ? BigDecimal.ZERO : outgoing);
+                        // total incoming
                         BigDecimal incoming = walletTransRepo.totalDepositByCustomer(acct.getAccountNo());
                         totalIncoming = totalIncoming.add(incoming == null ? BigDecimal.ZERO : incoming);
+                        // total balance
                         BigDecimal totalBalance = walletAccountRepository.totalBalanceByUser(acct.getAccountNo());
                         totalTrans = totalTrans.add(totalBalance == null ? BigDecimal.ZERO : totalBalance);
-                    }
 
+                    }
                     userAccountStatsDto.setTotalIncoming(totalIncoming);
                     userAccountStatsDto.setTotalTrans(totalTrans);
                     userAccountStatsDto.setTotalOutgoing(totalOutgoing);
                     userAccountStatsDto.setTotalRevenue(totalRevenue);
                     userAccountStatsDto.setAccountNumber(acctNumber);
                     userAccountStatsDto.setAccountType(acctType);
+                    userAccountStatsDtoList.add(userAccountStatsDto);
 
-                    if (user.isSimulated()) {
-                        simulatedUserAccountStatsDtoList.add(userAccountStatsDto);
-                    } else {
-                        accumulatedUserAccountStatsDtoList.add(userAccountStatsDto);
-                    }
                 }
             }
-
-            Map<String, List<UserAccountStatsDto>> responseMap = new HashMap<>();
-            responseMap.put("accumulatedUsers", accumulatedUserAccountStatsDtoList);
-            responseMap.put("simulatedUsers", simulatedUserAccountStatsDtoList);
-
-            log.info("Accumulated UserAccountStatsDtoList {}", accumulatedUserAccountStatsDtoList);
-            log.info("Simulated UserAccountStatsDtoList {}", simulatedUserAccountStatsDtoList);
-
-            String accumulatedMessage = "Accumulated users: " + accumulatedUserAccountStatsDtoList.size();
-            String simulatedMessage = "Simulated users: " + simulatedUserAccountStatsDtoList.size();
-
-            return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "Records fetched. " + accumulatedMessage + " " + simulatedMessage, responseMap);
+            log.info("UserAccountStatsDtoList {}", userAccountStatsDtoList);
+            return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "Record fetched....", userAccountStatsDtoList);
         } catch (Exception ex) {
             log.error("Error FetchAllUsersTransactionAnalysis {}", ex.getLocalizedMessage());
             ex.printStackTrace();
             return new ApiResponse<>(false, ApiResponse.Code.BAD_REQUEST, ex.getMessage(), null);
         }
     }
-
-
 
     @Override
     public ApiResponse<?> fetchUserTransactionStatForReferral(String user_id, String accountNo, String profileId) {
@@ -3068,7 +3053,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             Integer rand = reqUtil.getAccountNo();
             String hashed_no = reqUtil.WayaEncrypt(
                     userId + "|" + acctNo + "|" + wayaProductCommission + "|"
-                    + "NGN");
+                            + "NGN");
 
             // check if user is corporate
             WalletUser walletUser = walletUserRepository.findByUserIdAndProfileId(userId,profileId);
@@ -3109,7 +3094,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
                     coreBankingService.createAccount(walletUser, caccount);
                     log.info("Commission account created: {}", caccount.getAccountNo());
-               return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "Successful", caccount);
+                    return new ApiResponse<>(true, ApiResponse.Code.SUCCESS, "Successful", caccount);
 
                 }
                 log.error("Commission account exist for user");
@@ -3210,6 +3195,11 @@ public class UserAccountServiceImpl implements UserAccountService {
             return wallet.get();
         }
         return new WalletUser();
+    }
+
+    @Override
+    public WalletUser findById(Long id) {
+        return walletUserRepository.findById(id).orElse(new WalletUser());
     }
 
 
