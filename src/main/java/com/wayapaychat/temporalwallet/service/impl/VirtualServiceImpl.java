@@ -1,5 +1,4 @@
 package com.wayapaychat.temporalwallet.service.impl;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wayapaychat.temporalwallet.dto.AccountDetailDTO;
 import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
@@ -100,11 +99,18 @@ public class VirtualServiceImpl implements VirtualService {
             // create a sub account for this user
             // get the WalletUser
             log.info("Creating virtual account...");
-            WalletUser businessObj = getUserWallet(account);
+            WalletUser businessObj = new WalletUser();
 
             // Get Wayagram Wallet
             WalletAccount wayaGramAcctNo = getWayaGrammAccount(account);
-            WalletUser wayaGramUser = wayaGramAcctNo.getUser();   // create a sub account under the wayagram user
+
+            log.info("WAYAGRAM wayaGramAcctNo {} ", Objects.requireNonNull(wayaGramAcctNo).getUser().getId());
+            if(wayaGramAcctNo == null){
+                throw new CustomException("provide WayaGrammAccount", HttpStatus.EXPECTATION_FAILED);
+            }
+            WalletUser wayaGramUser = getUserWalletById(wayaGramAcctNo.getUser().getId());
+            // create a sub account under the wayagram user
+            log.info("WAYAGRAM wayaGramUser {}", wayaGramUser);
 
             WalletAccount walletAccount = userAccountService.createNubanAccountVersion2(wayaGramUser, businessObj, account);
             AccountDetailDTO accountDetailDTO = new AccountDetailDTO();
@@ -116,6 +122,7 @@ public class VirtualServiceImpl implements VirtualService {
             return new ResponseEntity<>(new SuccessResponse("Virtual Account created successfully", accountDetailDTO), HttpStatus.OK);
         } catch (Exception ex) {
             log.error("Error creating virtual account: {}", ex.getMessage());
+            System.out.println("ex-->" + ex.getMessage());
             throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
     }
@@ -227,8 +234,8 @@ public class VirtualServiceImpl implements VirtualService {
         //String reference, String amount, String narration, String crAccountName, String bankName, String drAccountName, String crAccount, String bankCode
         try{
 
-        String str = ReqIPUtils.decrypt(obj);
-        return new SuccessResponse("Data retrieved successfully", str);
+            String str = ReqIPUtils.decrypt(obj);
+            return new SuccessResponse("Data retrieved successfully", str);
         }catch (Exception ex){
             throw new CustomException("Error " +ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
@@ -271,6 +278,15 @@ public class VirtualServiceImpl implements VirtualService {
     private WalletUser getUserWallet(VirtualAccountRequest account){
         try {
             return userAccountService.findUserWalletByEmailAndPhone(account.getEmail());
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
+        return null;
+    }
+
+    private WalletUser getUserWalletById(Long id){
+        try {
+            return userAccountService.findById(id);
         }catch (Exception ex){
             ex.printStackTrace();
         }
