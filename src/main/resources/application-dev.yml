@@ -48,9 +48,9 @@ spring:
     serialization:
       fail-on-empty-beans: false
   datasource:
-    url: jdbc:postgresql://localhost:5432/temporal-service?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
-    username: terseer_agbe
-    password: flints11
+    url: jdbc:postgresql://localhost:55000/temporal-service
+    username: postgres
+    password: postgrespw
     driver-class-name: org.postgresql.Driver
   hikari:
     minimumIdle: 2
