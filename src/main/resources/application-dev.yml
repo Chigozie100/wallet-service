@@ -143,7 +143,7 @@ jwt:
   expiration: ${AUTH_JWT_EXPIRATION:31557600000}
 
 virtualAccount:
-  apikey: ${API_KEY:y7FQEePAceyfZ1NNi2VeXOMoHcl0X2dVRr8nvdEqw3IDMue72ImKNO427p70sMT5fcRjm-byW7xeQnf2__dfEQ}
+
 #mobile:
 #  app:
 #    store: https://wayabank.ng/
