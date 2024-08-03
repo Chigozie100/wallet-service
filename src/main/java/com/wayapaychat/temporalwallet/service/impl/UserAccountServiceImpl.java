@@ -709,7 +709,8 @@ public class UserAccountServiceImpl implements UserAccountService {
                         product.getXfer_cr_limit(), false, wayaGramUser.getAccountType(), "Virtual Account", true);
             }
 
-            coreBankingService.createAccount(wayaGramUser, account);
+            WalletAccount finalAccount = account;
+            CompletableFuture.runAsync(() -> coreBankingService.createAccount(wayaGramUser, finalAccount));
             log.info("Exiting createNubanAccount method");
 
             return account;

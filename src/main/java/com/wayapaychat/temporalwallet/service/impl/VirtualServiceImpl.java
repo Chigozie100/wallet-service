@@ -104,18 +104,14 @@ public class VirtualServiceImpl implements VirtualService {
             // Get Wayagram Wallet
             WalletAccount wayaGramAcctNo = getWayaGrammAccount(account);
 
-            System.out.println("wayaGramAcctNo HERE = > " + wayaGramAcctNo);
-
             log.info("WAYAGRAM wayaGramAcctNo {} ", Objects.requireNonNull(wayaGramAcctNo).getUser().getId());
             if(wayaGramAcctNo == null){
                 throw new CustomException("provide WayaGrammAccount", HttpStatus.EXPECTATION_FAILED);
             }
             WalletUser wayaGramUser = getUserWalletById(wayaGramAcctNo.getUser().getId());
 
-            System.out.println("wayaGramAcctNo wayaGramUser = > " + wayaGramUser);
-
             // create a sub account under the wayagram user
-            log.info("WAYAGRAM wayaGramUser {}", wayaGramUser);
+            log.info("wayaGramUser {}", wayaGramUser);
 
             WalletAccount walletAccount = userAccountService.createNubanAccountVersion2(wayaGramUser, businessObj, account);
             AccountDetailDTO accountDetailDTO = new AccountDetailDTO();

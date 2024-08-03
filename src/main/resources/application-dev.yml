@@ -98,7 +98,7 @@ waya:
   
   secure:
     auth: AUTHENTICATION-SERVICE-API
-    authurl: https://services.staging.wayabank.ng/auth-service/api/v1
+    authurl: localhost:8012/auth-service/api/v1 #https://services.staging.wayabank.ng/auth-service/api/v1
     log: LOGGING-SERVICE-API
     logurl: https://services.staging.wayabank.ng/logs-service/api/v1
   card:
