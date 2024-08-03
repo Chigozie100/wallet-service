@@ -46,10 +46,10 @@ public class VirtualAccountController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
-    @PreAuthorize("hasAnyRole('ROLE_USER_OWNER', 'ROLE_ADMIN_APP')")
-    public CompletableFuture<ResponseEntity<SuccessResponse>> createVirtualAccount(@RequestBody VirtualAccountRequest accountRequest){
+    @PreAuthorize("hasAnyRole('ROLE_USER_OWNER', 'ROLE_ADMIN_APP', 'ROLE_USER_ADMIN')")
+    public ResponseEntity<SuccessResponse> createVirtualAccount(@RequestBody VirtualAccountRequest accountRequest){
         log.info("Endpoint to create Virtual Account called !!! ---->> {}", accountRequest);
-        return CompletableFuture.completedFuture(virtualService.createVirtualAccountVersion2(accountRequest));
+        return virtualService.createVirtualAccountVersion2(accountRequest);
     }
 
     @ApiImplicitParams({
