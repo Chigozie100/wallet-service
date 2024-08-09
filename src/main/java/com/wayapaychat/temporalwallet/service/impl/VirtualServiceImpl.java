@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wayapaychat.temporalwallet.dto.AccountDetailDTO;
 import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
+import com.wayapaychat.temporalwallet.dto.NotificationDto;
 import com.wayapaychat.temporalwallet.dto.WalletUserDTO;
 import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.exception.CustomException;
@@ -70,6 +71,8 @@ public class VirtualServiceImpl implements VirtualService {
         }
     }
 
+
+
     @Override
     public void transactionWebhookData() {
 
@@ -104,7 +107,7 @@ public class VirtualServiceImpl implements VirtualService {
             // Get Wayagram Wallet
             WalletAccount wayaGramAcctNo = getWayaGrammAccount(account);
 
-            log.info("WAYAGRAM wayaGramAcctNo {} ", Objects.requireNonNull(wayaGramAcctNo).getUser().getId());
+            log.info("WAYAGRAM User ID {} ", Objects.requireNonNull(wayaGramAcctNo).getUser().getId());
             if(wayaGramAcctNo == null){
                 throw new CustomException("provide WayaGrammAccount", HttpStatus.EXPECTATION_FAILED);
             }
@@ -119,7 +122,7 @@ public class VirtualServiceImpl implements VirtualService {
                 accountDetailDTO = getResponse(walletAccount.getNubanAccountNo());
             }
 
-            log.info("Virtual account created successfully.");
+            log.info("Virtual account created successfully.", accountDetailDTO);
             return new ResponseEntity<>(new SuccessResponse("Virtual Account created successfully", accountDetailDTO), HttpStatus.OK);
         } catch (Exception ex) {
             log.error("Error creating virtual account: {}", ex.getMessage());

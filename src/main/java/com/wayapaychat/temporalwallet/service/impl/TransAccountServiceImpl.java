@@ -222,7 +222,9 @@ public class TransAccountServiceImpl implements TransAccountService {
 
         if(isVirtualAccount(transfer.getCustomerAccountNumber()) && TransactionChannel.NIP_FUNDING.equals(transfer.getEventId())) {
 
+            //If it is a virtual account get the default account for the business and credit it.
             Optional<WalletAccount> walletAccount = walletAccountRepository.findByAccount(transfer.getCustomerAccountNumber());
+
             if(walletAccount.isPresent() ){
                 transfer.setCustomerAccountNumber(getDefaultAccount(walletAccount.get().getUser()));
             }

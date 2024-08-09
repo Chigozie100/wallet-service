@@ -25,6 +25,8 @@ public interface CoreBankingService {
 
     ResponseEntity<?> createAccount(WalletUser userInfo, WalletAccount sAcct);
 
+    WalletAccount createAccountExtension(WalletUser userInfo, WalletAccount sAcct);
+
     ResponseEntity<?> getAccountDetails(String accountNo);
 
     ResponseEntity<?> creditAccount(CBAEntryTransaction transactionPojo);
