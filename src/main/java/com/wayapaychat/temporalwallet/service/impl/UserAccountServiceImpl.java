@@ -688,12 +688,89 @@ public class UserAccountServiceImpl implements UserAccountService {
 
         String acct_name = accountRequest.getAccountName().toUpperCase()+" "+"/ " +" "+accountRequest.getAccountName();
 
+        System.out.println("createNubanAccountVersion2" + wayaGramUser);
+        System.out.println("createNubanAccountVersion2 businessObj" + businessObj);
+
         WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
         WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
 
         String acct_ownership = null;
+        String acctNo = null;
+        Integer rand = reqUtil.getAccountNo();
+        if (rand == 0) {
+            log.info("Unable to generate Wallet Account");
+            return null;
+        }
+
+        if (!wayaGramUser.getCust_sex().equals("S")) {
+            if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+                    || product.getProduct_type().equals("ODA")) && !product.isStaff_product_flg()) {
+                acct_ownership = "C";
+                if (product.getProduct_type().equals("SBA")) {
+                    acctNo = "201" + rand;
+                    if (acctNo.length() < 10) {
+                        acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                    }
+                } else if (product.getProduct_type().equals("CAA")) {
+                    acctNo = "501" + rand;
+                    if (acctNo.length() < 10) {
+                        acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                    }
+                } else if (product.getProduct_type().equals("ODA")) {
+                    acctNo = "401" + rand;
+                    if (acctNo.length() < 10) {
+                        acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                    }
+                }
+            } else if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+                    || product.getProduct_type().equals("ODA")) && product.isStaff_product_flg()) {
+                acct_ownership = "E";
+                if (product.getProduct_type().equals("SBA")) {
+                    acctNo = "291" + rand;
+                    if (acctNo.length() < 10) {
+                        acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                    }
+                } else if (product.getProduct_type().equals("CAA")) {
+                    acctNo = "591" + rand;
+                    if (acctNo.length() < 10) {
+                        acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                    }
+                } else if (product.getProduct_type().equals("ODA")) {
+                    acctNo = "491" + rand;
+                    if (acctNo.length() < 10) {
+                        acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                    }
+                }
+            } else if ((product.getProductCode() == "OAB")) {
+                acct_ownership = "O";
+                acctNo = product.getCrncy_code() + "0000" + rand;
+            }
+        } else {
+            if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
+                    || product.getProduct_type().equals("ODA")) && !product.isStaff_product_flg()) {
+                acct_ownership = "C";
+                if (product.getProduct_type().equals("SBA")) {
+                    acctNo = "701" + rand;
+                    if (acctNo.length() < 10) {
+                        acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                    }
+                } else if (product.getProduct_type().equals("CAA")) {
+                    acctNo = "101" + rand;
+                    if (acctNo.length() < 10) {
+                        acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                    }
+                } else if (product.getProduct_type().equals("ODA")) {
+                    acctNo = "717" + rand;
+                    if (acctNo.length() < 10) {
+                        acctNo = StringUtils.rightPad(acctNo, 10, "0");
+                    }
+                }
+            }
+        }
 
         String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, wayaGramUser.getAccountType());
+
+        System.out.println("createNubanAccountVersion2 nubanAccountNumber" + nubanAccountNumber);
         try {
             String hashed_no = reqUtil
                     .WayaEncrypt(accountRequest.getUserId() + "|" + nubanAccountNumber + "|" + wayaProduct + "|" + product.getCrncy_code());
@@ -701,7 +778,7 @@ public class UserAccountServiceImpl implements UserAccountService {
             WalletAccount account = new WalletAccount();
             if ((product.getProduct_type().equals("SBA") || product.getProduct_type().equals("CAA")
                     || product.getProduct_type().equals("ODA"))) {
-                account = new WalletAccount("0000", "", "", nubanAccountNumber, acct_name, wayaGramUser,
+                account = new WalletAccount("0000", "", acctNo, nubanAccountNumber, acct_name, wayaGramUser,
                         code.getGlSubHeadCode(), wayaProduct,
                         acct_ownership, hashed_no, product.isInt_paid_flg(), product.isInt_coll_flg(), "WAYADMIN",
                         LocalDate.now(), product.getCrncy_code(), product.getProduct_type(), product.isChq_book_flg(),
@@ -709,11 +786,11 @@ public class UserAccountServiceImpl implements UserAccountService {
                         product.getXfer_cr_limit(), false, wayaGramUser.getAccountType(), "Virtual Account", true);
             }
 
-            WalletAccount finalAccount = account;
-            CompletableFuture.runAsync(() -> coreBankingService.createAccount(wayaGramUser, finalAccount));
-            log.info("Exiting createNubanAccount method");
 
-            return account;
+            WalletAccount response = coreBankingService.createAccountExtension(wayaGramUser, account);
+            log.info("Exiting: {}", response);
+
+            return response;
         } catch (Exception e) {
             throw new CustomException(e.getLocalizedMessage(), HttpStatus.EXPECTATION_FAILED);
 

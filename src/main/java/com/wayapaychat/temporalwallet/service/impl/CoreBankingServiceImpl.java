@@ -160,6 +160,33 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         return new ResponseEntity<>(new SuccessResponse("Account Created Successfully.", sAcct), HttpStatus.CREATED);
     }
 
+    public WalletAccount createAccountExtension(WalletUser userInfo, WalletAccount sAcct) {
+        log.info("createAccount: {}", sAcct.getAccountNo(), sAcct.getAcct_name());
+        Provider provider = switchWalletService.getActiveProvider();
+        if (provider == null) {
+            log.error("No provider available");
+            return null;
+        }
+        System.out.println(" PROVIDE==> " + provider);
+        CompletableFuture.runAsync(() -> {
+            try {
+                ResponseEntity<?> response = externalCBACreateAccount(userInfo, sAcct, provider);
+                if (!response.getStatusCode().is2xxSuccessful()) {
+                    log.error("External CBA failed to process create account: {}", sAcct);
+                    // Handle the error case or return an alternative response
+                    return;
+                }
+                // Process the response if needed
+            } catch (Exception e) {
+                log.error("Exception while processing create account request: ", e);
+                // Handle the exception
+            }
+        });
+
+
+        return walletAccountRepository.save(sAcct);
+    }
+
     public ResponseEntity<?> getAccountDetails(String accountNo) {
         ResponseEntity<?> response = securityCheckOwner(accountNo);
         if (!response.getStatusCode().is2xxSuccessful()) {
