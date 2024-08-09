@@ -1,8 +1,5 @@
 package com.wayapaychat.temporalwallet.controller;
 
-import com.wayapaychat.temporalwallet.dto.NotificationDto;
-import com.wayapaychat.temporalwallet.exception.CustomException;
-import com.wayapaychat.temporalwallet.pojo.VATransactionSearch;
 import com.wayapaychat.temporalwallet.pojo.VirtualAccountHookRequest;
 import com.wayapaychat.temporalwallet.pojo.VirtualAccountRequest;
 import com.wayapaychat.temporalwallet.service.VirtualService;
