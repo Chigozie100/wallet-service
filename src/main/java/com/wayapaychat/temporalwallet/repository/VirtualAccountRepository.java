@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.repository;
 
 import com.wayapaychat.temporalwallet.entity.VirtualAccountHook;
 import com.wayapaychat.temporalwallet.entity.VirtualAccountTransactions;
+import com.wayapaychat.temporalwallet.entity.WalletTransaction;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -17,5 +18,6 @@ public interface VirtualAccountRepository extends JpaRepository<VirtualAccountTr
 
     @Query("SELECT v FROM VirtualAccountTransactions v " + "WHERE UPPER(v.creditAccountNumber) = UPPER(:accountNo) "+" AND v.createdAt BETWEEN  (:fromtranDate)" + " AND (:totranDate)" + " order by v.createdAt DESC ")
     Page<VirtualAccountTransactions> findAllByDateRange(LocalDate fromtranDate, LocalDate totranDate, String accountNo, Pageable pageable);
+
 
 }

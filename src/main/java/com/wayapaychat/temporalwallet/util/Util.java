@@ -2,7 +2,6 @@ package com.wayapaychat.temporalwallet.util;
 
 import com.waya.security.auth.pojo.UserIdentityData;
 import com.wayapaychat.temporalwallet.SpringApplicationContext;
-import com.wayapaychat.temporalwallet.dto.AuthData;
 import com.wayapaychat.temporalwallet.dto.ServiceResponse;
 import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.exception.CustomException;
@@ -12,12 +11,8 @@ import com.wayapaychat.temporalwallet.notification.EmailRecipient;
 import com.wayapaychat.temporalwallet.pojo.MyData;
 import com.wayapaychat.temporalwallet.proxy.NotificationProxy;
 import com.wayapaychat.temporalwallet.repository.WalletUserRepository;
-import com.wayapaychat.temporalwallet.security.JwtTokenHelper;
-
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Base64Utils;

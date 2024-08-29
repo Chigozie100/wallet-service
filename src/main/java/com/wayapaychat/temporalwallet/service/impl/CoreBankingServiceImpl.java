@@ -121,6 +121,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             if (ProviderType.MIFOS.equalsIgnoreCase(provider.getName())) {
                 externalResponse = mifosWalletProxy.createAccount(createAccountRequest);
             } else {
+                System.out.println("HERE ===> " + createAccountRequest);
                 externalResponse = new ExternalCBAAccountCreationResponse(ExternalCBAResponseCodes.R_00);
             }
         } catch (Exception e) {
@@ -167,14 +168,13 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             log.error("No provider available");
             return null;
         }
-        System.out.println(" PROVIDE==> " + provider);
+     
         CompletableFuture.runAsync(() -> {
             try {
                 ResponseEntity<?> response = externalCBACreateAccount(userInfo, sAcct, provider);
                 if (!response.getStatusCode().is2xxSuccessful()) {
                     log.error("External CBA failed to process create account: {}", sAcct);
                     // Handle the error case or return an alternative response
-                    return;
                 }
                 // Process the response if needed
             } catch (Exception e) {
@@ -408,7 +408,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             CBAAction.MOVE_GL_TO_GL, transferTransactionRequestData.getTransactionChannel()));
             customerAccount = transferTransactionRequestData.getDebitAccountNumber();
         } else if (transferTransactionRequestData.getDebitAccountNumber().length() > 10
-                && transferTransactionRequestData.getBenefAccountNumber().length() == 10) {
+                && transferTransactionRequestData.getBenefAccountNumber().length() == 10){
             response = processCBACustomerDepositTransactionWithDoubleEntryTransit(
                     new CBATransaction(senderName, receiverName, userData,
                             transferTransactionRequestData.getPaymentReference(), transitAccount,
@@ -452,6 +452,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             customerAccount = transferTransactionRequestData.getDebitAccountNumber();
         }
 
+
         WalletTransStatus transactionStatus = response.getStatusCode().is2xxSuccessful() ? WalletTransStatus.SUCCESSFUL
                 : WalletTransStatus.REVERSED;
         log.info("Transaction status: {}", transactionStatus);
@@ -468,12 +469,14 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             log.error("Transaction processing failed......");
         }
 
-        updateTransactionLog(tranId, transactionStatus);
-
         Optional<List<WalletTransaction>> transaction = walletTransactionRepository
                 .findByReferenceAndAccount(transferTransactionRequestData.getPaymentReference(), customerAccount);
 
         if (WalletTransStatus.SUCCESSFUL.equals(transactionStatus) && transaction.isPresent()) {
+            updateTransactionLog(tranId, transactionStatus);
+            if(TransactionChannel.NIP_FUNDING.equals(channelEventId)){
+                updateVirtualTransactionLog(tranId,transactionStatus);
+            }
             log.info("Retrieving transaction details...");
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue(), transaction),
                     HttpStatus.CREATED);
@@ -853,12 +856,31 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     public void updateTransactionLog(Long tranId, WalletTransStatus status) {
         log.info("Updating transaction log for transaction ID: {}", tranId);
         try {
+
             Optional<WalletTransAccount> walletTransAccount = walletTransAccountRepository.findById(tranId);
             if (walletTransAccount.isPresent()) {
                 WalletTransAccount walletTransAccount1 = walletTransAccount.get();
                 walletTransAccount1.setStatus(status);
                 walletTransAccountRepository.save(walletTransAccount1);
                 log.info("Transaction log updated successfully for transaction ID: {}", tranId);
+            } else {
+                log.error("Transaction with ID {} not found for updating", tranId);
+            }
+        } catch (CustomException ex) {
+            log.error("An error occurred while updating transaction log: {}", ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+
+    public void updateVirtualTransactionLog(Long tranId, WalletTransStatus status) {
+        log.info("Updating virtual transaction log for transaction ID: {}", tranId);
+        try {
+            Optional<VirtualAccountTransactions> walletTransAccount = virtualAccountTransactionsRepository.findById(tranId);
+            if (walletTransAccount.isPresent()) {
+                VirtualAccountTransactions walletTransAccount1 = walletTransAccount.get();
+                walletTransAccount1.setStatus(status);
+                virtualAccountTransactionsRepository.save(walletTransAccount1);
+                log.info("Virtual account Transaction log updated successfully for transaction ID: {}", tranId);
             } else {
                 log.error("Transaction with ID {} not found for updating", tranId);
             }

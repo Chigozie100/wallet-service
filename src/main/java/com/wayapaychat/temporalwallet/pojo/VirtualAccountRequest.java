@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.pojo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -21,6 +22,8 @@ public class VirtualAccountRequest {
     private String email;
     private String bvn;
     private String nin;
-    private String wayaGramAccountNumber;
+
+    @JsonProperty("merchantAccountNumber")
+    private String wayaGramAccountNumber;  //wayaGramAccountNumber
 
 }
