@@ -81,7 +81,7 @@ public class VirtualAccountController {
     )
     @Async
     @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP', 'ROLE_USER_MERCHANT')")
-    public CompletableFuture<ResponseEntity<?>> registerWebhookUrl(@RequestBody VirtualAccountHookRequest accountRequest){
+    public CompletableFuture<ResponseEntity<SuccessResponse>> registerWebhookUrl(@RequestBody VirtualAccountHookRequest accountRequest){
         log.info("Endpoint to get register web hook URL called !!! ---->> {}", accountRequest);
         return CompletableFuture.completedFuture(virtualService.registerWebhookUrl(accountRequest));
     }

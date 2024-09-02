@@ -1,6 +1,7 @@
 package com.wayapaychat.temporalwallet.service;
 
 import com.wayapaychat.temporalwallet.config.DynamicUrlInterceptor;
+import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.entity.Transactions;
 import com.wayapaychat.temporalwallet.entity.VirtualAccountSettings;
 import com.wayapaychat.temporalwallet.entity.WebhookLogs;
@@ -34,8 +35,8 @@ public class WebhookService {
             value = {Exception.class},
             maxAttempts = 3,
             backoff = @Backoff(delay = 5000))
-    public void sendWebhookNotification(WebhookPayload payload, Transactions transaction) {
-        VirtualAccountSettings virtualAccountSettings = getWebhookDetails(transaction.getWalletId());
+    public void sendWebhookNotification(WebhookPayload payload, TransferTransactionDTO transaction) {
+        VirtualAccountSettings virtualAccountSettings = getWebhookDetails(transaction.getBenefAccountNumber());
         if(virtualAccountSettings == null || virtualAccountSettings.getCallbackUrl() ==null || virtualAccountSettings.getCallbackUrl().isEmpty()){
             throw new RuntimeException("No webhook URL found for merchant ID: " + payload.getMerchantId());
         }
@@ -50,24 +51,24 @@ public class WebhookService {
 
             if (response.getStatusCode().is2xxSuccessful()) {
                 // Log success
-                logWebhookSuccess(transaction, webhookUrl, response.getStatusCodeValue(), response.getBody());
+                logWebhookSuccess(payload, webhookUrl, response.getStatusCodeValue(), response.getBody());
             } else {
                 // Log failure
-                logWebhookFailure(transaction, webhookUrl, response.getStatusCodeValue(), response.getBody());
+                logWebhookFailure(payload, webhookUrl, response.getStatusCodeValue(), response.getBody());
                 throw new RuntimeException("Failed to send webhook: Non-2xx response");
             }
 
         } catch (Exception e) {
             // Log failure and retry
-            logWebhookFailure(transaction, webhookUrl, HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
+            logWebhookFailure(payload, webhookUrl, HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage());
             throw e; // This will trigger the retry
         }
     }
 
-    private void logWebhookSuccess(Transactions transaction, String webhookUrl, int status, String responseBody) {
+    private void logWebhookSuccess(WebhookPayload transaction, String webhookUrl, int status, String responseBody) {
         WebhookLogs log = new WebhookLogs();
-        log.setMerchantId(transaction.getWalletId()); //transaction.getMerchantId()
-        log.setTransactionId(transaction.getId());
+        log.setMerchantId(transaction.getMerchantId()); //transaction.getMerchantId()
+        log.setTransactionId(Long.parseLong(transaction.getTransactionId()));
         log.setWebhookUrl(webhookUrl);
         log.setResponseStatus(status);
         log.setResponseBody(responseBody);
@@ -75,10 +76,10 @@ public class WebhookService {
         webhookLogRepository.save(log);
     }
 
-    private void logWebhookFailure(Transactions transaction, String webhookUrl, int status, String responseBody) {
+    private void logWebhookFailure(WebhookPayload transaction, String webhookUrl, int status, String responseBody) {
         WebhookLogs log = new WebhookLogs();
-        log.setMerchantId(transaction.getWalletId()); //transaction.getMerchantId()
-        log.setTransactionId(transaction.getId());
+        log.setMerchantId(transaction.getMerchantId()); //transaction.getMerchantId()
+        log.setTransactionId(Long.parseLong(transaction.getTransactionId()));
         log.setWebhookUrl(webhookUrl);
         log.setResponseStatus(status);
         log.setResponseBody(responseBody);
@@ -86,9 +87,9 @@ public class WebhookService {
         webhookLogRepository.save(log);
     }
 
-    private VirtualAccountSettings getWebhookDetails(Long merchantId){
+    private VirtualAccountSettings getWebhookDetails(String accountNo){
        Optional<VirtualAccountSettings> virtualAccountSettings =
-               virtualAccountSettingRepository.findByMerchantId(merchantId);
+               virtualAccountSettingRepository.findByAccountNo(accountNo);
 
        if(!virtualAccountSettings.isPresent())
            throw new CustomException("Error", HttpStatus.EXPECTATION_FAILED);

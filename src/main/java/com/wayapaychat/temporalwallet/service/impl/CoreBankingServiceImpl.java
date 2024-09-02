@@ -16,7 +16,9 @@ import javax.servlet.http.HttpServletRequest;
 import com.wayapaychat.temporalwallet.config.SecurityConstants;
 import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.enumm.*;
+import com.wayapaychat.temporalwallet.pojo.*;
 import com.wayapaychat.temporalwallet.repository.*;
+import com.wayapaychat.temporalwallet.service.WebhookService;
 import com.wayapaychat.temporalwallet.util.Constant;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.math3.util.Precision;
@@ -34,10 +36,6 @@ import com.wayapaychat.temporalwallet.dto.MifosTransaction;
 import com.wayapaychat.temporalwallet.dto.MifosTransfer;
 import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
-import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
-import com.wayapaychat.temporalwallet.pojo.CBATransaction;
-import com.wayapaychat.temporalwallet.pojo.CreateAccountData;
-import com.wayapaychat.temporalwallet.pojo.MyData;
 import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
 import com.wayapaychat.temporalwallet.response.ExternalCBAAccountCreationResponse;
 import com.wayapaychat.temporalwallet.service.CoreBankingService;
@@ -52,7 +50,6 @@ import lombok.extern.slf4j.Slf4j;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.notification.CustomNotification;
-import com.wayapaychat.temporalwallet.pojo.TransactionReport;
 
 @Service
 @Slf4j
@@ -71,6 +68,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     private final TokenImpl tokenImpl;
     private final Util utils;
 
+    private final WebhookService webhookService;
+
     private final VirtualAccountRepository virtualAccountTransactionsRepository;
 
 
@@ -80,7 +79,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                                   WalletEventRepository walletEventRepository, WalletTransactionRepository walletTransactionRepository,
                                   MifosWalletProxy mifosWalletProxy, TemporalWalletDAO tempwallet, CustomNotification customNotification,
                                   UserPricingRepository userPricingRepository, TransactionCountService transactionCountService,
-                                  TokenImpl tokenImpl, Util utils, VirtualAccountRepository virtualAccountTransactionsRepository) {
+                                  TokenImpl tokenImpl, Util utils, WebhookService webhookService, VirtualAccountRepository virtualAccountTransactionsRepository) {
         this.switchWalletService = switchWalletService;
         this.walletTransAccountRepository = walletTransAccountRepository;
         this.walletAccountRepository = walletAccountRepository;
@@ -93,6 +92,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         this.transactionCountService = transactionCountService;
         this.tokenImpl = tokenImpl;
         this.utils = utils;
+        this.webhookService = webhookService;
         this.virtualAccountTransactionsRepository = virtualAccountTransactionsRepository;
     }
 
@@ -475,7 +475,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         if (WalletTransStatus.SUCCESSFUL.equals(transactionStatus) && transaction.isPresent()) {
             updateTransactionLog(tranId, transactionStatus);
             if(TransactionChannel.NIP_FUNDING.equals(channelEventId)){
+
                 updateVirtualTransactionLog(tranId,transactionStatus);
+                // implement callback
+                CompletableFuture.runAsync(() -> initiateWebHookCall(transaction, transactionStatus, transferTransactionRequestData));
             }
             log.info("Retrieving transaction details...");
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue(), transaction),
@@ -486,6 +489,24 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()), HttpStatus.BAD_REQUEST);
+
+    }
+
+    public void initiateWebHookCall(Optional<List<WalletTransaction>> transactions, WalletTransStatus transactionStatus, TransferTransactionDTO transaction){
+        WebhookPayload payload = new WebhookPayload();
+        for(WalletTransaction data: transactions.get()){
+
+            payload.setAmount(data.getTranAmount());
+            payload.setStatus(transactionStatus.name());
+            payload.setCurrency(data.getPartTranType());
+            payload.setMerchantId(data.getAcctNum());
+            payload.setReference(data.getPaymentReference());
+            payload.setTransactionType(data.getPartTranType());
+            payload.setTransactionId(data.getTranId());
+            payload.setTransactionDate(data.getCreatedAt());
+        }
+
+        webhookService.sendWebhookNotification(payload,transaction);
 
     }
 

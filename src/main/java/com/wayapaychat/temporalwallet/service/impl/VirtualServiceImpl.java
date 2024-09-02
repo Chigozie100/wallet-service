@@ -55,7 +55,7 @@ public class VirtualServiceImpl implements VirtualService {
 
 
     @Override
-    public ResponseEntity<?> registerWebhookUrl(VirtualAccountHookRequest request) {
+    public ResponseEntity<SuccessResponse> registerWebhookUrl(VirtualAccountHookRequest request) {
         try {
 
             VirtualAccountSettings virtualAccountHook = new VirtualAccountSettings();

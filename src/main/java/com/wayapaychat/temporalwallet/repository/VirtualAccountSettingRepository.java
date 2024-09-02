@@ -12,4 +12,7 @@ public interface VirtualAccountSettingRepository extends JpaRepository<VirtualAc
 
     @Query("SELECT v FROM VirtualAccountSettings v WHERE v.merchantId =:merchantId")
     Optional<VirtualAccountSettings> findByMerchantId(Long merchantId);
+
+    @Query("SELECT v FROM VirtualAccountSettings v WHERE v.accountNo =:accountNo")
+    Optional<VirtualAccountSettings> findByAccountNo(String accountNo);
 }

@@ -17,16 +17,17 @@ public class VirtualAccountSettings {
     private String bank;
     private String bankCode;
 
-    @Column(unique = true, nullable = false)
+
     private String virtualAccountCode;
 
     @Column(unique = true, nullable = false)
     private String callbackUrl;
 
+    @Column(unique = true, nullable = false)
     private String accountNo;
 
-    @Column(unique = true, nullable = false)
     private Long merchantId;
+
     private String email;
 
 

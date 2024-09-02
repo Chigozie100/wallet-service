@@ -17,7 +17,7 @@ public class WebhookLogs {
     @Column(unique = true, nullable = false)
     private UUID id;
 
-    private Long merchantId;
+    private String merchantId;
     private Long transactionId;
     private String webhookUrl;
     private Integer responseStatus;

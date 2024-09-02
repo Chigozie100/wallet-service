@@ -25,7 +25,7 @@ import java.util.Date;
 
 public interface VirtualService {
 
-    ResponseEntity<?> registerWebhookUrl(VirtualAccountHookRequest request);
+    ResponseEntity<SuccessResponse> registerWebhookUrl(VirtualAccountHookRequest request);
 
     void transactionWebhookData();
 
