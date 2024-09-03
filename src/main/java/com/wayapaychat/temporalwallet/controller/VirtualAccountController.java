@@ -28,7 +28,7 @@ import java.util.concurrent.CompletableFuture;
 @Validated
 @Slf4j
 public class VirtualAccountController {
-///
+
     private final VirtualService virtualService;
 
     @Autowired
@@ -45,7 +45,7 @@ public class VirtualAccountController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
-    @PreAuthorize("hasAnyRole('ROLE_USER_OWNER', 'ROLE_ADMIN_APP', 'ROLE_USER_ADMIN', 'ROLE_USER_MERCHANT')")
+    @PreAuthorize("hasAnyRole('ROLE_USER_OWNER', 'ROLE_USER_MERCHANT')")
     public ResponseEntity<SuccessResponse> createVirtualAccount(@RequestBody VirtualAccountRequest accountRequest){
         log.info("Endpoint to create Virtual Account called !!! ---->> {}", accountRequest);
         return virtualService.createVirtualAccountVersion2(accountRequest);
@@ -59,7 +59,7 @@ public class VirtualAccountController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP', 'ROLE_USER_MERCHANT')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_USER_MERCHANT')")
     public CompletableFuture<ResponseEntity<SuccessResponse>> transactions(
             @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
             @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
@@ -80,7 +80,7 @@ public class VirtualAccountController {
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
     @Async
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP', 'ROLE_USER_MERCHANT')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_USER_MERCHANT')")
     public CompletableFuture<ResponseEntity<SuccessResponse>> registerWebhookUrl(@RequestBody VirtualAccountHookRequest accountRequest){
         log.info("Endpoint to get register web hook URL called !!! ---->> {}", accountRequest);
         return CompletableFuture.completedFuture(virtualService.registerWebhookUrl(accountRequest));
