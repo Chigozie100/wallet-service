@@ -121,7 +121,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             if (ProviderType.MIFOS.equalsIgnoreCase(provider.getName())) {
                 externalResponse = mifosWalletProxy.createAccount(createAccountRequest);
             } else {
-                System.out.println("HERE ===> " + createAccountRequest);
                 externalResponse = new ExternalCBAAccountCreationResponse(ExternalCBAResponseCodes.R_00);
             }
         } catch (Exception e) {
@@ -170,17 +169,13 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
      
         CompletableFuture.runAsync(() -> {
-            try {
+
                 ResponseEntity<?> response = externalCBACreateAccount(userInfo, sAcct, provider);
                 if (!response.getStatusCode().is2xxSuccessful()) {
                     log.error("External CBA failed to process create account: {}", sAcct);
                     // Handle the error case or return an alternative response
                 }
                 // Process the response if needed
-            } catch (Exception e) {
-                log.error("Exception while processing create account request: ", e);
-                // Handle the exception
-            }
         });
 
 

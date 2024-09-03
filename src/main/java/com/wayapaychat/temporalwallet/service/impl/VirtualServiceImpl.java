@@ -105,11 +105,14 @@ public class VirtualServiceImpl implements VirtualService {
             // get wallet details by account number
             // create a sub account for this user
             // get the WalletUser
-            log.info("Creating virtual account...");
+            log.info("Creating virtual account...", account);
             WalletUser businessObj = new WalletUser();
+
+            System.out.println("ACCOUN PAYLOAD==="+ account);
 
             // Get Wayagram Wallet
             WalletAccount wayaGramAcctNo = getWayaGrammAccount(account);
+            System.out.println("WAlla===> " + wayaGramAcctNo);
 
             log.info("WAYAGRAM User ID {} ", Objects.requireNonNull(wayaGramAcctNo).getUser().getId());
             if(wayaGramAcctNo == null){
