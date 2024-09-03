@@ -686,10 +686,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     public WalletAccount createNubanAccountVersion2(WalletUser wayaGramUser, WalletUser businessObj, VirtualAccountRequest accountRequest) {
 
-        String acct_name = accountRequest.getAccountName().toUpperCase()+" "+"/ " +" "+accountRequest.getAccountName();
-
-        System.out.println("createNubanAccountVersion2" + wayaGramUser);
-        System.out.println("createNubanAccountVersion2 businessObj" + businessObj);
+        String acct_name = wayaGramUser.getCust_name().toUpperCase()+" / "+accountRequest.getAccountName().toUpperCase();
 
         WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
         WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);
@@ -769,8 +766,6 @@ public class UserAccountServiceImpl implements UserAccountService {
         }
 
         String nubanAccountNumber = Util.generateNuban(financialInstitutionCode, wayaGramUser.getAccountType());
-
-        System.out.println("createNubanAccountVersion2 nubanAccountNumber" + nubanAccountNumber);
         try {
             String hashed_no = reqUtil
                     .WayaEncrypt(accountRequest.getUserId() + "|" + nubanAccountNumber + "|" + wayaProduct + "|" + product.getCrncy_code());

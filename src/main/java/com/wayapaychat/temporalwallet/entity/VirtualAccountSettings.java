@@ -14,10 +14,21 @@ public class VirtualAccountSettings {
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(unique = true, nullable = false)
     private Long id;
+    private String bank;
+    private String bankCode;
 
-    private String webhookUrl;
 
+    private String virtualAccountCode;
+
+    @Column(unique = true, nullable = false)
+    private String callbackUrl;
+
+    @Column(unique = true, nullable = false)
     private String accountNo;
+
+    private Long merchantId;
+
+    private String email;
 
 
 }

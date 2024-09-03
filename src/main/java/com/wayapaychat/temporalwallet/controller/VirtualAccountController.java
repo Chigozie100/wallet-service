@@ -11,7 +11,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
@@ -19,7 +18,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
@@ -30,7 +28,7 @@ import java.util.concurrent.CompletableFuture;
 @Validated
 @Slf4j
 public class VirtualAccountController {
-
+///
     private final VirtualService virtualService;
 
     @Autowired
@@ -47,7 +45,7 @@ public class VirtualAccountController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
-    @PreAuthorize("hasAnyRole('ROLE_USER_OWNER', 'ROLE_ADMIN_APP', 'ROLE_USER_ADMIN')")
+    @PreAuthorize("hasAnyRole('ROLE_USER_OWNER', 'ROLE_ADMIN_APP', 'ROLE_USER_ADMIN', 'ROLE_USER_MERCHANT')")
     public ResponseEntity<SuccessResponse> createVirtualAccount(@RequestBody VirtualAccountRequest accountRequest){
         log.info("Endpoint to create Virtual Account called !!! ---->> {}", accountRequest);
         return virtualService.createVirtualAccountVersion2(accountRequest);
@@ -61,7 +59,7 @@ public class VirtualAccountController {
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP', 'ROLE_USER_MERCHANT')")
     public CompletableFuture<ResponseEntity<SuccessResponse>> transactions(
             @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
             @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
@@ -82,12 +80,11 @@ public class VirtualAccountController {
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
     @Async
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP')")
-    public CompletableFuture<ResponseEntity<?>> registerWebhookUrl(@RequestBody VirtualAccountHookRequest accountRequest){
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_APP', 'ROLE_USER_MERCHANT')")
+    public CompletableFuture<ResponseEntity<SuccessResponse>> registerWebhookUrl(@RequestBody VirtualAccountHookRequest accountRequest){
         log.info("Endpoint to get register web hook URL called !!! ---->> {}", accountRequest);
         return CompletableFuture.completedFuture(virtualService.registerWebhookUrl(accountRequest));
     }
-
 
 
     @ApiImplicitParams({

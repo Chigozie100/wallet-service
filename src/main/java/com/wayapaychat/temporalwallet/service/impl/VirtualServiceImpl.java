@@ -2,7 +2,6 @@ package com.wayapaychat.temporalwallet.service.impl;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wayapaychat.temporalwallet.dto.AccountDetailDTO;
 import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
-import com.wayapaychat.temporalwallet.dto.NotificationDto;
 import com.wayapaychat.temporalwallet.dto.WalletUserDTO;
 import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.exception.CustomException;
@@ -10,6 +9,7 @@ import com.wayapaychat.temporalwallet.pojo.AppendToVirtualAccount;
 import com.wayapaychat.temporalwallet.pojo.VirtualAccountHookRequest;
 import com.wayapaychat.temporalwallet.pojo.VirtualAccountRequest;
 import com.wayapaychat.temporalwallet.repository.VirtualAccountRepository;
+import com.wayapaychat.temporalwallet.repository.VirtualAccountSettingRepository;
 import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
 import com.wayapaychat.temporalwallet.service.UserAccountService;
 import com.wayapaychat.temporalwallet.service.VirtualService;
@@ -23,6 +23,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -38,32 +40,34 @@ public class VirtualServiceImpl implements VirtualService {
     private final WalletAccountRepository walletAccountRepository;
     private final VirtualAccountRepository virtualAccountRepository;
 
+    private final VirtualAccountSettingRepository virtualAccountSettingRepository;
+
     private final Util utils;
 
     @Autowired
-    public VirtualServiceImpl(UserAccountService userAccountService, WalletAccountRepository walletAccountRepository, VirtualAccountRepository virtualAccountRepository, Util utils) {
+    public VirtualServiceImpl(UserAccountService userAccountService, WalletAccountRepository walletAccountRepository, VirtualAccountRepository virtualAccountRepository, VirtualAccountSettingRepository virtualAccountSettingRepository, Util utils) {
         this.userAccountService = userAccountService;
         this.walletAccountRepository = walletAccountRepository;
         this.virtualAccountRepository = virtualAccountRepository;
+        this.virtualAccountSettingRepository = virtualAccountSettingRepository;
         this.utils = utils;
     }
 
 
     @Override
-    public ResponseEntity<?> registerWebhookUrl(VirtualAccountHookRequest request) {
+    public ResponseEntity<SuccessResponse> registerWebhookUrl(VirtualAccountHookRequest request) {
         try {
-//            Util util = new Util();
 
-            VirtualAccountHook virtualAccountHook = new VirtualAccountHook();
+            VirtualAccountSettings virtualAccountHook = new VirtualAccountSettings();
             virtualAccountHook.setBank(request.getBank());
             virtualAccountHook.setBankCode(request.getBankCode());
             virtualAccountHook.setVirtualAccountCode(utils.generateRandomNumber(4));
-            virtualAccountHook.setUsername(request.getUsername());
-            virtualAccountHook.setPassword(encode(request.getPassword()));
+            virtualAccountHook.setEmail(request.getEmail());
+            virtualAccountHook.setMerchantId(Long.parseLong(request.getMerchantId()));
             virtualAccountHook.setCallbackUrl(request.getCallbackUrl());
-            //virtualAccountRepository.save(virtualAccountHook);
+            virtualAccountSettingRepository.save(virtualAccountHook);
             log.info("Webhook URL registered successfully.");
-            return new ResponseEntity<>(new SuccessResponse("Account created successfully", virtualAccountHook), HttpStatus.OK);
+            return new ResponseEntity<>(new SuccessResponse("VirtualAccountHook created successfully", virtualAccountHook), HttpStatus.OK);
 
         } catch (Exception ex) {
             log.error("Error registering webhook URL: {}", ex.getMessage());

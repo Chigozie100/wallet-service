@@ -8,8 +8,12 @@ import javax.validation.constraints.NotBlank;
 public class VirtualAccountHookRequest {
     private String bank;
     private String bankCode;
+
     @NotBlank(message = "callbackUrl cannot be null")
     private String callbackUrl;
-    private String username;
-    private String password;
+
+    @NotBlank(message = "accountNo cannot be null")
+    private String accountNo;
+    private String email;
+    private String merchantId;
 }
