@@ -33,11 +33,9 @@ public interface VirtualService {
 
     ResponseEntity<SuccessResponse> createVirtualAccountVersion2(VirtualAccountRequest account);
 
-    ResponseEntity<SuccessResponse> searchVirtualTransactions(Date fromdate,Date todate, String accountNo, int page, int size);
+    ResponseEntity<SuccessResponse> searchVirtualTransactions(LocalDateTime fromdate,LocalDateTime todate, String accountNo, int page, int size);
 
     void appendNameToVirtualAccount(AppendToVirtualAccount account);
-
-    SuccessResponse accountTransactionQuery(String accountNumber, LocalDate startDate, LocalDate endDate);
 
     SuccessResponse nameEnquiry(String accountNumber);
 

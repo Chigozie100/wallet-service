@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,7 +18,7 @@ import java.util.Optional;
 public interface VirtualAccountRepository extends JpaRepository<VirtualAccountTransactions, Long> {
 
     @Query("SELECT v FROM VirtualAccountTransactions v " + "WHERE UPPER(v.creditAccountNumber) = UPPER(:accountNo) "+" AND v.createdAt BETWEEN  (:fromtranDate)" + " AND (:totranDate)" + " order by v.createdAt DESC ")
-    Page<VirtualAccountTransactions> findAllByDateRange(LocalDate fromtranDate, LocalDate totranDate, String accountNo, Pageable pageable);
+    Page<VirtualAccountTransactions> findAllByDateRange(LocalDateTime fromtranDate, LocalDateTime totranDate, String accountNo, Pageable pageable);
 
 
 }

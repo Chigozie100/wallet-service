@@ -20,6 +20,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.concurrent.CompletableFuture;
 
@@ -72,14 +73,17 @@ public class VirtualAccountController {
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Virtual Account Transaction Search", hidden = false, tags = { "BANK-VIRTUAL-ACCOUNT" })
     @GetMapping(
-            value = "/virtualaccount/transactions",
+            value = "/transactions",
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_USER_MERCHANT')")
+    @PreAuthorize("hasAnyRole('ROLE_USER_OWNER', 'ROLE_USER_MERCHANT')")
     public CompletableFuture<ResponseEntity<SuccessResponse>> transactions(
-            @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date fromdate,
-            @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) Date todate,
+            @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromdate,
+            @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime todate,
+//
+//            @RequestParam("fromdate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime fromdate,
+//            @RequestParam("todate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDateTime todate,
             @RequestParam String  accountNo,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size
@@ -104,23 +108,25 @@ public class VirtualAccountController {
     }
 
 
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-    @ApiOperation(value = "Create a Virtual Account", hidden = false, tags = { "BANK-VIRTUAL-ACCOUNT" })
-    @GetMapping(
-            value = "/accountTransactionQuery",
-            produces = MediaType.APPLICATION_JSON_VALUE,
-            consumes = MediaType.APPLICATION_JSON_VALUE
-    )
-    @Async
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
-    public CompletableFuture<SuccessResponse> accountTransactionQuery(
-            @RequestParam(defaultValue = "2020076821") String accountNumber,
-            @RequestParam(defaultValue = "20200724") LocalDate startDate,
-            @RequestParam(defaultValue = "20200724") LocalDate endDate) {
-        log.info("Endpoint to get account Transaction Query called !!! ---->> {}", accountNumber);
-        return CompletableFuture.completedFuture(virtualService.accountTransactionQuery(accountNumber,startDate,endDate));
-    }
+//    @ApiImplicitParams({
+//            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+//    @ApiOperation(value = "Fetch Transactions", hidden = false, tags = { "BANK-VIRTUAL-ACCOUNT" })
+//    @GetMapping(
+//            value = "/accountTransactionQuery",
+//            produces = MediaType.APPLICATION_JSON_VALUE,
+//            consumes = MediaType.APPLICATION_JSON_VALUE
+//    )
+//    @Async
+//    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_USER_MERCHANT')")
+//    public CompletableFuture<SuccessResponse> accountTransactionQuery(
+//            @RequestParam(defaultValue = "1", required = false) int page,
+//            @RequestParam(defaultValue = "10", required = false) int size,
+//            @RequestParam(defaultValue = "2020076821") String accountNumber,
+//            @RequestParam(defaultValue = "20200724") LocalDate startDate,
+//            @RequestParam(defaultValue = "20200724") LocalDate endDate) {
+//        log.info("Endpoint to get account Transaction Query called !!! ---->> {}", accountNumber);
+//        return CompletableFuture.completedFuture(virtualService.accountTransactionQuery(accountNumber,startDate,endDate));
+//    }
 
 //    @ApiImplicitParams({
 //            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })

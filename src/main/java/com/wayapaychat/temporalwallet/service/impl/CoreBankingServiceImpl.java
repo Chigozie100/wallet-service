@@ -459,8 +459,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     + "The auto reversal failed. Kindly resolve the auto reversal and initiate a manual reversal. "
                     + "Kindly resolve urgently.";
 
-            System.out.println("SystemToken" + systemToken);
-
          CompletableFuture.runAsync(() -> utils.pushEMAIL("TRANSFER ERROR", systemToken.getToken(), "Tech Support", "wayabank.techsupport@wayapaychat.com", supportMessage, systemToken.getId()));
             log.error("Transaction processing failed......");
         }
@@ -722,10 +720,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     @Override
     public String getEventAccountNumber(String channelEventId) {
-        System.out.println("CHANNEL " + channelEventId);
-
         Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(channelEventId);
-        System.out.println("isChannel Available " +eventInfo.get());
         if (!eventInfo.isPresent()) {
             log.error("no event found for transaction category {}", channelEventId);
             return null;
@@ -733,7 +728,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         Optional<WalletAccount> accountDebitTeller = walletAccountRepository
                 .findByUserPlaceholder(eventInfo.get().getPlaceholder(), eventInfo.get().getCrncyCode(), "0000");
-        System.out.println(" Placeholder =" + eventInfo.get().getPlaceholder());
         if (!accountDebitTeller.isPresent()) {
             log.error("no transit account found for transaction channel EventId {}", channelEventId);
             return null;

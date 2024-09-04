@@ -138,15 +138,22 @@ public class VirtualServiceImpl implements VirtualService {
     }
 
     @Override
-    public ResponseEntity<SuccessResponse> searchVirtualTransactions(Date fromdate,Date todate, String accountNo, int page, int size) {
+    public ResponseEntity<SuccessResponse> searchVirtualTransactions(LocalDateTime fromdate,LocalDateTime todate, String accountNo, int page, int size) {
         // with pagination
+
+
 
         Pageable pagable = PageRequest.of(page, size);
         Map<String, Object> response = new HashMap<>();
 
-        LocalDate fromDate = fromdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        LocalDate toDate = todate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        Page<VirtualAccountTransactions> virtualAccountTransactionsPage = virtualAccountRepository.findAllByDateRange(fromDate,toDate,accountNo, pagable);
+        // Convert Date to LocalDate
+
+        // Convert LocalDate to LocalDateTime at the start of the day (00:00:00)
+//        LocalDateTime fromDateTime = fromLocalDate.atStartOfDay();
+//        LocalDateTime toDateTime = toLocalDate.atStartOfDay();
+
+
+        Page<VirtualAccountTransactions> virtualAccountTransactionsPage = virtualAccountRepository.findAllByDateRange(fromdate,todate,accountNo, pagable);
         List<VirtualAccountTransactions> transaction = virtualAccountTransactionsPage.getContent();
         response.put("transaction", transaction);
         response.put("currentPage", virtualAccountTransactionsPage.getNumber());
@@ -203,12 +210,6 @@ public class VirtualServiceImpl implements VirtualService {
 
     }
 
-    @Override
-    public SuccessResponse accountTransactionQuery(String accountNumber, LocalDate startDate, LocalDate endDate) {
-
-        return new SuccessResponse("Data retrieved successfully", null);
-
-    }
 
     @Override
     public SuccessResponse nameEnquiry(String accountNumber) {
