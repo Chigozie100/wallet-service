@@ -39,7 +39,7 @@ public interface VirtualService {
 
     SuccessResponse accountTransactionQuery(String accountNumber, LocalDate startDate, LocalDate endDate);
 
-    SuccessResponse nameEnquiry(String accountNumber, String bankCode);
+    SuccessResponse nameEnquiry(String accountNumber);
 
     SuccessResponse balanceEnquiry(String accountNumber);
 

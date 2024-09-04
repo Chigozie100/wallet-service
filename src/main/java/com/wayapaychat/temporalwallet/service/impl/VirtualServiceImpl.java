@@ -108,11 +108,8 @@ public class VirtualServiceImpl implements VirtualService {
             log.info("Creating virtual account...", account);
             WalletUser businessObj = new WalletUser();
 
-            System.out.println("ACCOUN PAYLOAD==="+ account);
-
             // Get Wayagram Wallet
             WalletAccount wayaGramAcctNo = getWayaGrammAccount(account);
-            System.out.println("WAlla===> " + wayaGramAcctNo);
 
             log.info("WAYAGRAM User ID {} ", Objects.requireNonNull(wayaGramAcctNo).getUser().getId());
             if(wayaGramAcctNo == null){
@@ -156,6 +153,9 @@ public class VirtualServiceImpl implements VirtualService {
         return new ResponseEntity<>(new SuccessResponse("Virtual Account Transactions", response), HttpStatus.OK);
 
     }
+
+
+
 
 
     private AccountDetailDTO getResponse(String accountNo){
@@ -209,8 +209,10 @@ public class VirtualServiceImpl implements VirtualService {
     }
 
     @Override
-    public SuccessResponse nameEnquiry(String accountNumber, String bankCode) {
-        return null;
+    public SuccessResponse nameEnquiry(String accountNumber) {
+        AccountDetailDTO data = getResponse(accountNumber);
+        return new SuccessResponse("Account retrieved successfully", data);
+
     }
 
     @Override

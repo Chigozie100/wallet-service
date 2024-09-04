@@ -323,8 +323,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.SAME_ACCOUNT.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
-
-        if (walletAccountRepository.countAccount(transferTransactionRequestData.getBenefAccountNumber()) < 1) {
+log.info("BENEF-ACCOUNT {} ", transferTransactionRequestData);
+        if (walletAccountRepository.countAccount2(transferTransactionRequestData.getBenefAccountNumber()) < 1) {
             log.error("Invalid beneficiary account number.");
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_BENEFICIARY_ACCOUNT.getValue()),
                     HttpStatus.BAD_REQUEST);
@@ -1119,6 +1119,9 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         boolean isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_OWNER"::equalsIgnoreCase);
         isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_APP"::equalsIgnoreCase) ? true : isWriteAdmin;
         boolean isOwner = Long.compare(account.getUId(), userToken.getId()) == 0;
+        System.out.println("accountHERE=" + account);
+        System.out.println("UID=" + account.getUId());
+        System.out.println("usereToken.getID" + userToken.getId());
 
         if (!isOwner && !isWriteAdmin) {
             log.error("owner check {} {}", isOwner, isWriteAdmin);
