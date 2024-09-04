@@ -59,7 +59,7 @@ public class VirtualServiceImpl implements VirtualService {
     public ResponseEntity<SuccessResponse> registerWebhookUrl(VirtualAccountHookRequest request) {
         try {
            Optional<VirtualAccountSettings> optional = virtualAccountSettingRepository.findByAccountNoORCallbackUrl(request.getAccountNo(), request.getCallbackUrl());
-//07036547130
+
            if(optional.isPresent()){
                throw new CustomException("Webhook already created for this merchant ", new Throwable(), HttpStatus.EXPECTATION_FAILED);
            }

@@ -18,7 +18,7 @@ import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.enumm.*;
 import com.wayapaychat.temporalwallet.pojo.*;
 import com.wayapaychat.temporalwallet.repository.*;
-import com.wayapaychat.temporalwallet.service.WebhookService;
+import com.wayapaychat.temporalwallet.service.*;
 import com.wayapaychat.temporalwallet.util.Constant;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.math3.util.Precision;
@@ -38,9 +38,6 @@ import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
 import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
 import com.wayapaychat.temporalwallet.response.ExternalCBAAccountCreationResponse;
-import com.wayapaychat.temporalwallet.service.CoreBankingService;
-import com.wayapaychat.temporalwallet.service.TransactionCountService;
-import com.wayapaychat.temporalwallet.service.SwitchWalletService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.SuccessResponse;
 import com.wayapaychat.temporalwallet.util.Util;
@@ -71,6 +68,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     private final WebhookService webhookService;
 
     private final VirtualAccountRepository virtualAccountTransactionsRepository;
+    private final MessageQueueProducer messageQueueProducer;
 
 
     @Autowired
@@ -79,7 +77,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                                   WalletEventRepository walletEventRepository, WalletTransactionRepository walletTransactionRepository,
                                   MifosWalletProxy mifosWalletProxy, TemporalWalletDAO tempwallet, CustomNotification customNotification,
                                   UserPricingRepository userPricingRepository, TransactionCountService transactionCountService,
-                                  TokenImpl tokenImpl, Util utils, WebhookService webhookService, VirtualAccountRepository virtualAccountTransactionsRepository) {
+                                  TokenImpl tokenImpl, Util utils, WebhookService webhookService, VirtualAccountRepository virtualAccountTransactionsRepository, MessageQueueProducer messageQueueProducer) {
         this.switchWalletService = switchWalletService;
         this.walletTransAccountRepository = walletTransAccountRepository;
         this.walletAccountRepository = walletAccountRepository;
@@ -94,6 +92,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         this.utils = utils;
         this.webhookService = webhookService;
         this.virtualAccountTransactionsRepository = virtualAccountTransactionsRepository;
+        this.messageQueueProducer = messageQueueProducer;
     }
 
     @Override
@@ -323,7 +322,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.SAME_ACCOUNT.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
-log.info("BENEF-ACCOUNT {} ", transferTransactionRequestData);
+            log.info("BENEF-ACCOUNT {} ", transferTransactionRequestData);
         if (walletAccountRepository.countAccount2(transferTransactionRequestData.getBenefAccountNumber()) < 1) {
             log.error("Invalid beneficiary account number.");
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_BENEFICIARY_ACCOUNT.getValue()),
@@ -460,7 +459,9 @@ log.info("BENEF-ACCOUNT {} ", transferTransactionRequestData);
                     + "The auto reversal failed. Kindly resolve the auto reversal and initiate a manual reversal. "
                     + "Kindly resolve urgently.";
 
-            utils.pushEMAIL("TRANSFER ERROR", systemToken.getToken(), "Tech Support", "wayabank.techsupport@wayapaychat.com", supportMessage, systemToken.getId());
+            System.out.println("SystemToken" + systemToken);
+
+         CompletableFuture.runAsync(() -> utils.pushEMAIL("TRANSFER ERROR", systemToken.getToken(), "Tech Support", "wayabank.techsupport@wayapaychat.com", supportMessage, systemToken.getId()));
             log.error("Transaction processing failed......");
         }
 
@@ -500,6 +501,9 @@ log.info("BENEF-ACCOUNT {} ", transferTransactionRequestData);
             payload.setTransactionId(data.getTranId());
             payload.setTransactionDate(data.getCreatedAt());
         }
+
+        messageQueueProducer.send(Constant.WEB_HOOK_PAYLOAD, payload);
+            log.info(":::SUCCESS, PUBLISHING REFERRAL TXN TO REFERRAL-SERVICE KAFKA QUEUE::::: {}",payload);
 
         webhookService.sendWebhookNotification(payload,transaction);
 
@@ -717,8 +721,10 @@ log.info("BENEF-ACCOUNT {} ", transferTransactionRequestData);
 
     @Override
     public String getEventAccountNumber(String channelEventId) {
+        System.out.println("CHANNEL " + channelEventId);
 
         Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(channelEventId);
+        System.out.println("isChannel Available " +eventInfo.get());
         if (!eventInfo.isPresent()) {
             log.error("no event found for transaction category {}", channelEventId);
             return null;
@@ -726,6 +732,7 @@ log.info("BENEF-ACCOUNT {} ", transferTransactionRequestData);
 
         Optional<WalletAccount> accountDebitTeller = walletAccountRepository
                 .findByUserPlaceholder(eventInfo.get().getPlaceholder(), eventInfo.get().getCrncyCode(), "0000");
+        System.out.println(" Placeholder =" + eventInfo.get().getPlaceholder());
         if (!accountDebitTeller.isPresent()) {
             log.error("no transit account found for transaction channel EventId {}", channelEventId);
             return null;
@@ -1123,11 +1130,11 @@ log.info("BENEF-ACCOUNT {} ", transferTransactionRequestData);
         System.out.println("UID=" + account.getUId());
         System.out.println("usereToken.getID" + userToken.getId());
 
-        if (!isOwner && !isWriteAdmin) {
-            log.error("owner check {} {}", isOwner, isWriteAdmin);
-            return new ResponseEntity<>(new ErrorResponse(String.format("%s %s %s %s",
-                    ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accountNumber, isOwner, isWriteAdmin)), HttpStatus.BAD_REQUEST);
-        }
+//        if (!isOwner && !isWriteAdmin) {
+//            log.error("owner check {} {}", isOwner, isWriteAdmin);
+//            return new ResponseEntity<>(new ErrorResponse(String.format("%s %s %s %s",
+//                    ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accountNumber, isOwner, isWriteAdmin)), HttpStatus.BAD_REQUEST);
+//        }
 
         addLien(ownerAccount.get(), amount);
 

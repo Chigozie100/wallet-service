@@ -86,5 +86,7 @@ public class Constant {
     
     public static final String STATEMENT_REPORTING = "transaction_reporting";
 
+    public static final String WEB_HOOK_PAYLOAD = "webhook-notification";
+
 
 }
