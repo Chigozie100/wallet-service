@@ -368,7 +368,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         Long tranId;
-        if(TransactionChannel.NIP_FUNDING.equals(channelEventId)){
+        if(TransactionChannel.NIP_FUNDING.name().equals(channelEventId)){
             tranId = logVirtualAccountTransaction(receiverName, senderName, transferTransactionRequestData.getDebitAccountNumber(),
                     transferTransactionRequestData.getBenefAccountNumber(),
                     transferTransactionRequestData.getAmount(), chargeAmount, vatAmount,
@@ -489,6 +489,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     }
 
     public void initiateWebHookCall(Optional<List<WalletTransaction>> transactions, WalletTransStatus transactionStatus, TransferTransactionDTO transaction){
+        log.info("Transactions {}", transactions);
         WebhookPayload payload = new WebhookPayload();
         for(WalletTransaction data: transactions.get()){
 
@@ -1126,15 +1127,12 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         boolean isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_OWNER"::equalsIgnoreCase);
         isWriteAdmin = userToken.getRoles().stream().anyMatch("ROLE_ADMIN_APP"::equalsIgnoreCase) ? true : isWriteAdmin;
         boolean isOwner = Long.compare(account.getUId(), userToken.getId()) == 0;
-        System.out.println("accountHERE=" + account);
-        System.out.println("UID=" + account.getUId());
-        System.out.println("usereToken.getID" + userToken.getId());
 
-//        if (!isOwner && !isWriteAdmin) {
-//            log.error("owner check {} {}", isOwner, isWriteAdmin);
-//            return new ResponseEntity<>(new ErrorResponse(String.format("%s %s %s %s",
-//                    ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accountNumber, isOwner, isWriteAdmin)), HttpStatus.BAD_REQUEST);
-//        }
+        if (!isOwner && !isWriteAdmin) {
+            log.error("owner check {} {}", isOwner, isWriteAdmin);
+            return new ResponseEntity<>(new ErrorResponse(String.format("%s %s %s %s",
+                    ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue(), accountNumber, isOwner, isWriteAdmin)), HttpStatus.BAD_REQUEST);
+        }
 
         addLien(ownerAccount.get(), amount);
 
@@ -1366,7 +1364,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             String supportMessage = "Dear Tech Support,\ntransfer speed is slow. Kindly check the log below and resolve urgently.";
 
 
-            utils.pushEMAIL("SLOW TRANSFER", systemToken.getToken(), "Tech Support", "wayabank.techsupport@wayapaychat.com", supportMessage, systemToken.getId());
+           CompletableFuture.runAsync( () -> utils.pushEMAIL("SLOW TRANSFER", systemToken.getToken(), "Tech Support", "wayabank.techsupport@wayapaychat.com", supportMessage, systemToken.getId()));
             log.error("Transaction processing failed......");
         }
 

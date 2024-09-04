@@ -219,14 +219,12 @@ public class TransAccountServiceImpl implements TransAccountService {
             log.error("Error processing transaction: Event information not found for Event ID {}", transfer.getEventId());
             return new ResponseEntity<>(new ErrorResponse("ERROR PROCESSING TRANSACTION"), HttpStatus.BAD_REQUEST);
         }
-        System.out.println("befor isVirtual HEEREE "+ transfer);
-        System.out.println("NIP_FUNDING HEEREE "+ transfer.getEventId());
-        System.out.println("CHECK==> " + TransactionChannel.NIP_FUNDING.name().equals(transfer.getEventId()));
+
         if(isVirtualAccount(transfer.getCustomerAccountNumber()) && TransactionChannel.NIP_FUNDING.name().equals(transfer.getEventId())) {
-            System.out.println("INISDE LIFE===");
+
             //If it is a virtual account get the default account for the business and credit it.
             WalletAccount walletAccount = walletAccountRepository.findByNubanAccountNo(transfer.getCustomerAccountNumber());
-            System.out.println("walletAccount HEEREE "+ walletAccount);
+
             if(walletAccount !=null){
                 transfer.setCustomerAccountNumber(getDefaultAccount(walletAccount.getUser()));
             }
