@@ -1,5 +1,7 @@
 package com.wayapaychat.temporalwallet.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.*;
 
 import javax.persistence.*;
@@ -8,6 +10,7 @@ import javax.persistence.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class VirtualAccountSettings {
 
     @Id
@@ -16,8 +19,6 @@ public class VirtualAccountSettings {
     private Long id;
     private String bank;
     private String bankCode;
-
-
     private String virtualAccountCode;
 
     @Column(unique = true, nullable = false)
@@ -26,7 +27,7 @@ public class VirtualAccountSettings {
     @Column(unique = true, nullable = false)
     private String accountNo;
 
-    private Long merchantId;
+    private String businessId;
 
     private String email;
 

@@ -14,6 +14,10 @@ public class VirtualAccountHookRequest {
 
     @NotBlank(message = "accountNo cannot be null")
     private String accountNo;
+
+    @NotBlank(message = "email cannot be null")
     private String email;
-    private String merchantId;
+
+    @NotBlank(message = "businessId cannot be null")
+    private String businessId;
 }

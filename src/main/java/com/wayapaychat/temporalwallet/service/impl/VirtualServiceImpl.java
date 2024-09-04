@@ -28,6 +28,7 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.*;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -57,14 +58,19 @@ public class VirtualServiceImpl implements VirtualService {
     @Override
     public ResponseEntity<SuccessResponse> registerWebhookUrl(VirtualAccountHookRequest request) {
         try {
+           Optional<VirtualAccountSettings> optional = virtualAccountSettingRepository.findByAccountNoORCallbackUrl(request.getAccountNo(), request.getCallbackUrl());
 
+           if(optional.isPresent()){
+               throw new CustomException("Webhook already created for this merchant ", new Throwable(), HttpStatus.EXPECTATION_FAILED);
+           }
             VirtualAccountSettings virtualAccountHook = new VirtualAccountSettings();
             virtualAccountHook.setBank(request.getBank());
             virtualAccountHook.setBankCode(request.getBankCode());
             virtualAccountHook.setVirtualAccountCode(utils.generateRandomNumber(4));
             virtualAccountHook.setEmail(request.getEmail());
-            virtualAccountHook.setMerchantId(Long.parseLong(request.getMerchantId()));
+            virtualAccountHook.setBusinessId(request.getBusinessId());
             virtualAccountHook.setCallbackUrl(request.getCallbackUrl());
+            virtualAccountHook.setAccountNo(request.getAccountNo());
             virtualAccountSettingRepository.save(virtualAccountHook);
             log.info("Webhook URL registered successfully.");
             return new ResponseEntity<>(new SuccessResponse("VirtualAccountHook created successfully", virtualAccountHook), HttpStatus.OK);
@@ -74,8 +80,6 @@ public class VirtualServiceImpl implements VirtualService {
             throw new CustomException("Error " + ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
     }
-
-
 
     @Override
     public void transactionWebhookData() {
