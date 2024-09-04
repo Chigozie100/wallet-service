@@ -59,13 +59,11 @@ public class VirtualServiceImpl implements VirtualService {
     public ResponseEntity<SuccessResponse> registerWebhookUrl(VirtualAccountHookRequest request) {
         try {
            Optional<VirtualAccountSettings> optional = virtualAccountSettingRepository.findByAccountNoORCallbackUrl(request.getAccountNo(), request.getCallbackUrl());
-
+//07036547130
            if(optional.isPresent()){
                throw new CustomException("Webhook already created for this merchant ", new Throwable(), HttpStatus.EXPECTATION_FAILED);
            }
             VirtualAccountSettings virtualAccountHook = new VirtualAccountSettings();
-            virtualAccountHook.setBank(request.getBank());
-            virtualAccountHook.setBankCode(request.getBankCode());
             virtualAccountHook.setVirtualAccountCode(utils.generateRandomNumber(4));
             virtualAccountHook.setEmail(request.getEmail());
             virtualAccountHook.setBusinessId(request.getBusinessId());
