@@ -28,6 +28,7 @@ import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.*;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -57,14 +58,17 @@ public class VirtualServiceImpl implements VirtualService {
     @Override
     public ResponseEntity<SuccessResponse> registerWebhookUrl(VirtualAccountHookRequest request) {
         try {
+           Optional<VirtualAccountSettings> optional = virtualAccountSettingRepository.findByAccountNoORCallbackUrl(request.getAccountNo(), request.getCallbackUrl());
 
+           if(optional.isPresent()){
+               throw new CustomException("Webhook already created for this merchant ", new Throwable(), HttpStatus.EXPECTATION_FAILED);
+           }
             VirtualAccountSettings virtualAccountHook = new VirtualAccountSettings();
-            virtualAccountHook.setBank(request.getBank());
-            virtualAccountHook.setBankCode(request.getBankCode());
             virtualAccountHook.setVirtualAccountCode(utils.generateRandomNumber(4));
             virtualAccountHook.setEmail(request.getEmail());
-            virtualAccountHook.setMerchantId(Long.parseLong(request.getMerchantId()));
+            virtualAccountHook.setBusinessId(request.getBusinessId());
             virtualAccountHook.setCallbackUrl(request.getCallbackUrl());
+            virtualAccountHook.setAccountNo(request.getAccountNo());
             virtualAccountSettingRepository.save(virtualAccountHook);
             log.info("Webhook URL registered successfully.");
             return new ResponseEntity<>(new SuccessResponse("VirtualAccountHook created successfully", virtualAccountHook), HttpStatus.OK);
@@ -74,8 +78,6 @@ public class VirtualServiceImpl implements VirtualService {
             throw new CustomException("Error " + ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
     }
-
-
 
     @Override
     public void transactionWebhookData() {
@@ -108,11 +110,8 @@ public class VirtualServiceImpl implements VirtualService {
             log.info("Creating virtual account...", account);
             WalletUser businessObj = new WalletUser();
 
-            System.out.println("ACCOUN PAYLOAD==="+ account);
-
             // Get Wayagram Wallet
             WalletAccount wayaGramAcctNo = getWayaGrammAccount(account);
-            System.out.println("WAlla===> " + wayaGramAcctNo);
 
             log.info("WAYAGRAM User ID {} ", Objects.requireNonNull(wayaGramAcctNo).getUser().getId());
             if(wayaGramAcctNo == null){
@@ -156,6 +155,9 @@ public class VirtualServiceImpl implements VirtualService {
         return new ResponseEntity<>(new SuccessResponse("Virtual Account Transactions", response), HttpStatus.OK);
 
     }
+
+
+
 
 
     private AccountDetailDTO getResponse(String accountNo){
@@ -209,8 +211,10 @@ public class VirtualServiceImpl implements VirtualService {
     }
 
     @Override
-    public SuccessResponse nameEnquiry(String accountNumber, String bankCode) {
-        return null;
+    public SuccessResponse nameEnquiry(String accountNumber) {
+        AccountDetailDTO data = getResponse(accountNumber);
+        return new SuccessResponse("Account retrieved successfully", data);
+
     }
 
     @Override

@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
@@ -53,6 +54,22 @@ public class VirtualAccountController {
 
     @ApiImplicitParams({
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+    @ApiOperation(value = "Create a Virtual Account", hidden = false, tags = { "BANK-VIRTUAL-ACCOUNT" })
+    @GetMapping(
+            value = "/nameEnquiry/{accountNo}",
+            produces = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.APPLICATION_JSON_VALUE
+    )
+    @PreAuthorize("hasAnyRole('ROLE_USER_OWNER', 'ROLE_USER_MERCHANT')")
+    public ResponseEntity<SuccessResponse> nameEnquiry(@PathVariable("accountNo") String accountNo){
+        log.info("Endpoint is for name enquiry !!! ---->> {}", accountNo);
+        SuccessResponse response = virtualService.nameEnquiry(accountNo);
+        return new ResponseEntity<>(new SuccessResponse(response.getMessage(),response.getData()), HttpStatus.ACCEPTED);
+    }
+
+
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Virtual Account Transaction Search", hidden = false, tags = { "BANK-VIRTUAL-ACCOUNT" })
     @GetMapping(
             value = "/virtualaccount/transactions",
@@ -91,7 +108,7 @@ public class VirtualAccountController {
             @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
     @ApiOperation(value = "Create a Virtual Account", hidden = false, tags = { "BANK-VIRTUAL-ACCOUNT" })
     @GetMapping(
-            value = "accountTransactionQuery",
+            value = "/accountTransactionQuery",
             produces = MediaType.APPLICATION_JSON_VALUE,
             consumes = MediaType.APPLICATION_JSON_VALUE
     )
@@ -105,15 +122,15 @@ public class VirtualAccountController {
         return CompletableFuture.completedFuture(virtualService.accountTransactionQuery(accountNumber,startDate,endDate));
     }
 
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
-    @ApiOperation(value = "Account Balance", tags = { "BANK-VIRTUAL-ACCOUNT" })
-    @GetMapping(path = "/accountBalance/{accountNo}")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
-    public CompletableFuture<SuccessResponse> balanceEnquiry(@PathVariable String accountNo) {
-        log.info("Endpoint balance Enquiry called !!! ---->> {}", accountNo);
-        return CompletableFuture.completedFuture(virtualService.balanceEnquiry(accountNo));
-    }
+//    @ApiImplicitParams({
+//            @ApiImplicitParam(name = "authorization", value = "token", paramType = "header", required = true) })
+//    @ApiOperation(value = "Account Balance", tags = { "BANK-VIRTUAL-ACCOUNT" })
+//    @GetMapping(path = "/accountBalance/{accountNo}")
+//    @PreAuthorize("hasAnyRole('ROLE_ADMIN_OWNER', 'ROLE_ADMIN_SUPER', 'ROLE_ADMIN_INITIATOR', 'ROLE_ADMIN_APPROVAL', 'ROLE_ADMIN_REPORT', 'ROLE_ADMIN_APP')")
+//    public CompletableFuture<SuccessResponse> balanceEnquiry(@PathVariable String accountNo) {
+//        log.info("Endpoint balance Enquiry called !!! ---->> {}", accountNo);
+//        return CompletableFuture.completedFuture(virtualService.balanceEnquiry(accountNo));
+//    }
 
 
 }

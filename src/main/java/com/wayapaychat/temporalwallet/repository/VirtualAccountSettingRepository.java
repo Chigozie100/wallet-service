@@ -10,9 +10,13 @@ import java.util.Optional;
 @Repository
 public interface VirtualAccountSettingRepository extends JpaRepository<VirtualAccountSettings, Long> {
 
-    @Query("SELECT v FROM VirtualAccountSettings v WHERE v.merchantId =:merchantId")
-    Optional<VirtualAccountSettings> findByMerchantId(Long merchantId);
+    @Query("SELECT v FROM VirtualAccountSettings v WHERE v.businessId =:businessId")
+    Optional<VirtualAccountSettings> findByBusinessId(String businessId);
 
     @Query("SELECT v FROM VirtualAccountSettings v WHERE v.accountNo =:accountNo")
     Optional<VirtualAccountSettings> findByAccountNo(String accountNo);
+
+
+    @Query("SELECT v FROM VirtualAccountSettings v WHERE v.accountNo =:accountNo OR v.callbackUrl =:callbackUrl")
+    Optional<VirtualAccountSettings> findByAccountNoORCallbackUrl(String accountNo, String callbackUrl);
 }

@@ -686,7 +686,7 @@ public class UserAccountServiceImpl implements UserAccountService {
 
     public WalletAccount createNubanAccountVersion2(WalletUser wayaGramUser, WalletUser businessObj, VirtualAccountRequest accountRequest) {
 
-        String acct_name = wayaGramUser.getCust_name().toUpperCase()+" / "+accountRequest.getAccountName().toUpperCase();
+        String acct_name = accountRequest.getAccountName().toUpperCase() + " " + wayaGramUser.getCust_name().toUpperCase();
 
         WalletProductCode code = walletProductCodeRepository.findByProductGLCode(wayaProduct, wayaGLCode);
         WalletProduct product = walletProductRepository.findByProductCode(wayaProduct, wayaGLCode);

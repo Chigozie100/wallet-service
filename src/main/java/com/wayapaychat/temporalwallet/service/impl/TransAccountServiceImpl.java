@@ -220,16 +220,17 @@ public class TransAccountServiceImpl implements TransAccountService {
             return new ResponseEntity<>(new ErrorResponse("ERROR PROCESSING TRANSACTION"), HttpStatus.BAD_REQUEST);
         }
 
-        if(isVirtualAccount(transfer.getCustomerAccountNumber()) && TransactionChannel.NIP_FUNDING.equals(transfer.getEventId())) {
+        if(isVirtualAccount(transfer.getCustomerAccountNumber()) && TransactionChannel.NIP_FUNDING.name().equals(transfer.getEventId())) {
 
             //If it is a virtual account get the default account for the business and credit it.
-            Optional<WalletAccount> walletAccount = walletAccountRepository.findByAccount(transfer.getCustomerAccountNumber());
+            WalletAccount walletAccount = walletAccountRepository.findByNubanAccountNo(transfer.getCustomerAccountNumber());
 
-            if(walletAccount.isPresent() ){
-                transfer.setCustomerAccountNumber(getDefaultAccount(walletAccount.get().getUser()));
+            if(walletAccount !=null){
+                transfer.setCustomerAccountNumber(getDefaultAccount(walletAccount.getUser()));
             }
         }
         if (eventInfo.get().isChargeWaya()) {
+            log.info("NIP_FUNDING TRANS {}", transfer.getCustomerAccountNumber());
             managementAccount = coreBankingService
                     .getEventAccountNumber(EventCharge.COLLECTION_.name().concat(transfer.getEventId()));
             transferTransactionDTO = new TransferTransactionDTO(managementAccount, transfer.getCustomerAccountNumber(),
@@ -255,9 +256,10 @@ public class TransAccountServiceImpl implements TransAccountService {
 
 
     private boolean isVirtualAccount(String accountNo){
-        Optional<WalletAccount> account = walletAccountRepository.findByAccount(accountNo);
-        if(account.isPresent()){
-            if(account.get().isVirtualAccount()){
+        WalletAccount account = walletAccountRepository.findByNubanAccountNo(accountNo);
+        System.out.println("isVirtualAccount?" + account);
+        if(account !=null){
+            if(account.isVirtualAccount()){
                 return true;
             }
         }
@@ -267,7 +269,7 @@ public class TransAccountServiceImpl implements TransAccountService {
     private String getDefaultAccount(WalletUser walletUser){
         String defaultAccount = "";
         Optional<WalletAccount> walletAccount = walletAccountRepository.findByDefaultAccount(walletUser);
-        if(walletAccount.isPresent()){
+        if(walletAccount.isPresent()) {
             defaultAccount = walletAccount.get().getAccountNo();
         }
         return defaultAccount;

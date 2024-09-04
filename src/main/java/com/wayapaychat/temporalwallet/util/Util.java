@@ -248,6 +248,7 @@ public class Util {
 
     public void pushEMAIL(String subject, String token, String name, String email, String message, Long userId) {
 
+        log.info("INSIDEE EMAIL {}", userId);
         EmailEvent emailEvent = new EmailEvent();
 
         emailEvent.setEventType(Constant.EMAIL);
