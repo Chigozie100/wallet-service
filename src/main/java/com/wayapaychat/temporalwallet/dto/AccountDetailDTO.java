@@ -2,6 +2,7 @@ package com.wayapaychat.temporalwallet.dto;
 
 import java.math.BigDecimal;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 @Data
@@ -108,6 +109,18 @@ public class AccountDetailDTO {
 		this.balance = balance;
 		this.currencyCode = currencyCode;
 	}
+
+	public AccountDetailDTO(long id, String branchId, String accountNo, String accountName,  String nubanAccountNo, BigDecimal balance) {
+		super();
+		this.id = id;
+		this.branchId = branchId;
+		this.accountNo = accountNo;
+		this.accountName = accountName;
+		this.nubanAccountNo = nubanAccountNo;
+		this.balance = balance;
+	}
+
+
 
 	public AccountDetailDTO() {
 	}
