@@ -1,6 +1,7 @@
 package com.wayapaychat.temporalwallet.service;
 
 
+import com.wayapaychat.temporalwallet.dto.AccountDetailDTO;
 import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.NotificationDto;
 import com.wayapaychat.temporalwallet.entity.VirtualAccountHook;
@@ -27,23 +28,17 @@ public interface VirtualService {
 
     ResponseEntity<SuccessResponse> registerWebhookUrl(VirtualAccountHookRequest request);
 
-    void transactionWebhookData();
-
     ResponseEntity<SuccessResponse> createVirtualAccount(VirtualAccountRequest account);
 
     ResponseEntity<SuccessResponse> createVirtualAccountVersion2(VirtualAccountRequest account);
 
     ResponseEntity<SuccessResponse> searchVirtualTransactions(LocalDateTime fromdate,LocalDateTime todate, String accountNo, int page, int size);
 
-    void appendNameToVirtualAccount(AppendToVirtualAccount account);
-
-    SuccessResponse nameEnquiry(String accountNumber);
+    AccountDetailDTO nameEnquiry(String accountNumber);
 
     SuccessResponse balanceEnquiry(String accountNumber);
 
     SuccessResponse decryptString(String obj);
-
-    SuccessResponse fundTransfer(BankPaymentDTO paymentDTO);
 
 
 }
