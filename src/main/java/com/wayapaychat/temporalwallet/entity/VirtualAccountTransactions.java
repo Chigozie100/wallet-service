@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.wayapaychat.temporalwallet.enumm.WalletTransStatus;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -36,6 +37,7 @@ public class VirtualAccountTransactions {
     private String creditAccountNumber;
 
     @NotNull
+    @JsonIgnore
     private String debitAccountNumber;
 
     @NotNull

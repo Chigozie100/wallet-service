@@ -1,11 +1,13 @@
 package com.wayapaychat.temporalwallet.service.impl;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wayapaychat.temporalwallet.dto.AccountDetailDTO;
-import com.wayapaychat.temporalwallet.dto.BankPaymentDTO;
 import com.wayapaychat.temporalwallet.dto.WalletUserDTO;
-import com.wayapaychat.temporalwallet.entity.*;
+import com.wayapaychat.temporalwallet.entity.VirtualAccountSettings;
+import com.wayapaychat.temporalwallet.entity.VirtualAccountTransactions;
+import com.wayapaychat.temporalwallet.entity.WalletAccount;
+import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.exception.CustomException;
-import com.wayapaychat.temporalwallet.pojo.AppendToVirtualAccount;
 import com.wayapaychat.temporalwallet.pojo.VirtualAccountHookRequest;
 import com.wayapaychat.temporalwallet.pojo.VirtualAccountRequest;
 import com.wayapaychat.temporalwallet.repository.VirtualAccountRepository;
@@ -23,13 +25,13 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
-import java.time.*;
+import java.time.LocalDateTime;
+import java.time.Month;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -79,10 +81,6 @@ public class VirtualServiceImpl implements VirtualService {
         }
     }
 
-    @Override
-    public void transactionWebhookData() {
-
-    }
 
     @Override
     public ResponseEntity<SuccessResponse> createVirtualAccount(VirtualAccountRequest account) {
@@ -138,15 +136,14 @@ public class VirtualServiceImpl implements VirtualService {
     }
 
     @Override
-    public ResponseEntity<SuccessResponse> searchVirtualTransactions(Date fromdate,Date todate, String accountNo, int page, int size) {
+    public ResponseEntity<SuccessResponse> searchVirtualTransactions(LocalDateTime fromdate,LocalDateTime todate, String accountNo, int page, int size) {
         // with pagination
 
         Pageable pagable = PageRequest.of(page, size);
         Map<String, Object> response = new HashMap<>();
 
-        LocalDate fromDate = fromdate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        LocalDate toDate = todate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        Page<VirtualAccountTransactions> virtualAccountTransactionsPage = virtualAccountRepository.findAllByDateRange(fromDate,toDate,accountNo, pagable);
+
+        Page<VirtualAccountTransactions> virtualAccountTransactionsPage = virtualAccountRepository.findAllByDateRange(fromdate,todate,accountNo, pagable);
         List<VirtualAccountTransactions> transaction = virtualAccountTransactionsPage.getContent();
         response.put("transaction", transaction);
         response.put("currentPage", virtualAccountTransactionsPage.getNumber());
@@ -199,21 +196,8 @@ public class VirtualServiceImpl implements VirtualService {
     }
 
     @Override
-    public void appendNameToVirtualAccount(AppendToVirtualAccount account) {
-
-    }
-
-    @Override
-    public SuccessResponse accountTransactionQuery(String accountNumber, LocalDate startDate, LocalDate endDate) {
-
-        return new SuccessResponse("Data retrieved successfully", null);
-
-    }
-
-    @Override
-    public SuccessResponse nameEnquiry(String accountNumber) {
-        AccountDetailDTO data = getResponse(accountNumber);
-        return new SuccessResponse("Account retrieved successfully", data);
+    public AccountDetailDTO nameEnquiry(String accountNumber) {
+        return getResponse(accountNumber);
 
     }
 
@@ -256,12 +240,6 @@ public class VirtualServiceImpl implements VirtualService {
         }
     }
 
-
-    @Override
-    public SuccessResponse fundTransfer(BankPaymentDTO paymentDTO) {
-        //String reference, String amount, String narration, String crAccountName, String bankName, String drAccountName, String crAccount, String bankCode
-        return null;
-    }
 
 
     public String encode(String password) {

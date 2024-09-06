@@ -257,7 +257,6 @@ public class TransAccountServiceImpl implements TransAccountService {
 
     private boolean isVirtualAccount(String accountNo){
         WalletAccount account = walletAccountRepository.findByNubanAccountNo(accountNo);
-        System.out.println("isVirtualAccount?" + account);
         if(account !=null){
             if(account.isVirtualAccount()){
                 return true;
@@ -2140,30 +2139,27 @@ public ResponseEntity<?> NonPayment(HttpServletRequest request, NonWayaPaymentDT
         mifosTransfer.setSourceCurrency(accountDebit.getAcct_crncy_code());
         mifosTransfer.setTransactionType(TransactionTypeEnum.TRANSFER.getValue());
         ExternalCBAResponse response;
-        System.out.println(" here" + mifosTransfer);
+
         try {
             log.info("## token  ####### :: " + token);
             log.info("## BEFOR MIFOS REQUEST ####### :: " + mifosTransfer);
             response = mifosWalletProxy.transferMoney(mifosTransfer);
             log.info("### RESPONSE FROM MIFOS MifosWalletProxy  ###### :: " + response);
         } catch (CustomException ex) {
-            System.out.println("ERROR posting to MIFOS :::: " + ex.getMessage());
             throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
-        System.out.println("RESPONSE" + response.getResponseDescription());
 
     }
 
     private UserPricing getUserProduct(WalletAccount accountDebit, String eventId) {
         WalletUser xUser = walletUserRepository.findByAccount(accountDebit);
         Long xUserId = xUser.getUserId();
-        System.out.println("user pricing prod is" + xUserId + eventId);
         // get user charge by eventId and userID
         return userPricingRepository.findDetailsByCode(xUserId, eventId).orElse(null);
     }
 
     private WalletAccount getAccountByEventId(String eventId, String creditAcctNo) {
-        System.out.println("eventId " + eventId);
+
         Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
         if (eventInfo.isEmpty()) {
             throw new CustomException("DJGO|Event Code Does Not Exist", HttpStatus.NOT_FOUND);
@@ -2384,7 +2380,7 @@ public ResponseEntity<?> NonPayment(HttpServletRequest request, NonWayaPaymentDT
                 }
             }
 
-            System.out.println("INSIDE MAIN METHOD :: " + tokenData);
+           log.info("INSIDE MAIN METHOD: {}", tokenData);
             BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
             if (userLim.compareTo(amount) == -1) {
                 return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
@@ -2591,7 +2587,6 @@ public ResponseEntity<?> NonPayment(HttpServletRequest request, NonWayaPaymentDT
 
     @Override
     public ApiResponse<?> PaymentOffTrans(int page, int size, String fillter) {
-        System.out.println("wallet fillter " + fillter);
 
         Pageable pagable = PageRequest.of(page, size);
         Map<String, Object> response = new HashMap<>();
