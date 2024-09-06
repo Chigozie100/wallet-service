@@ -67,7 +67,7 @@ public class VirtualAccountController {
         if(response == null){
             return new ResponseEntity<>(null, HttpStatus.ACCEPTED);
         }
-        return new ResponseEntity<>(response, HttpStatus.ACCEPTED);
+        return new ResponseEntity<>(new SuccessResponse("Account retrieved successfully",response), HttpStatus.ACCEPTED);
 
     }
 

@@ -22,6 +22,8 @@ public interface WalletAccountRepository extends JpaRepository<WalletAccount, Lo
 
     WalletAccount findByNubanAccountNo(String nubanAccountNo);
 
+    @Query(value = "SELECT u FROM WalletAccount u WHERE u.accountNo = :value OR u.nubanAccountNo =:value AND  u.del_flg = false")
+    WalletAccount findByAccountNoOrNubanAccountNo(String value);
 
 
     @Query("SELECT u FROM WalletAccount u WHERE u.nubanAccountNo = '0' AND u.del_flg = false")

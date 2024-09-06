@@ -158,13 +158,13 @@ public class VirtualServiceImpl implements VirtualService {
 
 
     private AccountDetailDTO getResponse(String accountNo){
-        WalletAccount acct = walletAccountRepository.findByNubanAccountNo(accountNo);
+        WalletAccount acct = walletAccountRepository.findByAccountNoOrNubanAccountNo(accountNo);
+        System.out.println("Account ==" + acct);
         if (acct == null) {
             return null;
         }
-        return new AccountDetailDTO(acct.getId(), acct.getSol_id(), acct.getNubanAccountNo(),
-                acct.getAcct_name(), acct.getProduct_code(), BigDecimal.valueOf(acct.getClr_bal_amt()),
-                acct.getAcct_crncy_code());
+        return new AccountDetailDTO(acct.getId(), acct.getSol_id(), acct.getAccountNo(),
+                acct.getAcct_name(), acct.getNubanAccountNo(), BigDecimal.valueOf(acct.getClr_bal_amt()));
     }
 
 
