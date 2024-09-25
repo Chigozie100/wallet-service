@@ -22,6 +22,7 @@ import com.wayapaychat.temporalwallet.util.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.math3.util.Precision;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -2422,8 +2423,10 @@ public class UserAccountServiceImpl implements UserAccountService {
                 account.setLien_amt(acctAmt);
                 account.setLien_reason(user.getLienReason());
                 account.setClr_bal_amt(account.getClr_bal_amt() + user.getLienAmount().doubleValue());
-
             }
+            double unClrbalAmt = account.getCum_cr_amt() - account.getCum_dr_amt();
+            account.setClr_bal_amt(Precision.round(unClrbalAmt - account.getLien_amt(), 2));
+            account.setUn_clr_bal_amt(Precision.round(unClrbalAmt, 2));
 
             WalletAccount account1 = walletAccountRepository.save(account);
             log.info("Actual Value " + account1);
