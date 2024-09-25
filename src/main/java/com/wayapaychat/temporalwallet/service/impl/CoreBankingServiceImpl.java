@@ -14,12 +14,15 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 
 import com.wayapaychat.temporalwallet.config.SecurityConstants;
+import com.wayapaychat.temporalwallet.entity.*;
 import com.wayapaychat.temporalwallet.enumm.*;
+import com.wayapaychat.temporalwallet.pojo.*;
+import com.wayapaychat.temporalwallet.repository.*;
+import com.wayapaychat.temporalwallet.service.*;
 import com.wayapaychat.temporalwallet.util.Constant;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.math3.util.Precision;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,37 +36,17 @@ import com.wayapaychat.temporalwallet.dto.MifosTransaction;
 import com.wayapaychat.temporalwallet.dto.MifosTransfer;
 import com.wayapaychat.temporalwallet.dto.ReverseTransactionDTO;
 import com.wayapaychat.temporalwallet.dto.TransferTransactionDTO;
-import com.wayapaychat.temporalwallet.pojo.CBAEntryTransaction;
-import com.wayapaychat.temporalwallet.pojo.CBATransaction;
-import com.wayapaychat.temporalwallet.pojo.CreateAccountData;
-import com.wayapaychat.temporalwallet.pojo.MyData;
 import com.wayapaychat.temporalwallet.proxy.MifosWalletProxy;
-import com.wayapaychat.temporalwallet.repository.UserPricingRepository;
-import com.wayapaychat.temporalwallet.repository.WalletAccountRepository;
-import com.wayapaychat.temporalwallet.repository.WalletEventRepository;
-import com.wayapaychat.temporalwallet.repository.WalletTransAccountRepository;
-import com.wayapaychat.temporalwallet.repository.WalletTransactionRepository;
 import com.wayapaychat.temporalwallet.response.ExternalCBAAccountCreationResponse;
-import com.wayapaychat.temporalwallet.service.CoreBankingService;
-import com.wayapaychat.temporalwallet.service.TransactionCountService;
-import com.wayapaychat.temporalwallet.service.SwitchWalletService;
 import com.wayapaychat.temporalwallet.util.ErrorResponse;
 import com.wayapaychat.temporalwallet.util.SuccessResponse;
 import com.wayapaychat.temporalwallet.util.Util;
 
 import lombok.extern.slf4j.Slf4j;
 
-import com.wayapaychat.temporalwallet.entity.Provider;
-import com.wayapaychat.temporalwallet.entity.UserPricing;
-import com.wayapaychat.temporalwallet.entity.WalletAccount;
-import com.wayapaychat.temporalwallet.entity.WalletEventCharges;
-import com.wayapaychat.temporalwallet.entity.WalletTransAccount;
-import com.wayapaychat.temporalwallet.entity.WalletTransaction;
-import com.wayapaychat.temporalwallet.entity.WalletUser;
 import com.wayapaychat.temporalwallet.exception.CustomException;
 import com.wayapaychat.temporalwallet.interceptor.TokenImpl;
 import com.wayapaychat.temporalwallet.notification.CustomNotification;
-import com.wayapaychat.temporalwallet.pojo.TransactionReport;
 
 @Service
 @Slf4j
@@ -80,15 +63,21 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     private final UserPricingRepository userPricingRepository;
     private final TransactionCountService transactionCountService;
     private final TokenImpl tokenImpl;
+    private final Util utils;
+
+    private final WebhookService webhookService;
+
+    private final VirtualAccountRepository virtualAccountTransactionsRepository;
+    private final MessageQueueProducer messageQueueProducer;
 
 
     @Autowired
     public CoreBankingServiceImpl(SwitchWalletService switchWalletService,
-            WalletTransAccountRepository walletTransAccountRepository, WalletAccountRepository walletAccountRepository,
-            WalletEventRepository walletEventRepository, WalletTransactionRepository walletTransactionRepository,
-            MifosWalletProxy mifosWalletProxy, TemporalWalletDAO tempwallet, CustomNotification customNotification,
-            UserPricingRepository userPricingRepository, TransactionCountService transactionCountService,
-            TokenImpl tokenImpl) {
+                                  WalletTransAccountRepository walletTransAccountRepository, WalletAccountRepository walletAccountRepository,
+                                  WalletEventRepository walletEventRepository, WalletTransactionRepository walletTransactionRepository,
+                                  MifosWalletProxy mifosWalletProxy, TemporalWalletDAO tempwallet, CustomNotification customNotification,
+                                  UserPricingRepository userPricingRepository, TransactionCountService transactionCountService,
+                                  TokenImpl tokenImpl, Util utils, WebhookService webhookService, VirtualAccountRepository virtualAccountTransactionsRepository, MessageQueueProducer messageQueueProducer) {
         this.switchWalletService = switchWalletService;
         this.walletTransAccountRepository = walletTransAccountRepository;
         this.walletAccountRepository = walletAccountRepository;
@@ -100,6 +89,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         this.userPricingRepository = userPricingRepository;
         this.transactionCountService = transactionCountService;
         this.tokenImpl = tokenImpl;
+        this.utils = utils;
+        this.webhookService = webhookService;
+        this.virtualAccountTransactionsRepository = virtualAccountTransactionsRepository;
+        this.messageQueueProducer = messageQueueProducer;
     }
 
     @Override
@@ -164,6 +157,28 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         walletAccountRepository.save(sAcct);
 
         return new ResponseEntity<>(new SuccessResponse("Account Created Successfully.", sAcct), HttpStatus.CREATED);
+    }
+
+    public WalletAccount createAccountExtension(WalletUser userInfo, WalletAccount sAcct) {
+        log.info("createAccount: {}", sAcct.getAccountNo(), sAcct.getAcct_name());
+        Provider provider = switchWalletService.getActiveProvider();
+        if (provider == null) {
+            log.error("No provider available");
+            return null;
+        }
+     
+        CompletableFuture.runAsync(() -> {
+
+                ResponseEntity<?> response = externalCBACreateAccount(userInfo, sAcct, provider);
+                if (!response.getStatusCode().is2xxSuccessful()) {
+                    log.error("External CBA failed to process create account: {}", sAcct);
+                    // Handle the error case or return an alternative response
+                }
+                // Process the response if needed
+        });
+
+
+        return walletAccountRepository.save(sAcct);
     }
 
     public ResponseEntity<?> getAccountDetails(String accountNo) {
@@ -307,8 +322,8 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.SAME_ACCOUNT.getValue()),
                     HttpStatus.BAD_REQUEST);
         }
-
-        if (walletAccountRepository.countAccount(transferTransactionRequestData.getBenefAccountNumber()) < 1) {
+            log.info("BENEF-ACCOUNT {} ", transferTransactionRequestData);
+        if (walletAccountRepository.countAccount2(transferTransactionRequestData.getBenefAccountNumber()) < 1) {
             log.error("Invalid beneficiary account number.");
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.INVALID_BENEFICIARY_ACCOUNT.getValue()),
                     HttpStatus.BAD_REQUEST);
@@ -339,6 +354,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         BigDecimal chargeAmount = computeTransactionFee(transferTransactionRequestData.getDebitAccountNumber(),
                 transferTransactionRequestData.getAmount(), channelEventId);
+
         BigDecimal vatAmount = computeVatFee(chargeAmount, channelEventId);
         String customerAccount;
         String receiverName = transferTransactionRequestData.getBeneficiaryName();
@@ -351,11 +367,20 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                     HttpStatus.BAD_REQUEST);
         }
 
-        Long tranId = logTransaction(receiverName, senderName, transferTransactionRequestData.getDebitAccountNumber(),
-                transferTransactionRequestData.getBenefAccountNumber(),
-                transferTransactionRequestData.getAmount(), chargeAmount, vatAmount,
-                transferTransactionRequestData.getTransactionCategory(),
-                transferTransactionRequestData.getTranCrncy(), channelEventId, WalletTransStatus.PENDING);
+        Long tranId;
+        if(TransactionChannel.NIP_FUNDING.name().equals(channelEventId)){
+            tranId = logVirtualAccountTransaction(receiverName, senderName, transferTransactionRequestData.getDebitAccountNumber(),
+                    transferTransactionRequestData.getBenefAccountNumber(),
+                    transferTransactionRequestData.getAmount(), chargeAmount, vatAmount,
+                    transferTransactionRequestData.getTransactionCategory(),
+                    transferTransactionRequestData.getTranCrncy(), channelEventId, WalletTransStatus.PENDING);
+        }else{
+            tranId = logTransaction(receiverName, senderName, transferTransactionRequestData.getDebitAccountNumber(),
+                    transferTransactionRequestData.getBenefAccountNumber(),
+                    transferTransactionRequestData.getAmount(), chargeAmount, vatAmount,
+                    transferTransactionRequestData.getTransactionCategory(),
+                    transferTransactionRequestData.getTranCrncy(), channelEventId, WalletTransStatus.PENDING);
+        }
         if (tranId == null) {
             log.error("Failed to log transaction.");
             return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()),
@@ -377,7 +402,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                             CBAAction.MOVE_GL_TO_GL, transferTransactionRequestData.getTransactionChannel()));
             customerAccount = transferTransactionRequestData.getDebitAccountNumber();
         } else if (transferTransactionRequestData.getDebitAccountNumber().length() > 10
-                && transferTransactionRequestData.getBenefAccountNumber().length() == 10) {
+                && transferTransactionRequestData.getBenefAccountNumber().length() == 10){
             response = processCBACustomerDepositTransactionWithDoubleEntryTransit(
                     new CBATransaction(senderName, receiverName, userData,
                             transferTransactionRequestData.getPaymentReference(), transitAccount,
@@ -421,6 +446,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             customerAccount = transferTransactionRequestData.getDebitAccountNumber();
         }
 
+
         WalletTransStatus transactionStatus = response.getStatusCode().is2xxSuccessful() ? WalletTransStatus.SUCCESSFUL
                 : WalletTransStatus.REVERSED;
         log.info("Transaction status: {}", transactionStatus);
@@ -428,15 +454,26 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         if (response.getStatusCode().is2xxSuccessful()) {
             log.info("Transaction processed successfully.");
         } else {
-            log.error("Transaction processing failed.");
-        }
+            MyData systemToken = tokenImpl.getToken2();
+            String supportMessage = "Dear Tech Support, User is debited but credit was not initiated to the beneficiary due to network break up or service downtime from NIBBSS. "
+                    + "The auto reversal failed. Kindly resolve the auto reversal and initiate a manual reversal. "
+                    + "Kindly resolve urgently.";
 
-        updateTransactionLog(tranId, transactionStatus);
+         CompletableFuture.runAsync(() -> utils.pushEMAIL("TRANSFER ERROR", systemToken.getToken(), "Tech Support", "wayabank.techsupport@wayapaychat.com", supportMessage, systemToken.getId()));
+            log.error("Transaction processing failed......");
+        }
 
         Optional<List<WalletTransaction>> transaction = walletTransactionRepository
                 .findByReferenceAndAccount(transferTransactionRequestData.getPaymentReference(), customerAccount);
 
         if (WalletTransStatus.SUCCESSFUL.equals(transactionStatus) && transaction.isPresent()) {
+            updateTransactionLog(tranId, transactionStatus);
+            if(TransactionChannel.NIP_FUNDING.equals(channelEventId)){
+
+                updateVirtualTransactionLog(tranId,transactionStatus);
+                // implement callback
+                CompletableFuture.runAsync(() -> initiateWebHookCall(transaction, transactionStatus, transferTransactionRequestData));
+            }
             log.info("Retrieving transaction details...");
             return new ResponseEntity<>(new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue(), transaction),
                     HttpStatus.CREATED);
@@ -446,6 +483,28 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         }
 
         return new ResponseEntity<>(new ErrorResponse(ResponseCodes.PROCESSING_ERROR.getValue()), HttpStatus.BAD_REQUEST);
+
+    }
+
+    public void initiateWebHookCall(Optional<List<WalletTransaction>> transactions, WalletTransStatus transactionStatus, TransferTransactionDTO transaction){
+        log.info("Transactions {}", transactions);
+        WebhookPayload payload = new WebhookPayload();
+        for(WalletTransaction data: transactions.get()){
+
+            payload.setAmount(data.getTranAmount());
+            payload.setStatus(transactionStatus.name());
+            payload.setCurrency(data.getPartTranType());
+            payload.setMerchantId(data.getAcctNum());
+            payload.setReference(data.getPaymentReference());
+            payload.setTransactionType(data.getPartTranType());
+            payload.setTransactionId(data.getTranId());
+            payload.setTransactionDate(data.getCreatedAt());
+        }
+
+        messageQueueProducer.send(Constant.WEB_HOOK_PAYLOAD, payload);
+            log.info(":::SUCCESS, PUBLISHING REFERRAL TXN TO REFERRAL-SERVICE KAFKA QUEUE::::: {}",payload);
+
+        webhookService.sendWebhookNotification(payload,transaction);
 
     }
 
@@ -465,6 +524,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             response.setMessage(ResponseCodes.INVALID_SOURCE_ACCOUNT.getValue());
             response.setStatus(false);
             log.error("Invalid source account: {}", transferTransactionRequestData.getDebitAccountNumber());
+            removeLien(transferTransactionRequestData.getDebitAccountNumber(), transferTransactionRequestData.getAmount());
             return response;
         }
 
@@ -475,6 +535,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             response.setMessage(ResponseCodes.INSUFFICIENT_FUNDS.getValue());
             response.setStatus(false);
             log.error("Exceeded amount: {}", transferTransactionRequestData.getAmount());
+            removeLien(transferTransactionRequestData.getDebitAccountNumber(), transferTransactionRequestData.getAmount());
             return response;
         }
         response.setStatus(true);
@@ -659,7 +720,6 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
     @Override
     public String getEventAccountNumber(String channelEventId) {
-
         Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(channelEventId);
         if (!eventInfo.isPresent()) {
             log.error("no event found for transaction category {}", channelEventId);
@@ -713,7 +773,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return priceAmount;
         }
 
-        UserPricing userPricingOptional = userPricingRepository.findDetailsByCode(account.getUId(), eventId)
+        UserPricing userPricingOptional = userPricingRepository.findFirstByUserIdAndCode(account.getUId(), eventId)
                 .orElse(null);
         if (userPricingOptional == null) {
             log.error("User pricing details not found for UID: {} and eventId: {}", account.getUId(), eventId);
@@ -782,7 +842,7 @@ public class CoreBankingServiceImpl implements CoreBankingService {
                                String toAccountNumber, BigDecimal amount, BigDecimal chargeAmount, BigDecimal vatAmount,
                                String transCategory, String tranCrncy, String eventId, WalletTransStatus status) {
         log.info("Logging transaction...");
-        String code = new Util().generateRandomNumber(9);
+        String code = utils.generateRandomNumber(9);
         try {
             WalletTransAccount walletTransAccount = new WalletTransAccount();
             walletTransAccount.setCreatedAt(LocalDateTime.now().plusHours(1));
@@ -814,12 +874,31 @@ public class CoreBankingServiceImpl implements CoreBankingService {
     public void updateTransactionLog(Long tranId, WalletTransStatus status) {
         log.info("Updating transaction log for transaction ID: {}", tranId);
         try {
+
             Optional<WalletTransAccount> walletTransAccount = walletTransAccountRepository.findById(tranId);
             if (walletTransAccount.isPresent()) {
                 WalletTransAccount walletTransAccount1 = walletTransAccount.get();
                 walletTransAccount1.setStatus(status);
                 walletTransAccountRepository.save(walletTransAccount1);
                 log.info("Transaction log updated successfully for transaction ID: {}", tranId);
+            } else {
+                log.error("Transaction with ID {} not found for updating", tranId);
+            }
+        } catch (CustomException ex) {
+            log.error("An error occurred while updating transaction log: {}", ex.getMessage());
+            ex.printStackTrace();
+        }
+    }
+
+    public void updateVirtualTransactionLog(Long tranId, WalletTransStatus status) {
+        log.info("Updating virtual transaction log for transaction ID: {}", tranId);
+        try {
+            Optional<VirtualAccountTransactions> walletTransAccount = virtualAccountTransactionsRepository.findById(tranId);
+            if (walletTransAccount.isPresent()) {
+                VirtualAccountTransactions walletTransAccount1 = walletTransAccount.get();
+                walletTransAccount1.setStatus(status);
+                virtualAccountTransactionsRepository.save(walletTransAccount1);
+                log.info("Virtual account Transaction log updated successfully for transaction ID: {}", tranId);
             } else {
                 log.error("Transaction with ID {} not found for updating", tranId);
             }
@@ -1249,8 +1328,10 @@ public class CoreBankingServiceImpl implements CoreBankingService {
 
         ExternalCBAResponse externalResponse = null;
 
+        long startTime = 0;
         try {
             if (ProviderType.MIFOS.equalsIgnoreCase(cbaTransaction.getProvider().getName())) {
+                startTime = System.currentTimeMillis();
                 externalResponse = mifosWalletProxy.processTransaction(mifosTransfer);
             } else {
                 externalResponse = new ExternalCBAResponse(ExternalCBAResponseCodes.R_00);
@@ -1267,7 +1348,21 @@ public class CoreBankingServiceImpl implements CoreBankingService {
             return response;
         }
 
-        log.info("Successful transaction");
+        long TIMEOUT_THRESHOLD = 10000; // Threshold in milliseconds
+        long endTime = System.currentTimeMillis();
+        long elapsedTime = endTime - startTime;
+
+        if (elapsedTime > TIMEOUT_THRESHOLD) {
+            log.warn("Mifos Wallet Proxy response took longer than expected: {} milliseconds", elapsedTime);
+            MyData systemToken = tokenImpl.getToken2();
+            String supportMessage = "Dear Tech Support,\ntransfer speed is slow. Kindly check the log below and resolve urgently.";
+
+
+           CompletableFuture.runAsync( () -> utils.pushEMAIL("SLOW TRANSFER", systemToken.getToken(), "Tech Support", "wayabank.techsupport@wayapaychat.com", supportMessage, systemToken.getId()));
+            log.error("Transaction processing failed......");
+        }
+
+            log.info("Successful transaction");
         return new ResponseEntity<>(new SuccessResponse(ResponseCodes.TRANSACTION_SUCCESSFUL.getValue()),
                 HttpStatus.ACCEPTED);
     }
@@ -1468,5 +1563,37 @@ public class CoreBankingServiceImpl implements CoreBankingService {
         log.info("Using transaction channel from request header.");
         return channel;
     }
+
+    public Long logVirtualAccountTransaction(String beneficiaryName, String senderName, String fromAccountNumber,
+                                             String toAccountNumber, BigDecimal amount, BigDecimal chargeAmount, BigDecimal vatAmount,
+                                             String transCategory, String tranCrncy, String eventId, WalletTransStatus status) {
+        log.info("Logging transaction...");
+        String code = utils.generateRandomNumber(9);
+        try {
+            VirtualAccountTransactions walletTransAccount = new VirtualAccountTransactions();
+            walletTransAccount.setCreatedAt(LocalDateTime.now().plusHours(1));
+            walletTransAccount.setDebitAccountNumber(fromAccountNumber);
+            walletTransAccount.setCreditAccountNumber(toAccountNumber);
+            walletTransAccount.setTranAmount(amount);
+            walletTransAccount.setChargeAmount(chargeAmount);
+            walletTransAccount.setVatAmount(vatAmount);
+            walletTransAccount.setTranId(code);
+            walletTransAccount.setTransactionType(transCategory);
+            walletTransAccount.setTranCrncy(tranCrncy);
+            walletTransAccount.setEventId(eventId);
+            walletTransAccount.setStatus(status);
+            walletTransAccount.setSenderName(senderName);
+            walletTransAccount.setBeneficiaryName(beneficiaryName);
+            Long id = virtualAccountTransactionsRepository.save(walletTransAccount).getId();
+            log.info("Transaction logged with ID: {}", id);
+            log.debug("Transaction details: {}", walletTransAccount);
+            return id;
+        } catch (CustomException ex) {
+            log.error("Error in logging transaction: {}", ex.getMessage());
+            throw new CustomException("Error in logging transaction: " + ex.getMessage(),
+                    HttpStatus.EXPECTATION_FAILED);
+        }
+    }
+
 
 }

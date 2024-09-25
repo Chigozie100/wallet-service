@@ -211,7 +211,7 @@ public class TransAccountServiceImpl implements TransAccountService {
 
         log.info("Transaction Request Creation: {}", transfer.toString());
 
-        TransferTransactionDTO transferTransactionDTO;
+        TransferTransactionDTO transferTransactionDTO = null;
         String managementAccount;
 
         Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(transfer.getEventId());
@@ -220,7 +220,17 @@ public class TransAccountServiceImpl implements TransAccountService {
             return new ResponseEntity<>(new ErrorResponse("ERROR PROCESSING TRANSACTION"), HttpStatus.BAD_REQUEST);
         }
 
+        if(isVirtualAccount(transfer.getCustomerAccountNumber()) && TransactionChannel.NIP_FUNDING.name().equals(transfer.getEventId())) {
+
+            //If it is a virtual account get the default account for the business and credit it.
+            WalletAccount walletAccount = walletAccountRepository.findByNubanAccountNo(transfer.getCustomerAccountNumber());
+
+            if(walletAccount !=null){
+                transfer.setCustomerAccountNumber(getDefaultAccount(walletAccount.getUser()));
+            }
+        }
         if (eventInfo.get().isChargeWaya()) {
+            log.info("NIP_FUNDING TRANS {}", transfer.getCustomerAccountNumber());
             managementAccount = coreBankingService
                     .getEventAccountNumber(EventCharge.COLLECTION_.name().concat(transfer.getEventId()));
             transferTransactionDTO = new TransferTransactionDTO(managementAccount, transfer.getCustomerAccountNumber(),
@@ -244,6 +254,25 @@ public class TransAccountServiceImpl implements TransAccountService {
         return response;
     }
 
+
+    private boolean isVirtualAccount(String accountNo){
+        WalletAccount account = walletAccountRepository.findByNubanAccountNo(accountNo);
+        if(account !=null){
+            if(account.isVirtualAccount()){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String getDefaultAccount(WalletUser walletUser){
+        String defaultAccount = "";
+        Optional<WalletAccount> walletAccount = walletAccountRepository.findByDefaultAccount(walletUser);
+        if(walletAccount.isPresent()) {
+            defaultAccount = walletAccount.get().getAccountNo();
+        }
+        return defaultAccount;
+    }
     @Override
     public ResponseEntity<?> TemporalWalletToOfficialWalletMutiple(HttpServletRequest request,
                                                                    List<TemporalToOfficialWalletDTO> transfer) {
@@ -2110,30 +2139,27 @@ public ResponseEntity<?> NonPayment(HttpServletRequest request, NonWayaPaymentDT
         mifosTransfer.setSourceCurrency(accountDebit.getAcct_crncy_code());
         mifosTransfer.setTransactionType(TransactionTypeEnum.TRANSFER.getValue());
         ExternalCBAResponse response;
-        System.out.println(" here" + mifosTransfer);
+
         try {
             log.info("## token  ####### :: " + token);
             log.info("## BEFOR MIFOS REQUEST ####### :: " + mifosTransfer);
             response = mifosWalletProxy.transferMoney(mifosTransfer);
             log.info("### RESPONSE FROM MIFOS MifosWalletProxy  ###### :: " + response);
         } catch (CustomException ex) {
-            System.out.println("ERROR posting to MIFOS :::: " + ex.getMessage());
             throw new CustomException(ex.getMessage(), HttpStatus.EXPECTATION_FAILED);
         }
-        System.out.println("RESPONSE" + response.getResponseDescription());
 
     }
 
     private UserPricing getUserProduct(WalletAccount accountDebit, String eventId) {
         WalletUser xUser = walletUserRepository.findByAccount(accountDebit);
         Long xUserId = xUser.getUserId();
-        System.out.println("user pricing prod is" + xUserId + eventId);
         // get user charge by eventId and userID
         return userPricingRepository.findDetailsByCode(xUserId, eventId).orElse(null);
     }
 
     private WalletAccount getAccountByEventId(String eventId, String creditAcctNo) {
-        System.out.println("eventId " + eventId);
+
         Optional<WalletEventCharges> eventInfo = walletEventRepository.findByEventId(eventId);
         if (eventInfo.isEmpty()) {
             throw new CustomException("DJGO|Event Code Does Not Exist", HttpStatus.NOT_FOUND);
@@ -2354,7 +2380,7 @@ public ResponseEntity<?> NonPayment(HttpServletRequest request, NonWayaPaymentDT
                 }
             }
 
-            System.out.println("INSIDE MAIN METHOD :: " + tokenData);
+           log.info("INSIDE MAIN METHOD: {}", tokenData);
             BigDecimal userLim = new BigDecimal(tokenData.getTransactionLimit());
             if (userLim.compareTo(amount) == -1) {
                 return "DJGO|DEBIT TRANSACTION AMOUNT LIMIT EXCEEDED";
@@ -2561,7 +2587,6 @@ public ResponseEntity<?> NonPayment(HttpServletRequest request, NonWayaPaymentDT
 
     @Override
     public ApiResponse<?> PaymentOffTrans(int page, int size, String fillter) {
-        System.out.println("wallet fillter " + fillter);
 
         Pageable pagable = PageRequest.of(page, size);
         Map<String, Object> response = new HashMap<>();

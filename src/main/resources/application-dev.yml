@@ -1,6 +1,5 @@
-
 server:
-  port: 9009
+  port: 9191
   servlet:
     context-path: /temporal-service
 spring:
@@ -49,9 +48,9 @@ spring:
     serialization:
       fail-on-empty-beans: false
   datasource:
-    url: jdbc:postgresql://localhost:5432/temporal-service?useSSL=false&useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC
+    url: jdbc:postgresql://localhost:55000/temporal-service
     username: postgres
-    password: postgres
+    password: postgrespw
     driver-class-name: org.postgresql.Driver
   hikari:
     minimumIdle: 2
@@ -142,6 +141,8 @@ ofi:
 jwt:
   secret: ${AUTH_JWT_SECRET:2YuUlb+t36yVzrTkYLl8xBlBJSC41CE7uNF3somMDxdYDfcACv9JYIU54z17s4Ah313uKu/4Ll+vDNKpxx6v4Q== ##BvPHGM8C0ia4uOuxxqPD5DTbWC9F9TWvPStp3pb7ARo0oK2mJ3pd3YG4lxA9i8bj6OTbadwezxgeEByY}
   expiration: ${AUTH_JWT_EXPIRATION:31557600000}
+
+virtualAccount:
 
 #mobile:
 #  app:

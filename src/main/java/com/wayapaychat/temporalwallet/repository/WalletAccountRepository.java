@@ -22,6 +22,10 @@ public interface WalletAccountRepository extends JpaRepository<WalletAccount, Lo
 
     WalletAccount findByNubanAccountNo(String nubanAccountNo);
 
+    @Query(value = "SELECT u FROM WalletAccount u WHERE u.accountNo = :value OR u.nubanAccountNo =:value AND  u.del_flg = false")
+    WalletAccount findByAccountNoOrNubanAccountNo(String value);
+
+
     @Query("SELECT u FROM WalletAccount u WHERE u.nubanAccountNo = '0' AND u.del_flg = false")
     List<WalletAccount> findByAllNonNubanAccount();
 
@@ -71,6 +75,9 @@ public interface WalletAccountRepository extends JpaRepository<WalletAccount, Lo
 
     @Query("SELECT count(u.id) FROM WalletAccount u WHERE u.accountNo = (:account) AND u.del_flg = false")
     long countAccount(String account);
+
+    @Query("SELECT count(u.id) FROM WalletAccount u WHERE u.accountNo = (:account) OR u.nubanAccountNo = (:account) AND u.del_flg = false")
+    long countAccount2(String account);
 
     @Query("SELECT sum(u.clr_bal_amt) FROM WalletAccount u WHERE u.del_flg = false")
     BigDecimal totalActiveAccount();

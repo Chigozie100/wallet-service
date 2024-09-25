@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.pojo;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import javax.validation.constraints.NotBlank;
@@ -12,10 +13,17 @@ public class VirtualAccountRequest {
     @NotBlank(message = "Account Name must not be null")
     private String accountName;
 
-    @NotBlank(message = "User Id must not be null")
-    @Size(min=1, max=20, message = "The user id '${validatedValue}' must be between {min} and {max} characters long")
     private String userId;
 
-    private String accountType;
+    @NotBlank(message = "Account Name must not be null")
+    private String phoneNumber;
+
+    @NotBlank(message = "Account Name must not be null")
+    private String email;
+    private String bvn;
+    private String nin;
+
+    @JsonProperty("merchantAccountNumber")
+    private String wayaGramAccountNumber;  //wayaGramAccountNumber
 
 }

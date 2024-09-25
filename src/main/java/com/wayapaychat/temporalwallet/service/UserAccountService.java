@@ -1,5 +1,6 @@
 package com.wayapaychat.temporalwallet.service;
 
+
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -9,6 +10,8 @@ import java.util.List;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.wayapaychat.temporalwallet.dto.*;
 import com.wayapaychat.temporalwallet.entity.WalletAccount;
+import com.wayapaychat.temporalwallet.entity.WalletUser;
+import com.wayapaychat.temporalwallet.pojo.VirtualAccountRequest;
 import org.springframework.http.ResponseEntity;
 
 import com.wayapaychat.temporalwallet.pojo.AccountPojo2;
@@ -19,23 +22,25 @@ import javax.servlet.http.HttpServletRequest;
 
 public interface UserAccountService {
 
-    ResponseEntity<?> createUser(HttpServletRequest request,UserDTO user, String token);
+    ResponseEntity<?> createUser(HttpServletRequest request, UserDTO user, String token);
 
     WalletAccount createNubanAccount(WalletUserDTO user);
 
-    ResponseEntity<?> createUserAccount(String clientId,String clientType,WalletUserDTO user, String token);
+    WalletAccount createNubanAccountVersion2(WalletUser wayaGramUser, WalletUser user, VirtualAccountRequest accountRequest);
 
-    ResponseEntity<?> createCashAccount(HttpServletRequest request,WalletCashAccountDTO user);
+    ResponseEntity<?> createUserAccount(String clientId, String clientType, WalletUserDTO user, String token);
+
+    ResponseEntity<?> createCashAccount(HttpServletRequest request, WalletCashAccountDTO user);
 
     ResponseEntity<?> createEventAccount(WalletEventAccountDTO user);
 
-    ResponseEntity<?> createAccount(HttpServletRequest request,AccountPojo2 accountPojo, String token);
+    ResponseEntity<?> createAccount(HttpServletRequest request, AccountPojo2 accountPojo, String token);
 
     ResponseEntity<?> createOfficialAccount(OfficialAccountDTO account);
 
     ArrayList<Object> createOfficialAccount(List<OfficialAccountDTO> account);
 
-    ResponseEntity<?> createAccountProduct(HttpServletRequest request,AccountProductDTO accountPojo);
+    ResponseEntity<?> createAccountProduct(HttpServletRequest request, AccountProductDTO accountPojo);
 
     ApiResponse<?> findCustWalletById(Long walletId);
 
@@ -55,15 +60,15 @@ public interface UserAccountService {
 
     ResponseEntity<?> fetchVirtualAccountDetail(String accountNo);
 
-    ResponseEntity<?> getUserAccountList(HttpServletRequest request,long userId,String profileId,String token);
+    ResponseEntity<?> getUserAccountList(HttpServletRequest request, long userId, String profileId, String token);
 
     ResponseEntity<?> getAllAccount();
 
-    ResponseEntity<?> getUserCommissionList(long userId, Boolean isAdmin,String profileId);
+    ResponseEntity<?> getUserCommissionList(long userId, Boolean isAdmin, String profileId);
 
     ResponseEntity<?> makeDefaultWallet(String accountNo);
 
-    ResponseEntity<?> UserWalletLimit(long userId,String profileId);
+    ResponseEntity<?> UserWalletLimit(long userId, String profileId);
 
     ResponseEntity<?> getALLCommissionAccount();
 
@@ -73,15 +78,15 @@ public interface UserAccountService {
 
     ResponseEntity<?> nameEnquiry(String accountNo);
 
-    ResponseEntity<?> getAccountDefault(Long user_id,String profileId) throws JsonProcessingException;
+    ResponseEntity<?> getAccountDefault(Long user_id, String profileId) throws JsonProcessingException;
 
     ResponseEntity<?> searchAccount(String search);
 
-    ResponseEntity<?> modifyUserAccount(HttpServletRequest request,UserAccountDTO user);
+    ResponseEntity<?> modifyUserAccount(HttpServletRequest request, UserAccountDTO user);
 
     ResponseEntity<?> createNubbanAccountAuto();
 
-    ResponseEntity<?> ToggleAccount(HttpServletRequest request,AccountToggleDTO user);
+    ResponseEntity<?> ToggleAccount(HttpServletRequest request, AccountToggleDTO user);
 
     ResponseEntity<?> UserAccountAccess(AdminAccountRestrictionDTO user);
 
@@ -89,7 +94,7 @@ public interface UserAccountService {
 
     ApiResponse<?> fetchFilterTransaction(String acctNo, Date fromdate, Date todate);
 
-    ApiResponse<?> fetchRecentTransaction(Long user_id,String profileId);
+    ApiResponse<?> fetchRecentTransaction(Long user_id, String profileId);
 
     ResponseEntity<?> getListWalletAccount();
 
@@ -109,9 +114,9 @@ public interface UserAccountService {
 
     ResponseEntity<?> getListSimulatedAccount();
 
-    ResponseEntity<?> getUserAccountCount(Long userId,String profileId);
+    ResponseEntity<?> getUserAccountCount(Long userId, String profileId);
 
-    ResponseEntity<?> ListUserAccount(HttpServletRequest request,long userId);
+    ResponseEntity<?> ListUserAccount(HttpServletRequest request, long userId);
 
     ResponseEntity<?> AccountLookUp(String account, SecureDTO secureKey);
 
@@ -121,13 +126,13 @@ public interface UserAccountService {
 
     ResponseEntity<?> countInActiveAccount();
 
-    ResponseEntity<?> createDefaultWallet(HttpServletRequest request,MyData user, String token,String profileId);
+    ResponseEntity<?> createDefaultWallet(HttpServletRequest request, MyData user, String token, String profileId);
 
-    ResponseEntity<?> getCustomerDebitLimit(String userId,String profileId);
+    ResponseEntity<?> getCustomerDebitLimit(String userId, String profileId);
 
-    ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount,String profileId);
+    ResponseEntity<?> updateCustomerDebitLimit(String userId, BigDecimal amount, String profileId);
 
-    void securityCheck(long userId,String profileId);
+    void securityCheck(long userId, String profileId);
 
     ResponseEntity<?> createExternalAccount(String accountNumber);
 
@@ -141,21 +146,27 @@ public interface UserAccountService {
 
     ApiResponse<?> getAllAccounts(int page, int size, String filter, LocalDate fromdate, LocalDate todate);
 
-    ApiResponse<?> toggleTransactionType(HttpServletRequest request,long userId, String type, String token);
+    ApiResponse<?> toggleTransactionType(HttpServletRequest request, long userId, String type, String token);
 
     ApiResponse<?> transTypeStatus(long userId);
 
-    ApiResponse<?> totalTransactionByUserId(Long user_id, boolean filter, LocalDate fromdate, LocalDate todate,String profileId);
+    ApiResponse<?> totalTransactionByUserId(Long user_id, boolean filter, LocalDate fromdate, LocalDate todate, String profileId);
 
     ApiResponse<?> fetchAllUsersTransactionAnalysis();
 
-    ApiResponse<?> fetchUserTransactionStatForReferral(String user_id, String accountNo,String profileId);
+    ApiResponse<?> fetchUserTransactionStatForReferral(String user_id, String accountNo, String profileId);
 
     ResponseEntity<?> updateAccountDescription(String accountNo, String token, String description);
 
     ApiResponse<?> updateAccountName(String accountNo, String token, String name);
-    
-    ApiResponse<?> createCommisionAccount(long userId,String token,String profileId);
+
+    ApiResponse<?> createCommisionAccount(long userId, String token, String profileId);
 
     ApiResponse<?> updateBulkAmount(String accountNumber, String token, double limit);
+
+    WalletUser findUserWalletByEmailAndPhone(String email);
+
+    WalletUser findById(Long id);
+
+    WalletAccount findUserAccount(String accountNo);
 }

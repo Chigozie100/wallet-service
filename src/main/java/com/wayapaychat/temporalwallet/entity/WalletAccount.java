@@ -139,7 +139,14 @@ public class WalletAccount  implements Serializable {
 	private String notify_email;
 
 	private BigDecimal blockAmount;
-	
+
+	private boolean isVirtualAccount;
+
+	@Column(nullable = true)
+	private String bvn;
+
+	@Column(nullable = true)
+	private String nin;
 	@JsonIgnore
 	@ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="cif_id")  
@@ -256,5 +263,46 @@ public class WalletAccount  implements Serializable {
 	}
 
 
+	public WalletAccount(String sol_id, String bacid,String accountNo, String nubanAccountNo, String acct_name, WalletUser user, String gl_code,
+						 String product_code,String acct_ownership,String hashed_no, boolean int_paid_flg,boolean int_coll_flg,
+						 String rcre_user_id, LocalDate rcre_time,String acct_crncy_code,String product_type,
+						 boolean chq_alwd_flg, double cash_dr_limit, double xfer_dr_limit, double cash_cr_limit,
+						 double xfer_cr_limit, boolean walletDefault, String accountType, String description, boolean isVirtualAccount) {
+		super();
+		this.del_flg = false;
+		this.entity_cre_flg = true;
+		this.sol_id = sol_id;
+		this.bacid = bacid;
+		this.accountNo = accountNo;
+		this.nubanAccountNo = nubanAccountNo;
+		this.acct_name = acct_name;
+		this.gl_code = gl_code;
+		this.product_code = product_code;
+		this.acct_ownership = acct_ownership;
+		this.acct_opn_date = LocalDate.now();
+		this.acct_cls_flg = false;
+		this.clr_bal_amt = 0;
+		this.un_clr_bal_amt = 0;
+		this.hashed_no = hashed_no;
+		this.int_paid_flg = int_paid_flg;
+		this.int_coll_flg = int_coll_flg;
+		this.rcre_user_id = rcre_user_id;
+		this.rcre_time = rcre_time;
+		this.acct_crncy_code = acct_crncy_code;
+		this.lien_amt = 0;
+		this.product_type = product_type;
+		this.cum_dr_amt = 0;
+		this.cum_cr_amt = 0;
+		this.chq_alwd_flg = chq_alwd_flg;
+		this.cash_dr_limit = cash_dr_limit;
+		this.xfer_dr_limit = xfer_dr_limit;
+		this.cash_cr_limit = cash_cr_limit;
+		this.xfer_cr_limit = xfer_cr_limit;
+		this.user = user;
+		this.walletDefault = walletDefault;
+		this.accountType = accountType;
+		this.description = description;
+		this.isVirtualAccount = isVirtualAccount;
+	}
 
 }

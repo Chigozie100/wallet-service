@@ -15,6 +15,6 @@ public class AuthenticatedUserImpl implements AuthenticatedUserFacade {
         return SecurityContextHolder.getContext().getAuthentication();
     }
 
-    
+
 
 }

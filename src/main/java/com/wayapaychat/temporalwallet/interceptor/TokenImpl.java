@@ -82,6 +82,24 @@ public class TokenImpl {
 		}
 	}
 
+	public MyData getToken2() {
+
+		try {
+			HashMap<String, String> map = new HashMap();
+			map.put("emailOrPhoneNumber", environment.getProperty("waya.service.username"));
+			map.put("password", environment.getProperty("waya.service.password"));
+			map.put("otp", "");
+			String clientId = "WAYABANK";
+			String clientType = "ADMIN";
+
+			TokenCheckResponse tokenData = authProxy.getToken(map,clientId,clientType);
+			return tokenData.getData();
+		} catch (Exception ex) {
+			log.error("Unable to get system token :: {}", ex);
+			return null;
+		}
+	}
+
 	public boolean validatePIN(String token, String pin,String clientId,String clientType) {
 		try {
 			HashMap<String, String> map = new HashMap();
