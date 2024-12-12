@@ -48,9 +48,9 @@ spring:
     serialization:
       fail-on-empty-beans: false
   datasource:
-    url: jdbc:postgresql://localhost:55000/temporal-service
-    username: postgres
-    password: postgrespw
+    url: jdbc:postgresql://localhost:5432/wallet
+    username: your_user
+    password: root
     driver-class-name: org.postgresql.Driver
   hikari:
     minimumIdle: 2
